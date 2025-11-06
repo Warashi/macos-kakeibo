@@ -1,0 +1,17 @@
+# Build artefacts (see Makefile)
+/build/
+/DerivedData/
+
+# Xcode project generated via XcodeGen
+/Kakeibo.xcodeproj/
+
+# Info plists generated from project.yml
+/Info.plist
+/Tests/Info.plist
+
+# Xcode user state
+*.xccheckout
+*.xcuserdatad
+*.xcuserstate
+*.xcworkspace
+xcuserdata/
