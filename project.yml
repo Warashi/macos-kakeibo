@@ -1,0 +1,72 @@
+name: Kakeibo
+options:
+  bundleIdPrefix: dev.warashi
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+
+schemes:
+  Kakeibo:
+    build:
+      targets:
+        Kakeibo: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - KakeiboTests
+
+targets:
+  Kakeibo:
+    type: application
+    platform: macOS
+    sources:
+      - Sources
+      - path: Config/Assets.xcassets
+    entitlements:
+      path: Config/Kakeibo.entitlements
+    info:
+      path: Info.plist
+      properties:
+        CFBundleName: Kakeibo
+        CFBundleIdentifier: dev.warashi.Kakeibo
+        CFBundleExecutable: Kakeibo
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        NSPrincipalClass: NSApplication
+        NSHighResolutionCapable: true
+    settings:
+      base:
+        CODE_SIGN_STYLE: Manual
+        ENABLE_APP_SANDBOX: YES
+        SWIFT_VERSION: 6.2
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      configs:
+        Debug:
+          CODE_SIGN_IDENTITY: "-"
+          CODE_SIGNING_ALLOWED: NO
+          ENABLE_HARDENED_RUNTIME: NO
+          SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+          GCC_OPTIMIZATION_LEVEL: "0"
+          ONLY_ACTIVE_ARCH: YES
+        Release:
+          CODE_SIGNING_ALLOWED: YES
+          ENABLE_HARDENED_RUNTIME: YES
+          SWIFT_OPTIMIZATION_LEVEL: "-O"
+          GCC_OPTIMIZATION_LEVEL: "s"
+          SWIFT_COMPILATION_MODE: wholemodule
+  KakeiboTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests
+    dependencies:
+      - target: Kakeibo
+    info:
+      path: Tests/Info.plist
+      properties:
+        CFBundleIdentifier: dev.warashi.Kakeibo.tests
+        CFBundleName: KakeiboTests
+        CFBundlePackageType: BNDL
