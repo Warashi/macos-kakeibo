@@ -1,0 +1,22 @@
+--swiftversion 6.2
+--indent 4
+--maxwidth 120
+--symlinks ignore
+--wraparguments before-first
+--wrapcollections before-first
+--stripunusedargs closure-only
+--self insert
+--trailing-commas always
+--semicolons never
+--trimwhitespace always
+--enable trailingClosures
+--guardelse same-line
+--disable wrapMultilineStatementBraces
+--xcode-indentation enabled
+--hexgrouping 4,8
+--ifdef no-indent
+--patternlet hoist
+--typeattributes prev-line
+--importgrouping alpha
+--fragment true
+--disable redundantInternal, redundantType

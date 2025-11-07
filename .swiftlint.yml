@@ -1,0 +1,139 @@
+# 目的: 警告ゼロ。違反はすべて失敗。新規開発で妥協しない。
+strict: true
+lenient: false
+reporter: xcode
+
+disabled_rules:
+  # SwiftFormat が整形する領域
+  - colon
+  - comma
+  - literal_expression_end_indentation
+  - opening_brace
+  - operator_usage_whitespace
+  - sorted_imports
+  - switch_case_alignment
+  - trailing_comma
+  - trailing_whitespace
+  - vertical_whitespace
+
+opt_in_rules:
+  - empty_count
+  - enum_case_associated_values_count
+  - explicit_acl
+  - explicit_init
+  - explicit_top_level_acl
+  - explicit_type_interface
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - missing_docs
+  - private_action
+  - private_outlet
+  - test_case_accessibility
+  - weak_delegate
+  - xct_specific_matcher
+
+analyzer_rules:
+  - capture_variable
+  - unused_import
+  - unused_declaration
+
+included:
+  - Sources
+  - Apps
+  - Tests
+excluded:
+  - Carthage
+  - Pods
+  - DerivedData
+  - .build
+  - Vendor
+  - Scripts
+
+# ❗️重要ルール：クラッシュ系/設計事故を封じる
+force_cast: { severity: error }
+force_try: { severity: error }
+force_unwrapping: { severity: error }
+
+# ❗️API/可視性を明示
+explicit_acl: { severity: error }               # すべての型/メンバにアクセスレベル明示
+explicit_top_level_acl: { severity: error }     # top-level も明示
+explicit_type_interface:
+  severity: error
+  excluded:
+    - local
+explicit_init: { severity: error }
+
+# ❗️ドキュメント必須（公開 API）
+missing_docs:
+  severity: error
+  excludes_extensions: false
+  include:
+    - public
+
+# ❗️未使用/冗長の排除
+unused_import: { severity: error }
+unused_declaration:
+  severity: error
+  include_public_and_open: false
+implicit_optional_initialization: { severity: error }
+redundant_string_enum_value: { severity: error }
+
+# ❗️命名/一貫性（短すぎ/長すぎ・略称禁止）
+identifier_name:
+  min_length:
+    error: 3
+  max_length:
+    error: 40
+  validates_start_with_lowercase: error
+  allowed_symbols: []
+type_name:
+  min_length:
+    error: 3
+  max_length:
+    error: 40
+  validates_start_with_lowercase: error
+  allowed_symbols: []
+enum_case_associated_values_count:
+  warning: 3
+  error: 5
+
+# ❗️複雑度/巨大化の抑制（厳しめ）
+cyclomatic_complexity: { warning: 8, error: 12 }
+function_body_length: { warning: 60, error: 100 }
+type_body_length: { warning: 200, error: 350 }
+file_length:
+  warning: 400
+  error: 700
+  ignore_comment_only_lines: true
+function_parameter_count: { warning: 4, error: 6 }
+nesting:
+  type_level:
+    error: 2          # ネスト型の深さ
+  function_level:
+    error: 4          # if/switch などの深さ
+  check_nesting_in_closures_and_statements: true
+
+# ❗️スタイル（自動整形と一致するよう厳格）
+empty_count: { severity: error } # .isEmpty を強制
+# ※その他の整形は SwiftFormat に委譲（disabled_rules 参照）
+
+# ❗️安全性/明確性
+implicitly_unwrapped_optional: { severity: error }
+private_action: { severity: error }
+private_outlet: { severity: error }
+discouraged_direct_init: { severity: error } # DateFormatter/Calendarなどの直接init抑止
+weak_delegate: { severity: error }
+capture_variable: { severity: error } # クロージャのキャプチャ注意（Analyzer必要な場合あり）
+
+# ❗️Tests も厳格（必要なら緩めても可）
+test_case_accessibility: { severity: error }
+xct_specific_matcher: { severity: error }
+
+# ❗️しきい値（行長など）
+line_length:
+  warning: 120
+  error: 140
+  ignores_comments: false
+  ignores_urls: true
+
+# ❗️SwiftLint の未カバー領域は SwiftFormat 側で拘束（下記参照）
