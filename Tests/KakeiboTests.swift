@@ -7,6 +7,7 @@ struct KakeiboTests {
     @Test("ContentView can be initialized")
     func contentViewInitialization() {
         let view = ContentView()
-        #expect(view.body != nil)
+        // ViewがSwiftUIのView protocolに準拠していることを確認
+        let _: any View = view
     }
 }
