@@ -1,6 +1,6 @@
-import Testing
-import SwiftUI
 @testable import Kakeibo
+import SwiftUI
+import Testing
 
 @Suite("Kakeibo Tests")
 struct KakeiboTests {
