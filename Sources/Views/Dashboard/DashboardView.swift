@@ -12,14 +12,11 @@ internal struct DashboardView: View {
     internal init() {
         // StateはinitではなくbodyのonAppearで初期化する必要がある
         // 一時的にダミー値を設定
-        let container = try? ModelContainer(for: Transaction.self)
-        let context = container?.mainContext ?? ModelContext(
-            ModelContainer(
-                for: Transaction.self,
-                configurations: ModelConfiguration(isStoredInMemoryOnly: true),
-            ),
+        let container = try! ModelContainer(
+            for: Transaction.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
-        _store = State(initialValue: DashboardStore(modelContext: context))
+        _store = State(initialValue: DashboardStore(modelContext: container.mainContext))
     }
 
     internal var body: some View {
