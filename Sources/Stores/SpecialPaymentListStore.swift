@@ -177,8 +177,11 @@ internal struct SpecialPaymentListEntry: Identifiable, Sendable {
     /// 名称
     internal let name: String
 
-    /// カテゴリ
-    internal let category: Category?
+    /// カテゴリID
+    internal let categoryId: UUID?
+
+    /// カテゴリ名
+    internal let categoryName: String?
 
     /// 予定日
     internal let scheduledDate: Date
@@ -201,8 +204,8 @@ internal struct SpecialPaymentListEntry: Identifiable, Sendable {
     /// 残日数
     internal let daysUntilDue: Int
 
-    /// 紐付けられた取引
-    internal let transaction: Transaction?
+    /// 紐付けられた取引ID
+    internal let transactionId: UUID?
 
     /// 差異アラート
     internal let hasDiscrepancy: Bool
@@ -232,7 +235,8 @@ internal struct SpecialPaymentListEntry: Identifiable, Sendable {
         id: UUID,
         definitionId: UUID,
         name: String,
-        category: Category?,
+        categoryId: UUID?,
+        categoryName: String?,
         scheduledDate: Date,
         expectedAmount: Decimal,
         actualAmount: Decimal?,
@@ -240,13 +244,14 @@ internal struct SpecialPaymentListEntry: Identifiable, Sendable {
         savingsBalance: Decimal,
         savingsProgress: Double,
         daysUntilDue: Int,
-        transaction: Transaction?,
+        transactionId: UUID?,
         hasDiscrepancy: Bool,
     ) {
         self.id = id
         self.definitionId = definitionId
         self.name = name
-        self.category = category
+        self.categoryId = categoryId
+        self.categoryName = categoryName
         self.scheduledDate = scheduledDate
         self.expectedAmount = expectedAmount
         self.actualAmount = actualAmount
@@ -254,7 +259,7 @@ internal struct SpecialPaymentListEntry: Identifiable, Sendable {
         self.savingsBalance = savingsBalance
         self.savingsProgress = savingsProgress
         self.daysUntilDue = daysUntilDue
-        self.transaction = transaction
+        self.transactionId = transactionId
         self.hasDiscrepancy = hasDiscrepancy
     }
 }
@@ -306,7 +311,8 @@ internal extension SpecialPaymentListEntry {
             id: occurrence.id,
             definitionId: definition.id,
             name: definition.name,
-            category: definition.category,
+            categoryId: definition.category?.id,
+            categoryName: definition.category?.fullName,
             scheduledDate: occurrence.scheduledDate,
             expectedAmount: occurrence.expectedAmount,
             actualAmount: occurrence.actualAmount,
@@ -314,7 +320,7 @@ internal extension SpecialPaymentListEntry {
             savingsBalance: savingsBalance,
             savingsProgress: savingsProgress,
             daysUntilDue: daysUntilDue,
-            transaction: occurrence.transaction,
+            transactionId: occurrence.transaction?.id,
             hasDiscrepancy: hasDiscrepancy,
         )
     }
