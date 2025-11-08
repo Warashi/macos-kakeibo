@@ -321,10 +321,7 @@ internal struct SpecialPaymentBalanceServiceTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
-        // 定義の作成日を2025年1月に設定
         let definition = sampleDefinition()
-        let createdDate = Date.from(year: 2025, month: 1) ?? Date()
-        // createdAtを直接設定することができないため、この部分は簡易的に実装
 
         let balance = SpecialPaymentSavingBalance(
             definition: definition,
@@ -362,12 +359,14 @@ internal struct SpecialPaymentBalanceServiceTests {
         context.insert(balance)
         definition.occurrences = [occurrence1, occurrence2, occurrence3]
 
-        // When: 2025年11月時点での再計算
+        // When: 2025年11月時点での再計算（積立開始は2025年1月）
         service.recalculateBalance(
             for: definition,
             balance: balance,
             year: 2025,
             month: 11,
+            startYear: 2025,
+            startMonth: 1,
             context: context,
         )
 

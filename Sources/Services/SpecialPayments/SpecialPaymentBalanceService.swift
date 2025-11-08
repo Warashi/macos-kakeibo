@@ -128,12 +128,16 @@ internal struct SpecialPaymentBalanceService: Sendable {
     ///   - balance: 積立残高
     ///   - year: 現在の年
     ///   - month: 現在の月
+    ///   - startYear: 積立開始年（nilの場合は定義の作成日から計算）
+    ///   - startMonth: 積立開始月（nilの場合は定義の作成日から計算）
     ///   - context: ModelContext
     internal func recalculateBalance(
         for definition: SpecialPaymentDefinition,
         balance: SpecialPaymentSavingBalance,
         year: Int,
         month: Int,
+        startYear: Int? = nil,
+        startMonth: Int? = nil,
         context: ModelContext,
     ) {
         // 完了済みのoccurrenceから累計支払額を計算
@@ -142,15 +146,24 @@ internal struct SpecialPaymentBalanceService: Sendable {
             sum.safeAdd(occurrence.actualAmount ?? 0)
         }
 
-        // 現在の年月から積立月数を推定（簡易的な実装）
-        // 実際の積立月数は、定義の作成日から現在までの月数を計算する必要がある
-        let createdDate = definition.createdAt
-        let createdYear = Calendar.current.component(.year, from: createdDate)
-        let createdMonth = Calendar.current.component(.month, from: createdDate)
+        // 積立開始年月を決定
+        let savingsStartYear: Int
+        let savingsStartMonth: Int
+
+        if let startYear, let startMonth {
+            // 明示的に指定された開始年月を使用
+            savingsStartYear = startYear
+            savingsStartMonth = startMonth
+        } else {
+            // 定義の作成日から計算
+            let createdDate = definition.createdAt
+            savingsStartYear = Calendar.current.component(.year, from: createdDate)
+            savingsStartMonth = Calendar.current.component(.month, from: createdDate)
+        }
 
         let monthsElapsed = calculateMonthsElapsed(
-            fromYear: createdYear,
-            fromMonth: createdMonth,
+            fromYear: savingsStartYear,
+            fromMonth: savingsStartMonth,
             toYear: year,
             toMonth: month,
         )
