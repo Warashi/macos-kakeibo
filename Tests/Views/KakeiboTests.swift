@@ -30,6 +30,7 @@ internal struct KakeiboTests {
     internal func csvImportViewInitialization() {
         let view = CSVImportView()
         let _: any View = view
+    }
 
     @Test("SettingsView can be initialized with ModelContext")
     internal func settingsViewInitialization() throws {
