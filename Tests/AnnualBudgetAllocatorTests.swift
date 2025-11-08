@@ -37,8 +37,43 @@ internal struct AnnualBudgetAllocatorTests {
         // Then
         #expect(result.year == 2025)
         #expect(result.totalAmount == 500_000)
-        #expect(result.usedAmount >= 0)
-        #expect(result.remainingAmount >= 0)
+        #expect(result.usedAmount == 50_000)
+        #expect(result.remainingAmount == 450_000)
+        #expect(result.usageRate == 0.1)
+    }
+
+    @Test("月次充当計算：年次特別枠使用状況が正しく計算される")
+    internal func monthlyAllocation_includesAnnualUsage() throws {
+        // Given
+        let category = Category(name: "食費", allowsAnnualBudget: true)
+        let transactions = [
+            createTransaction(amount: -80000, category: category),
+        ]
+        let budgets = [
+            Budget(amount: 50000, category: category, year: 2025, month: 11),
+        ]
+        let config = AnnualBudgetConfig(
+            year: 2025,
+            totalAmount: 500_000,
+            policy: .automatic,
+        )
+
+        let params = AllocationCalculationParams(
+            transactions: transactions,
+            budgets: budgets,
+            annualBudgetConfig: config,
+        )
+
+        // When
+        let result = allocator.calculateMonthlyAllocation(
+            params: params,
+            year: 2025,
+            month: 11,
+        )
+
+        // Then
+        #expect(result.annualBudgetUsage.usedAmount == 30_000)
+        #expect(result.annualBudgetUsage.remainingAmount == 470_000)
     }
 
     @Test("年次特別枠使用状況計算：無効")

@@ -133,14 +133,15 @@ internal struct AnnualBudgetAllocator: Sendable {
         var totalUsed: Decimal = 0
 
         for month in 1 ... endMonth {
-            let monthlyAllocation = calculateMonthlyAllocation(
+            let monthlyCategoryAllocations = calculateCategoryAllocations(
                 params: params,
                 year: year,
                 month: month,
+                policy: policy,
             )
 
             // カテゴリ別充当額の合計を加算
-            let monthlyUsed = monthlyAllocation.categoryAllocations
+            let monthlyUsed = monthlyCategoryAllocations
                 .reduce(Decimal.zero) { $0 + $1.allocatableAmount }
             totalUsed += monthlyUsed
         }
@@ -175,6 +176,33 @@ internal struct AnnualBudgetAllocator: Sendable {
     ) -> MonthlyAllocation {
         let policy = params.annualBudgetConfig.policy
 
+        let categoryAllocations = calculateCategoryAllocations(
+            params: params,
+            year: year,
+            month: month,
+            policy: policy,
+        )
+
+        // 年次特別枠の使用状況を計算（この月まで）
+        let annualBudgetUsage = calculateAnnualBudgetUsage(
+            params: params,
+            upToMonth: month,
+        )
+
+        return MonthlyAllocation(
+            year: year,
+            month: month,
+            annualBudgetUsage: annualBudgetUsage,
+            categoryAllocations: categoryAllocations,
+        )
+    }
+
+    private func calculateCategoryAllocations(
+        params: AllocationCalculationParams,
+        year: Int,
+        month: Int,
+        policy: AnnualBudgetPolicy,
+    ) -> [CategoryAllocation] {
         // 月次集計を取得
         let monthlySummary = aggregator.aggregateMonthly(
             transactions: params.transactions,
@@ -189,7 +217,7 @@ internal struct AnnualBudgetAllocator: Sendable {
         }
 
         // カテゴリ別予算がある場合のみ処理
-        let categoryAllocations: [CategoryAllocation] = if policy == .disabled {
+        return if policy == .disabled {
             // 無効の場合は充当なし
             []
         } else {
@@ -231,18 +259,5 @@ internal struct AnnualBudgetAllocator: Sendable {
                 )
             }
         }
-
-        // 年次特別枠の使用状況を計算（この月まで）
-        let annualBudgetUsage = calculateAnnualBudgetUsage(
-            params: params,
-            upToMonth: month,
-        )
-
-        return MonthlyAllocation(
-            year: year,
-            month: month,
-            annualBudgetUsage: annualBudgetUsage,
-            categoryAllocations: categoryAllocations,
-        )
     }
 }
