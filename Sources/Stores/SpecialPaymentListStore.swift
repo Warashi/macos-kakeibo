@@ -39,8 +39,11 @@ internal final class SpecialPaymentListStore {
 
         // デフォルト期間：当月〜6ヶ月後
         let now = Date()
-        self.startDate = Calendar.current.startOfMonth(for: now) ?? now
-        self.endDate = Calendar.current.date(byAdding: .month, value: 6, to: startDate) ?? now
+        let start = Calendar.current.startOfMonth(for: now) ?? now
+        let end = Calendar.current.date(byAdding: .month, value: 6, to: start) ?? now
+
+        self.startDate = start
+        self.endDate = end
     }
 
     // MARK: - Sort Order
@@ -124,8 +127,11 @@ internal final class SpecialPaymentListStore {
         selectedStatus = nil
 
         let now = Date()
-        startDate = Calendar.current.startOfMonth(for: now) ?? now
-        endDate = Calendar.current.date(byAdding: .month, value: 6, to: startDate) ?? now
+        let start = Calendar.current.startOfMonth(for: now) ?? now
+        let end = Calendar.current.date(byAdding: .month, value: 6, to: start) ?? now
+
+        startDate = start
+        endDate = end
     }
 
     /// ソート順を切り替え
