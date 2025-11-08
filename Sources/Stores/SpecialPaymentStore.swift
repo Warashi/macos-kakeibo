@@ -2,7 +2,7 @@ import Foundation
 import Observation
 import SwiftData
 
-internal enum SpecialPaymentStoreError: Error {
+internal enum SpecialPaymentStoreError: Error, Equatable {
     case invalidRecurrence
     case invalidHorizon
     case validationFailed([String])
