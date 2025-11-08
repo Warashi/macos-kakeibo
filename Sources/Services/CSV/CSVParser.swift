@@ -1,17 +1,15 @@
 import Foundation
+import TabularData
 
 /// CSV文字列を解析して構造化データに変換するパーサ
 internal struct CSVParser {
     internal enum ParseError: Error, LocalizedError {
-        case invalidData
-        case unterminatedQuotedField(line: Int)
+        case invalidStringEncoding
 
         internal var errorDescription: String? {
             switch self {
-            case .invalidData:
+            case .invalidStringEncoding:
                 return "CSVファイルを指定の文字コードで読み込めませんでした。"
-            case .unterminatedQuotedField(let line):
-                return "行\(line)のダブルクオートが正しく閉じられていません。"
             }
         }
     }
@@ -19,94 +17,82 @@ internal struct CSVParser {
     /// Dataを受け取ってCSVを解析
     /// - Parameters:
     ///   - data: CSVデータ
-    ///   - encoding: 文字コード
-    ///   - delimiter: 区切り文字
+    ///   - configuration: 解析設定
     /// - Returns: CSVドキュメント
     internal func parse(
         data: Data,
-        encoding: String.Encoding = AppConstants.CSV.encoding,
-        delimiter: Character = AppConstants.CSV.delimiter.first ?? ","
+        configuration: CSVImportConfiguration = .init()
     ) throws -> CSVDocument {
-        guard let string = String(data: data, encoding: encoding) else {
-            throw ParseError.invalidData
+        guard let string = String(data: data, encoding: configuration.encoding) else {
+            throw ParseError.invalidStringEncoding
         }
-        return try parse(string: string, delimiter: delimiter)
+        return try parse(string: string, configuration: configuration)
     }
 
     /// 文字列を解析してCSVドキュメントを生成
     /// - Parameters:
     ///   - string: CSV文字列
-    ///   - delimiter: 区切り文字
+    ///   - configuration: 解析設定
     /// - Returns: CSVドキュメント
     internal func parse(
         string: String,
-        delimiter: Character = AppConstants.CSV.delimiter.first ?? ","
+        configuration: CSVImportConfiguration = .init()
     ) throws -> CSVDocument {
+        guard let normalizedData = string.data(using: .utf8) else {
+            throw ParseError.invalidStringEncoding
+        }
+        return try parseNormalizedData(
+            normalizedData,
+            delimiter: configuration.delimiter
+        )
+    }
+
+    private func parseNormalizedData(
+        _ data: Data,
+        delimiter: Character
+    ) throws -> CSVDocument {
+        let options = CSVReadingOptions(
+            hasHeaderRow: false,
+            delimiter: delimiter
+        )
+        let dataFrame = try DataFrame(csvData: data, options: options)
+        let rows = buildRows(from: dataFrame)
+        return CSVDocument(rows: rows)
+    }
+
+    private func buildRows(from dataFrame: DataFrame) -> [CSVRow] {
+        let columns = dataFrame.columns
+        guard !columns.isEmpty else { return [] }
+
         var rows: [CSVRow] = []
-        var currentRow: [String] = []
-        var currentField = ""
-        var inQuotes = false
-        var index = string.startIndex
+        rows.reserveCapacity(dataFrame.rows.count)
 
-        func appendField() {
-            currentRow.append(currentField)
-            currentField.removeAll(keepingCapacity: true)
-        }
+        for rowIndex in 0 ..< dataFrame.rows.count {
+            let row = dataFrame.rows[rowIndex]
+            var values: [String] = []
+            values.reserveCapacity(columns.count)
 
-        func appendRowIfNeeded() {
-            guard !currentRow.isEmpty else { return }
-            rows.append(CSVRow(index: rows.count, values: currentRow))
-            currentRow.removeAll(keepingCapacity: true)
-        }
-
-        while index < string.endIndex {
-            let character = string[index]
-
-            if inQuotes {
-                if character == "\"" {
-                    let next = string.index(after: index)
-                    if next < string.endIndex, string[next] == "\"" {
-                        currentField.append("\"")
-                        index = next
-                    } else {
-                        inQuotes = false
-                    }
-                } else {
-                    currentField.append(character)
-                }
-            } else {
-                if character == "\"" {
-                    inQuotes = true
-                } else if character == delimiter {
-                    appendField()
-                } else if character == "\n" {
-                    appendField()
-                    appendRowIfNeeded()
-                } else if character == "\r" {
-                    let next = string.index(after: index)
-                    if next < string.endIndex, string[next] == "\n" {
-                        index = next
-                    }
-                    appendField()
-                    appendRowIfNeeded()
-                } else {
-                    currentField.append(character)
-                }
+            for column in columns {
+                values.append(stringValue(from: row[column.name]))
             }
 
-            index = string.index(after: index)
+            rows.append(CSVRow(index: rowIndex, values: values))
         }
 
-        if inQuotes {
-            throw ParseError.unterminatedQuotedField(line: rows.count + 1)
+        return rows
+    }
+
+    private func stringValue(from value: Any?) -> String {
+        guard let value else { return "" }
+
+        if let string = value as? String {
+            return string
         }
 
-        // 最終行を追加（末尾に改行がない場合）
-        if !currentField.isEmpty || !currentRow.isEmpty {
-            appendField()
-            appendRowIfNeeded()
+        if let convertible = value as? CustomStringConvertible {
+            return convertible.description
         }
 
-        return CSVDocument(rows: rows)
+        return String(describing: value)
     }
 }

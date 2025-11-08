@@ -32,7 +32,7 @@ internal struct CSVParserTests {
     @Test("クオートが閉じられていない場合はエラー")
     internal func detectUnterminatedQuote() {
         let csv = "日付,内容\n2024/01/01,\"ランチ"
-        #expect(throws: CSVParser.ParseError.self) {
+        #expect(throws: Error.self) {
             _ = try parser.parse(string: csv)
         }
     }

@@ -154,8 +154,7 @@ internal final class ImportStore {
             let data = try Data(contentsOf: url)
             let document = try parser.parse(
                 data: data,
-                encoding: configuration.encoding,
-                delimiter: configuration.delimiter
+                configuration: configuration
             )
             applyDocument(document, fileName: url.lastPathComponent)
             statusMessage = "\(url.lastPathComponent) を読み込みました"
