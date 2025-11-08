@@ -133,6 +133,49 @@ internal final class SpecialPaymentStore {
         )
     }
 
+    /// Occurrenceの実績データとステータスを更新
+    /// - Parameters:
+    ///   - occurrence: 更新対象のOccurrence
+    ///   - status: 新しいステータス
+    ///   - actualDate: 実績日（nilの場合はクリア）
+    ///   - actualAmount: 実績金額（nilの場合はクリア）
+    ///   - transaction: 紐付けるTransaction（nilの場合はクリア）
+    ///   - horizonMonths: スケジュール生成期間
+    internal func updateOccurrence(
+        _ occurrence: SpecialPaymentOccurrence,
+        status: SpecialPaymentStatus,
+        actualDate: Date?,
+        actualAmount: Decimal?,
+        transaction: Transaction?,
+        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
+    ) throws {
+        let now = currentDateProvider()
+        let wasCompleted = occurrence.status == .completed
+        let willBeCompleted = status == .completed
+
+        occurrence.status = status
+        occurrence.actualDate = actualDate
+        occurrence.actualAmount = actualAmount
+        occurrence.transaction = transaction
+        occurrence.updatedAt = now
+
+        let errors = occurrence.validate()
+        guard errors.isEmpty else {
+            throw SpecialPaymentStoreError.validationFailed(errors)
+        }
+
+        try modelContext.save()
+
+        let shouldResync = wasCompleted != willBeCompleted
+        if shouldResync {
+            try synchronizeOccurrences(
+                for: occurrence.definition,
+                horizonMonths: horizonMonths,
+                referenceDate: now,
+            )
+        }
+    }
+
     // MARK: - CRUD Operations
 
     /// 特別支払い定義を作成
@@ -235,7 +278,7 @@ internal final class SpecialPaymentStore {
     private func nextSeedDate(for definition: SpecialPaymentDefinition) -> Date {
         let latestCompleted = definition.occurrences
             .filter { $0.status == .completed }
-            .compactMap { $0.actualDate ?? $0.scheduledDate }
+            .map(\.scheduledDate)
             .max()
 
         guard let latestCompleted else {

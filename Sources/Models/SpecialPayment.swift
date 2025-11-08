@@ -265,6 +265,19 @@ internal extension SpecialPaymentOccurrence {
             errors.append("実績金額は1円以上を設定してください")
         }
 
+        if let actualDate {
+            let calendar = Calendar(identifier: .gregorian)
+            let daysDifference = calendar.dateComponents(
+                [.day],
+                from: scheduledDate,
+                to: actualDate,
+            ).day ?? 0
+
+            if abs(daysDifference) > 90 {
+                errors.append("実績日が予定日から90日以上ずれています（\(daysDifference)日）")
+            }
+        }
+
         return errors
     }
 
