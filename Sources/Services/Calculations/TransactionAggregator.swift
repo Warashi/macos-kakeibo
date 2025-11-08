@@ -3,26 +3,26 @@ import Foundation
 // MARK: - 集計結果型
 
 /// カテゴリ別集計結果
-public struct CategorySummary: Sendable {
+internal struct CategorySummary: Sendable {
     /// カテゴリ名
-    public let categoryName: String
+    internal let categoryName: String
 
     /// カテゴリID
-    public let categoryId: UUID?
+    internal let categoryId: UUID?
 
     /// 収入合計
-    public let totalIncome: Decimal
+    internal let totalIncome: Decimal
 
     /// 支出合計
-    public let totalExpense: Decimal
+    internal let totalExpense: Decimal
 
     /// 差引（収入 - 支出）
-    public let net: Decimal
+    internal let net: Decimal
 
     /// 取引件数
-    public let transactionCount: Int
+    internal let transactionCount: Int
 
-    public init(
+    internal init(
         categoryName: String,
         categoryId: UUID? = nil,
         totalIncome: Decimal,
@@ -40,106 +40,70 @@ public struct CategorySummary: Sendable {
 }
 
 /// 月次集計結果
-public struct MonthlySummary: Sendable {
+internal struct MonthlySummary: Sendable {
     /// 対象年
-    public let year: Int
+    internal let year: Int
 
     /// 対象月
-    public let month: Int
+    internal let month: Int
 
     /// 収入合計
-    public let totalIncome: Decimal
+    internal let totalIncome: Decimal
 
     /// 支出合計
-    public let totalExpense: Decimal
+    internal let totalExpense: Decimal
 
     /// 差引（収入 - 支出）
-    public let net: Decimal
+    internal let net: Decimal
 
     /// 取引件数
-    public let transactionCount: Int
+    internal let transactionCount: Int
 
     /// カテゴリ別集計
-    public let categorySummaries: [CategorySummary]
-
-    public init(
-        year: Int,
-        month: Int,
-        totalIncome: Decimal,
-        totalExpense: Decimal,
-        net: Decimal,
-        transactionCount: Int,
-        categorySummaries: [CategorySummary],
-    ) {
-        self.year = year
-        self.month = month
-        self.totalIncome = totalIncome
-        self.totalExpense = totalExpense
-        self.net = net
-        self.transactionCount = transactionCount
-        self.categorySummaries = categorySummaries
-    }
+    internal let categorySummaries: [CategorySummary]
 }
 
 /// 年次集計結果
-public struct AnnualSummary: Sendable {
+internal struct AnnualSummary: Sendable {
     /// 対象年
-    public let year: Int
+    internal let year: Int
 
     /// 収入合計
-    public let totalIncome: Decimal
+    internal let totalIncome: Decimal
 
     /// 支出合計
-    public let totalExpense: Decimal
+    internal let totalExpense: Decimal
 
     /// 差引（収入 - 支出）
-    public let net: Decimal
+    internal let net: Decimal
 
     /// 取引件数
-    public let transactionCount: Int
+    internal let transactionCount: Int
 
     /// カテゴリ別集計
-    public let categorySummaries: [CategorySummary]
+    internal let categorySummaries: [CategorySummary]
 
     /// 月別集計
-    public let monthlySummaries: [MonthlySummary]
-
-    public init(
-        year: Int,
-        totalIncome: Decimal,
-        totalExpense: Decimal,
-        net: Decimal,
-        transactionCount: Int,
-        categorySummaries: [CategorySummary],
-        monthlySummaries: [MonthlySummary],
-    ) {
-        self.year = year
-        self.totalIncome = totalIncome
-        self.totalExpense = totalExpense
-        self.net = net
-        self.transactionCount = transactionCount
-        self.categorySummaries = categorySummaries
-        self.monthlySummaries = monthlySummaries
-    }
+    internal let monthlySummaries: [MonthlySummary]
 }
 
 // MARK: - フィルタオプション
 
 /// 集計フィルタオプション
-public struct AggregationFilter: Sendable {
+internal struct AggregationFilter: Sendable {
     /// 計算対象のみを含める
-    public let includeOnlyCalculationTarget: Bool
+    internal let includeOnlyCalculationTarget: Bool
 
     /// 振替を除外する
-    public let excludeTransfers: Bool
+    internal let excludeTransfers: Bool
 
     /// 金融機関IDでフィルタ（nilの場合はすべて）
-    public let financialInstitutionId: UUID?
+    internal let financialInstitutionId: UUID?
 
     /// カテゴリIDでフィルタ（nilの場合はすべて）
-    public let categoryId: UUID?
+    internal let categoryId: UUID?
 
-    public init(
+    internal init(
         includeOnlyCalculationTarget: Bool = true,
         excludeTransfers: Bool = true,
         financialInstitutionId: UUID? = nil,
@@ -152,7 +116,7 @@ public struct AggregationFilter: Sendable {
     }
 
     /// デフォルトフィルタ（計算対象のみ、振替除外）
-    public static let `default`: AggregationFilter = AggregationFilter()
+    internal static let `default`: AggregationFilter = AggregationFilter()
 }
 
 // MARK: - TransactionAggregator
@@ -164,9 +128,7 @@ public struct AggregationFilter: Sendable {
 /// - カテゴリ別集計
 /// - 計算対象フィルタリング
 /// - 振替除外処理
-public struct TransactionAggregator: Sendable {
-    public init() {}
-
+internal struct TransactionAggregator: Sendable {
     /// 月次集計を実行
     /// - Parameters:
     ///   - transactions: 集計対象の取引リスト
@@ -174,7 +136,7 @@ public struct TransactionAggregator: Sendable {
     ///   - month: 対象月
     ///   - filter: フィルタオプション
     /// - Returns: 月次集計結果
-    public func aggregateMonthly(
+    internal func aggregateMonthly(
         transactions: [Transaction],
         year: Int,
         month: Int,
@@ -220,7 +182,7 @@ public struct TransactionAggregator: Sendable {
     ///   - year: 対象年
     ///   - filter: フィルタオプション
     /// - Returns: 年次集計結果
-    public func aggregateAnnually(
+    internal func aggregateAnnually(
         transactions: [Transaction],
         year: Int,
         filter: AggregationFilter = .default,
@@ -271,7 +233,7 @@ public struct TransactionAggregator: Sendable {
     /// カテゴリ別集計を実行
     /// - Parameter transactions: 集計対象の取引リスト
     /// - Returns: カテゴリ別集計結果のリスト
-    public func aggregateByCategory(
+    internal func aggregateByCategory(
         transactions: [Transaction],
     ) -> [CategorySummary] {
         // カテゴリごとにグループ化

@@ -3,123 +3,79 @@ import Foundation
 // MARK: - 年次特別枠計算結果型
 
 /// 年次特別枠の使用状況
-public struct AnnualBudgetUsage: Sendable {
+internal struct AnnualBudgetUsage: Sendable {
     /// 対象年
-    public let year: Int
+    internal let year: Int
 
     /// 年次特別枠総額
-    public let totalAmount: Decimal
+    internal let totalAmount: Decimal
 
     /// 使用済み金額
-    public let usedAmount: Decimal
+    internal let usedAmount: Decimal
 
     /// 残額
-    public let remainingAmount: Decimal
+    internal let remainingAmount: Decimal
 
     /// 使用率（0.0 〜 1.0）
-    public let usageRate: Double
-
-    public init(
-        year: Int,
-        totalAmount: Decimal,
-        usedAmount: Decimal,
-        remainingAmount: Decimal,
-        usageRate: Double,
-    ) {
-        self.year = year
-        self.totalAmount = totalAmount
-        self.usedAmount = usedAmount
-        self.remainingAmount = remainingAmount
-        self.usageRate = usageRate
-    }
+    internal let usageRate: Double
 }
 
 /// カテゴリ別年次特別枠充当結果
-public struct CategoryAllocation: Sendable {
+internal struct CategoryAllocation: Sendable {
     /// カテゴリID
-    public let categoryId: UUID
+    internal let categoryId: UUID
 
     /// カテゴリ名
-    public let categoryName: String
+    internal let categoryName: String
 
     /// 月次予算額
-    public let monthlyBudgetAmount: Decimal
+    internal let monthlyBudgetAmount: Decimal
 
     /// 実績額（支出）
-    public let actualAmount: Decimal
+    internal let actualAmount: Decimal
 
     /// 予算超過額
-    public let excessAmount: Decimal
+    internal let excessAmount: Decimal
 
     /// 年次特別枠から充当可能な金額
-    public let allocatableAmount: Decimal
+    internal let allocatableAmount: Decimal
 
     /// 充当後の残額
-    public let remainingAfterAllocation: Decimal
-
-    public init(
-        categoryId: UUID,
-        categoryName: String,
-        monthlyBudgetAmount: Decimal,
-        actualAmount: Decimal,
-        excessAmount: Decimal,
-        allocatableAmount: Decimal,
-        remainingAfterAllocation: Decimal,
-    ) {
-        self.categoryId = categoryId
-        self.categoryName = categoryName
-        self.monthlyBudgetAmount = monthlyBudgetAmount
-        self.actualAmount = actualAmount
-        self.excessAmount = excessAmount
-        self.allocatableAmount = allocatableAmount
-        self.remainingAfterAllocation = remainingAfterAllocation
-    }
+    internal let remainingAfterAllocation: Decimal
 }
 
 /// 月次の年次特別枠充当結果
-public struct MonthlyAllocation: Sendable {
+internal struct MonthlyAllocation: Sendable {
     /// 対象年
-    public let year: Int
+    internal let year: Int
 
     /// 対象月
-    public let month: Int
+    internal let month: Int
 
     /// 年次特別枠使用状況
-    public let annualBudgetUsage: AnnualBudgetUsage
+    internal let annualBudgetUsage: AnnualBudgetUsage
 
     /// カテゴリ別充当結果
-    public let categoryAllocations: [CategoryAllocation]
-
-    public init(
-        year: Int,
-        month: Int,
-        annualBudgetUsage: AnnualBudgetUsage,
-        categoryAllocations: [CategoryAllocation],
-    ) {
-        self.year = year
-        self.month = month
-        self.annualBudgetUsage = annualBudgetUsage
-        self.categoryAllocations = categoryAllocations
-    }
+    internal let categoryAllocations: [CategoryAllocation]
 }
 
 // MARK: - 計算パラメータ
 
 /// 年次特別枠計算パラメータ
-public struct AllocationCalculationParams: Sendable {
+internal struct AllocationCalculationParams: Sendable {
     /// 取引リスト
-    public let transactions: [Transaction]
+    internal let transactions: [Transaction]
 
     /// 予算リスト
-    public let budgets: [Budget]
+    internal let budgets: [Budget]
 
     /// 年次特別枠設定
-    public let annualBudgetConfig: AnnualBudgetConfig
+    internal let annualBudgetConfig: AnnualBudgetConfig
 
     /// 集計フィルタ
-    public let filter: AggregationFilter
+    internal let filter: AggregationFilter
 
-    public init(
+    internal init(
         transactions: [Transaction],
         budgets: [Budget],
         annualBudgetConfig: AnnualBudgetConfig,
@@ -140,11 +96,11 @@ public struct AllocationCalculationParams: Sendable {
 /// - 自動充当: 予算超過時に自動的に年次特別枠から充当
 /// - 手動充当: ユーザーが手動で充当を指定
 /// - 無効: 年次特別枠を使用しない
-public struct AnnualBudgetAllocator: Sendable {
+internal struct AnnualBudgetAllocator: Sendable {
     private let aggregator: TransactionAggregator
     private let budgetCalculator: BudgetCalculator
 
-    public init() {
+    internal init() {
         self.aggregator = TransactionAggregator()
         self.budgetCalculator = BudgetCalculator()
     }
@@ -154,7 +110,7 @@ public struct AnnualBudgetAllocator: Sendable {
     ///   - params: 計算パラメータ
     ///   - upToMonth: 計算対象月（nilの場合は全年）
     /// - Returns: 年次特別枠使用状況
-    public func calculateAnnualBudgetUsage(
+    internal func calculateAnnualBudgetUsage(
         params: AllocationCalculationParams,
         upToMonth: Int? = nil,
     ) -> AnnualBudgetUsage {
@@ -212,7 +168,7 @@ public struct AnnualBudgetAllocator: Sendable {
     ///   - year: 対象年
     ///   - month: 対象月
     /// - Returns: 月次充当結果
-    public func calculateMonthlyAllocation(
+    internal func calculateMonthlyAllocation(
         params: AllocationCalculationParams,
         year: Int,
         month: Int,

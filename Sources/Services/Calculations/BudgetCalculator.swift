@@ -3,84 +3,48 @@ import Foundation
 // MARK: - 予算計算結果型
 
 /// 予算計算結果
-public struct BudgetCalculation: Sendable {
+internal struct BudgetCalculation: Sendable {
     /// 予算額
-    public let budgetAmount: Decimal
+    internal let budgetAmount: Decimal
 
     /// 実績額（支出）
-    public let actualAmount: Decimal
+    internal let actualAmount: Decimal
 
     /// 残額（予算額 - 実績額）
-    public let remainingAmount: Decimal
+    internal let remainingAmount: Decimal
 
     /// 使用率（0.0 〜 1.0）
-    public let usageRate: Double
+    internal let usageRate: Double
 
     /// 予算超過フラグ
-    public let isOverBudget: Bool
-
-    public init(
-        budgetAmount: Decimal,
-        actualAmount: Decimal,
-        remainingAmount: Decimal,
-        usageRate: Double,
-        isOverBudget: Bool,
-    ) {
-        self.budgetAmount = budgetAmount
-        self.actualAmount = actualAmount
-        self.remainingAmount = remainingAmount
-        self.usageRate = usageRate
-        self.isOverBudget = isOverBudget
-    }
+    internal let isOverBudget: Bool
 }
 
 /// カテゴリ別予算計算結果
-public struct CategoryBudgetCalculation: Sendable {
+internal struct CategoryBudgetCalculation: Sendable {
     /// カテゴリID
-    public let categoryId: UUID
+    internal let categoryId: UUID
 
     /// カテゴリ名
-    public let categoryName: String
+    internal let categoryName: String
 
     /// 予算計算結果
-    public let calculation: BudgetCalculation
-
-    public init(
-        categoryId: UUID,
-        categoryName: String,
-        calculation: BudgetCalculation,
-    ) {
-        self.categoryId = categoryId
-        self.calculation = calculation
-        self.categoryName = categoryName
-    }
+    internal let calculation: BudgetCalculation
 }
 
 /// 月次予算計算結果
-public struct MonthlyBudgetCalculation: Sendable {
+internal struct MonthlyBudgetCalculation: Sendable {
     /// 対象年
-    public let year: Int
+    internal let year: Int
 
     /// 対象月
-    public let month: Int
+    internal let month: Int
 
     /// 全体予算計算
-    public let overallCalculation: BudgetCalculation?
+    internal let overallCalculation: BudgetCalculation?
 
     /// カテゴリ別予算計算
-    public let categoryCalculations: [CategoryBudgetCalculation]
-
-    public init(
-        year: Int,
-        month: Int,
-        overallCalculation: BudgetCalculation?,
-        categoryCalculations: [CategoryBudgetCalculation],
-    ) {
-        self.year = year
-        self.month = month
-        self.overallCalculation = overallCalculation
-        self.categoryCalculations = categoryCalculations
-    }
+    internal let categoryCalculations: [CategoryBudgetCalculation]
 }
 
 // MARK: - BudgetCalculator
@@ -91,10 +55,10 @@ public struct MonthlyBudgetCalculation: Sendable {
 /// - 予算使用率の計算
 /// - 残額計算
 /// - カテゴリ別予算チェック
-public struct BudgetCalculator: Sendable {
+internal struct BudgetCalculator: Sendable {
     private let aggregator: TransactionAggregator
 
-    public init() {
+    internal init() {
         self.aggregator = TransactionAggregator()
     }
 
@@ -103,7 +67,7 @@ public struct BudgetCalculator: Sendable {
     ///   - budgetAmount: 予算額
     ///   - actualAmount: 実績額（支出）
     /// - Returns: 予算計算結果
-    public func calculate(
+    internal func calculate(
         budgetAmount: Decimal,
         actualAmount: Decimal,
     ) -> BudgetCalculation {
@@ -137,7 +101,7 @@ public struct BudgetCalculator: Sendable {
     ///   - month: 対象月
     ///   - filter: 集計フィルタ
     /// - Returns: 月次予算計算結果
-    public func calculateMonthlyBudget(
+    internal func calculateMonthlyBudget(
         transactions: [Transaction],
         budgets: [Budget],
         year: Int,
@@ -204,7 +168,7 @@ public struct BudgetCalculator: Sendable {
     ///   - currentExpense: 現在の支出額
     ///   - budgetAmount: 予算額
     /// - Returns: 予算超過するか
-    public func willExceedBudget(
+    internal func willExceedBudget(
         category: Category,
         amount: Decimal,
         currentExpense: Decimal,

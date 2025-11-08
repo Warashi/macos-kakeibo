@@ -10,7 +10,7 @@ import SwiftData
 /// - 年次特別枠の残額計算
 @Observable
 @MainActor
-public final class DashboardStore {
+internal final class DashboardStore {
     // MARK: - Dependencies
 
     private let modelContext: ModelContext
@@ -21,19 +21,19 @@ public final class DashboardStore {
     // MARK: - State
 
     /// 現在の表示対象年
-    public var currentYear: Int
+    internal var currentYear: Int
 
     /// 現在の表示対象月
-    public var currentMonth: Int
+    internal var currentMonth: Int
 
     /// 表示モード（月次/年次）
-    public var displayMode: DisplayMode = .monthly
+    internal var displayMode: DisplayMode = .monthly
 
     // MARK: - Initialization
 
     /// イニシャライザ
     /// - Parameter modelContext: SwiftDataのモデルコンテキスト
-    public init(modelContext: ModelContext) {
+    internal init(modelContext: ModelContext) {
         self.modelContext = modelContext
         self.aggregator = TransactionAggregator()
         self.budgetCalculator = BudgetCalculator()
@@ -48,7 +48,7 @@ public final class DashboardStore {
     // MARK: - Display Mode
 
     /// 表示モード
-    public enum DisplayMode: String, CaseIterable {
+    internal enum DisplayMode: String, CaseIterable {
         case monthly = "月次"
         case annual = "年次"
     }
@@ -81,7 +81,7 @@ public final class DashboardStore {
     // MARK: - Computed Properties
 
     /// 月次集計
-    public var monthlySummary: MonthlySummary {
+    internal var monthlySummary: MonthlySummary {
         aggregator.aggregateMonthly(
             transactions: allTransactions,
             year: currentYear,
@@ -91,7 +91,7 @@ public final class DashboardStore {
     }
 
     /// 年次集計
-    public var annualSummary: AnnualSummary {
+    internal var annualSummary: AnnualSummary {
         aggregator.aggregateAnnually(
             transactions: allTransactions,
             year: currentYear,
@@ -100,7 +100,7 @@ public final class DashboardStore {
     }
 
     /// 月次予算計算
-    public var monthlyBudgetCalculation: MonthlyBudgetCalculation {
+    internal var monthlyBudgetCalculation: MonthlyBudgetCalculation {
         budgetCalculator.calculateMonthlyBudget(
             transactions: allTransactions,
             budgets: allBudgets,
@@ -111,7 +111,7 @@ public final class DashboardStore {
     }
 
     /// 年次特別枠使用状況
-    public var annualBudgetUsage: AnnualBudgetUsage? {
+    internal var annualBudgetUsage: AnnualBudgetUsage? {
         guard let config = getAnnualBudgetConfig(year: currentYear) else {
             return nil
         }
@@ -130,7 +130,7 @@ public final class DashboardStore {
     }
 
     /// 月次充当結果
-    public var monthlyAllocation: MonthlyAllocation? {
+    internal var monthlyAllocation: MonthlyAllocation? {
         guard let config = getAnnualBudgetConfig(year: currentYear) else {
             return nil
         }
@@ -150,7 +150,7 @@ public final class DashboardStore {
     }
 
     /// カテゴリ別ハイライト（支出額上位）
-    public var categoryHighlights: [CategorySummary] {
+    internal var categoryHighlights: [CategorySummary] {
         let summaries = displayMode == .monthly
             ? monthlySummary.categorySummaries
             : annualSummary.categorySummaries
@@ -162,7 +162,7 @@ public final class DashboardStore {
     // MARK: - Actions
 
     /// 前月に移動
-    public func moveToPreviousMonth() {
+    internal func moveToPreviousMonth() {
         if currentMonth == 1 {
             currentYear -= 1
             currentMonth = 12
@@ -172,7 +172,7 @@ public final class DashboardStore {
     }
 
     /// 次月に移動
-    public func moveToNextMonth() {
+    internal func moveToNextMonth() {
         if currentMonth == 12 {
             currentYear += 1
             currentMonth = 1
@@ -182,29 +182,29 @@ public final class DashboardStore {
     }
 
     /// 今月に戻る
-    public func moveToCurrentMonth() {
+    internal func moveToCurrentMonth() {
         let now = Date()
         currentYear = now.year
         currentMonth = now.month
     }
 
     /// 前年に移動
-    public func moveToPreviousYear() {
+    internal func moveToPreviousYear() {
         currentYear -= 1
     }
 
     /// 次年に移動
-    public func moveToNextYear() {
+    internal func moveToNextYear() {
         currentYear += 1
     }
 
     /// 今年に戻る
-    public func moveToCurrentYear() {
+    internal func moveToCurrentYear() {
         currentYear = Date().year
     }
 
     /// データを再読み込み
-    public func refresh() {
+    internal func refresh() {
         // @Observableなので、computed propertyは自動的に再計算される
         // 必要に応じて明示的な処理をここに追加
     }
