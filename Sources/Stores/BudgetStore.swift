@@ -49,6 +49,7 @@ internal final class BudgetStore {
     internal enum DisplayMode: String, CaseIterable {
         case monthly = "月次"
         case annual = "年次"
+        case specialPaymentsList = "特別支払い一覧"
     }
 
     // MARK: - Fetch Helpers

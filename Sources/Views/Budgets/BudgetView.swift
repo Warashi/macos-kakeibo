@@ -35,7 +35,8 @@ internal struct BudgetView: View {
                     VStack(spacing: 20) {
                         toolbarSection(store: store)
 
-                        if store.displayMode == .monthly {
+                        switch store.displayMode {
+                        case .monthly:
                             MonthlyBudgetGrid(
                                 title: "\(store.currentYear.yearDisplayString)年\(store.currentMonth)月",
                                 overallEntry: store.overallBudgetEntry,
@@ -44,22 +45,35 @@ internal struct BudgetView: View {
                                 onEdit: { presentBudgetEditor(for: $0) },
                                 onDelete: { budgetPendingDeletion = $0 },
                             )
-                        } else {
+
+                            AnnualBudgetPanel(
+                                year: store.currentYear,
+                                config: store.annualBudgetConfig,
+                                usage: store.annualBudgetUsage,
+                                onEdit: presentAnnualEditor,
+                            )
+
+                            specialPaymentListSection
+
+                        case .annual:
                             AnnualBudgetGrid(
                                 title: "\(store.currentYear.yearDisplayString)年",
                                 overallEntry: store.annualOverallBudgetEntry,
                                 categoryEntries: store.annualCategoryBudgetEntries,
                             )
+
+                            AnnualBudgetPanel(
+                                year: store.currentYear,
+                                config: store.annualBudgetConfig,
+                                usage: store.annualBudgetUsage,
+                                onEdit: presentAnnualEditor,
+                            )
+
+                            specialPaymentListSection
+
+                        case .specialPaymentsList:
+                            SpecialPaymentListView()
                         }
-
-                        AnnualBudgetPanel(
-                            year: store.currentYear,
-                            config: store.annualBudgetConfig,
-                            usage: store.annualBudgetUsage,
-                            onEdit: presentAnnualEditor,
-                        )
-
-                        specialPaymentListSection
                     }
                     .padding()
                 }
@@ -171,17 +185,19 @@ internal struct BudgetView: View {
 
             Spacer()
 
-            if store.displayMode == .monthly {
-                monthNavigationButtons(store: store)
-            } else {
-                yearNavigationButtons(store: store)
-            }
-
-            Button(store.displayMode == .monthly ? "今月" : "今年") {
+            if store.displayMode != .specialPaymentsList {
                 if store.displayMode == .monthly {
-                    store.moveToCurrentMonth()
+                    monthNavigationButtons(store: store)
                 } else {
-                    store.moveToCurrentYear()
+                    yearNavigationButtons(store: store)
+                }
+
+                Button(store.displayMode == .monthly ? "今月" : "今年") {
+                    if store.displayMode == .monthly {
+                        store.moveToCurrentMonth()
+                    } else {
+                        store.moveToCurrentYear()
+                    }
                 }
             }
 
