@@ -62,7 +62,7 @@ internal struct MonthlyAllocation: Sendable {
 // MARK: - 計算パラメータ
 
 /// 年次特別枠計算パラメータ
-internal struct AllocationCalculationParams: Sendable {
+internal struct AllocationCalculationParams {
     /// 取引リスト
     internal let transactions: [Transaction]
 
