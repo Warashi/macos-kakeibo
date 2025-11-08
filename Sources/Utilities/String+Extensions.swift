@@ -134,7 +134,7 @@ public extension String {
     var camelCased: String {
         let components = split(separator: "_")
         guard let first = components.first else { return self }
-        let rest = components.dropFirst().map(\.capitalizedFirst)
+        let rest = components.dropFirst().map { String($0).capitalizedFirst }
         return ([String(first)] + rest).joined()
     }
 
