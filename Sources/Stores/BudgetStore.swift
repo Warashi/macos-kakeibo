@@ -244,7 +244,7 @@ internal final class BudgetStore {
     internal var specialPaymentSavingsEntries: [SpecialPaymentSavingsEntry] {
         specialPaymentSavingsCalculations.map { calc in
             let progress: Double
-            if let nextOccurrence = calc.nextOccurrence,
+            if calc.nextOccurrence != nil,
                let definition = allSpecialPaymentDefinitions.first(where: { $0.id == calc.definitionId }) {
                 let targetAmount = definition.amount
                 if targetAmount > 0 {
