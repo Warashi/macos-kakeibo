@@ -30,6 +30,8 @@ private struct RootDetailView: View {
             DashboardView()
         case .transactions:
             TransactionListView()
+        case .budgets:
+            BudgetView()
         case .settings:
             SettingsView(modelContext: modelContext)
         default:

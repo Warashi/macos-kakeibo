@@ -8,7 +8,7 @@ internal enum BudgetType: String, Codable {
 }
 
 /// 年次特別枠の充当ポリシー
-internal enum AnnualBudgetPolicy: String, Codable {
+internal enum AnnualBudgetPolicy: String, Codable, CaseIterable {
     case automatic // 自動充当
     case manual // 手動充当
     case disabled // 無効
@@ -113,6 +113,10 @@ internal final class AnnualBudgetConfig {
     /// 充当ポリシー
     internal var policyRawValue: String
 
+    /// カテゴリ別配分
+    @Relationship(deleteRule: .cascade, inverse: \AnnualBudgetAllocation.config)
+    internal var allocations: [AnnualBudgetAllocation]
+
     /// 作成・更新日時
     internal var createdAt: Date
     internal var updatedAt: Date
@@ -127,6 +131,7 @@ internal final class AnnualBudgetConfig {
         self.year = year
         self.totalAmount = totalAmount
         self.policyRawValue = policy.rawValue
+        self.allocations = []
 
         let now = Date()
         self.createdAt = now
@@ -165,5 +170,40 @@ internal extension AnnualBudgetConfig {
     /// データが有効かどうか
     var isValid: Bool {
         validate().isEmpty
+    }
+}
+
+// MARK: - Annual Budget Allocation
+
+@Model
+internal final class AnnualBudgetAllocation {
+    internal var id: UUID
+    internal var amount: Decimal
+    internal var category: Category
+
+    internal var config: AnnualBudgetConfig?
+
+    internal var createdAt: Date
+    internal var updatedAt: Date
+
+    internal init(
+        id: UUID = UUID(),
+        amount: Decimal,
+        category: Category
+    ) {
+        self.id = id
+        self.amount = amount
+        self.category = category
+
+        let now = Date()
+        self.createdAt = now
+        self.updatedAt = now
+    }
+}
+
+internal extension AnnualBudgetConfig {
+    /// カテゴリ配分の合計
+    var allocationTotalAmount: Decimal {
+        allocations.reduce(0) { $0 + $1.amount }
     }
 }
