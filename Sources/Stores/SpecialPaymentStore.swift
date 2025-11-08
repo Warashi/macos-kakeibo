@@ -85,7 +85,6 @@ internal final class SpecialPaymentStore {
                     )
                 )
                 occurrence.updatedAt = now
-                definition.occurrences.append(occurrence)
                 modelContext.insert(occurrence)
                 matchedOccurrences.append(occurrence)
             }
