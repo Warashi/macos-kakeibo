@@ -86,13 +86,56 @@ internal struct CSVParser {
         guard let value else { return "" }
 
         if let string = value as? String {
-            return string
+            return unescaped(string)
         }
 
         if let convertible = value as? CustomStringConvertible {
             return convertible.description
         }
 
-        return String(describing: value)
+        return unescaped(String(describing: value))
+    }
+
+    private func unescaped(_ string: String) -> String {
+        var result = ""
+        result.reserveCapacity(string.count)
+
+        var iterator = string.makeIterator()
+        var buffer: Character?
+
+        func appendBufferedBackslashIfNeeded() {
+            if let backslash = buffer {
+                result.append(backslash)
+                buffer = nil
+            }
+        }
+
+        while let character = iterator.next() {
+            if buffer == "\\" {
+                switch character {
+                case "n":
+                    result.append("\n")
+                    buffer = nil
+                case "r":
+                    result.append("\r")
+                case "t":
+                    result.append("\t")
+                case "\"":
+                    result.append("\"")
+                case "\\":
+                    result.append("\\")
+                default:
+                    result.append("\\")
+                    result.append(character)
+                }
+            } else if character == "\\" {
+                buffer = character
+            } else {
+                result.append(character)
+            }
+        }
+
+        appendBufferedBackslashIfNeeded()
+        return result
     }
 }
