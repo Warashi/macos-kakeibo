@@ -28,11 +28,16 @@ internal struct SpecialPaymentScheduleServiceTests {
 
         #expect(targets.count == 3)
         let scheduledMonths = targets.map { ($0.scheduledDate.year, $0.scheduledDate.month) }
-        #expect(scheduledMonths == [
+        let expectedMonths: [(Int, Int)] = [
             (2025, 5),
             (2025, 11),
             (2026, 5),
-        ])
+        ]
+        #expect(
+            scheduledMonths.elementsEqual(expectedMonths, by: { lhs, rhs in
+                lhs.0 == rhs.0 && lhs.1 == rhs.1
+            })
+        )
     }
 
     @Test("参照日より後の初回予定日を保持する")
