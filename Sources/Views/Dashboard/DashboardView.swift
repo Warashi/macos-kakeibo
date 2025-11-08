@@ -25,6 +25,13 @@ internal struct DashboardView: View {
                             AnnualSummaryCard(summary: store.annualSummary)
                         }
 
+                        if let annualBudgetProgress = store.annualBudgetProgressCalculation {
+                            AnnualBudgetProgressCard(
+                                year: store.currentYear,
+                                calculation: annualBudgetProgress
+                            )
+                        }
+
                         if let annualBudgetUsage = store.annualBudgetUsage {
                             AnnualBudgetCard(usage: annualBudgetUsage)
                         }

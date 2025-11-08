@@ -199,6 +199,66 @@ internal struct DashboardStoreTests {
         #expect(highlights.count == 10) // 上位10件のみ
     }
 
+    @Test("年次予算進捗：全体予算を集計する")
+    internal func annualBudgetProgress_overallBudget() throws {
+        let container = try createInMemoryContainer()
+        let context = ModelContext(container)
+
+        let budget = Budget(amount: 120_000, year: 2025, month: 1)
+        context.insert(budget)
+
+        let transaction = Transaction(
+            date: Date.from(year: 2025, month: 1) ?? Date(),
+            title: "光熱費",
+            amount: -50_000
+        )
+        context.insert(transaction)
+        try context.save()
+
+        let store = DashboardStore(modelContext: context)
+        store.currentYear = 2025
+
+        let progress = try #require(store.annualBudgetProgressCalculation)
+        #expect(progress.budgetAmount == 120_000)
+        #expect(progress.actualAmount == 50_000)
+    }
+
+    @Test("年次予算進捗：カテゴリ予算のみでも集計される")
+    internal func annualBudgetProgress_categoryOnly() throws {
+        let container = try createInMemoryContainer()
+        let context = ModelContext(container)
+
+        let food = Category(name: "食費")
+        context.insert(food)
+
+        let budget = Budget(amount: 10_000, category: food, year: 2025, month: 1)
+        context.insert(budget)
+
+        let transaction = Transaction(
+            date: Date.from(year: 2025, month: 1) ?? Date(),
+            title: "ランチ",
+            amount: -4_000,
+            majorCategory: food
+        )
+        context.insert(transaction)
+        try context.save()
+
+        let store = DashboardStore(modelContext: context)
+        store.currentYear = 2025
+
+        let progress = try #require(store.annualBudgetProgressCalculation)
+        #expect(progress.budgetAmount == 10_000)
+        #expect(progress.actualAmount == 4_000)
+    }
+
+    @Test("年次予算進捗：予算がなければnil")
+    internal func annualBudgetProgress_nilWhenNoBudget() throws {
+        let container = try createInMemoryContainer()
+        let context = ModelContext(container)
+        let store = DashboardStore(modelContext: context)
+        #expect(store.annualBudgetProgressCalculation == nil)
+    }
+
     // MARK: - Helper Methods
 
     private func createInMemoryContainer() throws -> ModelContainer {

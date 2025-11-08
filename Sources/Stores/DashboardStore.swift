@@ -17,6 +17,7 @@ internal final class DashboardStore {
     private let aggregator: TransactionAggregator
     private let budgetCalculator: BudgetCalculator
     private let annualBudgetAllocator: AnnualBudgetAllocator
+    private let annualBudgetProgressCalculator: AnnualBudgetProgressCalculator
 
     // MARK: - State
 
@@ -38,6 +39,7 @@ internal final class DashboardStore {
         self.aggregator = TransactionAggregator()
         self.budgetCalculator = BudgetCalculator()
         self.annualBudgetAllocator = AnnualBudgetAllocator()
+        self.annualBudgetProgressCalculator = AnnualBudgetProgressCalculator()
 
         // 現在の年月で初期化
         let now = Date()
@@ -157,6 +159,16 @@ internal final class DashboardStore {
 
         // 支出額上位10件を返す
         return Array(summaries.prefix(10))
+    }
+
+    /// 年次予算進捗
+    internal var annualBudgetProgressCalculation: BudgetCalculation? {
+        annualBudgetProgressCalculator.calculate(
+            budgets: allBudgets,
+            transactions: allTransactions,
+            year: currentYear,
+            filter: .default
+        ).aggregateCalculation
     }
 
     // MARK: - Actions
