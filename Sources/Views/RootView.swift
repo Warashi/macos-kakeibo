@@ -1,4 +1,5 @@
 import Observation
+import SwiftData
 import SwiftUI
 
 internal struct RootView: View {
@@ -21,6 +22,7 @@ internal struct RootView: View {
 
 private struct RootDetailView: View {
     internal let screen: AppState.Screen
+    @Environment(\.modelContext) private var modelContext
 
     internal var body: some View {
         switch screen {
@@ -28,6 +30,8 @@ private struct RootDetailView: View {
             DashboardView()
         case .transactions:
             TransactionListView()
+        case .settings:
+            SettingsView(modelContext: modelContext)
         default:
             ContentUnavailableView {
                 Label(screen.displayName, systemImage: screen.symbolName)

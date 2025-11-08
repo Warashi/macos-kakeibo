@@ -1,4 +1,5 @@
 @testable import Kakeibo
+import SwiftData
 import SwiftUI
 import Testing
 
@@ -22,6 +23,14 @@ internal struct KakeiboTests {
     internal func sidebarViewInitialization() {
         let state = AppState()
         let view = SidebarView(appState: state)
+        let _: any View = view
+    }
+
+    @Test("SettingsView can be initialized with ModelContext")
+    internal func settingsViewInitialization() throws {
+        let container = try ModelContainer.createInMemoryContainer()
+        let context = ModelContext(container)
+        let view = SettingsView(modelContext: context)
         let _: any View = view
     }
 }
