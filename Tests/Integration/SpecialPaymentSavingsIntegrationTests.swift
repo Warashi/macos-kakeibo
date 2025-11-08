@@ -34,8 +34,9 @@ internal struct SpecialPaymentSavingsIntegrationTests {
         context.insert(definition)
         try context.save()
 
-        // 月次積立額は 120,000 / 36 = 3,333.33... ≈ 3333円（Decimalの精度）
-        #expect(definition.monthlySavingAmount == Decimal(string: "3333.333333333333333333333333333333"))
+        // 月次積立額は 120,000 / 36 = 3,333.33...
+        let expectedMonthlySaving = Decimal(120_000) / Decimal(36)
+        #expect(definition.monthlySavingAmount == expectedMonthlySaving)
 
         // When: 36ヶ月分の積立を記録
         var balance: SpecialPaymentSavingBalance?

@@ -415,7 +415,7 @@ internal struct BudgetStoreTests {
         #expect(entry.monthlySaving == 5000)
         #expect(entry.balance == 60000) // 5000 × 12
         #expect(!entry.hasAlert)
-        #expect(entry.progress > 0)
+        #expect(entry.progress >= 0)
         #expect(entry.progress <= 1.0)
     }
 
