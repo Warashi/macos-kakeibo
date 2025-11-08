@@ -118,7 +118,7 @@ internal enum CSVColumn: String, CaseIterable, Identifiable {
     internal var helpText: String {
         switch self {
         case .identifier:
-            "アプリ内の取引ID（UUID）。同じIDは既存データを更新します。"
+            "アプリ内の取引ID（文字列可）。同じIDは既存データを更新します。"
         case .date:
             "取引の日付（yyyy/MM/dd など）"
         case .title:
