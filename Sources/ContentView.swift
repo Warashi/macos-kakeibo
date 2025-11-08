@@ -1,17 +1,10 @@
 import SwiftUI
 
 internal struct ContentView: View {
-    internal var body: some View {
-        VStack(spacing: 20) {
-            Text("Hello World")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+    @State private var appState: AppState = .init()
 
-            Text("家計簿アプリへようこそ")
-                .font(.title2)
-                .foregroundColor(.secondary)
-        }
-        .frame(minWidth: 400, minHeight: 300)
-        .padding()
+    internal var body: some View {
+        RootView(appState: appState)
+            .frame(minWidth: 800, minHeight: 600)
     }
 }
