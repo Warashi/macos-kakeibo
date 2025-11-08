@@ -305,7 +305,7 @@ internal struct BudgetStoreTests {
 
     @Test("特別支払い積立：月次積立金額の合計を取得")
     internal func specialPaymentSavings_monthlyTotal() throws {
-        let (store, context) = try setupStore()
+        let (store, context) = try makeStore()
 
         let category = Category(name: "保険・税金")
         let definition1 = SpecialPaymentDefinition(
@@ -340,7 +340,7 @@ internal struct BudgetStoreTests {
 
     @Test("特別支払い積立：カテゴリ別積立金額を取得")
     internal func specialPaymentSavings_byCategory() throws {
-        let (store, context) = try setupStore()
+        let (store, context) = try makeStore()
 
         let categoryTax = Category(name: "保険・税金")
         let categoryEducation = Category(name: "教育費")
@@ -379,7 +379,7 @@ internal struct BudgetStoreTests {
 
     @Test("特別支払い積立：積立状況一覧を取得")
     internal func specialPaymentSavings_entries() throws {
-        let (store, context) = try setupStore()
+        let (store, context) = try makeStore()
 
         let balanceService = SpecialPaymentBalanceService()
 
@@ -421,7 +421,7 @@ internal struct BudgetStoreTests {
 
     @Test("特別支払い積立：残高不足の場合アラートフラグが立つ")
     internal func specialPaymentSavings_alertFlag() throws {
-        let (store, context) = try setupStore()
+        let (store, context) = try makeStore()
 
         let definition = SpecialPaymentDefinition(
             name: "車検",
