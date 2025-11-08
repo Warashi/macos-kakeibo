@@ -62,9 +62,10 @@ public extension Decimal {
     /// - Parameter other: 加算する値
     /// - Returns: 加算結果
     func safeAdd(_ other: Decimal) -> Decimal {
-        var result = self
-        var value = other
-        NSDecimalAdd(&result, &result, &value, .plain)
+        var lhs = self
+        var rhs = other
+        var result = Decimal()
+        NSDecimalAdd(&result, &lhs, &rhs, .plain)
         return result
     }
 
@@ -72,9 +73,10 @@ public extension Decimal {
     /// - Parameter other: 減算する値
     /// - Returns: 減算結果
     func safeSubtract(_ other: Decimal) -> Decimal {
-        var result = self
-        var value = other
-        NSDecimalSubtract(&result, &result, &value, .plain)
+        var lhs = self
+        var rhs = other
+        var result = Decimal()
+        NSDecimalSubtract(&result, &lhs, &rhs, .plain)
         return result
     }
 
@@ -82,9 +84,10 @@ public extension Decimal {
     /// - Parameter other: 乗算する値
     /// - Returns: 乗算結果
     func safeMultiply(_ other: Decimal) -> Decimal {
-        var result = self
-        var value = other
-        NSDecimalMultiply(&result, &result, &value, .plain)
+        var lhs = self
+        var rhs = other
+        var result = Decimal()
+        NSDecimalMultiply(&result, &lhs, &rhs, .plain)
         return result
     }
 
@@ -93,9 +96,10 @@ public extension Decimal {
     /// - Returns: 除算結果（ゼロ除算の場合は0を返す）
     func safeDivide(_ other: Decimal) -> Decimal {
         guard other != 0 else { return 0 }
-        var result = self
-        var value = other
-        NSDecimalDivide(&result, &result, &value, .plain)
+        var lhs = self
+        var rhs = other
+        var result = Decimal()
+        NSDecimalDivide(&result, &lhs, &rhs, .plain)
         return result
     }
 
