@@ -9,8 +9,6 @@ public struct SegmentedControl<SelectionValue: Hashable>: View {
     @Binding private var selection: SelectionValue
     /// セグメントのオプション
     private let options: [SegmentOption<SelectionValue>]
-    /// セグメントのスタイル
-    private let pickerStyle: PickerStyle
 
     /// セグメントのオプション
     public struct SegmentOption<Value: Hashable>: Identifiable {
@@ -37,30 +35,24 @@ public struct SegmentedControl<SelectionValue: Hashable>: View {
     /// - Parameters:
     ///   - selection: 選択された値のBinding
     ///   - options: セグメントのオプション配列
-    ///   - pickerStyle: Pickerのスタイル（デフォルト: .segmented）
     public init(
         selection: Binding<SelectionValue>,
         options: [SegmentOption<SelectionValue>],
-        pickerStyle: PickerStyle = .segmented,
     ) {
         self._selection = selection
         self.options = options
-        self.pickerStyle = pickerStyle
     }
 
     /// 便利なイニシャライザ（値とラベルのタプル配列から生成）
     /// - Parameters:
     ///   - selection: 選択された値のBinding
     ///   - items: (値, ラベル)のタプル配列
-    ///   - pickerStyle: Pickerのスタイル（デフォルト: .segmented）
     public init(
         selection: Binding<SelectionValue>,
         items: [(SelectionValue, String)],
-        pickerStyle: PickerStyle = .segmented,
     ) {
         self._selection = selection
         self.options = items.map { SegmentOption(value: $0.0, label: $0.1) }
-        self.pickerStyle = pickerStyle
     }
 
     public var body: some View {
@@ -75,7 +67,7 @@ public struct SegmentedControl<SelectionValue: Hashable>: View {
                 }
             }
         }
-        .pickerStyle(pickerStyle)
+        .pickerStyle(.segmented)
         .labelsHidden()
     }
 }
