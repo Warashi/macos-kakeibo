@@ -14,6 +14,12 @@ internal enum SpecialPaymentStatus: String, Codable {
     case cancelled // 中止
 }
 
+internal enum DateAdjustmentPolicy: String, Codable {
+    case none // 調整なし
+    case moveToPreviousBusinessDay // 前営業日に移動
+    case moveToNextBusinessDay // 次営業日に移動
+}
+
 @Model
 internal final class SpecialPaymentDefinition {
     internal var id: UUID
@@ -26,6 +32,7 @@ internal final class SpecialPaymentDefinition {
     internal var category: Category?
     internal var savingStrategy: SpecialPaymentSavingStrategy
     internal var customMonthlySavingAmount: Decimal?
+    internal var dateAdjustmentPolicy: DateAdjustmentPolicy
 
     @Relationship(deleteRule: .cascade, inverse: \SpecialPaymentOccurrence.definition)
     private var occurrencesStorage: [SpecialPaymentOccurrence]
@@ -44,6 +51,7 @@ internal final class SpecialPaymentDefinition {
         category: Category? = nil,
         savingStrategy: SpecialPaymentSavingStrategy = .evenlyDistributed,
         customMonthlySavingAmount: Decimal? = nil,
+        dateAdjustmentPolicy: DateAdjustmentPolicy = .none,
     ) {
         self.id = id
         self.name = name
@@ -55,6 +63,7 @@ internal final class SpecialPaymentDefinition {
         self.category = category
         self.savingStrategy = savingStrategy
         self.customMonthlySavingAmount = customMonthlySavingAmount
+        self.dateAdjustmentPolicy = dateAdjustmentPolicy
         self.occurrencesStorage = []
 
         let now = Date()

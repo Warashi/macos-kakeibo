@@ -13,6 +13,46 @@ internal struct SpecialPaymentScheduleService {
     private let calendar: Calendar = Calendar(identifier: .gregorian)
     private let maxIterations: Int = 600
 
+    /// 日付が休日（土日）かどうかを判定する
+    /// - Parameter date: 判定対象の日付
+    /// - Returns: 休日の場合true
+    private func isWeekend(_ date: Date) -> Bool {
+        let weekday = calendar.component(.weekday, from: date)
+        return weekday == 1 || weekday == 7 // 日曜日または土曜日
+    }
+
+    /// 営業日への日付調整を行う
+    /// - Parameters:
+    ///   - date: 調整対象の日付
+    ///   - policy: 調整ポリシー
+    /// - Returns: 調整後の日付
+    internal func adjustDateForBusinessDay(_ date: Date, policy: DateAdjustmentPolicy) -> Date {
+        switch policy {
+        case .none:
+            return date
+
+        case .moveToPreviousBusinessDay:
+            var currentDate = date
+            while isWeekend(currentDate) {
+                guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDate) else {
+                    return date
+                }
+                currentDate = previousDay
+            }
+            return currentDate
+
+        case .moveToNextBusinessDay:
+            var currentDate = date
+            while isWeekend(currentDate) {
+                guard let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
+                    return date
+                }
+                currentDate = nextDay
+            }
+            return currentDate
+        }
+    }
+
     /// 定義に基づき、指定した開始日から将来のOccurrence候補を生成する
     /// - Parameters:
     ///   - definition: 特別支払い定義
@@ -53,9 +93,10 @@ internal struct SpecialPaymentScheduleService {
         var generationIteration = iterationCount
 
         while generationDate <= endBoundary, generationIteration < maxIterations {
+            let adjustedDate = adjustDateForBusinessDay(generationDate, policy: definition.dateAdjustmentPolicy)
             targets.append(
                 ScheduleTarget(
-                    scheduledDate: generationDate,
+                    scheduledDate: adjustedDate,
                     expectedAmount: definition.amount,
                 ),
             )
@@ -72,9 +113,10 @@ internal struct SpecialPaymentScheduleService {
         }
 
         if targets.isEmpty {
+            let adjustedDate = adjustDateForBusinessDay(currentDate, policy: definition.dateAdjustmentPolicy)
             targets.append(
                 ScheduleTarget(
-                    scheduledDate: currentDate,
+                    scheduledDate: adjustedDate,
                     expectedAmount: definition.amount,
                 ),
             )
