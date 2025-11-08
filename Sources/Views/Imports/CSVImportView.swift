@@ -332,7 +332,7 @@ private struct CSVPreviewSummaryView: View {
                     Text("取り込み結果")
                         .font(.headline)
 
-                    Text("取り込み済み \(summary.importedCount) 件、スキップ \(summary.skippedCount) 件")
+                    Text("新規 \(summary.importedCount) 件 / 更新 \(summary.updatedCount) 件 / スキップ \(summary.skippedCount) 件")
                         .font(.callout)
 
                     if summary.createdFinancialInstitutions > 0 || summary.createdCategories > 0 {

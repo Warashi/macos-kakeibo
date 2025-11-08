@@ -65,6 +65,7 @@ internal final class CSVImporter {
 
         let startDate = Date()
         var importedCount = 0
+        var updatedCount = 0
         var createdInstitutions = 0
         var createdCategories = 0
 
@@ -91,19 +92,61 @@ internal final class CSVImporter {
             )
             createdCategories += categoryCreatedCount
 
-            let transaction = Transaction(
-                date: draft.date,
-                title: draft.title,
-                amount: draft.amount,
-                memo: draft.memo,
-                isIncludedInCalculation: draft.isIncludedInCalculation,
-                isTransfer: draft.isTransfer,
-                financialInstitution: institution,
+            let transaction: Transaction
+            var isNew = false
+
+            if let identifier = draft.identifier {
+                if let uuid = identifier.uuid, let existing = try fetchTransaction(id: uuid) {
+                    transaction = existing
+                } else if let existing = try fetchTransaction(importIdentifier: identifier.rawValue) {
+                    transaction = existing
+                } else {
+                    transaction = Transaction(
+                        id: identifier.uuid ?? UUID(),
+                        date: draft.date,
+                        title: draft.title,
+                        amount: draft.amount,
+                        memo: draft.memo,
+                        isIncludedInCalculation: draft.isIncludedInCalculation,
+                        isTransfer: draft.isTransfer,
+                        importIdentifier: identifier.rawValue,
+                        financialInstitution: institution,
+                        majorCategory: majorCategory,
+                        minorCategory: minorCategory
+                    )
+                    modelContext.insert(transaction)
+                    isNew = true
+                }
+            } else {
+                transaction = Transaction(
+                    date: draft.date,
+                    title: draft.title,
+                    amount: draft.amount,
+                    memo: draft.memo,
+                    isIncludedInCalculation: draft.isIncludedInCalculation,
+                    isTransfer: draft.isTransfer,
+                    financialInstitution: institution,
+                    majorCategory: majorCategory,
+                    minorCategory: minorCategory
+                )
+                modelContext.insert(transaction)
+                isNew = true
+            }
+
+            applyDraft(
+                draft,
+                to: transaction,
+                identifier: draft.identifier,
+                institution: institution,
                 majorCategory: majorCategory,
                 minorCategory: minorCategory
             )
-            modelContext.insert(transaction)
-            importedCount += 1
+
+            if isNew {
+                importedCount += 1
+            } else {
+                updatedCount += 1
+            }
         }
 
         if modelContext.hasChanges {
@@ -112,6 +155,7 @@ internal final class CSVImporter {
 
         return CSVImportSummary(
             importedCount: importedCount,
+            updatedCount: updatedCount,
             skippedCount: preview.skippedCount,
             createdFinancialInstitutions: createdInstitutions,
             createdCategories: createdCategories,
@@ -126,6 +170,11 @@ internal final class CSVImporter {
         mapping: CSVColumnMapping
     ) -> CSVImportRecord {
         var issues: [CSVImportIssue] = []
+
+        var identifier: CSVTransactionIdentifier?
+        if let rawId = normalizedOptional(mapping.value(for: .identifier, in: row)) {
+            identifier = CSVTransactionIdentifier(rawValue: rawId)
+        }
 
         guard let rawDate = mapping.value(for: .date, in: row)?.trimmed, !rawDate.isEmpty else {
             issues.append(.init(severity: .error, message: "日付が設定されていません"))
@@ -187,6 +236,7 @@ internal final class CSVImporter {
         }
 
         let draft = TransactionDraft(
+            identifier: identifier,
             date: date,
             title: rawTitle,
             amount: amount,
@@ -379,5 +429,46 @@ private extension CSVImporter {
         }
 
         return (majorCategory, minorCategory, createdCount)
+    }
+
+    private func fetchTransaction(id: UUID) throws -> Transaction? {
+        var descriptor = FetchDescriptor<Transaction>(
+            predicate: #Predicate { transaction in
+                transaction.id == id
+            }
+        )
+        descriptor.fetchLimit = 1
+        return try modelContext.fetch(descriptor).first
+    }
+
+    private func fetchTransaction(importIdentifier: String) throws -> Transaction? {
+        var descriptor = FetchDescriptor<Transaction>(
+            predicate: #Predicate { transaction in
+                transaction.importIdentifier == importIdentifier
+            }
+        )
+        descriptor.fetchLimit = 1
+        return try modelContext.fetch(descriptor).first
+    }
+
+    private func applyDraft(
+        _ draft: TransactionDraft,
+        to transaction: Transaction,
+        identifier: CSVTransactionIdentifier?,
+        institution: FinancialInstitution?,
+        majorCategory: Category?,
+        minorCategory: Category?
+    ) {
+        transaction.date = draft.date
+        transaction.title = draft.title
+        transaction.amount = draft.amount
+        transaction.memo = draft.memo
+        transaction.isIncludedInCalculation = draft.isIncludedInCalculation
+        transaction.isTransfer = draft.isTransfer
+        transaction.financialInstitution = institution
+        transaction.majorCategory = majorCategory
+        transaction.minorCategory = minorCategory
+        transaction.importIdentifier = identifier?.rawValue ?? transaction.importIdentifier
+        transaction.updatedAt = Date()
     }
 }

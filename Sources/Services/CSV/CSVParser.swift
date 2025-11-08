@@ -115,7 +115,6 @@ internal struct CSVParser {
                 switch character {
                 case "n":
                     result.append("\n")
-                    buffer = nil
                 case "r":
                     result.append("\r")
                 case "t":
@@ -128,6 +127,7 @@ internal struct CSVParser {
                     result.append("\\")
                     result.append(character)
                 }
+                buffer = nil
             } else if character == "\\" {
                 buffer = character
             } else {

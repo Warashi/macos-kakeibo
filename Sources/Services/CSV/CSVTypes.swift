@@ -75,6 +75,7 @@ internal struct CSVImportConfiguration: Sendable, Equatable {
 
 /// CSVカラムとアプリ項目の対応
 internal enum CSVColumn: String, CaseIterable, Identifiable {
+    case identifier
     case date
     case title
     case amount
@@ -90,6 +91,8 @@ internal enum CSVColumn: String, CaseIterable, Identifiable {
     /// 表示名
     internal var displayName: String {
         switch self {
+        case .identifier:
+            "ID"
         case .date:
             "日付"
         case .title:
@@ -114,6 +117,8 @@ internal enum CSVColumn: String, CaseIterable, Identifiable {
     /// 説明
     internal var helpText: String {
         switch self {
+        case .identifier:
+            "アプリ内の取引ID（UUID）。同じIDは既存データを更新します。"
         case .date:
             "取引の日付（yyyy/MM/dd など）"
         case .title:
@@ -209,6 +214,8 @@ private extension CSVColumn {
         let lowercased = header.lowercased()
 
         switch self {
+        case .identifier:
+            return lowercased == "id" || header.contains("ID")
         case .date:
             return lowercased.contains("date") || header.contains("日付")
         case .title:
@@ -257,6 +264,7 @@ internal struct CSVImportIssue: Identifiable, Sendable {
 
 /// インポート前の取引ドラフト
 internal struct TransactionDraft: Sendable {
+    internal let identifier: CSVTransactionIdentifier?
     internal let date: Date
     internal let title: String
     internal let amount: Decimal
@@ -266,6 +274,17 @@ internal struct TransactionDraft: Sendable {
     internal let minorCategoryName: String?
     internal let isIncludedInCalculation: Bool
     internal let isTransfer: Bool
+}
+
+/// CSV上のID表現
+internal struct CSVTransactionIdentifier: Sendable, Equatable {
+    internal let rawValue: String
+    internal let uuid: UUID?
+
+    internal init(rawValue: String) {
+        self.rawValue = rawValue
+        self.uuid = UUID(uuidString: rawValue)
+    }
 }
 
 /// 1行分の検証結果
@@ -319,6 +338,7 @@ internal struct CSVImportPreview: Sendable {
 /// 取り込み結果のサマリ
 internal struct CSVImportSummary: Sendable {
     internal let importedCount: Int
+    internal let updatedCount: Int
     internal let skippedCount: Int
     internal let createdFinancialInstitutions: Int
     internal let createdCategories: Int

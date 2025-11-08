@@ -15,6 +15,9 @@ internal final class Transaction {
     internal var isIncludedInCalculation: Bool // 計算対象
     internal var isTransfer: Bool // 振替
 
+    /// 外部インポート用識別子
+    internal var importIdentifier: String?
+
     /// リレーション
     internal var financialInstitution: FinancialInstitution?
     internal var majorCategory: Category? // 大項目
@@ -32,6 +35,7 @@ internal final class Transaction {
         memo: String = "",
         isIncludedInCalculation: Bool = true,
         isTransfer: Bool = false,
+        importIdentifier: String? = nil,
         financialInstitution: FinancialInstitution? = nil,
         majorCategory: Category? = nil,
         minorCategory: Category? = nil,
@@ -43,6 +47,7 @@ internal final class Transaction {
         self.memo = memo
         self.isIncludedInCalculation = isIncludedInCalculation
         self.isTransfer = isTransfer
+        self.importIdentifier = importIdentifier
         self.financialInstitution = financialInstitution
         self.majorCategory = majorCategory
         self.minorCategory = minorCategory

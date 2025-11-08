@@ -20,6 +20,7 @@ internal struct TransactionInitializationTests {
         #expect(transaction.memo == "")
         #expect(transaction.isIncludedInCalculation == true)
         #expect(transaction.isTransfer == false)
+        #expect(transaction.importIdentifier == nil)
         #expect(transaction.financialInstitution == nil)
         #expect(transaction.majorCategory == nil)
         #expect(transaction.minorCategory == nil)
@@ -39,6 +40,7 @@ internal struct TransactionInitializationTests {
             memo: "同僚とランチ",
             isIncludedInCalculation: true,
             isTransfer: false,
+            importIdentifier: "ext-001",
             financialInstitution: institution,
             majorCategory: majorCategory,
             minorCategory: minorCategory,
@@ -52,6 +54,7 @@ internal struct TransactionInitializationTests {
         #expect(transaction.financialInstitution === institution)
         #expect(transaction.majorCategory === majorCategory)
         #expect(transaction.minorCategory === minorCategory)
+        #expect(transaction.importIdentifier == "ext-001")
     }
 }
 
