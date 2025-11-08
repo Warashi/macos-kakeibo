@@ -11,7 +11,7 @@ internal struct BudgetDistributionCard: View {
         case .monthly:
             return monthlyCategoryCalculations.map {
                 BudgetDistributionRow(
-                    id: $0.categoryId,
+                    id: AnyHashable($0.categoryId),
                     title: $0.categoryName,
                     calculation: $0.calculation
                 )
@@ -19,7 +19,7 @@ internal struct BudgetDistributionCard: View {
         case .annual:
             return annualCategoryEntries.map {
                 BudgetDistributionRow(
-                    id: $0.id.hashValue,
+                    id: AnyHashable($0.id),
                     title: $0.title,
                     calculation: $0.calculation
                 )
@@ -72,7 +72,7 @@ internal struct BudgetDistributionCard: View {
 }
 
 private struct BudgetDistributionRow: Identifiable {
-    internal let id: Int
+    internal let id: AnyHashable
     internal let title: String
     internal let calculation: BudgetCalculation
 }

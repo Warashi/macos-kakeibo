@@ -25,39 +25,55 @@ internal struct DashboardSummaryCard: View {
 
     @ViewBuilder
     private var summaryMetrics: some View {
-        let summaries: [(String, Decimal, Color)]
-
-        if displayMode == .monthly {
-            summaries = [
-                ("収入", monthlySummary.totalIncome, .blue),
-                ("支出", monthlySummary.totalExpense, .red),
-                ("差引", monthlySummary.net, monthlySummary.net >= 0 ? .green : .orange),
-            ]
-        } else {
-            summaries = [
-                ("収入", annualSummary.totalIncome, .blue),
-                ("支出", annualSummary.totalExpense, .red),
-                ("差引", annualSummary.net, annualSummary.net >= 0 ? .green : .orange),
-            ]
-        }
-
         HStack(spacing: 32) {
-            ForEach(Array(summaries.enumerated()), id: \.offset) { item in
-                summaryItem(
-                    title: item.element.0,
-                    amount: item.element.1,
-                    color: item.element.2
-                )
+            ForEach(Array(summaryMetricData.enumerated()), id: \.offset) { item in
+                if let amount = item.element.amount {
+                    summaryItem(
+                        title: item.element.title,
+                        amount: amount,
+                        color: item.element.color
+                    )
+                } else if let text = item.element.text {
+                    summaryItem(
+                        title: item.element.title,
+                        text: text,
+                        color: item.element.color
+                    )
+                }
             }
+        }
+    }
 
-            if displayMode == .annual {
-                summaryItem(
+    private var summaryMetricData: [SummaryMetric] {
+        var items: [SummaryMetric] = [
+            SummaryMetric(
+                title: "収入",
+                amount: displayMode == .monthly ? monthlySummary.totalIncome : annualSummary.totalIncome,
+                color: .blue
+            ),
+            SummaryMetric(
+                title: "支出",
+                amount: displayMode == .monthly ? monthlySummary.totalExpense : annualSummary.totalExpense,
+                color: .red
+            ),
+            SummaryMetric(
+                title: "差引",
+                amount: displayMode == .monthly ? monthlySummary.net : annualSummary.net,
+                color: (displayMode == .monthly ? monthlySummary.net : annualSummary.net) >= 0 ? .green : .orange
+            ),
+        ]
+
+        if displayMode == .annual {
+            items.append(
+                SummaryMetric(
                     title: "取引件数",
                     text: "\(annualSummary.transactionCount)件",
                     color: .gray
                 )
-            }
+            )
         }
+
+        return items
     }
 
     @ViewBuilder
@@ -172,5 +188,34 @@ private struct BudgetProgressView: View {
                 .foregroundColor(calculation.isOverBudget ? .red : .primary)
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
+    }
+}
+
+private struct SummaryMetric {
+    internal let title: String
+    internal let amount: Decimal?
+    internal let text: String?
+    internal let color: Color
+
+    internal init(
+        title: String,
+        amount: Decimal,
+        color: Color
+    ) {
+        self.title = title
+        self.amount = amount
+        self.text = nil
+        self.color = color
+    }
+
+    internal init(
+        title: String,
+        text: String,
+        color: Color
+    ) {
+        self.title = title
+        self.amount = nil
+        self.text = text
+        self.color = color
     }
 }
