@@ -58,7 +58,7 @@ internal struct SpecialPaymentStoreTests {
 
         try store.synchronizeOccurrences(for: definition, horizonMonths: 18)
 
-        #expect(definition.occurrences.count == 3)
+        #expect(definition.occurrences.count == 4)
         #expect(definition.occurrences.allSatisfy { $0.expectedAmount == 240_000 })
         let intervalMonths = zip(definition.occurrences, definition.occurrences.dropFirst())
             .map { current, next in
