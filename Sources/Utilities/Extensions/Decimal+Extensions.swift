@@ -22,6 +22,11 @@ public extension Decimal {
         return formatter.string(from: self as NSDecimalNumber) ?? "0"
     }
 
+    /// 区切りなしの数値文字列（例: "12345"）
+    var plainString: String {
+        NSDecimalNumber(decimal: self).stringValue
+    }
+
     /// 符号付き通貨形式でフォーマット（例: "+¥1,234"、"-¥1,234"）
     var signedCurrencyFormatted: String {
         let formatter = NumberFormatter()

@@ -774,9 +774,3 @@ private enum BudgetEditorMode {
 }
 
 // MARK: - Decimal Helper
-
-private extension Decimal {
-    var plainString: String {
-        NSDecimalNumber(decimal: self).stringValue
-    }
-}
