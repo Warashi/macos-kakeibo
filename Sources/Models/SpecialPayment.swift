@@ -28,7 +28,7 @@ internal final class SpecialPaymentDefinition {
     internal var customMonthlySavingAmount: Decimal?
 
     @Relationship(deleteRule: .cascade, inverse: \SpecialPaymentOccurrence.definition)
-    internal var occurrences: [SpecialPaymentOccurrence]
+    private var occurrencesStorage: [SpecialPaymentOccurrence]
 
     internal var createdAt: Date
     internal var updatedAt: Date
@@ -55,7 +55,7 @@ internal final class SpecialPaymentDefinition {
         self.category = category
         self.savingStrategy = savingStrategy
         self.customMonthlySavingAmount = customMonthlySavingAmount
-        self.occurrences = []
+        self.occurrencesStorage = []
 
         let now = Date()
         self.createdAt = now
@@ -66,6 +66,16 @@ internal final class SpecialPaymentDefinition {
 // MARK: - Computed Properties
 
 internal extension SpecialPaymentDefinition {
+    /// スケジュール日付で常に昇順ソートされたOccurrence一覧
+    var occurrences: [SpecialPaymentOccurrence] {
+        get {
+            occurrencesStorage.sorted { $0.scheduledDate < $1.scheduledDate }
+        }
+        set {
+            occurrencesStorage = newValue.sorted { $0.scheduledDate < $1.scheduledDate }
+        }
+    }
+
     /// 周期を人が読める形式で返す（例: "1年6か月"）
     var recurrenceDescription: String {
         guard recurrenceIntervalMonths > 0 else { return "未設定" }
