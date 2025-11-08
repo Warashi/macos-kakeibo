@@ -24,7 +24,7 @@ internal struct SpecialPaymentScheduleService {
         for definition: SpecialPaymentDefinition,
         seedDate: Date,
         referenceDate: Date,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) -> [ScheduleTarget] {
         guard definition.recurrenceIntervalMonths > 0 else {
             return []
@@ -56,13 +56,13 @@ internal struct SpecialPaymentScheduleService {
             targets.append(
                 ScheduleTarget(
                     scheduledDate: generationDate,
-                    expectedAmount: definition.amount
-                )
+                    expectedAmount: definition.amount,
+                ),
             )
 
             guard let next = advance(
                 date: generationDate,
-                months: definition.recurrenceIntervalMonths
+                months: definition.recurrenceIntervalMonths,
             ) else {
                 break
             }
@@ -75,8 +75,8 @@ internal struct SpecialPaymentScheduleService {
             targets.append(
                 ScheduleTarget(
                     scheduledDate: currentDate,
-                    expectedAmount: definition.amount
-                )
+                    expectedAmount: definition.amount,
+                ),
             )
         }
 
@@ -92,7 +92,7 @@ internal struct SpecialPaymentScheduleService {
     internal func defaultStatus(
         for scheduledDate: Date,
         referenceDate: Date,
-        leadTimeMonths: Int
+        leadTimeMonths: Int,
     ) -> SpecialPaymentStatus {
         let normalizedReference = referenceDate.startOfMonth
         let normalizedScheduled = scheduledDate.startOfMonth
@@ -105,7 +105,7 @@ internal struct SpecialPaymentScheduleService {
         let monthsUntil = calendar.dateComponents(
             [.month],
             from: normalizedReference,
-            to: normalizedScheduled
+            to: normalizedScheduled,
         ).month ?? 0
 
         return monthsUntil <= clampedLeadTime ? .saving : .planned

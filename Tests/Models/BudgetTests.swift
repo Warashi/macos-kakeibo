@@ -10,11 +10,11 @@ internal struct BudgetTests {
     @Test("予算を初期化できる")
     internal func initializeBudget() {
         let budget = Budget(
-            amount: 50_000,
+            amount: 50000,
             startYear: 2025,
             startMonth: 11,
             endYear: 2025,
-            endMonth: 12
+            endMonth: 12,
         )
 
         #expect(budget.startYear == 2025)
@@ -28,12 +28,12 @@ internal struct BudgetTests {
     internal func initializeBudgetWithCategory() {
         let category = Category(name: "食費")
         let budget = Budget(
-            amount: 30_000,
+            amount: 30000,
             category: category,
             startYear: 2025,
             startMonth: 10,
             endYear: 2026,
-            endMonth: 3
+            endMonth: 3,
         )
 
         #expect(budget.category === category)
@@ -45,18 +45,18 @@ internal struct BudgetTests {
 
     @Test("yearMonthStringは開始年月を返す")
     internal func yearMonthString() {
-        let budget = Budget(amount: 50_000, year: 2025, month: 11)
+        let budget = Budget(amount: 50000, year: 2025, month: 11)
         #expect(budget.yearMonthString == "2025-11")
     }
 
     @Test("ターゲット日付と終了日付を取得できる")
     internal func targetAndEndDate() {
         let budget = Budget(
-            amount: 50_000,
+            amount: 50000,
             startYear: 2025,
             startMonth: 11,
             endYear: 2026,
-            endMonth: 3
+            endMonth: 3,
         )
         let calendar = Calendar.current
 
@@ -73,7 +73,7 @@ internal struct BudgetTests {
 
     @Test("期間内判定ができる")
     internal func containsYearMonth() {
-        let budget = Budget(amount: 10_000, startYear: 2025, startMonth: 4, endYear: 2025, endMonth: 6)
+        let budget = Budget(amount: 10000, startYear: 2025, startMonth: 4, endYear: 2025, endMonth: 6)
         #expect(budget.contains(year: 2025, month: 4))
         #expect(budget.contains(year: 2025, month: 5))
         #expect(budget.contains(year: 2025, month: 6))
@@ -84,7 +84,7 @@ internal struct BudgetTests {
 
     @Test("有効な予算データの場合、バリデーションエラーがない")
     internal func validateValidBudget() {
-        let budget = Budget(amount: 50_000, year: 2025, month: 11)
+        let budget = Budget(amount: 50000, year: 2025, month: 11)
         #expect(budget.validate().isEmpty)
         #expect(budget.isValid)
     }
@@ -102,8 +102,8 @@ internal struct BudgetTests {
 
     @Test("年が不正な場合、バリデーションエラーになる")
     internal func validateInvalidYear() {
-        let invalidStart = Budget(amount: 50_000, startYear: 1999, startMonth: 11, endYear: 2000, endMonth: 1)
-        let invalidEnd = Budget(amount: 50_000, startYear: 2025, startMonth: 1, endYear: 2101, endMonth: 1)
+        let invalidStart = Budget(amount: 50000, startYear: 1999, startMonth: 11, endYear: 2000, endMonth: 1)
+        let invalidEnd = Budget(amount: 50000, startYear: 2025, startMonth: 1, endYear: 2101, endMonth: 1)
 
         #expect(invalidStart.validate().contains { $0.contains("開始年が不正") })
         #expect(invalidEnd.validate().contains { $0.contains("終了年が不正") })
@@ -111,8 +111,8 @@ internal struct BudgetTests {
 
     @Test("月が不正な場合、バリデーションエラーになる")
     internal func validateInvalidMonth() {
-        let invalidStart = Budget(amount: 50_000, startYear: 2025, startMonth: 0, endYear: 2025, endMonth: 1)
-        let invalidEnd = Budget(amount: 50_000, startYear: 2025, startMonth: 1, endYear: 2025, endMonth: 13)
+        let invalidStart = Budget(amount: 50000, startYear: 2025, startMonth: 0, endYear: 2025, endMonth: 1)
+        let invalidEnd = Budget(amount: 50000, startYear: 2025, startMonth: 1, endYear: 2025, endMonth: 13)
 
         #expect(invalidStart.validate().contains { $0.contains("開始月が不正") })
         #expect(invalidEnd.validate().contains { $0.contains("終了月が不正") })
@@ -120,7 +120,7 @@ internal struct BudgetTests {
 
     @Test("終了月が開始月より前の場合エラーになる")
     internal func validateEndBeforeStart() {
-        let budget = Budget(amount: 50_000, startYear: 2025, startMonth: 5, endYear: 2025, endMonth: 4)
+        let budget = Budget(amount: 50000, startYear: 2025, startMonth: 5, endYear: 2025, endMonth: 4)
         #expect(budget.validate().contains { $0.contains("終了月は開始月以降を設定してください") })
     }
 
@@ -140,7 +140,7 @@ internal struct BudgetTests {
     @Test("作成日時と更新日時が設定される")
     internal func setCreatedAndUpdatedDates() {
         let before = Date()
-        let budget = Budget(amount: 50_000, year: 2025, month: 11)
+        let budget = Budget(amount: 50000, year: 2025, month: 11)
         let after = Date()
 
         #expect(budget.createdAt >= before)

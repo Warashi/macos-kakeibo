@@ -18,7 +18,7 @@ internal struct SpecialPaymentDefinitionTests {
             firstOccurrenceDate: startDate,
             leadTimeMonths: 3,
             category: category,
-            savingStrategy: .evenlyDistributed
+            savingStrategy: .evenlyDistributed,
         )
 
         #expect(definition.name == "学資保険")
@@ -28,21 +28,21 @@ internal struct SpecialPaymentDefinitionTests {
         #expect(definition.leadTimeMonths == 3)
         #expect(definition.category === category)
         #expect(definition.savingStrategy == .evenlyDistributed)
-        #expect(definition.monthlySavingAmount == 10_000)
+        #expect(definition.monthlySavingAmount == 10000)
     }
 
     @Test("カスタム積立金額を設定できる")
     internal func customMonthlySavingAmount() {
         let definition = SpecialPaymentDefinition(
             name: "自動車税",
-            amount: 45_000,
+            amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
             savingStrategy: .customMonthly,
-            customMonthlySavingAmount: 5_000
+            customMonthlySavingAmount: 5000,
         )
 
-        #expect(definition.monthlySavingAmount == 5_000)
+        #expect(definition.monthlySavingAmount == 5000)
         #expect(definition.validate().isEmpty)
     }
 
@@ -53,7 +53,7 @@ internal struct SpecialPaymentDefinitionTests {
             amount: 120_000,
             recurrenceIntervalMonths: 24,
             firstOccurrenceDate: Date(),
-            savingStrategy: .customMonthly
+            savingStrategy: .customMonthly,
         )
 
         let errors = definition.validate()
@@ -70,7 +70,7 @@ internal struct SpecialPaymentDefinitionTests {
             firstOccurrenceDate: Date(),
             leadTimeMonths: -1,
             savingStrategy: .customMonthly,
-            customMonthlySavingAmount: -1000
+            customMonthlySavingAmount: -1000,
         )
 
         let errors = definition.validate()
@@ -89,7 +89,7 @@ internal struct SpecialPaymentDefinitionTests {
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: startDate
+            firstOccurrenceDate: startDate,
         )
 
         let pastDate = Calendar.current.date(byAdding: .month, value: -2, to: Date()) ?? Date()
@@ -97,12 +97,12 @@ internal struct SpecialPaymentDefinitionTests {
         let occurrencePast = SpecialPaymentOccurrence(
             definition: definition,
             scheduledDate: pastDate,
-            expectedAmount: 150_000
+            expectedAmount: 150_000,
         )
         let occurrenceFuture = SpecialPaymentOccurrence(
             definition: definition,
             scheduledDate: futureDate,
-            expectedAmount: 150_000
+            expectedAmount: 150_000,
         )
 
         definition.occurrences = [occurrencePast, occurrenceFuture]
@@ -118,7 +118,7 @@ internal struct SpecialPaymentOccurrenceTests {
             name: "家電買い替え",
             amount: 200_000,
             recurrenceIntervalMonths: 24,
-            firstOccurrenceDate: Date()
+            firstOccurrenceDate: Date(),
         )
     }
 
@@ -131,7 +131,7 @@ internal struct SpecialPaymentOccurrenceTests {
             definition: definition,
             scheduledDate: scheduledDate,
             expectedAmount: 200_000,
-            status: .saving
+            status: .saving,
         )
 
         #expect(occurrence.definition === definition)
@@ -149,7 +149,7 @@ internal struct SpecialPaymentOccurrenceTests {
             scheduledDate: Date(),
             expectedAmount: 200_000,
             status: .saving,
-            actualAmount: 50_000
+            actualAmount: 50000,
         )
 
         #expect(occurrence.remainingAmount == 150_000)
@@ -162,7 +162,7 @@ internal struct SpecialPaymentOccurrenceTests {
             definition: definition,
             scheduledDate: Date(),
             expectedAmount: 200_000,
-            status: .completed
+            status: .completed,
         )
 
         let errors = occurrence.validate()
@@ -180,7 +180,7 @@ internal struct SpecialPaymentOccurrenceTests {
         let occurrence = SpecialPaymentOccurrence(
             definition: definition,
             scheduledDate: Date(),
-            expectedAmount: 200_000
+            expectedAmount: 200_000,
         )
 
         context.insert(definition)

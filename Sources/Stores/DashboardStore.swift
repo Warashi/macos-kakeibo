@@ -167,7 +167,7 @@ internal final class DashboardStore {
             budgets: allBudgets,
             transactions: allTransactions,
             year: currentYear,
-            filter: .default
+            filter: .default,
         )
         if result.overallEntry == nil, result.categoryEntries.isEmpty {
             return nil

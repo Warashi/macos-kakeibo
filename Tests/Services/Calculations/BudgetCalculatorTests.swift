@@ -97,11 +97,11 @@ internal struct BudgetCalculatorTests {
         let transactions = createSampleTransactions(category: category)
         let budgets = [
             Budget(
-                amount: 80_000,
+                amount: 80000,
                 startYear: 2025,
                 startMonth: 10,
                 endYear: 2026,
-                endMonth: 1
+                endMonth: 1,
             ),
         ]
 
@@ -109,11 +109,11 @@ internal struct BudgetCalculatorTests {
             transactions: transactions,
             budgets: budgets,
             year: 2025,
-            month: 11
+            month: 11,
         )
 
         let overall = try #require(result.overallCalculation)
-        #expect(overall.budgetAmount == 80_000)
+        #expect(overall.budgetAmount == 80000)
     }
 
     @Test("予算超過チェック")

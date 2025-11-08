@@ -29,7 +29,7 @@ internal struct BudgetStoreTests {
             startYear: store.currentYear,
             startMonth: store.currentMonth,
             endYear: store.currentYear,
-            endMonth: store.currentMonth
+            endMonth: store.currentMonth,
         )
 
         #expect(store.monthlyBudgets.count == 1)
@@ -59,7 +59,7 @@ internal struct BudgetStoreTests {
             startYear: store.currentYear,
             startMonth: store.currentMonth,
             endYear: store.currentYear,
-            endMonth: store.currentMonth
+            endMonth: store.currentMonth,
         )
 
         let entries = store.categoryBudgetEntries
@@ -80,7 +80,7 @@ internal struct BudgetStoreTests {
             startYear: store.currentYear,
             startMonth: store.currentMonth,
             endYear: store.currentYear + 1,
-            endMonth: 1
+            endMonth: 1,
         )
 
         #expect(store.monthlyBudgets.count == 1)
@@ -95,7 +95,7 @@ internal struct BudgetStoreTests {
         let (store, _) = try makeStore()
 
         #expect(
-            throws: BudgetStoreError.invalidPeriod
+            throws: BudgetStoreError.invalidPeriod,
         ) {
             try store.addBudget(
                 amount: 1000,
@@ -103,7 +103,7 @@ internal struct BudgetStoreTests {
                 startYear: store.currentYear,
                 startMonth: store.currentMonth,
                 endYear: store.currentYear,
-                endMonth: store.currentMonth - 1
+                endMonth: store.currentMonth - 1,
             )
         }
     }
@@ -121,9 +121,9 @@ internal struct BudgetStoreTests {
         let budgets: [Budget] = [
             Budget(amount: 100_000, year: year, month: 1),
             Budget(amount: 120_000, year: year, month: 2),
-            Budget(amount: 50_000, category: food, year: year, month: 1),
-            Budget(amount: 60_000, category: food, year: year, month: 2),
-            Budget(amount: 40_000, category: transport, year: year, month: 1),
+            Budget(amount: 50000, category: food, year: year, month: 1),
+            Budget(amount: 60000, category: food, year: year, month: 2),
+            Budget(amount: 40000, category: transport, year: year, month: 1),
         ]
         budgets.forEach(context.insert)
 
@@ -131,20 +131,20 @@ internal struct BudgetStoreTests {
             Transaction(
                 date: makeDate(year: year, month: 1, day: 10),
                 title: "食費1",
-                amount: -20_000,
-                majorCategory: food
+                amount: -20000,
+                majorCategory: food,
             ),
             Transaction(
                 date: makeDate(year: year, month: 2, day: 5),
                 title: "食費2",
-                amount: -30_000,
-                majorCategory: food
+                amount: -30000,
+                majorCategory: food,
             ),
             Transaction(
                 date: makeDate(year: year, month: 1, day: 15),
                 title: "交通費",
-                amount: -10_000,
-                majorCategory: transport
+                amount: -10000,
+                majorCategory: transport,
             ),
         ]
         transactions.forEach(context.insert)
@@ -152,7 +152,7 @@ internal struct BudgetStoreTests {
 
         let overallEntry = try #require(store.annualOverallBudgetEntry)
         #expect(overallEntry.calculation.budgetAmount == 220_000)
-        #expect(overallEntry.calculation.actualAmount == 60_000)
+        #expect(overallEntry.calculation.actualAmount == 60000)
         #expect(overallEntry.isOverallBudget)
 
         let categoryEntries = store.annualCategoryBudgetEntries
@@ -160,11 +160,11 @@ internal struct BudgetStoreTests {
 
         let foodEntry = try #require(categoryEntries.first { $0.title.contains("食費") })
         #expect(foodEntry.calculation.budgetAmount == 110_000)
-        #expect(foodEntry.calculation.actualAmount == 50_000)
+        #expect(foodEntry.calculation.actualAmount == 50000)
 
         let transportEntry = try #require(categoryEntries.first { $0.title.contains("交通") })
-        #expect(transportEntry.calculation.budgetAmount == 40_000)
-        #expect(transportEntry.calculation.actualAmount == 10_000)
+        #expect(transportEntry.calculation.budgetAmount == 40000)
+        #expect(transportEntry.calculation.actualAmount == 10000)
     }
 
     @Test("予算更新：金額とカテゴリを変更できる")
@@ -191,7 +191,7 @@ internal struct BudgetStoreTests {
             startYear: store.currentYear,
             startMonth: store.currentMonth,
             endYear: store.currentYear,
-            endMonth: store.currentMonth + 1
+            endMonth: store.currentMonth + 1,
         )
 
         #expect(budget.amount == 12000)

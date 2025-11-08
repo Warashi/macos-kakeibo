@@ -43,7 +43,7 @@ internal final class SpecialPaymentDefinition {
         leadTimeMonths: Int = 0,
         category: Category? = nil,
         savingStrategy: SpecialPaymentSavingStrategy = .evenlyDistributed,
-        customMonthlySavingAmount: Decimal? = nil
+        customMonthlySavingAmount: Decimal? = nil,
     ) {
         self.id = id
         self.name = name
@@ -83,9 +83,9 @@ internal extension SpecialPaymentDefinition {
         let months = recurrenceIntervalMonths % 12
 
         switch (years, months) {
-        case (0, let m):
+        case let (0, m):
             return "\(m)か月"
-        case (let y, 0):
+        case let (y, 0):
             return "\(y)年"
         default:
             return "\(years)年\(months)か月"
@@ -197,7 +197,7 @@ internal final class SpecialPaymentOccurrence {
         status: SpecialPaymentStatus = .planned,
         actualDate: Date? = nil,
         actualAmount: Decimal? = nil,
-        transaction: Transaction? = nil
+        transaction: Transaction? = nil,
     ) {
         self.id = id
         self.definition = definition

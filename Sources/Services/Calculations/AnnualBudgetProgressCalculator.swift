@@ -36,40 +36,40 @@ internal struct AnnualBudgetProgressCalculator {
         budgets: [Budget],
         transactions: [Transaction],
         year: Int,
-        filter: AggregationFilter = .default
+        filter: AggregationFilter = .default,
     ) -> AnnualBudgetProgressResult {
         let annualBudgets = budgets.filter { $0.overlaps(year: year) }
         guard !annualBudgets.isEmpty else {
             return AnnualBudgetProgressResult(
                 overallEntry: nil,
                 categoryEntries: [],
-                aggregateCalculation: nil
+                aggregateCalculation: nil,
             )
         }
 
         let annualSummary = aggregator.aggregateAnnually(
             transactions: transactions,
             year: year,
-            filter: filter
+            filter: filter,
         )
 
         let actualMap: [UUID: Decimal] = Dictionary(
             uniqueKeysWithValues: annualSummary.categorySummaries.compactMap { summary in
                 guard let categoryId = summary.categoryId else { return nil }
                 return (categoryId, summary.totalExpense)
-            }
+            },
         )
 
         let overallEntry = makeOverallEntry(
             year: year,
             budgets: annualBudgets,
-            totalExpense: annualSummary.totalExpense
+            totalExpense: annualSummary.totalExpense,
         )
 
         let categoryEntries = makeCategoryEntries(
             year: year,
             budgets: annualBudgets,
-            actualMap: actualMap
+            actualMap: actualMap,
         )
 
         let aggregateCalculation: BudgetCalculation?
@@ -80,7 +80,7 @@ internal struct AnnualBudgetProgressCalculator {
             let totalActual = categoryEntries.reduce(Decimal.zero) { $0 + $1.calculation.actualAmount }
             aggregateCalculation = budgetCalculator.calculate(
                 budgetAmount: totalBudget,
-                actualAmount: totalActual
+                actualAmount: totalActual,
             )
         } else {
             aggregateCalculation = nil
@@ -89,7 +89,7 @@ internal struct AnnualBudgetProgressCalculator {
         return AnnualBudgetProgressResult(
             overallEntry: overallEntry,
             categoryEntries: categoryEntries,
-            aggregateCalculation: aggregateCalculation
+            aggregateCalculation: aggregateCalculation,
         )
     }
 
@@ -98,7 +98,7 @@ internal struct AnnualBudgetProgressCalculator {
     private func makeOverallEntry(
         year: Int,
         budgets: [Budget],
-        totalExpense: Decimal
+        totalExpense: Decimal,
     ) -> AnnualBudgetEntry? {
         let items = budgets.filter { $0.category == nil }
         guard let budget = items.first else { return nil }
@@ -109,7 +109,7 @@ internal struct AnnualBudgetProgressCalculator {
 
         let calculation = budgetCalculator.calculate(
             budgetAmount: totalAmount,
-            actualAmount: totalExpense
+            actualAmount: totalExpense,
         )
 
         return AnnualBudgetEntry(
@@ -118,14 +118,14 @@ internal struct AnnualBudgetProgressCalculator {
             title: "全体予算",
             calculation: calculation,
             isOverallBudget: true,
-            displayOrderTuple: (-1, -1, "全体予算")
+            displayOrderTuple: (-1, -1, "全体予算"),
         )
     }
 
     private func makeCategoryEntries(
         year: Int,
         budgets: [Budget],
-        actualMap: [UUID: Decimal]
+        actualMap: [UUID: Decimal],
     ) -> [AnnualBudgetEntry] {
         let categoryBudgets = budgets.compactMap { budget -> (Category, Budget)? in
             guard let category = budget.category else { return nil }
@@ -141,7 +141,7 @@ internal struct AnnualBudgetProgressCalculator {
             let actualAmount = actualMap[categoryId] ?? 0
             let calculation = budgetCalculator.calculate(
                 budgetAmount: totalAmount,
-                actualAmount: actualAmount
+                actualAmount: actualAmount,
             )
 
             guard let budget = pairedItems.first?.1 else { return nil }
@@ -152,7 +152,7 @@ internal struct AnnualBudgetProgressCalculator {
                 title: category.fullName,
                 calculation: calculation,
                 isOverallBudget: false,
-                displayOrderTuple: displayOrderTuple(for: category)
+                displayOrderTuple: displayOrderTuple(for: category),
             )
         }
         .sorted { lhs, rhs in

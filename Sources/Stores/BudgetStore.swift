@@ -184,7 +184,7 @@ internal final class BudgetStore {
             budgets: allBudgets,
             transactions: allTransactions,
             year: currentYear,
-            filter: .default
+            filter: .default,
         )
     }
 
@@ -245,13 +245,13 @@ internal final class BudgetStore {
         startYear: Int,
         startMonth: Int,
         endYear: Int,
-        endMonth: Int
+        endMonth: Int,
     ) throws {
         try validatePeriod(
             startYear: startYear,
             startMonth: startMonth,
             endYear: endYear,
-            endMonth: endMonth
+            endMonth: endMonth,
         )
         let category = try resolvedCategory(categoryId: categoryId)
         let budget = Budget(
@@ -274,13 +274,13 @@ internal final class BudgetStore {
         startYear: Int,
         startMonth: Int,
         endYear: Int,
-        endMonth: Int
+        endMonth: Int,
     ) throws {
         try validatePeriod(
             startYear: startYear,
             startMonth: startMonth,
             endYear: endYear,
-            endMonth: endMonth
+            endMonth: endMonth,
         )
         let category = try resolvedCategory(categoryId: categoryId)
         budget.amount = amount
@@ -342,7 +342,7 @@ internal final class BudgetStore {
         startYear: Int,
         startMonth: Int,
         endYear: Int,
-        endMonth: Int
+        endMonth: Int,
     ) throws {
         guard (2000 ... 2100).contains(startYear),
               (2000 ... 2100).contains(endYear),

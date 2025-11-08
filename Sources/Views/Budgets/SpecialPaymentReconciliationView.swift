@@ -50,13 +50,13 @@ internal struct SpecialPaymentReconciliationContentView: View {
                     .padding()
             }
         }
-        .onChange(of: store.errorMessage) { newValue in
+        .onChange(of: store.errorMessage) { _, newValue in
             isErrorAlertPresented = newValue != nil
         }
         .alert(
             "エラー",
             isPresented: $isErrorAlertPresented,
-            presenting: store.errorMessage
+            presenting: store.errorMessage,
         ) { _ in
             Button("OK", role: .cancel) {
                 store.clearError()
@@ -90,7 +90,7 @@ internal struct SpecialPaymentReconciliationContentView: View {
             HStack(spacing: 12) {
                 TextField(
                     "キーワード検索",
-                    text: $store.searchText
+                    text: $store.searchText,
                 )
                 .textFieldStyle(.roundedBorder)
                 .frame(maxWidth: 280)
@@ -121,7 +121,7 @@ internal struct SpecialPaymentReconciliationContentView: View {
             } else {
                 List(selection: Binding(
                     get: { store.selectedOccurrenceId },
-                    set: { store.selectedOccurrenceId = $0 }
+                    set: { store.selectedOccurrenceId = $0 },
                 )) {
                     ForEach(store.filteredRows) { row in
                         OccurrenceRowView(row: row)
@@ -176,7 +176,7 @@ internal struct SpecialPaymentReconciliationContentView: View {
             gridRow(title: "周期", value: row.recurrenceDescription)
             gridRow(
                 title: "候補取引",
-                value: row.transactionTitle ?? "未リンク"
+                value: row.transactionTitle ?? "未リンク",
             )
         }
         .font(.subheadline)
@@ -202,7 +202,6 @@ internal struct SpecialPaymentReconciliationContentView: View {
                         .foregroundStyle(.secondary)
                     TextField("例: 150000", text: $store.actualAmountText)
                         .textFieldStyle(.roundedBorder)
-                        .keyboardType(.numbersAndPunctuation)
                         .frame(maxWidth: 180)
                 }
 
@@ -213,7 +212,7 @@ internal struct SpecialPaymentReconciliationContentView: View {
                     DatePicker(
                         "",
                         selection: $store.actualDate,
-                        displayedComponents: [.date]
+                        displayedComponents: [.date],
                     )
                     .datePickerStyle(.compact)
                     .labelsHidden()
@@ -260,7 +259,7 @@ internal struct SpecialPaymentReconciliationContentView: View {
                             isSelected: candidate.id == store.selectedTransactionId,
                             onSelect: {
                                 store.selectCandidate(candidate.id)
-                            }
+                            },
                         )
                     }
                 }
@@ -336,7 +335,7 @@ private struct CandidateRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(isSelected ? Color.blue.opacity(0.08) : Color.gray.opacity(0.08))
+                    .fill(isSelected ? Color.blue.opacity(0.08) : Color.gray.opacity(0.08)),
             )
         }
         .buttonStyle(.plain)
@@ -355,7 +354,7 @@ private struct StatusBadge: View {
             .padding(.vertical, 4)
             .background(
                 Capsule()
-                    .fill(badgeColor.opacity(0.15))
+                    .fill(badgeColor.opacity(0.15)),
             )
             .foregroundStyle(badgeColor)
     }

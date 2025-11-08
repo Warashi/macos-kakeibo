@@ -9,19 +9,19 @@ internal struct BudgetDistributionCard: View {
     private var rows: [BudgetDistributionRow] {
         switch displayMode {
         case .monthly:
-            return monthlyCategoryCalculations.map {
+            monthlyCategoryCalculations.map {
                 BudgetDistributionRow(
                     id: AnyHashable($0.categoryId),
                     title: $0.categoryName,
-                    calculation: $0.calculation
+                    calculation: $0.calculation,
                 )
             }
         case .annual:
-            return annualCategoryEntries.map {
+            annualCategoryEntries.map {
                 BudgetDistributionRow(
                     id: AnyHashable($0.id),
                     title: $0.title,
-                    calculation: $0.calculation
+                    calculation: $0.calculation,
                 )
             }
         }

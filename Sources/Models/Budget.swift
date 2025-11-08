@@ -68,7 +68,7 @@ internal final class Budget {
         amount: Decimal,
         category: Category? = nil,
         year: Int,
-        month: Int
+        month: Int,
     ) {
         self.init(
             id: id,
@@ -77,7 +77,7 @@ internal final class Budget {
             startYear: year,
             startMonth: month,
             endYear: year,
-            endMonth: month
+            endMonth: month,
         )
     }
 }

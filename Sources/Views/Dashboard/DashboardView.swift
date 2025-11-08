@@ -21,7 +21,7 @@ internal struct DashboardView: View {
                             monthlySummary: store.monthlySummary,
                             annualSummary: store.annualSummary,
                             monthlyBudgetCalculation: store.monthlyBudgetCalculation,
-                            annualBudgetProgress: store.annualBudgetProgressCalculation
+                            annualBudgetProgress: store.annualBudgetProgressCalculation,
                         )
 
                         ViewThatFits {
@@ -125,7 +125,7 @@ internal struct DashboardView: View {
             BudgetDistributionCard(
                 displayMode: store.displayMode,
                 monthlyCategoryCalculations: store.monthlyBudgetCalculation.categoryCalculations,
-                annualCategoryEntries: store.annualBudgetCategoryEntries
+                annualCategoryEntries: store.annualBudgetCategoryEntries,
             )
 
             if let annualBudgetUsage = store.annualBudgetUsage {

@@ -18,13 +18,13 @@ internal final class SpecialPaymentReconciliationStore {
         fileprivate func matches(row: OccurrenceRow) -> Bool {
             switch self {
             case .needsAttention:
-                return row.needsAttention
+                row.needsAttention
             case .upcoming:
-                return row.isUpcoming
+                row.isUpcoming
             case .completed:
-                return row.isCompleted
+                row.isCompleted
             case .all:
-                return true
+                true
             }
         }
     }
@@ -44,7 +44,7 @@ internal final class SpecialPaymentReconciliationStore {
         internal init(
             occurrence: SpecialPaymentOccurrence,
             definition: SpecialPaymentDefinition,
-            referenceDate: Date
+            referenceDate: Date,
         ) {
             self.id = occurrence.id
             self.definitionName = definition.name
@@ -61,9 +61,9 @@ internal final class SpecialPaymentReconciliationStore {
         internal var needsAttention: Bool {
             switch status {
             case .planned, .saving:
-                return true
+                true
             case .completed, .cancelled:
-                return false
+                false
             }
         }
 
@@ -78,13 +78,13 @@ internal final class SpecialPaymentReconciliationStore {
         internal var statusLabel: String {
             switch status {
             case .planned:
-                return "予定"
+                "予定"
             case .saving:
-                return "積立中"
+                "積立中"
             case .completed:
-                return "完了"
+                "完了"
             case .cancelled:
-                return "中止"
+                "中止"
             }
         }
 
@@ -136,18 +136,16 @@ internal final class SpecialPaymentReconciliationStore {
         }
 
         internal var detailDescription: String {
-            let amountText: String
-            if amountDifference.isZero {
-                amountText = "金額一致"
+            let amountText: String = if amountDifference.isZero {
+                "金額一致"
             } else {
-                amountText = "差額 \(amountDifference.absoluteValue.currencyFormattedWithoutSymbol)"
+                "差額 \(amountDifference.absoluteValue.currencyFormattedWithoutSymbol)"
             }
 
-            let dayText: String
-            if dayDifference == 0 {
-                dayText = "同日"
+            let dayText: String = if dayDifference == 0 {
+                "同日"
             } else {
-                dayText = "±\(dayDifference)日"
+                "±\(dayDifference)日"
             }
 
             if titleMatched {
@@ -157,7 +155,7 @@ internal final class SpecialPaymentReconciliationStore {
         }
 
         internal var isWithinBounds: Bool {
-            let threshold = Decimal(5_000)
+            let threshold = Decimal(5000)
             return total >= 0.2 || titleMatched || amountDifference <= threshold
         }
     }
@@ -172,18 +170,17 @@ internal final class SpecialPaymentReconciliationStore {
 
         internal func score(
             occurrence: SpecialPaymentOccurrence,
-            transaction: Transaction
+            transaction: Transaction,
         ) -> TransactionCandidateScore {
             let expectedAmount = occurrence.expectedAmount
             let actualAmount = transaction.absoluteAmount
             let amountDifference = abs(actualAmount.safeSubtract(expectedAmount))
-            let normalizedAmountDiff: Double
-            if expectedAmount.isZero {
-                normalizedAmountDiff = 1
+            let normalizedAmountDiff: Double = if expectedAmount.isZero {
+                1
             } else {
-                normalizedAmountDiff = min(
+                min(
                     1,
-                    amountDifference.safeDivide(expectedAmount).doubleValue
+                    amountDifference.safeDivide(expectedAmount).doubleValue,
                 )
             }
             let amountScore = 1 - normalizedAmountDiff
@@ -192,12 +189,12 @@ internal final class SpecialPaymentReconciliationStore {
                 calendar.dateComponents(
                     [.day],
                     from: occurrence.scheduledDate,
-                    to: transaction.date
-                ).day ?? 0
+                    to: transaction.date,
+                ).day ?? 0,
             )
             let normalizedDays = min(
                 1,
-                Double(dayDifference) / Double(windowDays)
+                Double(dayDifference) / Double(windowDays),
             )
             let dateScore = 1 - normalizedDays
 
@@ -213,15 +210,15 @@ internal final class SpecialPaymentReconciliationStore {
                 0,
                 min(
                     1,
-                    (amountScore * 0.5) + (dateScore * 0.3) + (titleScore * 0.2)
-                )
+                    (amountScore * 0.5) + (dateScore * 0.3) + (titleScore * 0.2),
+                ),
             )
 
             return TransactionCandidateScore(
                 total: totalScore,
                 amountDifference: amountDifference,
                 dayDifference: dayDifference,
-                titleMatched: titleMatched
+                titleMatched: titleMatched,
             )
         }
     }
@@ -277,7 +274,7 @@ internal final class SpecialPaymentReconciliationStore {
         modelContext: ModelContext,
         candidateSearchWindowDays: Int = 60,
         candidateLimit: Int = 12,
-        currentDateProvider: @escaping () -> Date = { Date() }
+        currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         self.modelContext = modelContext
         self.specialPaymentStore = SpecialPaymentStore(modelContext: modelContext)
@@ -307,7 +304,7 @@ internal final class SpecialPaymentReconciliationStore {
             let descriptor = FetchDescriptor<SpecialPaymentDefinition>(
                 sortBy: [
                     SortDescriptor(\.name, order: .forward),
-                ]
+                ],
             )
             let definitions = try modelContext.fetch(descriptor)
             let referenceDate = currentDateProvider()
@@ -322,8 +319,8 @@ internal final class SpecialPaymentReconciliationStore {
                         OccurrenceRow(
                             occurrence: occurrence,
                             definition: definition,
-                            referenceDate: referenceDate
-                        )
+                            referenceDate: referenceDate,
+                        ),
                     )
                     occurrenceMap[occurrence.id] = occurrence
                     if let transaction = occurrence.transaction {
@@ -398,7 +395,7 @@ internal final class SpecialPaymentReconciliationStore {
                 occurrence,
                 actualDate: actualDate,
                 actualAmount: amount,
-                transaction: transaction
+                transaction: transaction,
             )
             statusMessage = "実績を保存しました。"
             refresh()
@@ -526,8 +523,8 @@ internal final class SpecialPaymentReconciliationStore {
                 TransactionCandidate(
                     transaction: transaction,
                     score: score,
-                    isCurrentLink: isCurrentLink
-                )
+                    isCurrentLink: isCurrentLink,
+                ),
             )
         }
 
@@ -538,8 +535,8 @@ internal final class SpecialPaymentReconciliationStore {
                 TransactionCandidate(
                     transaction: linkedTransaction,
                     score: score,
-                    isCurrentLink: true
-                )
+                    isCurrentLink: true,
+                ),
             )
         }
 

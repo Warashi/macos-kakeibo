@@ -27,7 +27,7 @@ internal struct SettingsSectionCardTests {
             description: "バックアップやCSVエクスポートの設定です。",
             content: {
                 Text("dummy content")
-            }
+            },
         )
 
         #expect(card.title == "データ管理")

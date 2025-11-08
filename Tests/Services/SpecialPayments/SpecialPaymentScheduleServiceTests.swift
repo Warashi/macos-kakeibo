@@ -16,14 +16,14 @@ internal struct SpecialPaymentScheduleServiceTests {
             name: "家電買い替え",
             amount: 180_000,
             recurrenceIntervalMonths: 6,
-            firstOccurrenceDate: firstDate
+            firstOccurrenceDate: firstDate,
         )
 
         let targets = service.scheduleTargets(
             for: definition,
             seedDate: definition.firstOccurrenceDate,
             referenceDate: referenceDate,
-            horizonMonths: 18
+            horizonMonths: 18,
         )
 
         #expect(targets.count == 3)
@@ -49,14 +49,14 @@ internal struct SpecialPaymentScheduleServiceTests {
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
-            firstOccurrenceDate: firstDate
+            firstOccurrenceDate: firstDate,
         )
 
         let targets = service.scheduleTargets(
             for: definition,
             seedDate: definition.firstOccurrenceDate,
             referenceDate: referenceDate,
-            horizonMonths: 12
+            horizonMonths: 12,
         )
 
         let firstTarget = try #require(targets.first)
@@ -72,14 +72,14 @@ internal struct SpecialPaymentScheduleServiceTests {
         let savingStatus = service.defaultStatus(
             for: scheduledDate,
             referenceDate: referenceDate,
-            leadTimeMonths: 3
+            leadTimeMonths: 3,
         )
         #expect(savingStatus == .saving)
 
         let plannedStatus = service.defaultStatus(
             for: scheduledDate,
             referenceDate: referenceDate,
-            leadTimeMonths: 0
+            leadTimeMonths: 0,
         )
         #expect(plannedStatus == .planned)
     }

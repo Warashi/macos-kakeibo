@@ -123,7 +123,7 @@ internal struct TransactionStoreTests {
 
         #expect(result)
         #expect(transaction.title == "会食")
-        #expect(transaction.amount == 12_000)
+        #expect(transaction.amount == 12000)
         #expect(transaction.isIncludedInCalculation == false)
         #expect(transaction.isTransfer == true)
         #expect(transaction.financialInstitution?.id == institution.id)
@@ -144,7 +144,8 @@ internal struct TransactionStoreTests {
         return (context, targetDate)
     }
 
-    private func seedReferenceData(in context: ModelContext) throws -> (FinancialInstitution, Kakeibo.Category, Kakeibo.Category) {
+    private func seedReferenceData(in context: ModelContext) throws
+    -> (FinancialInstitution, Kakeibo.Category, Kakeibo.Category) {
         let institution = FinancialInstitution(name: "メイン銀行")
         let major = Kakeibo.Category(name: "食費", displayOrder: 1)
         let minor = Kakeibo.Category(name: "外食", parent: major, displayOrder: 1)

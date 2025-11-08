@@ -210,7 +210,7 @@ internal struct DashboardStoreTests {
         let transaction = Transaction(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "光熱費",
-            amount: -50_000
+            amount: -50000,
         )
         context.insert(transaction)
         try context.save()
@@ -220,7 +220,7 @@ internal struct DashboardStoreTests {
 
         let progress = try #require(store.annualBudgetProgressCalculation)
         #expect(progress.budgetAmount == 120_000)
-        #expect(progress.actualAmount == 50_000)
+        #expect(progress.actualAmount == 50000)
     }
 
     @Test("年次予算進捗：カテゴリ予算のみでも集計される")
@@ -231,14 +231,14 @@ internal struct DashboardStoreTests {
         let food = Category(name: "食費")
         context.insert(food)
 
-        let budget = Budget(amount: 10_000, category: food, year: 2025, month: 1)
+        let budget = Budget(amount: 10000, category: food, year: 2025, month: 1)
         context.insert(budget)
 
         let transaction = Transaction(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "ランチ",
-            amount: -4_000,
-            majorCategory: food
+            amount: -4000,
+            majorCategory: food,
         )
         context.insert(transaction)
         try context.save()
@@ -247,8 +247,8 @@ internal struct DashboardStoreTests {
         store.currentYear = 2025
 
         let progress = try #require(store.annualBudgetProgressCalculation)
-        #expect(progress.budgetAmount == 10_000)
-        #expect(progress.actualAmount == 4_000)
+        #expect(progress.budgetAmount == 10000)
+        #expect(progress.actualAmount == 4000)
     }
 
     @Test("年次予算進捗：予算がなければnil")

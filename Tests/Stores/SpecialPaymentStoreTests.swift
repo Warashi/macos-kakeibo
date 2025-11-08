@@ -18,7 +18,7 @@ internal struct SpecialPaymentStoreTests {
             amount: 150_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: firstOccurrence,
-            leadTimeMonths: 3
+            leadTimeMonths: 3,
         )
 
         context.insert(definition)
@@ -45,7 +45,7 @@ internal struct SpecialPaymentStoreTests {
             name: "学資保険",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: referenceDate
+            firstOccurrenceDate: referenceDate,
         )
         context.insert(definition)
         try context.save()
@@ -77,7 +77,7 @@ internal struct SpecialPaymentStoreTests {
             name: "車検",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: firstDate
+            firstOccurrenceDate: firstDate,
         )
         context.insert(definition)
         try context.save()
@@ -89,11 +89,11 @@ internal struct SpecialPaymentStoreTests {
         try store.markOccurrenceCompleted(
             occurrence,
             actualDate: actualDate,
-            actualAmount: 98_000
+            actualAmount: 98000,
         )
 
         #expect(occurrence.status == .completed)
-        #expect(occurrence.actualAmount == 98_000)
+        #expect(occurrence.actualAmount == 98000)
         #expect(definition.occurrences.contains { $0.scheduledDate.year == 2025 })
         #expect(definition.occurrences.contains { $0.scheduledDate.year == 2026 })
     }
@@ -106,7 +106,7 @@ internal struct SpecialPaymentStoreTests {
         let store = SpecialPaymentStore(
             modelContext: context,
             scheduleService: SpecialPaymentScheduleService(),
-            currentDateProvider: { referenceDate }
+            currentDateProvider: { referenceDate },
         )
         return (store, context)
     }

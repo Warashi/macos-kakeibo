@@ -31,13 +31,13 @@ internal struct DashboardSummaryCard: View {
                     summaryItem(
                         title: item.element.title,
                         amount: amount,
-                        color: item.element.color
+                        color: item.element.color,
                     )
                 } else if let text = item.element.text {
                     summaryItem(
                         title: item.element.title,
                         text: text,
-                        color: item.element.color
+                        color: item.element.color,
                     )
                 }
             }
@@ -49,17 +49,17 @@ internal struct DashboardSummaryCard: View {
             SummaryMetric(
                 title: "収入",
                 amount: displayMode == .monthly ? monthlySummary.totalIncome : annualSummary.totalIncome,
-                color: .blue
+                color: .blue,
             ),
             SummaryMetric(
                 title: "支出",
                 amount: displayMode == .monthly ? monthlySummary.totalExpense : annualSummary.totalExpense,
-                color: .red
+                color: .red,
             ),
             SummaryMetric(
                 title: "差引",
                 amount: displayMode == .monthly ? monthlySummary.net : annualSummary.net,
-                color: (displayMode == .monthly ? monthlySummary.net : annualSummary.net) >= 0 ? .green : .orange
+                color: (displayMode == .monthly ? monthlySummary.net : annualSummary.net) >= 0 ? .green : .orange,
             ),
         ]
 
@@ -68,8 +68,8 @@ internal struct DashboardSummaryCard: View {
                 SummaryMetric(
                     title: "取引件数",
                     text: "\(annualSummary.transactionCount)件",
-                    color: .gray
-                )
+                    color: .gray,
+                ),
             )
         }
 
@@ -80,7 +80,7 @@ internal struct DashboardSummaryCard: View {
     private func summaryItem(
         title: String,
         amount: Decimal,
-        color: Color
+        color: Color,
     ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
@@ -98,7 +98,7 @@ internal struct DashboardSummaryCard: View {
     private func summaryItem(
         title: String,
         text: String,
-        color: Color
+        color: Color,
     ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
@@ -118,18 +118,18 @@ internal struct DashboardSummaryCard: View {
            let overall = monthlyBudgetCalculation.overallCalculation {
             BudgetProgressView(
                 title: "月次予算の進捗",
-                calculation: overall
+                calculation: overall,
             )
         } else if displayMode == .annual,
                   let annualBudgetProgress {
             BudgetProgressView(
                 title: "年間予算の進捗",
-                calculation: annualBudgetProgress
+                calculation: annualBudgetProgress,
             )
         } else {
             ContentUnavailableView(
                 "予算は未設定です",
-                systemImage: "exclamationmark.triangle"
+                systemImage: "exclamationmark.triangle",
             )
             .font(.subheadline)
         }
@@ -158,7 +158,7 @@ private struct BudgetProgressView: View {
             ProgressBar(
                 progress: calculation.usageRate,
                 style: calculation.isOverBudget ? .danger : .custom(.blue),
-                showLabel: false
+                showLabel: false,
             )
 
             HStack {
@@ -200,7 +200,7 @@ private struct SummaryMetric {
     internal init(
         title: String,
         amount: Decimal,
-        color: Color
+        color: Color,
     ) {
         self.title = title
         self.amount = amount
@@ -211,7 +211,7 @@ private struct SummaryMetric {
     internal init(
         title: String,
         text: String,
-        color: Color
+        color: Color,
     ) {
         self.title = title
         self.amount = nil

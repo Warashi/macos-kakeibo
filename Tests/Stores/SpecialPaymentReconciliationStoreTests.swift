@@ -16,7 +16,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: referenceDate
+            firstOccurrenceDate: referenceDate,
         )
         context.insert(definition)
 
@@ -24,7 +24,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
             definition: definition,
             scheduledDate: referenceDate,
             expectedAmount: 120_000,
-            status: .planned
+            status: .planned,
         )
         let completed = SpecialPaymentOccurrence(
             definition: definition,
@@ -32,7 +32,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
             expectedAmount: 120_000,
             status: .completed,
             actualDate: referenceDate.addingTimeInterval(-60 * 60 * 24 * 100),
-            actualAmount: 118_000
+            actualAmount: 118_000,
         )
         definition.occurrences = [pending, completed]
         try context.save()
@@ -57,7 +57,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: referenceDate
+            firstOccurrenceDate: referenceDate,
         )
         context.insert(definition)
 
@@ -65,7 +65,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
             definition: definition,
             scheduledDate: referenceDate,
             expectedAmount: 150_000,
-            status: .saving
+            status: .saving,
         )
         definition.occurrences = [occurrence]
 
@@ -73,14 +73,14 @@ internal struct SpecialPaymentReconciliationStoreTests {
             date: referenceDate,
             title: "固定資産税 支払い",
             amount: -150_000,
-            memo: ""
+            memo: "",
         )
 
         let farMatch = Transaction(
             date: referenceDate.addingTimeInterval(60 * 60 * 24 * 30),
             title: "別支出",
             amount: -170_000,
-            memo: ""
+            memo: "",
         )
 
         context.insert(perfectMatch)
@@ -103,25 +103,25 @@ internal struct SpecialPaymentReconciliationStoreTests {
 
         let definition = SpecialPaymentDefinition(
             name: "旅行積立",
-            amount: 80_000,
+            amount: 80000,
             recurrenceIntervalMonths: 6,
-            firstOccurrenceDate: referenceDate
+            firstOccurrenceDate: referenceDate,
         )
         context.insert(definition)
 
         let occurrence = SpecialPaymentOccurrence(
             definition: definition,
             scheduledDate: referenceDate,
-            expectedAmount: 80_000,
-            status: .saving
+            expectedAmount: 80000,
+            status: .saving,
         )
         definition.occurrences = [occurrence]
 
         let transaction = Transaction(
             date: referenceDate,
             title: "旅行費用",
-            amount: -82_000,
-            memo: ""
+            amount: -82000,
+            memo: "",
         )
         context.insert(transaction)
         try context.save()
@@ -147,7 +147,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         let context = ModelContext(container)
         let store = SpecialPaymentReconciliationStore(
             modelContext: context,
-            currentDateProvider: { referenceDate }
+            currentDateProvider: { referenceDate },
         )
         return (store, context)
     }
