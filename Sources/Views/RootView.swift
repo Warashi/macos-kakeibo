@@ -32,6 +32,8 @@ private struct RootDetailView: View {
             TransactionListView()
         case .budgets:
             BudgetView()
+        case .imports:
+            CSVImportView()
         case .settings:
             SettingsView(modelContext: modelContext)
         default:

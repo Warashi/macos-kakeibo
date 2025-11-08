@@ -26,6 +26,11 @@ internal struct KakeiboTests {
         let _: any View = view
     }
 
+    @Test("CSVImportView can be initialized")
+    internal func csvImportViewInitialization() {
+        let view = CSVImportView()
+        let _: any View = view
+
     @Test("SettingsView can be initialized with ModelContext")
     internal func settingsViewInitialization() throws {
         let container = try ModelContainer.createInMemoryContainer()
