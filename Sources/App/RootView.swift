@@ -23,13 +23,18 @@ private struct RootDetailView: View {
     internal let screen: AppState.Screen
 
     internal var body: some View {
-        ContentUnavailableView {
-            Label(screen.displayName, systemImage: screen.symbolName)
-                .font(.largeTitle)
-        } description: {
-            Text(screen.description)
+        switch screen {
+        case .dashboard:
+            DashboardView()
+        default:
+            ContentUnavailableView {
+                Label(screen.displayName, systemImage: screen.symbolName)
+                    .font(.largeTitle)
+            } description: {
+                Text(screen.description)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(.background)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.background)
     }
 }
