@@ -26,6 +26,9 @@ internal struct SpecialPaymentListView: View {
 internal struct SpecialPaymentListContentView: View {
     @Bindable internal var store: SpecialPaymentListStore
     @Query private var allCategories: [Category]
+    @State private var csvDocument: DataFileDocument?
+    @State private var isExportingCSV = false
+    @State private var exportError: String?
 
     internal var body: some View {
         VStack(spacing: 16) {
@@ -41,8 +44,35 @@ internal struct SpecialPaymentListContentView: View {
                 } label: {
                     Label("フィルタをリセット", systemImage: "arrow.counterclockwise")
                 }
+
+                Button {
+                    exportToCSV()
+                } label: {
+                    Label("CSVエクスポート", systemImage: "square.and.arrow.up")
+                }
+                .disabled(store.entries.isEmpty)
             }
         }
+        .fileExporter(
+            isPresented: $isExportingCSV,
+            document: csvDocument,
+            contentType: .commaSeparatedText,
+            defaultFilename: defaultCSVFilename(),
+            onCompletion: handleExportCompletion,
+        )
+        .alert(
+            "エクスポートエラー",
+            isPresented: Binding(
+                get: { exportError != nil },
+                set: { if !$0 { exportError = nil } },
+            ),
+            actions: {
+                Button("OK", role: .cancel) {}
+            },
+            message: {
+                Text(exportError ?? "")
+            },
+        )
     }
 
     // MARK: - Filter Toolbar
@@ -239,6 +269,37 @@ internal struct SpecialPaymentListContentView: View {
                 }
             }
             .frame(minHeight: 400)
+        }
+    }
+
+    // MARK: - Export Helpers
+
+    private func exportToCSV() {
+        let exporter = CSVExporter()
+
+        do {
+            let result = try exporter.exportSpecialPaymentListEntries(store.entries)
+            csvDocument = DataFileDocument(data: result.data)
+            isExportingCSV = true
+        } catch {
+            exportError = "CSVエクスポートに失敗しました: \(error.localizedDescription)"
+        }
+    }
+
+    private func defaultCSVFilename() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd"
+        let dateString = formatter.string(from: Date())
+        return "特別支払い一覧_\(dateString).csv"
+    }
+
+    private func handleExportCompletion(result: Result<URL, Error>) {
+        switch result {
+        case .success:
+            // エクスポート成功
+            break
+        case let .failure(error):
+            exportError = "ファイル保存に失敗しました: \(error.localizedDescription)"
         }
     }
 }

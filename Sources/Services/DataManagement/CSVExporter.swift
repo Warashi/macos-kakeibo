@@ -111,4 +111,80 @@ internal struct CSVExporter: Sendable {
     private func quote(_ value: String) -> String {
         "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
     }
+
+    /// 特別支払い一覧エントリをCSVに変換する
+    /// - Parameter entries: エクスポート対象のエントリ
+    /// - Returns: CSVデータと行数
+    internal func exportSpecialPaymentListEntries(_ entries: [SpecialPaymentListEntry]) throws
+    -> CSVExportResult {
+        let header = [
+            "id",
+            "definitionId",
+            "名称",
+            "カテゴリ",
+            "予定日",
+            "予定額",
+            "実績額",
+            "積立残高",
+            "進捗率",
+            "残日数",
+            "ステータス",
+            "紐付けTransaction ID",
+            "差異",
+        ]
+
+        var rows: [String] = [header.joined(separator: delimiter)]
+        rows.reserveCapacity(entries.count + 1)
+
+        for entry in entries {
+            rows.append(row(from: entry))
+        }
+
+        let csvString = rows.joined(separator: newline)
+
+        guard let data = csvString.data(using: AppConstants.CSV.encoding) else {
+            throw CSVExporterError.encodingFailed
+        }
+
+        return CSVExportResult(
+            data: data,
+            rowCount: entries.count,
+            header: header,
+        )
+    }
+
+    /// SpecialPaymentListEntryから1行のCSV文字列を生成
+    /// - Parameter entry: 特別支払い一覧エントリ
+    /// - Returns: CSV文字列
+    private func row(from entry: SpecialPaymentListEntry) -> String {
+        [
+            entry.id.uuidString,
+            entry.definitionId.uuidString,
+            quote(entry.name),
+            quote(entry.categoryName ?? ""),
+            formattedDate(entry.scheduledDate),
+            string(from: entry.expectedAmount),
+            entry.actualAmount.map { string(from: $0) } ?? "",
+            string(from: entry.savingsBalance),
+            String(format: "%.2f", entry.savingsProgress * 100),
+            String(entry.daysUntilDue),
+            quote(statusLabel(entry.status)),
+            entry.transactionId?.uuidString ?? "",
+            entry.discrepancyAmount.map { string(from: $0) } ?? "",
+        ].joined(separator: delimiter)
+    }
+
+    /// ステータスのラベルを取得
+    private func statusLabel(_ status: SpecialPaymentStatus) -> String {
+        switch status {
+        case .planned:
+            "予定のみ"
+        case .saving:
+            "積立中"
+        case .completed:
+            "完了"
+        case .cancelled:
+            "中止"
+        }
+    }
 }

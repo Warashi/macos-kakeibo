@@ -49,4 +49,57 @@ internal struct CSVExporterTests {
         #expect(csv.split(separator: "\n").count == 1)
         #expect(csv.contains("id,date,title"))
     }
+
+    @Test("特別支払い一覧エントリをCSVに変換できる")
+    internal func exportSpecialPaymentListEntries_containsHeaderAndRow() throws {
+        // Given
+        let entry = SpecialPaymentListEntry(
+            id: UUID(),
+            definitionId: UUID(),
+            name: "自動車税",
+            categoryId: UUID(),
+            categoryName: "税金",
+            scheduledDate: Date(timeIntervalSince1970: 0),
+            expectedAmount: 45000,
+            actualAmount: 45000,
+            status: .completed,
+            savingsBalance: 45000,
+            savingsProgress: 1.0,
+            daysUntilDue: 0,
+            transactionId: UUID(),
+            hasDiscrepancy: false,
+        )
+
+        // When
+        let exporter = CSVExporter()
+        let result = try exporter.exportSpecialPaymentListEntries([entry])
+        let csv = result.string
+
+        // Then
+        #expect(result.rowCount == 1)
+        #expect(result.header.contains("名称"))
+        #expect(result.header.contains("カテゴリ"))
+        #expect(result.header.contains("予定日"))
+        #expect(csv.contains("\"自動車税\""))
+        #expect(csv.contains("\"税金\""))
+        #expect(csv.contains("45000"))
+        #expect(csv.contains("100.00"))
+        #expect(csv.contains("\"完了\""))
+    }
+
+    @Test("特別支払い一覧エントリが空の場合でもヘッダーを出力する")
+    internal func exportSpecialPaymentListEntries_empty() throws {
+        // Given
+        let exporter = CSVExporter()
+
+        // When
+        let result = try exporter.exportSpecialPaymentListEntries([])
+        let csv = result.string
+
+        // Then
+        #expect(result.rowCount == 0)
+        #expect(csv.split(separator: "\n").count == 1)
+        #expect(csv.contains("名称"))
+        #expect(csv.contains("カテゴリ"))
+    }
 }
