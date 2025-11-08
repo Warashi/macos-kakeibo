@@ -274,6 +274,10 @@ private struct BudgetEditorSheet: View {
     internal let onCancel: () -> Void
     internal let onSave: () -> Void
 
+    private var categoryGrouping: CategoryHierarchyGrouping {
+        CategoryHierarchyGrouping(categories: categories)
+    }
+
     internal var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 20) {
@@ -286,8 +290,19 @@ private struct BudgetEditorSheet: View {
                 LabeledField(title: "対象カテゴリ") {
                     Picker("対象カテゴリ", selection: $formState.selectedCategoryId) {
                         Text("全体予算").tag(UUID?.none)
-                        ForEach(categories, id: \.id) { category in
-                            Text(category.fullName).tag(Optional(category.id))
+                        if !categoryGrouping.majorCategories.isEmpty {
+                            Section("大項目") {
+                                ForEach(categoryGrouping.majorCategories, id: \.id) { category in
+                                    Text(category.fullName).tag(Optional(category.id))
+                                }
+                            }
+                        }
+                        if !categoryGrouping.minorCategories.isEmpty {
+                            Section("中項目") {
+                                ForEach(categoryGrouping.minorCategories, id: \.id) { category in
+                                    Text(category.fullName).tag(Optional(category.id))
+                                }
+                            }
                         }
                     }
                     .labelsHidden()
