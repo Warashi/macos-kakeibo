@@ -2,21 +2,21 @@ import Foundation
 import SwiftData
 
 @Model
-final class FinancialInstitution {
-    var id: UUID
-    var name: String
+internal final class FinancialInstitution {
+    internal var id: UUID
+    internal var name: String
 
-    // 表示順序
-    var displayOrder: Int
+    /// 表示順序
+    internal var displayOrder: Int
 
-    // 作成・更新日時
-    var createdAt: Date
-    var updatedAt: Date
+    /// 作成・更新日時
+    internal var createdAt: Date
+    internal var updatedAt: Date
 
-    init(
+    internal init(
         id: UUID = UUID(),
         name: String,
-        displayOrder: Int = 0
+        displayOrder: Int = 0,
     ) {
         self.id = id
         self.name = name

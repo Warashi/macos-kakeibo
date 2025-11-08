@@ -2,33 +2,33 @@ import Foundation
 import SwiftData
 
 @Model
-final class Category {
-    var id: UUID
-    var name: String
+internal final class Category {
+    internal var id: UUID
+    internal var name: String
 
-    // 階層構造: 親カテゴリがnilなら大項目、あれば中項目
-    var parent: Category?
+    /// 階層構造: 親カテゴリがnilなら大項目、あれば中項目
+    internal var parent: Category?
 
-    // 逆参照: 子カテゴリのリスト（大項目の場合のみ使用）
+    /// 逆参照: 子カテゴリのリスト（大項目の場合のみ使用）
     @Relationship(deleteRule: .cascade, inverse: \Category.parent)
-    var children: [Category]
+    internal var children: [Category]
 
-    // 年次特別枠の使用可否（大項目・中項目どちらでも設定可能）
-    var allowsAnnualBudget: Bool
+    /// 年次特別枠の使用可否（大項目・中項目どちらでも設定可能）
+    internal var allowsAnnualBudget: Bool
 
-    // 表示順序
-    var displayOrder: Int
+    /// 表示順序
+    internal var displayOrder: Int
 
-    // 作成・更新日時
-    var createdAt: Date
-    var updatedAt: Date
+    /// 作成・更新日時
+    internal var createdAt: Date
+    internal var updatedAt: Date
 
-    init(
+    internal init(
         id: UUID = UUID(),
         name: String,
         parent: Category? = nil,
         allowsAnnualBudget: Bool = false,
-        displayOrder: Int = 0
+        displayOrder: Int = 0,
     ) {
         self.id = id
         self.name = name
@@ -44,7 +44,8 @@ final class Category {
 }
 
 // MARK: - Computed Properties
-extension Category {
+
+internal extension Category {
     /// 大項目かどうか
     var isMajor: Bool {
         parent == nil
@@ -65,7 +66,8 @@ extension Category {
 }
 
 // MARK: - Convenience
-extension Category {
+
+internal extension Category {
     /// 指定された名前の子カテゴリを取得
     func child(named name: String) -> Category? {
         children.first { $0.name == name }

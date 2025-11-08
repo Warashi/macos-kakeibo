@@ -1,11 +1,11 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 @main
-struct KakeiboApp: App {
-    let modelContainer: ModelContainer
+internal struct KakeiboApp: App {
+    internal let modelContainer: ModelContainer
 
-    init() {
+    internal init() {
         do {
             modelContainer = try ModelContainer.createKakeiboContainer()
         } catch {
@@ -13,7 +13,7 @@ struct KakeiboApp: App {
         }
     }
 
-    var body: some Scene {
+    internal var body: some Scene {
         WindowGroup {
             ContentView()
         }

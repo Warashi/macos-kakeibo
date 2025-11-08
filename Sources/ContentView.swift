@@ -1,7 +1,7 @@
 import SwiftUI
 
-struct ContentView: View {
-    var body: some View {
+internal struct ContentView: View {
+    internal var body: some View {
         VStack(spacing: 20) {
             Text("Hello World")
                 .font(.largeTitle)

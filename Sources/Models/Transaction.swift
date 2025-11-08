@@ -2,29 +2,29 @@ import Foundation
 import SwiftData
 
 @Model
-final class Transaction {
-    var id: UUID
+internal final class Transaction {
+    internal var id: UUID
 
-    // 取引の基本情報
-    var date: Date
-    var title: String
-    var amount: Decimal
-    var memo: String
+    /// 取引の基本情報
+    internal var date: Date
+    internal var title: String
+    internal var amount: Decimal
+    internal var memo: String
 
-    // フラグ
-    var isIncludedInCalculation: Bool  // 計算対象
-    var isTransfer: Bool               // 振替
+    /// フラグ
+    internal var isIncludedInCalculation: Bool // 計算対象
+    internal var isTransfer: Bool // 振替
 
-    // リレーション
-    var financialInstitution: FinancialInstitution?
-    var majorCategory: Category?  // 大項目
-    var minorCategory: Category?  // 中項目
+    /// リレーション
+    internal var financialInstitution: FinancialInstitution?
+    internal var majorCategory: Category? // 大項目
+    internal var minorCategory: Category? // 中項目
 
-    // 作成・更新日時
-    var createdAt: Date
-    var updatedAt: Date
+    /// 作成・更新日時
+    internal var createdAt: Date
+    internal var updatedAt: Date
 
-    init(
+    internal init(
         id: UUID = UUID(),
         date: Date,
         title: String,
@@ -34,7 +34,7 @@ final class Transaction {
         isTransfer: Bool = false,
         financialInstitution: FinancialInstitution? = nil,
         majorCategory: Category? = nil,
-        minorCategory: Category? = nil
+        minorCategory: Category? = nil,
     ) {
         self.id = id
         self.date = date
@@ -54,7 +54,8 @@ final class Transaction {
 }
 
 // MARK: - Computed Properties
-extension Transaction {
+
+internal extension Transaction {
     /// 支出かどうか（金額がマイナス）
     var isExpense: Bool {
         amount < 0
@@ -82,7 +83,8 @@ extension Transaction {
 }
 
 // MARK: - Validation
-extension Transaction {
+
+internal extension Transaction {
     /// データの検証
     func validate() -> [String] {
         var errors: [String] = []

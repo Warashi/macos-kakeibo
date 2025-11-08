@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-extension ModelContainer {
+internal extension ModelContainer {
     /// Kakeiboアプリ用のModelContainerを作成
     static func createKakeiboContainer() throws -> ModelContainer {
         let schema = Schema([
@@ -14,12 +14,12 @@ extension ModelContainer {
 
         let modelConfiguration = ModelConfiguration(
             schema: schema,
-            isStoredInMemoryOnly: false
+            isStoredInMemoryOnly: false,
         )
 
         return try ModelContainer(
             for: schema,
-            configurations: [modelConfiguration]
+            configurations: [modelConfiguration],
         )
     }
 
@@ -35,12 +35,12 @@ extension ModelContainer {
 
         let modelConfiguration = ModelConfiguration(
             schema: schema,
-            isStoredInMemoryOnly: true
+            isStoredInMemoryOnly: true,
         )
 
         return try ModelContainer(
             for: schema,
-            configurations: [modelConfiguration]
+            configurations: [modelConfiguration],
         )
     }
 }
