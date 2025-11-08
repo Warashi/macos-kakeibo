@@ -11,7 +11,7 @@ internal struct SettingsSectionCard<Content: View>: View {
         title: String,
         iconName: String,
         description: String,
-        @ViewBuilder content: () -> Content
+        @ViewBuilder content: () -> Content,
     ) {
         self.title = title
         self.iconName = iconName
@@ -39,7 +39,7 @@ internal struct SettingsSectionCard<Content: View>: View {
         .background(
             RoundedRectangle(cornerRadius: AppConstants.UserInterface.cornerRadius)
                 .fill(Color(nsColor: .windowBackgroundColor))
-                .shadow(color: .black.opacity(0.05), radius: AppConstants.UserInterface.cardShadowRadius)
+                .shadow(color: .black.opacity(0.05), radius: AppConstants.UserInterface.cardShadowRadius),
         )
     }
 }

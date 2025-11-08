@@ -65,7 +65,7 @@ internal struct TransactionFilterBar: View {
             HStack(spacing: 12) {
                 SegmentedControl(
                     selection: $store.selectedFilterKind,
-                    items: TransactionStore.TransactionFilterKind.allCases.map { ($0, $0.label) }
+                    items: TransactionStore.TransactionFilterKind.allCases.map { ($0, $0.label) },
                 )
                 .frame(maxWidth: 340)
 

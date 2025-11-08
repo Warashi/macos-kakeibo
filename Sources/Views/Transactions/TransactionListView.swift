@@ -85,7 +85,7 @@ internal struct TransactionListContentView: View {
                             TransactionRow(
                                 transaction: transaction,
                                 onEdit: { store.startEditing(transaction: $0) },
-                                onDelete: { _ = store.deleteTransaction($0) }
+                                onDelete: { _ = store.deleteTransaction($0) },
                             )
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(role: .destructive) {

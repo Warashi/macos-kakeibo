@@ -15,7 +15,7 @@ internal struct CalculationRulesPanel: View {
                     Toggle("計算対象フラグがONの取引のみ集計する", isOn: $includeOnlyCalculationTarget)
                     Toggle("振替取引を集計から除外する", isOn: $excludeTransfers)
                 }
-            }
+            },
         )
     }
 }

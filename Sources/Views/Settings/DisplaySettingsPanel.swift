@@ -15,7 +15,7 @@ internal struct DisplaySettingsPanel: View {
                     Toggle("カテゴリはフルパス（大項目/中項目）で表示する", isOn: $showCategoryFullPath)
                     Toggle("金額に3桁区切りを挿入する", isOn: $useThousandSeparator)
                 }
-            }
+            },
         )
     }
 }

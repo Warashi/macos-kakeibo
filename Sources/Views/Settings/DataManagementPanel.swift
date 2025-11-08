@@ -42,32 +42,32 @@ internal struct DataManagementPanel: View {
                         StatusMessageView(message: status)
                     }
                 }
-            }
+            },
         )
         .fileExporter(
             isPresented: $showBackupExporter,
             document: backupDocument,
             contentType: .json,
             defaultFilename: backupFileName,
-            onCompletion: handleExportCompletion
+            onCompletion: handleExportCompletion,
         )
         .fileExporter(
             isPresented: $showCSVExporter,
             document: csvDocument,
             contentType: .commaSeparatedText,
             defaultFilename: csvFileName,
-            onCompletion: handleExportCompletion
+            onCompletion: handleExportCompletion,
         )
         .fileImporter(
             isPresented: $showBackupImporter,
             allowedContentTypes: [.json],
             allowsMultipleSelection: false,
-            onCompletion: handleImportResult
+            onCompletion: handleImportResult,
         )
         .confirmationDialog(
             "バックアップは取得済みですか？",
             isPresented: $showDeleteConfirmationDialog,
-            titleVisibility: .visible
+            titleVisibility: .visible,
         ) {
             Button("削除する", role: .destructive) {
                 deleteVerificationText = ""
@@ -85,7 +85,7 @@ internal struct DataManagementPanel: View {
                 },
                 onCancel: {
                     showDeleteVerificationSheet = false
-                }
+                },
             )
         }
     }
@@ -135,7 +135,8 @@ internal struct DataManagementPanel: View {
                 .foregroundStyle(.secondary)
             if let metadata = store.lastBackupMetadata {
                 let counts = metadata.recordCounts
-                let total = counts.transactions + counts.categories + counts.budgets + counts.annualBudgetConfigs + counts.financialInstitutions
+                let total = counts.transactions + counts.categories + counts.budgets + counts
+                    .annualBudgetConfigs + counts.financialInstitutions
                 VStack(alignment: .leading, spacing: 2) {
                     Text("最終生成: \(metadata.generatedAt.longDateFormatted)")
                     Text("対象件数: 取引\(counts.transactions)件 / 合計\(total)件")
@@ -290,7 +291,7 @@ private struct StatusMessageView: View {
         .padding(8)
         .background(
             RoundedRectangle(cornerRadius: AppConstants.UserInterface.smallCornerRadius)
-                .fill(Color.blue.opacity(0.1))
+                .fill(Color.blue.opacity(0.1)),
         )
     }
 }

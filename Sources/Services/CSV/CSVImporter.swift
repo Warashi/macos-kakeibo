@@ -12,11 +12,11 @@ internal final class CSVImporter {
         internal var errorDescription: String? {
             switch self {
             case .incompleteMapping:
-                return "必須カラム（日付・内容・金額）の割り当てを完了してください。"
+                "必須カラム（日付・内容・金額）の割り当てを完了してください。"
             case .emptyDocument:
-                return "インポート可能な行がありません。"
+                "インポート可能な行がありません。"
             case .nothingToImport:
-                return "取り込めるデータがありません。"
+                "取り込めるデータがありません。"
             }
         }
     }
@@ -37,7 +37,7 @@ internal final class CSVImporter {
     internal func makePreview(
         document: CSVDocument,
         mapping: CSVColumnMapping,
-        configuration: CSVImportConfiguration
+        configuration: CSVImportConfiguration,
     ) throws -> CSVImportPreview {
         guard mapping.hasRequiredAssignments else {
             throw ImportError.incompleteMapping
@@ -78,7 +78,7 @@ internal final class CSVImporter {
 
             let (institution, institutionCreated) = try resolveFinancialInstitution(
                 named: draft.financialInstitutionName,
-                cache: &institutionCache
+                cache: &institutionCache,
             )
             if institutionCreated {
                 createdInstitutions += 1
@@ -88,7 +88,7 @@ internal final class CSVImporter {
                 majorName: draft.majorCategoryName,
                 minorName: draft.minorCategoryName,
                 majorCache: &majorCategoryCache,
-                minorCache: &minorCategoryCache
+                minorCache: &minorCategoryCache,
             )
             createdCategories += categoryCreatedCount
 
@@ -112,7 +112,7 @@ internal final class CSVImporter {
                         importIdentifier: identifier.rawValue,
                         financialInstitution: institution,
                         majorCategory: majorCategory,
-                        minorCategory: minorCategory
+                        minorCategory: minorCategory,
                     )
                     modelContext.insert(transaction)
                     isNew = true
@@ -127,7 +127,7 @@ internal final class CSVImporter {
                     isTransfer: draft.isTransfer,
                     financialInstitution: institution,
                     majorCategory: majorCategory,
-                    minorCategory: minorCategory
+                    minorCategory: minorCategory,
                 )
                 modelContext.insert(transaction)
                 isNew = true
@@ -139,7 +139,7 @@ internal final class CSVImporter {
                 identifier: draft.identifier,
                 institution: institution,
                 majorCategory: majorCategory,
-                minorCategory: minorCategory
+                minorCategory: minorCategory,
             )
 
             if isNew {
@@ -159,7 +159,7 @@ internal final class CSVImporter {
             skippedCount: preview.skippedCount,
             createdFinancialInstitutions: createdInstitutions,
             createdCategories: createdCategories,
-            duration: Date().timeIntervalSince(startDate)
+            duration: Date().timeIntervalSince(startDate),
         )
     }
 
@@ -167,7 +167,7 @@ internal final class CSVImporter {
 
     private func buildRecord(
         for row: CSVRow,
-        mapping: CSVColumnMapping
+        mapping: CSVColumnMapping,
     ) -> CSVImportRecord {
         var issues: [CSVImportIssue] = []
 
@@ -218,7 +218,7 @@ internal final class CSVImporter {
             } else {
                 issues.append(.init(
                     severity: .warning,
-                    message: "計算対象フラグを解釈できなかったため「計算対象」として扱います"
+                    message: "計算対象フラグを解釈できなかったため「計算対象」として扱います",
                 ))
             }
         }
@@ -230,7 +230,7 @@ internal final class CSVImporter {
             } else {
                 issues.append(.init(
                     severity: .warning,
-                    message: "振替フラグを解釈できなかったため「振替なし」として扱います"
+                    message: "振替フラグを解釈できなかったため「振替なし」として扱います",
                 ))
             }
         }
@@ -245,14 +245,14 @@ internal final class CSVImporter {
             majorCategoryName: majorCategory,
             minorCategoryName: minorCategory,
             isIncludedInCalculation: isIncludedInCalculation,
-            isTransfer: isTransfer
+            isTransfer: isTransfer,
         )
 
         return CSVImportRecord(
             rowNumber: row.lineNumber,
             rawValues: row.values,
             draft: draft,
-            issues: issues
+            issues: issues,
         )
     }
 
@@ -328,7 +328,7 @@ internal final class CSVImporter {
 private extension CSVImporter {
     func resolveFinancialInstitution(
         named name: String?,
-        cache: inout [String: FinancialInstitution]
+        cache: inout [String: FinancialInstitution],
     ) throws -> (FinancialInstitution?, Bool) {
         guard let name else {
             return (nil, false)
@@ -342,7 +342,7 @@ private extension CSVImporter {
         var descriptor = FetchDescriptor<FinancialInstitution>(
             predicate: #Predicate { institution in
                 institution.name == name
-            }
+            },
         )
         descriptor.fetchLimit = 1
 
@@ -361,7 +361,7 @@ private extension CSVImporter {
         majorName: String?,
         minorName: String?,
         majorCache: inout [String: Category],
-        minorCache: inout [String: Category]
+        minorCache: inout [String: Category],
     ) throws -> (Category?, Category?, Int) {
         var createdCount = 0
         var majorCategory: Category?
@@ -375,7 +375,7 @@ private extension CSVImporter {
                 var descriptor = FetchDescriptor<Category>(
                     predicate: #Predicate { category in
                         category.name == majorName && category.parent == nil
-                    }
+                    },
                 )
                 descriptor.fetchLimit = 1
 
@@ -406,7 +406,7 @@ private extension CSVImporter {
                 let descriptor = FetchDescriptor<Category>(
                     predicate: #Predicate { category in
                         category.name == minorName
-                    }
+                    },
                 )
 
                 let existing = try modelContext
@@ -435,7 +435,7 @@ private extension CSVImporter {
         var descriptor = FetchDescriptor<Transaction>(
             predicate: #Predicate { transaction in
                 transaction.id == id
-            }
+            },
         )
         descriptor.fetchLimit = 1
         return try modelContext.fetch(descriptor).first
@@ -445,7 +445,7 @@ private extension CSVImporter {
         var descriptor = FetchDescriptor<Transaction>(
             predicate: #Predicate { transaction in
                 transaction.importIdentifier == importIdentifier
-            }
+            },
         )
         descriptor.fetchLimit = 1
         return try modelContext.fetch(descriptor).first
@@ -457,7 +457,7 @@ private extension CSVImporter {
         identifier: CSVTransactionIdentifier?,
         institution: FinancialInstitution?,
         majorCategory: Category?,
-        minorCategory: Category?
+        minorCategory: Category?,
     ) {
         transaction.date = draft.date
         transaction.title = draft.title

@@ -51,14 +51,14 @@ internal final class BudgetStore {
             sortBy: [
                 SortDescriptor(\.displayOrder),
                 SortDescriptor(\.name, order: .forward),
-            ]
+            ],
         )
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     private func category(for id: UUID) -> Category? {
         var descriptor = FetchDescriptor<Category>(
-            predicate: #Predicate { $0.id == id }
+            predicate: #Predicate { $0.id == id },
         )
         descriptor.fetchLimit = 1
         return try? modelContext.fetch(descriptor).first
@@ -85,7 +85,7 @@ internal final class BudgetStore {
             budgets: allBudgets,
             year: currentYear,
             month: currentMonth,
-            filter: .default
+            filter: .default,
         )
     }
 
@@ -96,7 +96,7 @@ internal final class BudgetStore {
         let calculationMap: [UUID: BudgetCalculation] = Dictionary(
             uniqueKeysWithValues: calculation.categoryCalculations.map { item in
                 (item.categoryId, item.calculation)
-            }
+            },
         )
 
         return monthlyBudgets
@@ -104,13 +104,13 @@ internal final class BudgetStore {
                 guard let category = budget.category else { return nil }
                 let calc = calculationMap[category.id] ?? budgetCalculator.calculate(
                     budgetAmount: budget.amount,
-                    actualAmount: 0
+                    actualAmount: 0,
                 )
 
                 return MonthlyBudgetEntry(
                     budget: budget,
                     title: category.fullName,
-                    calculation: calc
+                    calculation: calc,
                 )
             }
             .sorted { lhs, rhs in
@@ -128,14 +128,14 @@ internal final class BudgetStore {
         return MonthlyBudgetEntry(
             budget: budget,
             title: "全体予算",
-            calculation: calculation
+            calculation: calculation,
         )
     }
 
     /// 年次特別枠設定（対象年）
     internal var annualBudgetConfig: AnnualBudgetConfig? {
         var descriptor = FetchDescriptor<AnnualBudgetConfig>(
-            predicate: #Predicate { $0.year == currentYear }
+            predicate: #Predicate { $0.year == currentYear },
         )
         descriptor.fetchLimit = 1
         return try? modelContext.fetch(descriptor).first
@@ -148,12 +148,12 @@ internal final class BudgetStore {
             transactions: allTransactions,
             budgets: allBudgets,
             annualBudgetConfig: config,
-            filter: .default
+            filter: .default,
         )
 
         return annualBudgetAllocator.calculateAnnualBudgetUsage(
             params: params,
-            upToMonth: currentMonth
+            upToMonth: currentMonth,
         )
     }
 
@@ -188,14 +188,14 @@ internal final class BudgetStore {
     /// 月次予算を追加
     internal func addBudget(
         amount: Decimal,
-        categoryId: UUID?
+        categoryId: UUID?,
     ) throws {
         let category = try resolvedCategory(categoryId: categoryId)
         let budget = Budget(
             amount: amount,
             category: category,
             year: currentYear,
-            month: currentMonth
+            month: currentMonth,
         )
         modelContext.insert(budget)
         try modelContext.save()
@@ -205,7 +205,7 @@ internal final class BudgetStore {
     internal func updateBudget(
         budget: Budget,
         amount: Decimal,
-        categoryId: UUID?
+        categoryId: UUID?,
     ) throws {
         let category = try resolvedCategory(categoryId: categoryId)
         budget.amount = amount
@@ -224,7 +224,7 @@ internal final class BudgetStore {
     internal func upsertAnnualBudgetConfig(
         totalAmount: Decimal,
         policy: AnnualBudgetPolicy,
-        allocations: [AnnualAllocationDraft]
+        allocations: [AnnualAllocationDraft],
     ) throws {
         if let config = annualBudgetConfig {
             config.totalAmount = totalAmount
@@ -232,18 +232,18 @@ internal final class BudgetStore {
             config.updatedAt = Date()
             try syncAllocations(
                 config: config,
-                drafts: allocations
+                drafts: allocations,
             )
         } else {
             let config = AnnualBudgetConfig(
                 year: currentYear,
                 totalAmount: totalAmount,
-                policy: policy
+                policy: policy,
             )
             modelContext.insert(config)
             try syncAllocations(
                 config: config,
-                drafts: allocations
+                drafts: allocations,
             )
         }
         try modelContext.save()
@@ -261,7 +261,7 @@ internal final class BudgetStore {
 
     private func syncAllocations(
         config: AnnualBudgetConfig,
-        drafts: [AnnualAllocationDraft]
+        drafts: [AnnualAllocationDraft],
     ) throws {
         let uniqueCategoryIds = Set(drafts.map(\.categoryId))
         guard uniqueCategoryIds.count == drafts.count else {
@@ -289,7 +289,7 @@ internal final class BudgetStore {
             } else {
                 let allocation = AnnualBudgetAllocation(
                     amount: draft.amount,
-                    category: category
+                    category: category,
                 )
                 allocation.updatedAt = now
                 config.allocations.append(allocation)

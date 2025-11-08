@@ -79,11 +79,19 @@ internal struct AnnualBudgetPanel: View {
     }
 
     private func sortedAllocations(
-        _ allocations: [AnnualBudgetAllocation]
+        _ allocations: [AnnualBudgetAllocation],
     ) -> [AnnualBudgetAllocation] {
         allocations.sorted { lhs, rhs in
-            let lhsOrder = (lhs.category.parent?.displayOrder ?? lhs.category.displayOrder, lhs.category.displayOrder, lhs.category.fullName)
-            let rhsOrder = (rhs.category.parent?.displayOrder ?? rhs.category.displayOrder, rhs.category.displayOrder, rhs.category.fullName)
+            let lhsOrder = (
+                lhs.category.parent?.displayOrder ?? lhs.category.displayOrder,
+                lhs.category.displayOrder,
+                lhs.category.fullName,
+            )
+            let rhsOrder = (
+                rhs.category.parent?.displayOrder ?? rhs.category.displayOrder,
+                rhs.category.displayOrder,
+                rhs.category.fullName,
+            )
             return lhsOrder < rhsOrder
         }
     }
@@ -98,7 +106,7 @@ internal struct AnnualBudgetPanel: View {
             ProgressBar(
                 progress: usage.usageRate,
                 style: usage.usageRate >= 1.0 ? .danger : .custom(.blue),
-                showLabel: false
+                showLabel: false,
             )
 
             infoRow(title: "使用済み", value: usage.usedAmount.currencyFormatted)

@@ -15,11 +15,11 @@ internal struct SettingsView: View {
                 headerSection
                 CalculationRulesPanel(
                     includeOnlyCalculationTarget: $store.includeOnlyCalculationTarget,
-                    excludeTransfers: $store.excludeTransfers
+                    excludeTransfers: $store.excludeTransfers,
                 )
                 DisplaySettingsPanel(
                     showCategoryFullPath: $store.showCategoryFullPath,
-                    useThousandSeparator: $store.useThousandSeparator
+                    useThousandSeparator: $store.useThousandSeparator,
                 )
                 DataManagementPanel(store: store)
             }

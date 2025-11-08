@@ -115,7 +115,7 @@ private struct CSVImportStepIndicator: View {
                         .overlay(
                             Text("\(index + 1)")
                                 .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(isCurrent ? Color.white : Color.primary)
+                                .foregroundStyle(isCurrent ? Color.white : Color.primary),
                         )
 
                     VStack(alignment: .leading, spacing: 2) {
@@ -168,13 +168,13 @@ private struct CSVFileSelectionStepView: View {
         .fileImporter(
             isPresented: $isImporterPresented,
             allowedContentTypes: [.commaSeparatedText, .plainText],
-            allowsMultipleSelection: false
+            allowsMultipleSelection: false,
         ) { result in
             switch result {
-            case .success(let urls):
+            case let .success(urls):
                 guard let url = urls.first else { return }
                 Task { await store.loadFile(from: url) }
-            case .failure(let error):
+            case let .failure(error):
                 store.presentError(error.localizedDescription)
             }
         }
@@ -195,8 +195,8 @@ private struct CSVColumnMappingStepView: View {
                 "1行目をヘッダーとして扱う",
                 isOn: Binding(
                     get: { store.configuration.hasHeaderRow },
-                    set: { store.updateHasHeaderRow($0) }
-                )
+                    set: { store.updateHasHeaderRow($0) },
+                ),
             )
 
             if store.columnOptions.isEmpty {
@@ -269,9 +269,9 @@ private struct CSVColumnMappingStepView: View {
             set: { newValue in
                 store.updateMapping(
                     column: column,
-                    to: newValue >= 0 ? newValue : nil
+                    to: newValue >= 0 ? newValue : nil,
                 )
-            }
+            },
         )
     }
 }
@@ -292,7 +292,7 @@ private struct CSVValidationStepView: View {
                     ContentUnavailableView(
                         "取り込めるデータがありません",
                         image: "tray.and.arrow.down",
-                        description: Text("列マッピングやCSVの内容をご確認ください。")
+                        description: Text("列マッピングやCSVの内容をご確認ください。"),
                     )
                 } else {
                     ScrollView {
@@ -307,7 +307,7 @@ private struct CSVValidationStepView: View {
                 ContentUnavailableView(
                     "プレビューを生成してください",
                     image: "doc.text.magnifyingglass",
-                    description: Text("列マッピングを設定し、「検証を開始」を押してプレビューを作成します。")
+                    description: Text("列マッピングを設定し、「検証を開始」を押してプレビューを作成します。"),
                 )
             }
         }
@@ -332,13 +332,17 @@ private struct CSVPreviewSummaryView: View {
                     Text("取り込み結果")
                         .font(.headline)
 
-                    Text("新規 \(summary.importedCount) 件 / 更新 \(summary.updatedCount) 件 / スキップ \(summary.skippedCount) 件")
-                        .font(.callout)
+                    Text(
+                        "新規 \(summary.importedCount) 件 / 更新 \(summary.updatedCount) 件 / スキップ \(summary.skippedCount) 件",
+                    )
+                    .font(.callout)
 
                     if summary.createdFinancialInstitutions > 0 || summary.createdCategories > 0 {
-                        Text("新規作成: 金融機関 \(summary.createdFinancialInstitutions) 件 / カテゴリ \(summary.createdCategories) 件")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        Text(
+                            "新規作成: 金融機関 \(summary.createdFinancialInstitutions) 件 / カテゴリ \(summary.createdCategories) 件",
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     }
                 }
                 .padding()
@@ -384,9 +388,12 @@ private struct CSVImportRecordRow: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(record.issues) { issue in
-                    Label(issue.message, systemImage: issue.severity == .error ? "exclamationmark.triangle.fill" : "info.circle")
-                        .font(.caption)
-                        .foregroundStyle(issue.severity == .error ? Color.red : Color.orange)
+                    Label(
+                        issue.message,
+                        systemImage: issue.severity == .error ? "exclamationmark.triangle.fill" : "info.circle",
+                    )
+                    .font(.caption)
+                    .foregroundStyle(issue.severity == .error ? Color.red : Color.orange)
                 }
             }
         }

@@ -18,7 +18,7 @@ internal struct CSVImporterTests {
         let preview = try importer.makePreview(
             document: document,
             mapping: mapping,
-            configuration: config
+            configuration: config,
         )
 
         #expect(preview.totalCount == 1)
@@ -47,7 +47,7 @@ internal struct CSVImporterTests {
             _ = try importer.makePreview(
                 document: document,
                 mapping: mapping,
-                configuration: CSVImportConfiguration()
+                configuration: CSVImportConfiguration(),
             )
         }
     }
@@ -60,7 +60,7 @@ internal struct CSVImporterTests {
         let preview = try importer.makePreview(
             document: sampleDocument(),
             mapping: sampleMapping(),
-            configuration: CSVImportConfiguration(hasHeaderRow: true)
+            configuration: CSVImportConfiguration(hasHeaderRow: true),
         )
 
         let summary = try importer.performImport(preview: preview)
@@ -86,7 +86,7 @@ internal struct CSVImporterTests {
         let preview = try importer.makePreview(
             document: sampleDocument(),
             mapping: sampleMapping(),
-            configuration: config
+            configuration: config,
         )
         _ = try importer.performImport(preview: preview)
 
@@ -109,7 +109,7 @@ internal struct CSVImporterTests {
         let secondPreview = try importer.makePreview(
             document: updatedDocument,
             mapping: sampleMapping(),
-            configuration: config
+            configuration: config,
         )
         let summary = try importer.performImport(preview: secondPreview)
 
@@ -138,7 +138,7 @@ internal struct CSVImporterTests {
         let container = try ModelContainer(
             for: Transaction.self, Category.self, Budget.self, AnnualBudgetConfig.self,
             FinancialInstitution.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
         return ModelContext(container)
     }

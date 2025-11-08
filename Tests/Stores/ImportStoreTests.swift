@@ -67,7 +67,7 @@ internal struct ImportStoreTests {
         let container = try ModelContainer(
             for: Transaction.self, Category.self, Budget.self, AnnualBudgetConfig.self,
             FinancialInstitution.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
         return ModelContext(container)
     }

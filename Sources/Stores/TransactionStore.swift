@@ -75,7 +75,7 @@ internal final class TransactionStore {
                 isTransfer: false,
                 financialInstitutionId: nil,
                 majorCategoryId: nil,
-                minorCategoryId: nil
+                minorCategoryId: nil,
             )
         }
 
@@ -90,7 +90,7 @@ internal final class TransactionStore {
                 isTransfer: transaction.isTransfer,
                 financialInstitutionId: transaction.financialInstitution?.id,
                 majorCategoryId: transaction.majorCategory?.id,
-                minorCategoryId: transaction.minorCategory?.id
+                minorCategoryId: transaction.minorCategory?.id,
             )
         }
     }
@@ -318,9 +318,20 @@ internal final class TransactionStore {
         let minorCategory = lookupCategory(id: formState.minorCategoryId)
 
         if let editingTransaction {
-            update(transaction: editingTransaction, with: signedAmount, institution: institution, majorCategory: majorCategory, minorCategory: minorCategory)
+            update(
+                transaction: editingTransaction,
+                with: signedAmount,
+                institution: institution,
+                majorCategory: majorCategory,
+                minorCategory: minorCategory,
+            )
         } else {
-            createTransaction(amount: signedAmount, institution: institution, majorCategory: majorCategory, minorCategory: minorCategory)
+            createTransaction(
+                amount: signedAmount,
+                institution: institution,
+                majorCategory: majorCategory,
+                minorCategory: minorCategory,
+            )
         }
 
         do {
@@ -354,10 +365,10 @@ internal final class TransactionStore {
 
     private func loadReferenceData() {
         let institutionDescriptor = FetchDescriptor<FinancialInstitution>(
-            sortBy: [SortDescriptor(\.displayOrder), SortDescriptor(\.name)]
+            sortBy: [SortDescriptor(\.displayOrder), SortDescriptor(\.name)],
         )
         let categoryDescriptor = FetchDescriptor<Category>(
-            sortBy: [SortDescriptor(\.displayOrder), SortDescriptor(\.name)]
+            sortBy: [SortDescriptor(\.displayOrder), SortDescriptor(\.name)],
         )
 
         availableInstitutions = (try? modelContext.fetch(institutionDescriptor)) ?? []
@@ -369,7 +380,7 @@ internal final class TransactionStore {
             sortBy: [
                 SortDescriptor(\.date, order: .reverse),
                 SortDescriptor(\.createdAt, order: .reverse),
-            ]
+            ],
         )
         cachedTransactions = (try? modelContext.fetch(descriptor)) ?? []
     }
@@ -520,7 +531,7 @@ internal final class TransactionStore {
         with amount: Decimal,
         institution: FinancialInstitution?,
         majorCategory: Category?,
-        minorCategory: Category?
+        minorCategory: Category?,
     ) {
         transaction.title = formState.title
         transaction.memo = formState.memo
@@ -538,7 +549,7 @@ internal final class TransactionStore {
         amount: Decimal,
         institution: FinancialInstitution?,
         majorCategory: Category?,
-        minorCategory: Category?
+        minorCategory: Category?,
     ) {
         let transaction = Transaction(
             date: formState.date,
@@ -549,7 +560,7 @@ internal final class TransactionStore {
             isTransfer: formState.isTransfer,
             financialInstitution: institution,
             majorCategory: majorCategory,
-            minorCategory: minorCategory
+            minorCategory: minorCategory,
         )
         modelContext.insert(transaction)
     }

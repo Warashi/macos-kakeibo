@@ -189,7 +189,7 @@ internal final class AnnualBudgetAllocation {
     internal init(
         id: UUID = UUID(),
         amount: Decimal,
-        category: Category
+        category: Category,
     ) {
         self.id = id
         self.amount = amount

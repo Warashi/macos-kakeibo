@@ -38,7 +38,7 @@ internal enum BackupManagerError: LocalizedError {
     internal var errorDescription: String? {
         switch self {
         case .decodingFailed:
-            return "バックアップデータの読み込みに失敗しました。"
+            "バックアップデータの読み込みに失敗しました。"
         }
     }
 }
@@ -83,7 +83,7 @@ internal final class BackupManager {
             payload.transactions,
             categories: categories,
             institutions: institutions,
-            context: modelContext
+            context: modelContext,
         )
 
         try modelContext.save()
@@ -112,8 +112,8 @@ internal final class BackupManager {
                 categories: categories.count,
                 budgets: budgets.count,
                 annualBudgetConfigs: configs.count,
-                financialInstitutions: institutions.count
-            )
+                financialInstitutions: institutions.count,
+            ),
         )
 
         return BackupPayload(
@@ -122,7 +122,7 @@ internal final class BackupManager {
             categories: categories.map(CategoryDTO.init),
             budgets: budgets.map(BudgetDTO.init),
             annualBudgetConfigs: configs.map(AnnualBudgetConfigDTO.init),
-            financialInstitutions: institutions.map(FinancialInstitutionDTO.init)
+            financialInstitutions: institutions.map(FinancialInstitutionDTO.init),
         )
     }
 
@@ -161,14 +161,14 @@ internal final class BackupManager {
     @discardableResult
     private func insertFinancialInstitutions(
         _ dtos: [FinancialInstitutionDTO],
-        context: ModelContext
+        context: ModelContext,
     ) throws -> [UUID: FinancialInstitution] {
         var result: [UUID: FinancialInstitution] = [:]
         for dto in dtos {
             let institution = FinancialInstitution(
                 id: dto.id,
                 name: dto.name,
-                displayOrder: dto.displayOrder
+                displayOrder: dto.displayOrder,
             )
             institution.createdAt = dto.createdAt
             institution.updatedAt = dto.updatedAt
@@ -181,7 +181,7 @@ internal final class BackupManager {
     @discardableResult
     private func insertCategories(
         _ dtos: [CategoryDTO],
-        context: ModelContext
+        context: ModelContext,
     ) throws -> [UUID: Category] {
         var result: [UUID: Category] = [:]
 
@@ -191,7 +191,7 @@ internal final class BackupManager {
                 id: dto.id,
                 name: dto.name,
                 allowsAnnualBudget: dto.allowsAnnualBudget,
-                displayOrder: dto.displayOrder
+                displayOrder: dto.displayOrder,
             )
             category.createdAt = dto.createdAt
             category.updatedAt = dto.updatedAt
@@ -215,7 +215,7 @@ internal final class BackupManager {
     private func insertBudgets(
         _ dtos: [BudgetDTO],
         categories: [UUID: Category],
-        context: ModelContext
+        context: ModelContext,
     ) throws {
         for dto in dtos {
             let budget = Budget(
@@ -223,7 +223,7 @@ internal final class BackupManager {
                 amount: dto.amount,
                 category: dto.categoryId.flatMap { categories[$0] },
                 year: dto.year,
-                month: dto.month
+                month: dto.month,
             )
             budget.createdAt = dto.createdAt
             budget.updatedAt = dto.updatedAt
@@ -233,14 +233,14 @@ internal final class BackupManager {
 
     private func insertAnnualBudgetConfigs(
         _ dtos: [AnnualBudgetConfigDTO],
-        context: ModelContext
+        context: ModelContext,
     ) throws {
         for dto in dtos {
             let config = AnnualBudgetConfig(
                 id: dto.id,
                 year: dto.year,
                 totalAmount: dto.totalAmount,
-                policy: dto.policy
+                policy: dto.policy,
             )
             config.createdAt = dto.createdAt
             config.updatedAt = dto.updatedAt
@@ -252,7 +252,7 @@ internal final class BackupManager {
         _ dtos: [TransactionDTO],
         categories: [UUID: Category],
         institutions: [UUID: FinancialInstitution],
-        context: ModelContext
+        context: ModelContext,
     ) throws {
         for dto in dtos {
             let transaction = Transaction(
@@ -265,7 +265,7 @@ internal final class BackupManager {
                 isTransfer: dto.isTransfer,
                 financialInstitution: dto.financialInstitutionId.flatMap { institutions[$0] },
                 majorCategory: dto.majorCategoryId.flatMap { categories[$0] },
-                minorCategory: dto.minorCategoryId.flatMap { categories[$0] }
+                minorCategory: dto.minorCategoryId.flatMap { categories[$0] },
             )
             transaction.createdAt = dto.createdAt
             transaction.updatedAt = dto.updatedAt

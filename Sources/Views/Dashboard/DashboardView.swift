@@ -55,8 +55,8 @@ internal struct DashboardView: View {
                 "表示モード",
                 selection: Binding(
                     get: { store.displayMode },
-                    set: { store.displayMode = $0 }
-                )
+                    set: { store.displayMode = $0 },
+                ),
             ) {
                 ForEach(DashboardStore.DisplayMode.allCases, id: \.self) { mode in
                     Text(mode.rawValue).tag(mode)

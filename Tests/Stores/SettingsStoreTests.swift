@@ -1,5 +1,5 @@
-@testable import Kakeibo
 import Foundation
+@testable import Kakeibo
 import SwiftData
 import Testing
 
@@ -93,7 +93,7 @@ private func seedTransaction(in context: ModelContext) throws {
         title: "テスト",
         amount: -1000,
         financialInstitution: institution,
-        majorCategory: category
+        majorCategory: category,
     )
     context.insert(category)
     context.insert(institution)

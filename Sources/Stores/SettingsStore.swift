@@ -21,7 +21,7 @@ internal final class SettingsStore {
             categories: 0,
             budgets: 0,
             annualBudgetConfigs: 0,
-            financialInstitutions: 0
+            financialInstitutions: 0,
         )
 
         internal var totalRecords: Int {
@@ -77,7 +77,7 @@ internal final class SettingsStore {
         modelContext: ModelContext,
         backupManager: BackupManager = BackupManager(),
         csvExporter: CSVExporter = CSVExporter(),
-        userDefaults: UserDefaults = .standard
+        userDefaults: UserDefaults = .standard,
     ) {
         self.modelContext = modelContext
         self.backupManager = backupManager
@@ -86,19 +86,19 @@ internal final class SettingsStore {
 
         includeOnlyCalculationTarget = userDefaults.bool(
             forKey: UserDefaultsKey.includeOnlyCalculationTarget,
-            defaultValue: true
+            defaultValue: true,
         )
         excludeTransfers = userDefaults.bool(
             forKey: UserDefaultsKey.excludeTransfers,
-            defaultValue: true
+            defaultValue: true,
         )
         showCategoryFullPath = userDefaults.bool(
             forKey: UserDefaultsKey.showCategoryFullPath,
-            defaultValue: true
+            defaultValue: true,
         )
         useThousandSeparator = userDefaults.bool(
             forKey: UserDefaultsKey.useThousandSeparator,
-            defaultValue: true
+            defaultValue: true,
         )
 
         statistics = (try? makeStatistics()) ?? .empty
@@ -124,12 +124,12 @@ internal final class SettingsStore {
     }
 
     private func makeStatistics() throws -> DataStatistics {
-        DataStatistics(
-            transactions: try modelContext.count(Transaction.self),
-            categories: try modelContext.count(Category.self),
-            budgets: try modelContext.count(Budget.self),
-            annualBudgetConfigs: try modelContext.count(AnnualBudgetConfig.self),
-            financialInstitutions: try modelContext.count(FinancialInstitution.self)
+        try DataStatistics(
+            transactions: modelContext.count(Transaction.self),
+            categories: modelContext.count(Category.self),
+            budgets: modelContext.count(Budget.self),
+            annualBudgetConfigs: modelContext.count(AnnualBudgetConfig.self),
+            financialInstitutions: modelContext.count(FinancialInstitution.self),
         )
     }
 

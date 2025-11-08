@@ -23,10 +23,10 @@ internal struct BudgetStoreTests {
     internal func addBudget_createsOverallBudget() throws {
         let (store, _) = try makeStore()
 
-        try store.addBudget(amount: 50_000, categoryId: nil)
+        try store.addBudget(amount: 50000, categoryId: nil)
 
         #expect(store.monthlyBudgets.count == 1)
-        #expect(store.overallBudgetEntry?.calculation.budgetAmount == 50_000)
+        #expect(store.overallBudgetEntry?.calculation.budgetAmount == 50000)
         #expect(store.overallBudgetEntry?.calculation.actualAmount == 0)
     }
 
@@ -39,20 +39,20 @@ internal struct BudgetStoreTests {
         let transaction = Transaction(
             date: Date.from(year: store.currentYear, month: store.currentMonth) ?? Date(),
             title: "ランチ",
-            amount: -2_000,
-            majorCategory: food
+            amount: -2000,
+            majorCategory: food,
         )
 
         context.insert(transaction)
         try context.save()
 
-        try store.addBudget(amount: 5_000, categoryId: food.id)
+        try store.addBudget(amount: 5000, categoryId: food.id)
 
         let entries = store.categoryBudgetEntries
         #expect(entries.count == 1)
         let entry = try #require(entries.first)
-        #expect(entry.calculation.actualAmount == 2_000)
-        #expect(entry.calculation.remainingAmount == 3_000)
+        #expect(entry.calculation.actualAmount == 2000)
+        #expect(entry.calculation.remainingAmount == 3000)
         #expect(entry.calculation.isOverBudget == false)
     }
 
@@ -65,17 +65,17 @@ internal struct BudgetStoreTests {
         context.insert(transport)
 
         let budget = Budget(
-            amount: 10_000,
+            amount: 10000,
             category: food,
             year: store.currentYear,
-            month: store.currentMonth
+            month: store.currentMonth,
         )
         context.insert(budget)
         try context.save()
 
-        try store.updateBudget(budget: budget, amount: 12_000, categoryId: transport.id)
+        try store.updateBudget(budget: budget, amount: 12000, categoryId: transport.id)
 
-        #expect(budget.amount == 12_000)
+        #expect(budget.amount == 12000)
         #expect(budget.category?.id == transport.id)
     }
 
@@ -83,9 +83,9 @@ internal struct BudgetStoreTests {
     internal func deleteBudget_removesBudget() throws {
         let (store, context) = try makeStore()
         let budget = Budget(
-            amount: 8_000,
+            amount: 8000,
             year: store.currentYear,
-            month: store.currentMonth
+            month: store.currentMonth,
         )
         context.insert(budget)
         try context.save()
@@ -112,7 +112,7 @@ internal struct BudgetStoreTests {
             allocations: [
                 AnnualAllocationDraft(categoryId: food.id, amount: 200_000),
                 AnnualAllocationDraft(categoryId: travel.id, amount: 100_000),
-            ]
+            ],
         )
 
         let createdConfig = try #require(store.annualBudgetConfig)
@@ -120,7 +120,8 @@ internal struct BudgetStoreTests {
         #expect(createdConfig.policy == .manual)
         #expect(createdConfig.allocations.count == 2)
 
-        let allocationMap = Dictionary(uniqueKeysWithValues: createdConfig.allocations.map { ($0.category.id, $0.amount) })
+        let allocationMap = Dictionary(uniqueKeysWithValues: createdConfig.allocations
+            .map { ($0.category.id, $0.amount) })
         #expect(allocationMap[food.id] == 200_000)
         #expect(allocationMap[travel.id] == 100_000)
 
@@ -129,7 +130,7 @@ internal struct BudgetStoreTests {
             policy: .disabled,
             allocations: [
                 AnnualAllocationDraft(categoryId: travel.id, amount: 300_000),
-            ]
+            ],
         )
 
         let updatedConfig = try #require(store.annualBudgetConfig)
@@ -148,15 +149,15 @@ internal struct BudgetStoreTests {
         try context.save()
 
         #expect(
-            throws: BudgetStoreError.duplicateAnnualAllocationCategory
+            throws: BudgetStoreError.duplicateAnnualAllocationCategory,
         ) {
             try store.upsertAnnualBudgetConfig(
                 totalAmount: 100_000,
                 policy: .automatic,
                 allocations: [
-                    AnnualAllocationDraft(categoryId: food.id, amount: 60_000),
-                    AnnualAllocationDraft(categoryId: food.id, amount: 40_000),
-                ]
+                    AnnualAllocationDraft(categoryId: food.id, amount: 60000),
+                    AnnualAllocationDraft(categoryId: food.id, amount: 40000),
+                ],
             )
         }
     }

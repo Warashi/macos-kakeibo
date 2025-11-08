@@ -1,5 +1,5 @@
-@testable import Kakeibo
 import Foundation
+@testable import Kakeibo
 import Testing
 
 @Suite("CSVExporter")
@@ -17,7 +17,7 @@ internal struct CSVExporterTests {
             memo: "\"引用\"付きメモ",
             financialInstitution: institution,
             majorCategory: major,
-            minorCategory: minor
+            minorCategory: minor,
         )
 
         // When

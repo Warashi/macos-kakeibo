@@ -35,14 +35,14 @@ internal struct BudgetView: View {
                             categoryEntries: store.categoryBudgetEntries,
                             onAdd: { presentBudgetEditor(for: nil) },
                             onEdit: { presentBudgetEditor(for: $0) },
-                            onDelete: { budgetPendingDeletion = $0 }
+                            onDelete: { budgetPendingDeletion = $0 },
                         )
 
                         AnnualBudgetPanel(
                             year: store.currentYear,
                             config: store.annualBudgetConfig,
                             usage: store.annualBudgetUsage,
-                            onEdit: presentAnnualEditor
+                            onEdit: presentAnnualEditor,
                         )
                     }
                     .padding()
@@ -62,7 +62,7 @@ internal struct BudgetView: View {
                     mode: budgetEditorMode,
                     errorMessage: budgetFormError,
                     onCancel: dismissBudgetEditor,
-                    onSave: saveBudget
+                    onSave: saveBudget,
                 )
                 .frame(minWidth: 420, minHeight: 260)
                 .presentationSizing(.fitted)
@@ -74,7 +74,7 @@ internal struct BudgetView: View {
                 categories: store?.selectableCategories ?? [],
                 errorMessage: annualFormError,
                 onCancel: dismissAnnualEditor,
-                onSave: saveAnnualBudgetConfig
+                onSave: saveAnnualBudgetConfig,
             )
             .frame(minWidth: 420, minHeight: 220)
             .presentationSizing(.fitted)
@@ -83,9 +83,9 @@ internal struct BudgetView: View {
             "予算を削除しますか？",
             isPresented: Binding(
                 get: { budgetPendingDeletion != nil },
-                set: { if !$0 { budgetPendingDeletion = nil } }
+                set: { if !$0 { budgetPendingDeletion = nil } },
             ),
-            titleVisibility: .visible
+            titleVisibility: .visible,
         ) {
             Button("削除", role: .destructive) {
                 deletePendingBudget()
@@ -100,7 +100,7 @@ internal struct BudgetView: View {
             },
             message: {
                 Text(errorMessage ?? "不明なエラーが発生しました")
-            }
+            },
         )
     }
 
@@ -176,7 +176,7 @@ internal struct BudgetView: View {
                 try store.updateBudget(
                     budget: budget,
                     amount: amount,
-                    categoryId: budgetFormState.selectedCategoryId
+                    categoryId: budgetFormState.selectedCategoryId,
                 )
             }
             isPresentingBudgetEditor = false
@@ -232,7 +232,7 @@ internal struct BudgetView: View {
             try store.upsertAnnualBudgetConfig(
                 totalAmount: amount,
                 policy: annualFormState.policy,
-                allocations: drafts
+                allocations: drafts,
             )
             isPresentingAnnualEditor = false
         } catch BudgetStoreError.categoryNotFound {
@@ -483,7 +483,7 @@ private struct AnnualBudgetFormState {
             AnnualBudgetAllocationRowState(
                 id: allocation.id,
                 selectedCategoryId: allocation.category.id,
-                amountText: allocation.amount.plainString
+                amountText: allocation.amount.plainString,
             )
         }
         ensureInitialRow()
@@ -536,8 +536,8 @@ private struct AnnualBudgetFormState {
             drafts.append(
                 AnnualAllocationDraft(
                     categoryId: categoryId,
-                    amount: amount
-                )
+                    amount: amount,
+                ),
             )
         }
         return drafts
@@ -552,7 +552,7 @@ private struct AnnualBudgetAllocationRowState: Identifiable {
     internal init(
         id: UUID = UUID(),
         selectedCategoryId: UUID? = nil,
-        amountText: String = ""
+        amountText: String = "",
     ) {
         self.id = id
         self.selectedCategoryId = selectedCategoryId

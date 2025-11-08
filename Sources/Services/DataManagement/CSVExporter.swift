@@ -7,7 +7,7 @@ internal enum CSVExporterError: LocalizedError {
     internal var errorDescription: String? {
         switch self {
         case .encodingFailed:
-            return "CSVの文字列をデータに変換できませんでした。"
+            "CSVの文字列をデータに変換できませんでした。"
         }
     }
 }

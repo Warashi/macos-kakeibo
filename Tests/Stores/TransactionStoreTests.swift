@@ -27,7 +27,7 @@ internal struct TransactionStoreTests {
     internal func filterByTransactionKind() throws {
         let (context, targetDate) = try prepareContext()
         context.insert(Transaction(date: targetDate, title: "給与", amount: 300_000))
-        context.insert(Transaction(date: targetDate, title: "家賃", amount: -80_000))
+        context.insert(Transaction(date: targetDate, title: "家賃", amount: -80000))
         try context.save()
 
         let store = TransactionStore(modelContext: context)
@@ -93,7 +93,7 @@ internal struct TransactionStoreTests {
     private func prepareContext() throws -> (ModelContext, Date) {
         let container = try ModelContainer(
             for: Transaction.self, Category.self, FinancialInstitution.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
         let context = ModelContext(container)
 

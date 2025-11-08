@@ -115,7 +115,7 @@ internal final class ImportStore {
             var inferred = headerRow.values
             if inferred.count < columnCount {
                 inferred.append(
-                    contentsOf: Array(repeating: "", count: columnCount - inferred.count)
+                    contentsOf: Array(repeating: "", count: columnCount - inferred.count),
                 )
             }
             headers = inferred.enumerated().map { index, title in
@@ -154,7 +154,7 @@ internal final class ImportStore {
             let data = try Data(contentsOf: url)
             let document = try parser.parse(
                 data: data,
-                configuration: configuration
+                configuration: configuration,
             )
             applyDocument(document, fileName: url.lastPathComponent)
             statusMessage = "\(url.lastPathComponent) を読み込みました"
@@ -265,7 +265,7 @@ internal final class ImportStore {
             let preview = try importer.makePreview(
                 document: document,
                 mapping: mapping,
-                configuration: configuration
+                configuration: configuration,
             )
             self.preview = preview
             self.summary = nil

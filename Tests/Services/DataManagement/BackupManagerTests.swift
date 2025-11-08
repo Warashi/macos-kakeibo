@@ -1,5 +1,5 @@
-@testable import Kakeibo
 import Foundation
+@testable import Kakeibo
 import SwiftData
 import Testing
 
@@ -56,7 +56,7 @@ private func seedSampleData(in context: ModelContext) throws {
     let major = Category(name: "食費", allowsAnnualBudget: false, displayOrder: 1)
     let minor = Category(name: "外食", parent: major, allowsAnnualBudget: false, displayOrder: 1)
     let budget = Budget(amount: 50000, category: major, year: 2025, month: 11)
-    let config = AnnualBudgetConfig(year: 2025, totalAmount: 100000, policy: .automatic)
+    let config = AnnualBudgetConfig(year: 2025, totalAmount: 100_000, policy: .automatic)
     let transaction = Transaction(
         date: Date(),
         title: "テストディナー",
@@ -64,7 +64,7 @@ private func seedSampleData(in context: ModelContext) throws {
         memo: "メモ",
         financialInstitution: institution,
         majorCategory: major,
-        minorCategory: minor
+        minorCategory: minor,
     )
 
     context.insert(institution)

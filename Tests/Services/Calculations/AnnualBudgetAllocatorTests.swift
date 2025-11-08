@@ -37,7 +37,7 @@ internal struct AnnualBudgetAllocatorTests {
         // Then
         #expect(result.year == 2025)
         #expect(result.totalAmount == 500_000)
-        #expect(result.usedAmount == 50_000)
+        #expect(result.usedAmount == 50000)
         #expect(result.remainingAmount == 450_000)
         #expect(result.usageRate == 0.1)
     }
@@ -72,7 +72,7 @@ internal struct AnnualBudgetAllocatorTests {
         )
 
         // Then
-        #expect(result.annualBudgetUsage.usedAmount == 30_000)
+        #expect(result.annualBudgetUsage.usedAmount == 30000)
         #expect(result.annualBudgetUsage.remainingAmount == 470_000)
     }
 

@@ -17,7 +17,7 @@ internal struct TransactionListViewTests {
     internal func transactionListContentInitialization() throws {
         let container = try ModelContainer(
             for: Transaction.self, Category.self, FinancialInstitution.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
         let context = ModelContext(container)
         let store = TransactionStore(modelContext: context)
@@ -30,7 +30,7 @@ internal struct TransactionListViewTests {
     internal func transactionFilterBarInitialization() throws {
         let container = try ModelContainer(
             for: Transaction.self, Category.self, FinancialInstitution.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
         let context = ModelContext(container)
         let store = TransactionStore(modelContext: context)

@@ -63,7 +63,7 @@ internal struct CSVImportConfiguration: Sendable, Equatable {
     internal init(
         hasHeaderRow: Bool = true,
         delimiter: Character = AppConstants.CSV.delimiter.first ?? ",",
-        encoding: String.Encoding = AppConstants.CSV.encoding
+        encoding: String.Encoding = AppConstants.CSV.encoding,
     ) {
         self.hasHeaderRow = hasHeaderRow
         self.delimiter = delimiter
@@ -254,7 +254,7 @@ internal struct CSVImportIssue: Identifiable, Sendable {
     internal init(
         id: UUID = UUID(),
         severity: Severity,
-        message: String
+        message: String,
     ) {
         self.id = id
         self.severity = severity
@@ -300,7 +300,7 @@ internal struct CSVImportRecord: Identifiable, Sendable {
         rowNumber: Int,
         rawValues: [String],
         draft: TransactionDraft?,
-        issues: [CSVImportIssue]
+        issues: [CSVImportIssue],
     ) {
         self.id = id
         self.rowNumber = rowNumber
@@ -322,7 +322,7 @@ internal struct CSVImportPreview: Sendable {
 
     internal init(
         createdAt: Date = Date(),
-        records: [CSVImportRecord]
+        records: [CSVImportRecord],
     ) {
         self.createdAt = createdAt
         self.records = records

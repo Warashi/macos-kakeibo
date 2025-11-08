@@ -9,7 +9,7 @@ internal struct CSVParser {
         internal var errorDescription: String? {
             switch self {
             case .invalidStringEncoding:
-                return "CSVファイルを指定の文字コードで読み込めませんでした。"
+                "CSVファイルを指定の文字コードで読み込めませんでした。"
             }
         }
     }
@@ -21,7 +21,7 @@ internal struct CSVParser {
     /// - Returns: CSVドキュメント
     internal func parse(
         data: Data,
-        configuration: CSVImportConfiguration = .init()
+        configuration: CSVImportConfiguration = .init(),
     ) throws -> CSVDocument {
         guard let string = String(data: data, encoding: configuration.encoding) else {
             throw ParseError.invalidStringEncoding
@@ -36,24 +36,24 @@ internal struct CSVParser {
     /// - Returns: CSVドキュメント
     internal func parse(
         string: String,
-        configuration: CSVImportConfiguration = .init()
+        configuration: CSVImportConfiguration = .init(),
     ) throws -> CSVDocument {
         guard let normalizedData = string.data(using: .utf8) else {
             throw ParseError.invalidStringEncoding
         }
         return try parseNormalizedData(
             normalizedData,
-            delimiter: configuration.delimiter
+            delimiter: configuration.delimiter,
         )
     }
 
     private func parseNormalizedData(
         _ data: Data,
-        delimiter: Character
+        delimiter: Character,
     ) throws -> CSVDocument {
         let options = CSVReadingOptions(
             hasHeaderRow: false,
-            delimiter: delimiter
+            delimiter: delimiter,
         )
         let dataFrame = try DataFrame(csvData: data, options: options)
         let rows = buildRows(from: dataFrame)
