@@ -10,6 +10,7 @@ internal struct BudgetView: View {
 
     @State private var isPresentingBudgetEditor = false
     @State private var isPresentingAnnualEditor = false
+    @State private var isPresentingReconciliation = false
 
     @State private var budgetEditorMode: BudgetEditorMode = .create
     @State private var budgetFormState: BudgetEditorFormState = .init()
@@ -87,6 +88,9 @@ internal struct BudgetView: View {
             .frame(minWidth: 420, minHeight: 220)
             .presentationSizing(.fitted)
         }
+        .sheet(isPresented: $isPresentingReconciliation) {
+            SpecialPaymentReconciliationView()
+        }
         .confirmationDialog(
             "予算を削除しますか？",
             isPresented: Binding(
@@ -145,6 +149,10 @@ internal struct BudgetView: View {
                 } else {
                     store.moveToCurrentYear()
                 }
+            }
+
+            Button("特別支払いの突合") {
+                isPresentingReconciliation = true
             }
         }
         .padding()

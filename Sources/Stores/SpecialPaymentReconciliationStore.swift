@@ -450,6 +450,10 @@ internal final class SpecialPaymentReconciliationStore {
         selectedTransactionId = occurrence.transaction?.id
     }
 
+    internal func clearError() {
+        errorMessage = nil
+    }
+
     // MARK: - Private Helpers
 
     private var selectedOccurrence: SpecialPaymentOccurrence? {
