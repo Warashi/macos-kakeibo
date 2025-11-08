@@ -16,31 +16,24 @@ internal struct DashboardView: View {
                     VStack(spacing: 20) {
                         toolbarSection(store: store)
 
-                        if store.displayMode == .monthly {
-                            MonthlySummaryCard(
-                                summary: store.monthlySummary,
-                                budgetCalculation: store.monthlyBudgetCalculation,
-                            )
-                        } else {
-                            AnnualSummaryCard(summary: store.annualSummary)
-                        }
-
-                        if store.displayMode == .annual,
-                           let annualBudgetProgress = store.annualBudgetProgressCalculation {
-                            AnnualBudgetProgressCard(
-                                year: store.currentYear,
-                                calculation: annualBudgetProgress
-                            )
-                        }
-
-                        if let annualBudgetUsage = store.annualBudgetUsage {
-                            AnnualBudgetCard(usage: annualBudgetUsage)
-                        }
-
-                        CategoryHighlightTable(
-                            categories: store.categoryHighlights,
-                            title: store.displayMode == .monthly ? "今月のカテゴリ別支出" : "今年のカテゴリ別支出",
+                        DashboardSummaryCard(
+                            displayMode: store.displayMode,
+                            monthlySummary: store.monthlySummary,
+                            annualSummary: store.annualSummary,
+                            monthlyBudgetCalculation: store.monthlyBudgetCalculation,
+                            annualBudgetProgress: store.annualBudgetProgressCalculation
                         )
+
+                        ViewThatFits {
+                            HStack(alignment: .top, spacing: 20) {
+                                detailLeftColumn(store: store)
+                                detailRightColumn(store: store)
+                            }
+                            VStack(spacing: 20) {
+                                detailLeftColumn(store: store)
+                                detailRightColumn(store: store)
+                            }
+                        }
                     }
                     .padding()
                 }
@@ -124,5 +117,30 @@ internal struct DashboardView: View {
                 Image(systemName: "chevron.right")
             }
         }
+    }
+
+    @ViewBuilder
+    private func detailLeftColumn(store: DashboardStore) -> some View {
+        VStack(spacing: 20) {
+            BudgetDistributionCard(
+                displayMode: store.displayMode,
+                monthlyCategoryCalculations: store.monthlyBudgetCalculation.categoryCalculations,
+                annualCategoryEntries: store.annualBudgetCategoryEntries
+            )
+
+            if let annualBudgetUsage = store.annualBudgetUsage {
+                AnnualBudgetCard(usage: annualBudgetUsage)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .top)
+    }
+
+    @ViewBuilder
+    private func detailRightColumn(store: DashboardStore) -> some View {
+        CategoryHighlightTable(
+            categories: store.categoryHighlights,
+            title: store.displayMode == .monthly ? "今月のカテゴリ別支出" : "今年のカテゴリ別支出",
+        )
+        .frame(maxWidth: .infinity, alignment: .top)
     }
 }

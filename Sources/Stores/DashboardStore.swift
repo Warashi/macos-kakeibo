@@ -162,13 +162,27 @@ internal final class DashboardStore {
     }
 
     /// 年次予算進捗
-    internal var annualBudgetProgressCalculation: BudgetCalculation? {
-        annualBudgetProgressCalculator.calculate(
+    private var annualBudgetProgressResult: AnnualBudgetProgressResult? {
+        let result = annualBudgetProgressCalculator.calculate(
             budgets: allBudgets,
             transactions: allTransactions,
             year: currentYear,
             filter: .default
-        ).aggregateCalculation
+        )
+        if result.overallEntry == nil, result.categoryEntries.isEmpty {
+            return nil
+        }
+        return result
+    }
+
+    /// 年次予算進捗（全体）
+    internal var annualBudgetProgressCalculation: BudgetCalculation? {
+        annualBudgetProgressResult?.aggregateCalculation
+    }
+
+    /// 年次カテゴリ別予算進捗
+    internal var annualBudgetCategoryEntries: [AnnualBudgetEntry] {
+        annualBudgetProgressResult?.categoryEntries ?? []
     }
 
     // MARK: - Actions
