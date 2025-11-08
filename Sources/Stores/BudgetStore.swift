@@ -15,6 +15,7 @@ internal final class BudgetStore {
     private let aggregator: TransactionAggregator
     private let annualBudgetAllocator: AnnualBudgetAllocator
     private let annualBudgetProgressCalculator: AnnualBudgetProgressCalculator
+    private let specialPaymentBalanceService: SpecialPaymentBalanceService
 
     // MARK: - State
 
@@ -35,6 +36,7 @@ internal final class BudgetStore {
         self.aggregator = TransactionAggregator()
         self.annualBudgetAllocator = AnnualBudgetAllocator()
         self.annualBudgetProgressCalculator = AnnualBudgetProgressCalculator()
+        self.specialPaymentBalanceService = SpecialPaymentBalanceService()
 
         let now = Date()
         self.currentYear = now.year
@@ -77,6 +79,16 @@ internal final class BudgetStore {
         )
         descriptor.fetchLimit = 1
         return try? modelContext.fetch(descriptor).first
+    }
+
+    private var allSpecialPaymentDefinitions: [SpecialPaymentDefinition] {
+        let descriptor = FetchDescriptor<SpecialPaymentDefinition>()
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private var allSpecialPaymentBalances: [SpecialPaymentSavingBalance] {
+        let descriptor = FetchDescriptor<SpecialPaymentSavingBalance>()
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     // MARK: - Public Accessors
@@ -196,6 +208,64 @@ internal final class BudgetStore {
     /// 年次カテゴリ別予算エントリ
     internal var annualCategoryBudgetEntries: [AnnualBudgetEntry] {
         annualBudgetProgressResult.categoryEntries
+    }
+
+    // MARK: - Special Payment Savings
+
+    /// 月次積立金額の合計
+    internal var monthlySpecialPaymentSavingsTotal: Decimal {
+        budgetCalculator.calculateMonthlySavingsAllocation(
+            definitions: allSpecialPaymentDefinitions,
+            year: currentYear,
+            month: currentMonth,
+        )
+    }
+
+    /// カテゴリ別の積立金額
+    internal var categorySpecialPaymentSavings: [UUID: Decimal] {
+        budgetCalculator.calculateCategorySavingsAllocation(
+            definitions: allSpecialPaymentDefinitions,
+            year: currentYear,
+            month: currentMonth,
+        )
+    }
+
+    /// 特別支払いの積立状況一覧
+    internal var specialPaymentSavingsCalculations: [SpecialPaymentSavingsCalculation] {
+        budgetCalculator.calculateSpecialPaymentSavings(
+            definitions: allSpecialPaymentDefinitions,
+            balances: allSpecialPaymentBalances,
+            year: currentYear,
+            month: currentMonth,
+        )
+    }
+
+    /// 特別支払い積立の表示用エントリ
+    internal var specialPaymentSavingsEntries: [SpecialPaymentSavingsEntry] {
+        specialPaymentSavingsCalculations.map { calc in
+            let progress: Double
+            if let nextOccurrence = calc.nextOccurrence,
+               let definition = allSpecialPaymentDefinitions.first(where: { $0.id == calc.definitionId }) {
+                let targetAmount = definition.amount
+                if targetAmount > 0 {
+                    progress = min(
+                        1.0,
+                        NSDecimalNumber(decimal: calc.balance).doubleValue / NSDecimalNumber(decimal: targetAmount)
+                            .doubleValue,
+                    )
+                } else {
+                    progress = 0
+                }
+            } else {
+                progress = 0
+            }
+
+            return SpecialPaymentSavingsEntry(
+                calculation: calc,
+                progress: progress,
+                hasAlert: calc.balance < 0,
+            )
+        }
     }
 
     // MARK: - Actions (Navigation)
@@ -445,4 +515,41 @@ internal enum BudgetStoreError: Error {
 internal struct AnnualAllocationDraft {
     internal let categoryId: UUID
     internal let amount: Decimal
+}
+
+// MARK: - Special Payment Savings Entry
+
+/// 特別支払い積立の表示用エントリ
+internal struct SpecialPaymentSavingsEntry: Identifiable {
+    internal let calculation: SpecialPaymentSavingsCalculation
+
+    /// 進捗率（0.0 〜 1.0）
+    internal let progress: Double
+
+    /// アラート表示フラグ（残高不足など）
+    internal let hasAlert: Bool
+
+    internal var id: UUID {
+        calculation.definitionId
+    }
+
+    internal var name: String {
+        calculation.name
+    }
+
+    internal var monthlySaving: Decimal {
+        calculation.monthlySaving
+    }
+
+    internal var balance: Decimal {
+        calculation.balance
+    }
+
+    internal var nextOccurrence: Date? {
+        calculation.nextOccurrence
+    }
+
+    internal var progressPercentage: Double {
+        progress * 100
+    }
 }
