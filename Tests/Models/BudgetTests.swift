@@ -1,18 +1,18 @@
-@testable import Kakeibo
 import Foundation
+@testable import Kakeibo
 import SwiftData
 import Testing
 
 @Suite("Budget Tests")
-struct BudgetTests {
+internal struct BudgetTests {
     // MARK: - 初期化テスト
 
     @Test("予算を初期化できる")
-    func 予算初期化() {
+    internal func 予算初期化() {
         let budget = Budget(
             amount: 50000,
             year: 2025,
-            month: 11
+            month: 11,
         )
 
         #expect(budget.amount == 50000)
@@ -22,13 +22,13 @@ struct BudgetTests {
     }
 
     @Test("カテゴリ付きで予算を初期化できる")
-    func カテゴリ付き予算初期化() {
+    internal func カテゴリ付き予算初期化() {
         let category = Category(name: "食費")
         let budget = Budget(
             amount: 30000,
             category: category,
             year: 2025,
-            month: 11
+            month: 11,
         )
 
         #expect(budget.amount == 30000)
@@ -40,7 +40,7 @@ struct BudgetTests {
     // MARK: - Computed Properties テスト
 
     @Test("yearMonthStringは正しいフォーマットを返す")
-    func 年月文字列() {
+    internal func 年月文字列() {
         let budget = Budget(amount: 50000, year: 2025, month: 11)
         #expect(budget.yearMonthString == "2025-11")
 
@@ -49,7 +49,7 @@ struct BudgetTests {
     }
 
     @Test("targetDateは正しい日付を返す")
-    func 対象日付() {
+    internal func 対象日付() {
         let budget = Budget(amount: 50000, year: 2025, month: 11)
         let date = budget.targetDate
 
@@ -64,11 +64,11 @@ struct BudgetTests {
     // MARK: - バリデーションテスト
 
     @Test("有効な予算データの場合、バリデーションエラーがない")
-    func 有効な予算バリデーション() {
+    internal func 有効な予算バリデーション() {
         let budget = Budget(
             amount: 50000,
             year: 2025,
-            month: 11
+            month: 11,
         )
 
         let errors = budget.validate()
@@ -77,7 +77,7 @@ struct BudgetTests {
     }
 
     @Test("予算額が0以下の場合、バリデーションエラーが発生する")
-    func 予算額ゼロ以下バリデーション() {
+    internal func 予算額ゼロ以下バリデーション() {
         let budget1 = Budget(amount: 0, year: 2025, month: 11)
         let budget2 = Budget(amount: -1000, year: 2025, month: 11)
 
@@ -93,7 +93,7 @@ struct BudgetTests {
     }
 
     @Test("年が不正な場合、バリデーションエラーが発生する")
-    func 年不正バリデーション() {
+    internal func 年不正バリデーション() {
         let budget1 = Budget(amount: 50000, year: 1999, month: 11)
         let budget2 = Budget(amount: 50000, year: 2101, month: 11)
 
@@ -109,7 +109,7 @@ struct BudgetTests {
     }
 
     @Test("月が不正な場合、バリデーションエラーが発生する")
-    func 月不正バリデーション() {
+    internal func 月不正バリデーション() {
         let budget1 = Budget(amount: 50000, year: 2025, month: 0)
         let budget2 = Budget(amount: 50000, year: 2025, month: 13)
 
@@ -125,7 +125,7 @@ struct BudgetTests {
     }
 
     @Test("複数のバリデーションエラーがある場合、すべて検出される")
-    func 複数バリデーションエラー() {
+    internal func 複数バリデーションエラー() {
         let budget = Budget(amount: -1000, year: 1999, month: 13)
 
         let errors = budget.validate()
@@ -138,7 +138,7 @@ struct BudgetTests {
     // MARK: - 日時テスト
 
     @Test("作成日時と更新日時が設定される")
-    func 作成更新日時設定() {
+    internal func 作成更新日時設定() {
         let before = Date()
         let budget = Budget(amount: 50000, year: 2025, month: 11)
         let after = Date()
@@ -152,37 +152,37 @@ struct BudgetTests {
 }
 
 @Suite("AnnualBudgetConfig Tests")
-struct AnnualBudgetConfigTests {
+internal struct AnnualBudgetConfigTests {
     // MARK: - 初期化テスト
 
     @Test("年次特別枠設定を初期化できる")
-    func 年次特別枠初期化() {
+    internal func 年次特別枠初期化() {
         let config = AnnualBudgetConfig(
             year: 2025,
-            totalAmount: 200000
+            totalAmount: 200_000,
         )
 
         #expect(config.year == 2025)
-        #expect(config.totalAmount == 200000)
+        #expect(config.totalAmount == 200_000)
         #expect(config.policy == .automatic)
     }
 
     @Test("充当ポリシー付きで年次特別枠設定を初期化できる")
-    func ポリシー付き年次特別枠初期化() {
+    internal func ポリシー付き年次特別枠初期化() {
         let config1 = AnnualBudgetConfig(
             year: 2025,
-            totalAmount: 200000,
-            policy: .automatic
+            totalAmount: 200_000,
+            policy: .automatic,
         )
         let config2 = AnnualBudgetConfig(
             year: 2025,
-            totalAmount: 200000,
-            policy: .manual
+            totalAmount: 200_000,
+            policy: .manual,
         )
         let config3 = AnnualBudgetConfig(
             year: 2025,
-            totalAmount: 200000,
-            policy: .disabled
+            totalAmount: 200_000,
+            policy: .disabled,
         )
 
         #expect(config1.policy == .automatic)
@@ -193,11 +193,11 @@ struct AnnualBudgetConfigTests {
     // MARK: - ポリシー変更テスト
 
     @Test("充当ポリシーを変更できる")
-    func ポリシー変更() {
+    internal func ポリシー変更() {
         let config = AnnualBudgetConfig(
             year: 2025,
-            totalAmount: 200000,
-            policy: .automatic
+            totalAmount: 200_000,
+            policy: .automatic,
         )
 
         #expect(config.policy == .automatic)
@@ -212,10 +212,10 @@ struct AnnualBudgetConfigTests {
     // MARK: - バリデーションテスト
 
     @Test("有効な年次特別枠設定の場合、バリデーションエラーがない")
-    func 有効な年次特別枠バリデーション() {
+    internal func 有効な年次特別枠バリデーション() {
         let config = AnnualBudgetConfig(
             year: 2025,
-            totalAmount: 200000
+            totalAmount: 200_000,
         )
 
         let errors = config.validate()
@@ -224,7 +224,7 @@ struct AnnualBudgetConfigTests {
     }
 
     @Test("総額が0以下の場合、バリデーションエラーが発生する")
-    func 総額ゼロ以下バリデーション() {
+    internal func 総額ゼロ以下バリデーション() {
         let config1 = AnnualBudgetConfig(year: 2025, totalAmount: 0)
         let config2 = AnnualBudgetConfig(year: 2025, totalAmount: -10000)
 
@@ -240,9 +240,9 @@ struct AnnualBudgetConfigTests {
     }
 
     @Test("年が不正な場合、バリデーションエラーが発生する")
-    func 年不正バリデーション() {
-        let config1 = AnnualBudgetConfig(year: 1999, totalAmount: 200000)
-        let config2 = AnnualBudgetConfig(year: 2101, totalAmount: 200000)
+    internal func 年不正バリデーション() {
+        let config1 = AnnualBudgetConfig(year: 1999, totalAmount: 200_000)
+        let config2 = AnnualBudgetConfig(year: 2101, totalAmount: 200_000)
 
         let errors1 = config1.validate()
         let errors2 = config2.validate()
@@ -258,9 +258,9 @@ struct AnnualBudgetConfigTests {
     // MARK: - 日時テスト
 
     @Test("作成日時と更新日時が設定される")
-    func 作成更新日時設定() {
+    internal func 作成更新日時設定() {
         let before = Date()
-        let config = AnnualBudgetConfig(year: 2025, totalAmount: 200000)
+        let config = AnnualBudgetConfig(year: 2025, totalAmount: 200_000)
         let after = Date()
 
         #expect(config.createdAt >= before)

@@ -1,14 +1,14 @@
-@testable import Kakeibo
 import Foundation
+@testable import Kakeibo
 import SwiftData
 import Testing
 
 @Suite("Category Tests")
-struct CategoryTests {
+internal struct CategoryTests {
     // MARK: - 初期化テスト
 
     @Test("カテゴリを初期化できる")
-    func カテゴリ初期化() {
+    internal func カテゴリ初期化() {
         let category = Category(name: "食費")
 
         #expect(category.name == "食費")
@@ -19,11 +19,11 @@ struct CategoryTests {
     }
 
     @Test("パラメータ付きでカテゴリを初期化できる")
-    func パラメータ付きカテゴリ初期化() {
+    internal func パラメータ付きカテゴリ初期化() {
         let category = Category(
             name: "外食",
             allowsAnnualBudget: true,
-            displayOrder: 10
+            displayOrder: 10,
         )
 
         #expect(category.name == "外食")
@@ -34,7 +34,7 @@ struct CategoryTests {
     // MARK: - 階層構造テスト
 
     @Test("親子関係を設定できる")
-    func 親子関係設定() {
+    internal func 親子関係設定() {
         let parent = Category(name: "食費")
         let child = Category(name: "外食", parent: parent)
 
@@ -42,7 +42,7 @@ struct CategoryTests {
     }
 
     @Test("addChildメソッドで子カテゴリを追加できる")
-    func 子カテゴリ追加() {
+    internal func 子カテゴリ追加() {
         let parent = Category(name: "食費")
         let child = Category(name: "外食")
 
@@ -54,7 +54,7 @@ struct CategoryTests {
     }
 
     @Test("複数の子カテゴリを追加できる")
-    func 複数子カテゴリ追加() {
+    internal func 複数子カテゴリ追加() {
         let parent = Category(name: "食費")
         let child1 = Category(name: "外食")
         let child2 = Category(name: "自炊")
@@ -70,14 +70,14 @@ struct CategoryTests {
     // MARK: - Computed Properties テスト
 
     @Test("isMajorは親がnilの場合にtrueを返す")
-    func 大項目判定() {
+    internal func 大項目判定() {
         let category = Category(name: "食費")
         #expect(category.isMajor == true)
         #expect(category.isMinor == false)
     }
 
     @Test("isMinorは親がある場合にtrueを返す")
-    func 中項目判定() {
+    internal func 中項目判定() {
         let parent = Category(name: "食費")
         let child = Category(name: "外食", parent: parent)
 
@@ -86,13 +86,13 @@ struct CategoryTests {
     }
 
     @Test("fullNameは大項目の場合、名前のみを返す")
-    func 大項目フルパス名() {
+    internal func 大項目フルパス名() {
         let category = Category(name: "食費")
         #expect(category.fullName == "食費")
     }
 
     @Test("fullNameは中項目の場合、親/子の形式を返す")
-    func 中項目フルパス名() {
+    internal func 中項目フルパス名() {
         let parent = Category(name: "食費")
         let child = Category(name: "外食", parent: parent)
 
@@ -102,7 +102,7 @@ struct CategoryTests {
     // MARK: - Convenience メソッドテスト
 
     @Test("childメソッドで名前から子カテゴリを取得できる")
-    func 名前から子カテゴリ取得() {
+    internal func 名前から子カテゴリ取得() {
         let parent = Category(name: "食費")
         let child1 = Category(name: "外食")
         let child2 = Category(name: "自炊")
@@ -115,7 +115,7 @@ struct CategoryTests {
     }
 
     @Test("childメソッドで存在しない名前を指定するとnilを返す")
-    func 存在しない子カテゴリ取得() {
+    internal func 存在しない子カテゴリ取得() {
         let parent = Category(name: "食費")
         let child = Category(name: "外食")
 
@@ -128,7 +128,7 @@ struct CategoryTests {
     // MARK: - 年次特別枠テスト
 
     @Test("年次特別枠の使用可否を設定できる")
-    func 年次特別枠設定() {
+    internal func 年次特別枠設定() {
         let category = Category(name: "特別", allowsAnnualBudget: true)
         #expect(category.allowsAnnualBudget == true)
     }
@@ -136,7 +136,7 @@ struct CategoryTests {
     // MARK: - 表示順序テスト
 
     @Test("表示順序を設定できる")
-    func 表示順序設定() {
+    internal func 表示順序設定() {
         let category1 = Category(name: "食費", displayOrder: 1)
         let category2 = Category(name: "日用品", displayOrder: 2)
 
@@ -147,7 +147,7 @@ struct CategoryTests {
     // MARK: - 日時テスト
 
     @Test("作成日時と更新日時が設定される")
-    func 作成更新日時設定() {
+    internal func 作成更新日時設定() {
         let before = Date()
         let category = Category(name: "食費")
         let after = Date()
