@@ -45,8 +45,9 @@ internal struct AnnualBudgetCard: View {
                     }
 
                     ProgressBar(
-                        value: usage.usageRate,
-                        color: usage.usageRate >= 0.9 ? .red : .blue,
+                        progress: usage.usageRate,
+                        style: usage.usageRate >= 0.9 ? .danger : .custom(.blue),
+                        showLabel: false,
                     )
                 }
             }

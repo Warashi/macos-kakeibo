@@ -76,8 +76,9 @@ internal struct MonthlySummaryCard: View {
             }
 
             ProgressBar(
-                value: calculation.usageRate,
-                color: calculation.isOverBudget ? .red : .blue,
+                progress: calculation.usageRate,
+                style: calculation.isOverBudget ? .danger : .custom(.blue),
+                showLabel: false,
             )
 
             HStack {
