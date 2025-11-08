@@ -202,4 +202,125 @@ internal struct SpecialPaymentScheduleServiceTests {
         let expected = try #require(Date.from(year: 2025, month: 2, day: 3))
         #expect(firstTarget.scheduledDate == expected)
     }
+
+    @Test("極端に古い開始日でもmaxIterationsで保護される")
+    internal func scheduleTargets_protectedByMaxIterations() throws {
+        // 50年前から開始（maxIterations 600 × 1ヶ月 = 50年で到達できる範囲）
+        let veryOldDate = try #require(Date.from(year: 1975, month: 1, day: 1))
+        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
+
+        let definition = SpecialPaymentDefinition(
+            name: "テスト支払い",
+            amount: 10000,
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: veryOldDate,
+        )
+
+        let targets = service.scheduleTargets(
+            for: definition,
+            seedDate: definition.firstOccurrenceDate,
+            referenceDate: referenceDate,
+            horizonMonths: 12,
+        )
+
+        // maxIterations (600) に到達しても結果が返されることを確認
+        #expect(!targets.isEmpty)
+        // 最初のターゲットは参照日の月初以降であることを確認
+        let firstTarget = try #require(targets.first)
+        #expect(firstTarget.scheduledDate >= referenceDate.startOfMonth)
+    }
+
+    @Test("極端に大きな周期でもmaxIterationsで保護される")
+    internal func scheduleTargets_largeIntervalProtectedByMaxIterations() throws {
+        let firstDate = try #require(Date.from(year: 2025, month: 1, day: 1))
+        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
+
+        // 10年周期
+        let definition = SpecialPaymentDefinition(
+            name: "テスト支払い",
+            amount: 10000,
+            recurrenceIntervalMonths: 120,
+            firstOccurrenceDate: firstDate,
+        )
+
+        let targets = service.scheduleTargets(
+            for: definition,
+            seedDate: definition.firstOccurrenceDate,
+            referenceDate: referenceDate,
+            horizonMonths: 6000,
+        )
+
+        // maxIterations (600) を超えない範囲で生成される
+        // 10年周期 × 600回 = 6000年分 = 600件のはず
+        #expect(targets.count <= 600)
+        #expect(!targets.isEmpty)
+    }
+
+    @Test("月末の日付計算が正しく処理される（1月31日→2月28日）")
+    internal func scheduleTargets_handlesMonthEndDates() throws {
+        // 1月31日開始、1ヶ月周期
+        let firstDate = try #require(Date.from(year: 2025, month: 1, day: 31))
+        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
+
+        let definition = SpecialPaymentDefinition(
+            name: "テスト支払い",
+            amount: 10000,
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: firstDate,
+        )
+
+        let targets = service.scheduleTargets(
+            for: definition,
+            seedDate: definition.firstOccurrenceDate,
+            referenceDate: referenceDate,
+            horizonMonths: 3,
+        )
+
+        #expect(targets.count >= 2)
+        let first = targets[0]
+        let second = targets[1]
+
+        // 1月31日
+        #expect(first.scheduledDate.month == 1)
+        #expect(first.scheduledDate.day == 31)
+
+        // 2月28日（2025年は閏年ではない）
+        #expect(second.scheduledDate.month == 2)
+        #expect(second.scheduledDate.day == 28)
+    }
+
+    @Test("閏年の2月29日が正しく処理される")
+    internal func scheduleTargets_handlesLeapYearDates() throws {
+        // 2024年2月29日開始（閏年）、12ヶ月周期
+        let firstDate = try #require(Date.from(year: 2024, month: 2, day: 29))
+        let referenceDate = try #require(Date.from(year: 2024, month: 1, day: 1))
+
+        let definition = SpecialPaymentDefinition(
+            name: "テスト支払い",
+            amount: 10000,
+            recurrenceIntervalMonths: 12,
+            firstOccurrenceDate: firstDate,
+        )
+
+        let targets = service.scheduleTargets(
+            for: definition,
+            seedDate: definition.firstOccurrenceDate,
+            referenceDate: referenceDate,
+            horizonMonths: 24,
+        )
+
+        #expect(targets.count >= 2)
+        let first = targets[0]
+        let second = targets[1]
+
+        // 2024年2月29日
+        #expect(first.scheduledDate.year == 2024)
+        #expect(first.scheduledDate.month == 2)
+        #expect(first.scheduledDate.day == 29)
+
+        // 2025年2月28日（2025年は閏年ではない）
+        #expect(second.scheduledDate.year == 2025)
+        #expect(second.scheduledDate.month == 2)
+        #expect(second.scheduledDate.day == 28)
+    }
 }
