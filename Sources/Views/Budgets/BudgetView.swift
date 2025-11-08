@@ -11,15 +11,20 @@ internal struct BudgetView: View {
     @State private var isPresentingBudgetEditor = false
     @State private var isPresentingAnnualEditor = false
     @State private var isPresentingReconciliation = false
+    @State private var isPresentingSpecialPaymentEditor = false
 
     @State private var budgetEditorMode: BudgetEditorMode = .create
     @State private var budgetFormState: BudgetEditorFormState = .init()
     @State private var annualFormState: AnnualBudgetFormState = .init()
+    @State private var specialPaymentEditorMode: SpecialPaymentEditorMode = .create
+    @State private var specialPaymentFormState: SpecialPaymentFormState = .init()
 
     @State private var budgetFormError: String?
     @State private var annualFormError: String?
+    @State private var specialPaymentFormError: String?
 
     @State private var budgetPendingDeletion: Budget?
+    @State private var specialPaymentPendingDeletion: SpecialPaymentDefinition?
     @State private var errorMessage: String?
     @State private var isShowingErrorAlert = false
 
@@ -43,7 +48,7 @@ internal struct BudgetView: View {
                             AnnualBudgetGrid(
                                 title: "\(store.currentYear.yearDisplayString)年",
                                 overallEntry: store.annualOverallBudgetEntry,
-                                categoryEntries: store.annualCategoryBudgetEntries
+                                categoryEntries: store.annualCategoryBudgetEntries,
                             )
                         }
 
@@ -53,6 +58,8 @@ internal struct BudgetView: View {
                             usage: store.annualBudgetUsage,
                             onEdit: presentAnnualEditor,
                         )
+
+                        specialPaymentListSection
                     }
                     .padding()
                 }
@@ -91,6 +98,20 @@ internal struct BudgetView: View {
         .sheet(isPresented: $isPresentingReconciliation) {
             SpecialPaymentReconciliationView()
         }
+        .sheet(isPresented: $isPresentingSpecialPaymentEditor) {
+            if let store {
+                SpecialPaymentEditorSheet(
+                    formState: $specialPaymentFormState,
+                    categories: store.selectableCategories,
+                    mode: specialPaymentEditorMode,
+                    errorMessage: specialPaymentFormError,
+                    onCancel: dismissSpecialPaymentEditor,
+                    onSave: saveSpecialPayment,
+                )
+                .frame(minWidth: 520, minHeight: 600)
+                .presentationSizing(.fitted)
+            }
+        }
         .confirmationDialog(
             "予算を削除しますか？",
             isPresented: Binding(
@@ -101,6 +122,19 @@ internal struct BudgetView: View {
         ) {
             Button("削除", role: .destructive) {
                 deletePendingBudget()
+            }
+            Button("キャンセル", role: .cancel) {}
+        }
+        .confirmationDialog(
+            "特別支払いを削除しますか？",
+            isPresented: Binding(
+                get: { specialPaymentPendingDeletion != nil },
+                set: { if !$0 { specialPaymentPendingDeletion = nil } },
+            ),
+            titleVisibility: .visible,
+        ) {
+            Button("削除", role: .destructive) {
+                deletePendingSpecialPayment()
             }
             Button("キャンセル", role: .cancel) {}
         }
@@ -126,7 +160,7 @@ internal struct BudgetView: View {
                 selection: Binding(
                     get: { store.displayMode },
                     set: { store.displayMode = $0 },
-                )
+                ),
             ) {
                 ForEach(BudgetStore.DisplayMode.allCases, id: \.self) { mode in
                     Text(mode.rawValue).tag(mode)
@@ -202,6 +236,54 @@ internal struct BudgetView: View {
         }
     }
 
+    @ViewBuilder
+    private var specialPaymentListSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("特別支払い")
+                    .font(.title2.bold())
+                Spacer()
+                Button {
+                    presentSpecialPaymentEditor(for: nil)
+                } label: {
+                    Label("追加", systemImage: "plus")
+                }
+            }
+
+            if specialPaymentDefinitions.isEmpty {
+                ContentUnavailableView {
+                    Label("特別支払いがありません", systemImage: "calendar.badge.exclamationmark")
+                } description: {
+                    Text("定期的な大きな支払いを登録して、月次の積立計画を立てましょう。")
+                }
+                .frame(height: 200)
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(specialPaymentDefinitions) { definition in
+                        SpecialPaymentRow(
+                            definition: definition,
+                            onEdit: { presentSpecialPaymentEditor(for: definition) },
+                            onDelete: { specialPaymentPendingDeletion = definition },
+                        )
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(10)
+    }
+
+    private var specialPaymentDefinitions: [SpecialPaymentDefinition] {
+        let descriptor = FetchDescriptor<SpecialPaymentDefinition>(
+            sortBy: [
+                SortDescriptor(\.firstOccurrenceDate),
+                SortDescriptor(\.name),
+            ],
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
     // MARK: - Store Preparation
 
     private func prepareStore() {
@@ -221,7 +303,7 @@ internal struct BudgetView: View {
             budgetEditorMode = .create
             budgetFormState.reset(
                 defaultYear: store.currentYear,
-                defaultMonth: store.currentMonth
+                defaultMonth: store.currentMonth,
             )
         }
         isPresentingBudgetEditor = true
@@ -259,7 +341,7 @@ internal struct BudgetView: View {
                     startYear: startYear,
                     startMonth: startMonth,
                     endYear: endYear,
-                    endMonth: endMonth
+                    endMonth: endMonth,
                 )
             case let .edit(budget):
                 try store.updateBudget(
@@ -269,7 +351,7 @@ internal struct BudgetView: View {
                     startYear: startYear,
                     startMonth: startMonth,
                     endYear: endYear,
-                    endMonth: endMonth
+                    endMonth: endMonth,
                 )
             }
             isPresentingBudgetEditor = false
@@ -339,6 +421,70 @@ internal struct BudgetView: View {
         }
     }
 
+    // MARK: - Special Payment Editor
+
+    private func presentSpecialPaymentEditor(for definition: SpecialPaymentDefinition?) {
+        specialPaymentFormError = nil
+        if let definition {
+            specialPaymentEditorMode = .edit(definition)
+            specialPaymentFormState.load(from: definition)
+        } else {
+            specialPaymentEditorMode = .create
+            specialPaymentFormState.reset()
+        }
+        isPresentingSpecialPaymentEditor = true
+    }
+
+    private func dismissSpecialPaymentEditor() {
+        isPresentingSpecialPaymentEditor = false
+    }
+
+    private func saveSpecialPayment() {
+        guard specialPaymentFormState.isValid else {
+            specialPaymentFormError = "入力内容を確認してください"
+            return
+        }
+
+        let specialPaymentStore = SpecialPaymentStore(modelContext: modelContext)
+
+        do {
+            switch specialPaymentEditorMode {
+            case .create:
+                try specialPaymentStore.createDefinition(
+                    name: specialPaymentFormState.nameText.trimmingCharacters(in: .whitespacesAndNewlines),
+                    notes: specialPaymentFormState.notesText,
+                    amount: specialPaymentFormState.decimalAmount!,
+                    recurrenceIntervalMonths: specialPaymentFormState.recurrenceIntervalMonths,
+                    firstOccurrenceDate: specialPaymentFormState.firstOccurrenceDate,
+                    leadTimeMonths: specialPaymentFormState.leadTimeMonths,
+                    categoryId: specialPaymentFormState.selectedCategoryId,
+                    savingStrategy: specialPaymentFormState.savingStrategy,
+                    customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
+                )
+            case let .edit(definition):
+                try specialPaymentStore.updateDefinition(
+                    definition,
+                    name: specialPaymentFormState.nameText.trimmingCharacters(in: .whitespacesAndNewlines),
+                    notes: specialPaymentFormState.notesText,
+                    amount: specialPaymentFormState.decimalAmount!,
+                    recurrenceIntervalMonths: specialPaymentFormState.recurrenceIntervalMonths,
+                    firstOccurrenceDate: specialPaymentFormState.firstOccurrenceDate,
+                    leadTimeMonths: specialPaymentFormState.leadTimeMonths,
+                    categoryId: specialPaymentFormState.selectedCategoryId,
+                    savingStrategy: specialPaymentFormState.savingStrategy,
+                    customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
+                )
+            }
+            isPresentingSpecialPaymentEditor = false
+        } catch SpecialPaymentStoreError.categoryNotFound {
+            specialPaymentFormError = "選択したカテゴリが見つかりませんでした"
+        } catch let SpecialPaymentStoreError.validationFailed(errors) {
+            specialPaymentFormError = errors.joined(separator: "\n")
+        } catch {
+            showError(message: "特別支払いの保存に失敗しました: \(error.localizedDescription)")
+        }
+    }
+
     // MARK: - Delete
 
     private func deletePendingBudget() {
@@ -349,6 +495,17 @@ internal struct BudgetView: View {
             showError(message: "予算の削除に失敗しました: \(error.localizedDescription)")
         }
         budgetPendingDeletion = nil
+    }
+
+    private func deletePendingSpecialPayment() {
+        guard let definition = specialPaymentPendingDeletion else { return }
+        let specialPaymentStore = SpecialPaymentStore(modelContext: modelContext)
+        do {
+            try specialPaymentStore.deleteDefinition(definition)
+        } catch {
+            showError(message: "特別支払いの削除に失敗しました: \(error.localizedDescription)")
+        }
+        specialPaymentPendingDeletion = nil
     }
 
     // MARK: - Error Handling
@@ -378,7 +535,7 @@ private struct BudgetEditorSheet: View {
             get: { formState.selectedMajorCategoryId },
             set: { newValue in
                 formState.updateMajorSelection(to: newValue)
-            }
+            },
         )
     }
 
@@ -397,7 +554,7 @@ private struct BudgetEditorSheet: View {
                             DatePicker(
                                 "開始",
                                 selection: $formState.startDate,
-                                displayedComponents: [.date]
+                                displayedComponents: [.date],
                             )
                             .datePickerStyle(.field)
                             .labelsHidden()
@@ -407,7 +564,7 @@ private struct BudgetEditorSheet: View {
                             DatePicker(
                                 "終了",
                                 selection: $formState.endDate,
-                                displayedComponents: [.date]
+                                displayedComponents: [.date],
                             )
                             .datePickerStyle(.field)
                             .labelsHidden()
@@ -576,6 +733,186 @@ private struct AnnualBudgetEditorSheet: View {
                     }
                 }
             }
+        }
+    }
+}
+
+// MARK: - Special Payment Editor Sheet
+
+private struct SpecialPaymentEditorSheet: View {
+    @Binding var formState: SpecialPaymentFormState
+    internal let categories: [Category]
+    internal let mode: SpecialPaymentEditorMode
+    internal let errorMessage: String?
+    internal let onCancel: () -> Void
+    internal let onSave: () -> Void
+
+    internal var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    LabeledField(title: "名称") {
+                        TextField("例: 自動車税", text: $formState.nameText)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(maxWidth: .infinity)
+                    }
+
+                    LabeledField(title: "カテゴリ") {
+                        Picker("カテゴリ", selection: $formState.selectedCategoryId) {
+                            Text("カテゴリを選択").tag(UUID?.none)
+                            ForEach(categories, id: \.id) { category in
+                                Text(category.fullName).tag(Optional(category.id))
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    LabeledField(title: "金額（例: 50000）") {
+                        TextField("", text: $formState.amountText)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(maxWidth: .infinity)
+                    }
+
+                    LabeledField(title: "周期") {
+                        HStack(spacing: 12) {
+                            Stepper(value: $formState.recurrenceYears, in: 0 ... 10) {
+                                HStack {
+                                    Text("\(formState.recurrenceYears)")
+                                        .frame(minWidth: 30, alignment: .trailing)
+                                    Text("年")
+                                }
+                            }
+                            .frame(width: 140)
+
+                            Stepper(value: $formState.recurrenceMonths, in: 0 ... 11) {
+                                HStack {
+                                    Text("\(formState.recurrenceMonths)")
+                                        .frame(minWidth: 30, alignment: .trailing)
+                                    Text("か月")
+                                }
+                            }
+                            .frame(width: 160)
+                        }
+                    }
+
+                    LabeledField(title: "開始日（初回発生予定日）") {
+                        DatePicker(
+                            "",
+                            selection: $formState.firstOccurrenceDate,
+                            displayedComponents: [.date],
+                        )
+                        .datePickerStyle(.field)
+                        .labelsHidden()
+                    }
+
+                    LabeledField(title: "リードタイム（月数）") {
+                        Stepper(value: $formState.leadTimeMonths, in: 0 ... 24) {
+                            HStack {
+                                Text("\(formState.leadTimeMonths)")
+                                    .frame(minWidth: 30, alignment: .trailing)
+                                Text("か月前から積立開始")
+                            }
+                        }
+                    }
+
+                    LabeledField(title: "積立戦略") {
+                        Picker("積立戦略", selection: $formState.savingStrategy) {
+                            Text("積立なし").tag(SpecialPaymentSavingStrategy.disabled)
+                            Text("周期で均等積立").tag(SpecialPaymentSavingStrategy.evenlyDistributed)
+                            Text("カスタム月次金額").tag(SpecialPaymentSavingStrategy.customMonthly)
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.segmented)
+                    }
+
+                    if formState.savingStrategy == .customMonthly {
+                        LabeledField(title: "カスタム積立金額（月次）") {
+                            TextField("例: 4000", text: $formState.customMonthlySavingAmountText)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
+
+                    LabeledField(title: "メモ") {
+                        TextEditor(text: $formState.notesText)
+                            .font(.body)
+                            .frame(height: 80)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1),
+                            )
+                    }
+
+                    Divider()
+
+                    previewSection
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
+            }
+            .navigationTitle(mode.title)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("キャンセル", action: onCancel)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("保存", action: onSave)
+                        .disabled(!formState.isValid)
+                }
+            }
+        }
+    }
+
+    private var previewSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("プレビュー")
+                .font(.headline)
+
+            Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 8) {
+                GridRow {
+                    Text("周期")
+                        .foregroundStyle(.secondary)
+                    Text(recurrenceDescription)
+                }
+                GridRow {
+                    Text("月次積立額")
+                        .foregroundStyle(.secondary)
+                    Text(formState.monthlySavingAmountPreview.currencyFormatted)
+                }
+                GridRow {
+                    Text("次回発生予定日")
+                        .foregroundStyle(.secondary)
+                    Text(formState.firstOccurrenceDate.longDateFormatted)
+                }
+            }
+            .font(.subheadline)
+        }
+        .padding()
+        .background(Color.gray.opacity(0.08))
+        .cornerRadius(8)
+    }
+
+    private var recurrenceDescription: String {
+        let months = formState.recurrenceIntervalMonths
+        guard months > 0 else { return "未設定" }
+        let years = months / 12
+        let remainingMonths = months % 12
+
+        switch (years, remainingMonths) {
+        case let (0, m):
+            return "\(m)か月"
+        case let (y, 0):
+            return "\(y)年"
+        default:
+            return "\(years)年\(remainingMonths)か月"
         }
     }
 }
@@ -778,6 +1115,178 @@ private enum BudgetEditorMode {
         case .edit:
             "予算を編集"
         }
+    }
+}
+
+// MARK: - Special Payment Form State
+
+private struct SpecialPaymentFormState {
+    internal var nameText: String = ""
+    internal var notesText: String = ""
+    internal var amountText: String = ""
+    internal var recurrenceYears: Int = 0
+    internal var recurrenceMonths: Int = 1
+    internal var firstOccurrenceDate: Date = Date()
+    internal var leadTimeMonths: Int = 0
+    internal var selectedCategoryId: UUID?
+    internal var savingStrategy: SpecialPaymentSavingStrategy = .evenlyDistributed
+    internal var customMonthlySavingAmountText: String = ""
+
+    internal mutating func load(from definition: SpecialPaymentDefinition) {
+        nameText = definition.name
+        notesText = definition.notes
+        amountText = definition.amount.plainString
+        recurrenceYears = definition.recurrenceIntervalMonths / 12
+        recurrenceMonths = definition.recurrenceIntervalMonths % 12
+        firstOccurrenceDate = definition.firstOccurrenceDate
+        leadTimeMonths = definition.leadTimeMonths
+        selectedCategoryId = definition.category?.id
+        savingStrategy = definition.savingStrategy
+        customMonthlySavingAmountText = definition.customMonthlySavingAmount?.plainString ?? ""
+    }
+
+    internal mutating func reset() {
+        nameText = ""
+        notesText = ""
+        amountText = ""
+        recurrenceYears = 0
+        recurrenceMonths = 1
+        firstOccurrenceDate = Date()
+        leadTimeMonths = 0
+        selectedCategoryId = nil
+        savingStrategy = .evenlyDistributed
+        customMonthlySavingAmountText = ""
+    }
+
+    private var normalizedAmountText: String {
+        amountText.replacingOccurrences(of: ",", with: "")
+    }
+
+    internal var decimalAmount: Decimal? {
+        Decimal(string: normalizedAmountText, locale: Locale(identifier: "ja_JP"))
+            ?? Decimal(string: normalizedAmountText)
+    }
+
+    private var normalizedCustomAmountText: String {
+        customMonthlySavingAmountText.replacingOccurrences(of: ",", with: "")
+    }
+
+    internal var customMonthlySavingAmount: Decimal? {
+        guard !normalizedCustomAmountText.isEmpty else { return nil }
+        return Decimal(string: normalizedCustomAmountText, locale: Locale(identifier: "ja_JP"))
+            ?? Decimal(string: normalizedCustomAmountText)
+    }
+
+    internal var recurrenceIntervalMonths: Int {
+        recurrenceYears * 12 + recurrenceMonths
+    }
+
+    internal var monthlySavingAmountPreview: Decimal {
+        guard let amount = decimalAmount else { return 0 }
+        switch savingStrategy {
+        case .disabled:
+            return 0
+        case .evenlyDistributed:
+            guard recurrenceIntervalMonths > 0 else { return 0 }
+            return amount.safeDivide(Decimal(recurrenceIntervalMonths))
+        case .customMonthly:
+            return customMonthlySavingAmount ?? 0
+        }
+    }
+
+    internal var isValid: Bool {
+        guard !nameText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        guard let amount = decimalAmount, amount > 0 else { return false }
+        guard recurrenceIntervalMonths > 0 else { return false }
+        guard leadTimeMonths >= 0 else { return false }
+
+        if savingStrategy == .customMonthly {
+            guard let customAmount = customMonthlySavingAmount, customAmount > 0 else { return false }
+        }
+
+        return true
+    }
+}
+
+private enum SpecialPaymentEditorMode {
+    case create
+    case edit(SpecialPaymentDefinition)
+
+    internal var title: String {
+        switch self {
+        case .create:
+            "特別支払いを追加"
+        case .edit:
+            "特別支払いを編集"
+        }
+    }
+}
+
+// MARK: - Special Payment Row
+
+private struct SpecialPaymentRow: View {
+    internal let definition: SpecialPaymentDefinition
+    internal let onEdit: () -> Void
+    internal let onDelete: () -> Void
+
+    internal var body: some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(definition.name)
+                        .font(.headline)
+                    if let category = definition.category {
+                        Text(category.fullName)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(Color.blue.opacity(0.1), in: Capsule())
+                    }
+                }
+
+                HStack(spacing: 16) {
+                    Label(definition.amount.currencyFormatted, systemImage: "yensign.circle")
+                    Label(definition.recurrenceDescription, systemImage: "arrow.clockwise")
+                    Label(
+                        definition.monthlySavingAmount.currencyFormatted + "/月",
+                        systemImage: "chart.line.uptrend.xyaxis",
+                    )
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+                if !definition.notes.isEmpty {
+                    Text(definition.notes)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+            }
+
+            Spacer()
+
+            HStack(spacing: 8) {
+                Button {
+                    onEdit()
+                } label: {
+                    Label("編集", systemImage: "pencil")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.bordered)
+
+                Button(role: .destructive) {
+                    onDelete()
+                } label: {
+                    Label("削除", systemImage: "trash")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .padding()
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(8)
     }
 }
 

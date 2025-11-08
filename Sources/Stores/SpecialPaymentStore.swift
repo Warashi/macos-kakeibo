@@ -6,6 +6,7 @@ internal enum SpecialPaymentStoreError: Error {
     case invalidRecurrence
     case invalidHorizon
     case validationFailed([String])
+    case categoryNotFound
 }
 
 @Observable
@@ -20,7 +21,7 @@ internal final class SpecialPaymentStore {
     internal init(
         modelContext: ModelContext,
         scheduleService: SpecialPaymentScheduleService = SpecialPaymentScheduleService(),
-        currentDateProvider: @escaping () -> Date = { Date() }
+        currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         self.modelContext = modelContext
         self.scheduleService = scheduleService
@@ -32,7 +33,7 @@ internal final class SpecialPaymentStore {
     internal func synchronizeOccurrences(
         for definition: SpecialPaymentDefinition,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
-        referenceDate: Date? = nil
+        referenceDate: Date? = nil,
     ) throws {
         guard definition.recurrenceIntervalMonths > 0 else {
             throw SpecialPaymentStoreError.invalidRecurrence
@@ -49,7 +50,7 @@ internal final class SpecialPaymentStore {
             for: definition,
             seedDate: seedDate,
             referenceDate: now,
-            horizonMonths: horizonMonths
+            horizonMonths: horizonMonths,
         )
 
         guard !targets.isEmpty else {
@@ -63,14 +64,14 @@ internal final class SpecialPaymentStore {
 
         for target in targets {
             if let existingIndex = editableOccurrences.firstIndex(
-                where: { calendar.isDate($0.scheduledDate, inSameDayAs: target.scheduledDate) }
+                where: { calendar.isDate($0.scheduledDate, inSameDayAs: target.scheduledDate) },
             ) {
                 let occurrence = editableOccurrences.remove(at: existingIndex)
                 apply(
                     target: target,
                     to: occurrence,
                     referenceDate: now,
-                    leadTimeMonths: definition.leadTimeMonths
+                    leadTimeMonths: definition.leadTimeMonths,
                 )
                 matchedOccurrences.append(occurrence)
             } else {
@@ -81,8 +82,8 @@ internal final class SpecialPaymentStore {
                     status: scheduleService.defaultStatus(
                         for: target.scheduledDate,
                         referenceDate: now,
-                        leadTimeMonths: definition.leadTimeMonths
-                    )
+                        leadTimeMonths: definition.leadTimeMonths,
+                    ),
                 )
                 occurrence.updatedAt = now
                 modelContext.insert(occurrence)
@@ -113,7 +114,7 @@ internal final class SpecialPaymentStore {
         actualDate: Date,
         actualAmount: Decimal,
         transaction: Transaction? = nil,
-        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths
+        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) throws {
         occurrence.actualDate = actualDate
         occurrence.actualAmount = actualAmount
@@ -128,13 +129,108 @@ internal final class SpecialPaymentStore {
 
         try synchronizeOccurrences(
             for: occurrence.definition,
-            horizonMonths: horizonMonths
+            horizonMonths: horizonMonths,
         )
+    }
+
+    // MARK: - CRUD Operations
+
+    /// 特別支払い定義を作成
+    internal func createDefinition(
+        name: String,
+        notes: String = "",
+        amount: Decimal,
+        recurrenceIntervalMonths: Int,
+        firstOccurrenceDate: Date,
+        leadTimeMonths: Int = 0,
+        categoryId: UUID? = nil,
+        savingStrategy: SpecialPaymentSavingStrategy = .evenlyDistributed,
+        customMonthlySavingAmount: Decimal? = nil,
+        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
+    ) throws {
+        let category = try resolvedCategory(categoryId: categoryId)
+
+        let definition = SpecialPaymentDefinition(
+            name: name,
+            notes: notes,
+            amount: amount,
+            recurrenceIntervalMonths: recurrenceIntervalMonths,
+            firstOccurrenceDate: firstOccurrenceDate,
+            leadTimeMonths: leadTimeMonths,
+            category: category,
+            savingStrategy: savingStrategy,
+            customMonthlySavingAmount: customMonthlySavingAmount,
+        )
+
+        let errors = definition.validate()
+        guard errors.isEmpty else {
+            throw SpecialPaymentStoreError.validationFailed(errors)
+        }
+
+        modelContext.insert(definition)
+        try modelContext.save()
+
+        try synchronizeOccurrences(for: definition, horizonMonths: horizonMonths)
+    }
+
+    /// 特別支払い定義を更新
+    internal func updateDefinition(
+        _ definition: SpecialPaymentDefinition,
+        name: String,
+        notes: String,
+        amount: Decimal,
+        recurrenceIntervalMonths: Int,
+        firstOccurrenceDate: Date,
+        leadTimeMonths: Int,
+        categoryId: UUID?,
+        savingStrategy: SpecialPaymentSavingStrategy,
+        customMonthlySavingAmount: Decimal?,
+        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
+    ) throws {
+        let category = try resolvedCategory(categoryId: categoryId)
+
+        definition.name = name
+        definition.notes = notes
+        definition.amount = amount
+        definition.recurrenceIntervalMonths = recurrenceIntervalMonths
+        definition.firstOccurrenceDate = firstOccurrenceDate
+        definition.leadTimeMonths = leadTimeMonths
+        definition.category = category
+        definition.savingStrategy = savingStrategy
+        definition.customMonthlySavingAmount = customMonthlySavingAmount
+        definition.updatedAt = currentDateProvider()
+
+        let errors = definition.validate()
+        guard errors.isEmpty else {
+            throw SpecialPaymentStoreError.validationFailed(errors)
+        }
+
+        try modelContext.save()
+
+        try synchronizeOccurrences(for: definition, horizonMonths: horizonMonths)
+    }
+
+    /// 特別支払い定義を削除
+    internal func deleteDefinition(_ definition: SpecialPaymentDefinition) throws {
+        modelContext.delete(definition)
+        try modelContext.save()
     }
 
     // MARK: - Helpers
 
     private let calendar: Calendar = Calendar(identifier: .gregorian)
+
+    private func resolvedCategory(categoryId: UUID?) throws -> Category? {
+        guard let id = categoryId else { return nil }
+        var descriptor = FetchDescriptor<Category>(
+            predicate: #Predicate { $0.id == id },
+        )
+        descriptor.fetchLimit = 1
+        guard let category = try? modelContext.fetch(descriptor).first else {
+            throw SpecialPaymentStoreError.categoryNotFound
+        }
+        return category
+    }
 
     private func nextSeedDate(for definition: SpecialPaymentDefinition) -> Date {
         let latestCompleted = definition.occurrences
@@ -149,7 +245,7 @@ internal final class SpecialPaymentStore {
         return calendar.date(
             byAdding: .month,
             value: definition.recurrenceIntervalMonths,
-            to: latestCompleted
+            to: latestCompleted,
         ) ?? definition.firstOccurrenceDate
     }
 
@@ -157,7 +253,7 @@ internal final class SpecialPaymentStore {
         target: SpecialPaymentScheduleService.ScheduleTarget,
         to occurrence: SpecialPaymentOccurrence,
         referenceDate: Date,
-        leadTimeMonths: Int
+        leadTimeMonths: Int,
     ) {
         if occurrence.expectedAmount != target.expectedAmount {
             occurrence.expectedAmount = target.expectedAmount
@@ -170,7 +266,7 @@ internal final class SpecialPaymentStore {
         updateStatusIfNeeded(
             for: occurrence,
             referenceDate: referenceDate,
-            leadTimeMonths: leadTimeMonths
+            leadTimeMonths: leadTimeMonths,
         )
         occurrence.updatedAt = referenceDate
     }
@@ -178,7 +274,7 @@ internal final class SpecialPaymentStore {
     private func updateStatusIfNeeded(
         for occurrence: SpecialPaymentOccurrence,
         referenceDate: Date,
-        leadTimeMonths: Int
+        leadTimeMonths: Int,
     ) {
         guard !occurrence.isSchedulingLocked else {
             return
@@ -187,7 +283,7 @@ internal final class SpecialPaymentStore {
         let status = scheduleService.defaultStatus(
             for: occurrence.scheduledDate,
             referenceDate: referenceDate,
-            leadTimeMonths: leadTimeMonths
+            leadTimeMonths: leadTimeMonths,
         )
 
         if occurrence.status != status {
