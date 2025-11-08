@@ -93,7 +93,7 @@ internal struct DashboardView: View {
                 Image(systemName: "chevron.left")
             }
 
-            Text("\(store.currentYear)年\(store.currentMonth)月")
+            Text("\(store.currentYear.yearDisplayString)年\(store.currentMonth)月")
                 .frame(minWidth: 120)
 
             Button(action: store.moveToNextMonth) {
@@ -109,7 +109,7 @@ internal struct DashboardView: View {
                 Image(systemName: "chevron.left")
             }
 
-            Text("\(store.currentYear)年")
+            Text("\(store.currentYear.yearDisplayString)年")
                 .frame(minWidth: 80)
 
             Button(action: store.moveToNextYear) {
