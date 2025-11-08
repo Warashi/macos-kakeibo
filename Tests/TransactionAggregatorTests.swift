@@ -142,7 +142,7 @@ internal struct TransactionAggregatorTests {
 
     private func createTransaction(
         amount: Decimal,
-        category: Category? = nil,
+        category: Kakeibo.Category? = nil,
         institution: FinancialInstitution? = nil,
         isIncludedInCalculation: Bool = true,
         isTransfer: Bool = false,

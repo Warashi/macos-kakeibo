@@ -185,7 +185,7 @@ internal struct AnnualBudgetAllocatorTests {
 
     // MARK: - Helper Methods
 
-    private func createSampleTransactions(category: Category) -> [Transaction] {
+    private func createSampleTransactions(category: Kakeibo.Category) -> [Transaction] {
         [
             createTransaction(amount: -50000, category: category),
             createTransaction(amount: -30000, category: category),
@@ -194,7 +194,7 @@ internal struct AnnualBudgetAllocatorTests {
 
     private func createTransaction(
         amount: Decimal,
-        category: Category,
+        category: Kakeibo.Category,
     ) -> Transaction {
         Transaction(
             date: Date.from(year: 2025, month: 11) ?? Date(),

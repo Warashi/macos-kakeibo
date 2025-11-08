@@ -120,7 +120,7 @@ internal struct BudgetCalculatorTests {
 
     // MARK: - Helper Methods
 
-    private func createSampleTransactions(category: Category) -> [Transaction] {
+    private func createSampleTransactions(category: Kakeibo.Category) -> [Transaction] {
         [
             createTransaction(amount: -30000, category: category),
             createTransaction(amount: -20000, category: category),
@@ -130,7 +130,7 @@ internal struct BudgetCalculatorTests {
 
     private func createTransaction(
         amount: Decimal,
-        category: Category,
+        category: Kakeibo.Category,
     ) -> Transaction {
         Transaction(
             date: Date.from(year: 2025, month: 11) ?? Date(),
