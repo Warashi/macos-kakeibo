@@ -2,7 +2,7 @@ SCHEME=Kakeibo
 PROJECT=Kakeibo.xcodeproj
 DERIVED_DATA=build/DerivedData
 
-.PHONY: generate build run lint format test clean
+.PHONY: generate build release run lint format test clean
 
 generate:
 	xcodegen generate
@@ -13,6 +13,15 @@ build: generate
 		-configuration Debug \
 		-destination 'platform=macOS,arch=arm64' \
 		-derivedDataPath $(DERIVED_DATA) \
+		build
+
+release: generate
+	xcodebuild -project $(PROJECT) \
+		-scheme $(SCHEME) \
+		-configuration Release \
+		-destination 'platform=macOS,arch=arm64' \
+		-derivedDataPath $(DERIVED_DATA) \
+		CODE_SIGNING_ALLOWED=NO \
 		build
 
 run: build
