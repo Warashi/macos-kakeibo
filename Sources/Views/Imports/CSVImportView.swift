@@ -171,7 +171,8 @@ private struct CSVFileSelectionStepView: View {
             allowsMultipleSelection: false
         ) { result in
             switch result {
-            case .success(let url):
+            case .success(let urls):
+                guard let url = urls.first else { return }
                 Task { await store.loadFile(from: url) }
             case .failure(let error):
                 store.errorMessage = error.localizedDescription
@@ -288,9 +289,11 @@ private struct CSVValidationStepView: View {
                 Divider()
 
                 if preview.records.isEmpty {
-                    ContentUnavailableView("取り込めるデータがありません") {
-                        Text("列マッピングやCSVの内容をご確認ください。")
-                    }
+                    ContentUnavailableView(
+                        "取り込めるデータがありません",
+                        image: "tray.and.arrow.down",
+                        description: Text("列マッピングやCSVの内容をご確認ください。")
+                    )
                 } else {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 8) {
