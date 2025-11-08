@@ -25,7 +25,8 @@ internal struct DashboardView: View {
                             AnnualSummaryCard(summary: store.annualSummary)
                         }
 
-                        if let annualBudgetProgress = store.annualBudgetProgressCalculation {
+                        if store.displayMode == .annual,
+                           let annualBudgetProgress = store.annualBudgetProgressCalculation {
                             AnnualBudgetProgressCard(
                                 year: store.currentYear,
                                 calculation: annualBudgetProgress
