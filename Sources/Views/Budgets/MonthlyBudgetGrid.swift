@@ -49,6 +49,10 @@ internal struct MonthlyBudgetGrid: View {
                                 .fontWeight(entry.isOverallBudget ? .semibold : .regular)
                                 .foregroundColor(entry.isOverallBudget ? .primary : .secondary)
                         }
+                        TableColumn("期間") { entry in
+                            Text(entry.periodDescription)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                         TableColumn("予算額") { entry in
                             Text(entry.calculation.budgetAmount.currencyFormatted)
                                 .frame(maxWidth: .infinity, alignment: .trailing)

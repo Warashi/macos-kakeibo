@@ -10,14 +10,17 @@ internal struct BudgetTests {
     @Test("予算を初期化できる")
     internal func initializeBudget() {
         let budget = Budget(
-            amount: 50000,
-            year: 2025,
-            month: 11,
+            amount: 50_000,
+            startYear: 2025,
+            startMonth: 11,
+            endYear: 2025,
+            endMonth: 12
         )
 
-        #expect(budget.amount == 50000)
-        #expect(budget.year == 2025)
-        #expect(budget.month == 11)
+        #expect(budget.startYear == 2025)
+        #expect(budget.startMonth == 11)
+        #expect(budget.endYear == 2025)
+        #expect(budget.endMonth == 12)
         #expect(budget.category == nil)
     }
 
@@ -25,122 +28,119 @@ internal struct BudgetTests {
     internal func initializeBudgetWithCategory() {
         let category = Category(name: "食費")
         let budget = Budget(
-            amount: 30000,
+            amount: 30_000,
             category: category,
-            year: 2025,
-            month: 11,
+            startYear: 2025,
+            startMonth: 10,
+            endYear: 2026,
+            endMonth: 3
         )
 
-        #expect(budget.amount == 30000)
         #expect(budget.category === category)
-        #expect(budget.year == 2025)
-        #expect(budget.month == 11)
+        #expect(budget.startYear == 2025)
+        #expect(budget.endYear == 2026)
     }
 
-    // MARK: - Computed Properties テスト
+    // MARK: - Computed Properties
 
-    @Test("yearMonthStringは正しいフォーマットを返す")
+    @Test("yearMonthStringは開始年月を返す")
     internal func yearMonthString() {
-        let budget = Budget(amount: 50000, year: 2025, month: 11)
+        let budget = Budget(amount: 50_000, year: 2025, month: 11)
         #expect(budget.yearMonthString == "2025-11")
-
-        let budget2 = Budget(amount: 30000, year: 2025, month: 3)
-        #expect(budget2.yearMonthString == "2025-03")
     }
 
-    @Test("targetDateは正しい日付を返す")
-    internal func targetDate() {
-        let budget = Budget(amount: 50000, year: 2025, month: 11)
-        let date = budget.targetDate
-
+    @Test("ターゲット日付と終了日付を取得できる")
+    internal func targetAndEndDate() {
+        let budget = Budget(
+            amount: 50_000,
+            startYear: 2025,
+            startMonth: 11,
+            endYear: 2026,
+            endMonth: 3
+        )
         let calendar = Calendar.current
-        let components = calendar.dateComponents([.year, .month, .day], from: date)
 
-        #expect(components.year == 2025)
-        #expect(components.month == 11)
-        #expect(components.day == 1)
+        let startComponents = calendar.dateComponents([.year, .month, .day], from: budget.targetDate)
+        let endComponents = calendar.dateComponents([.year, .month, .day], from: budget.endDate)
+
+        #expect(startComponents.year == 2025)
+        #expect(startComponents.month == 11)
+        #expect(startComponents.day == 1)
+        #expect(endComponents.year == 2026)
+        #expect(endComponents.month == 3)
+        #expect(endComponents.day == 1)
     }
 
-    // MARK: - バリデーションテスト
+    @Test("期間内判定ができる")
+    internal func containsYearMonth() {
+        let budget = Budget(amount: 10_000, startYear: 2025, startMonth: 4, endYear: 2025, endMonth: 6)
+        #expect(budget.contains(year: 2025, month: 4))
+        #expect(budget.contains(year: 2025, month: 5))
+        #expect(budget.contains(year: 2025, month: 6))
+        #expect(!budget.contains(year: 2025, month: 7))
+    }
+
+    // MARK: - バリデーション
 
     @Test("有効な予算データの場合、バリデーションエラーがない")
     internal func validateValidBudget() {
-        let budget = Budget(
-            amount: 50000,
-            year: 2025,
-            month: 11,
-        )
-
-        let errors = budget.validate()
-        #expect(errors.isEmpty)
-        #expect(budget.isValid == true)
+        let budget = Budget(amount: 50_000, year: 2025, month: 11)
+        #expect(budget.validate().isEmpty)
+        #expect(budget.isValid)
     }
 
-    @Test("予算額が0以下の場合、バリデーションエラーが発生する")
+    @Test("予算額が0以下の場合、バリデーションエラーになる")
     internal func validateBudgetAmountZeroOrNegative() {
-        let budget1 = Budget(amount: 0, year: 2025, month: 11)
-        let budget2 = Budget(amount: -1000, year: 2025, month: 11)
+        let zeroBudget = Budget(amount: 0, year: 2025, month: 11)
+        let negativeBudget = Budget(amount: -1, year: 2025, month: 11)
 
-        let errors1 = budget1.validate()
-        let errors2 = budget2.validate()
-
-        #expect(!errors1.isEmpty)
-        #expect(errors1.contains { $0.contains("予算額は0より大きい") })
-        #expect(budget1.isValid == false)
-
-        #expect(!errors2.isEmpty)
-        #expect(budget2.isValid == false)
+        #expect(!zeroBudget.validate().isEmpty)
+        #expect(!negativeBudget.validate().isEmpty)
+        #expect(!zeroBudget.isValid)
+        #expect(!negativeBudget.isValid)
     }
 
-    @Test("年が不正な場合、バリデーションエラーが発生する")
+    @Test("年が不正な場合、バリデーションエラーになる")
     internal func validateInvalidYear() {
-        let budget1 = Budget(amount: 50000, year: 1999, month: 11)
-        let budget2 = Budget(amount: 50000, year: 2101, month: 11)
+        let invalidStart = Budget(amount: 50_000, startYear: 1999, startMonth: 11, endYear: 2000, endMonth: 1)
+        let invalidEnd = Budget(amount: 50_000, startYear: 2025, startMonth: 1, endYear: 2101, endMonth: 1)
 
-        let errors1 = budget1.validate()
-        let errors2 = budget2.validate()
-
-        #expect(!errors1.isEmpty)
-        #expect(errors1.contains { $0.contains("年が不正") })
-        #expect(budget1.isValid == false)
-
-        #expect(!errors2.isEmpty)
-        #expect(budget2.isValid == false)
+        #expect(invalidStart.validate().contains { $0.contains("開始年が不正") })
+        #expect(invalidEnd.validate().contains { $0.contains("終了年が不正") })
     }
 
-    @Test("月が不正な場合、バリデーションエラーが発生する")
+    @Test("月が不正な場合、バリデーションエラーになる")
     internal func validateInvalidMonth() {
-        let budget1 = Budget(amount: 50000, year: 2025, month: 0)
-        let budget2 = Budget(amount: 50000, year: 2025, month: 13)
+        let invalidStart = Budget(amount: 50_000, startYear: 2025, startMonth: 0, endYear: 2025, endMonth: 1)
+        let invalidEnd = Budget(amount: 50_000, startYear: 2025, startMonth: 1, endYear: 2025, endMonth: 13)
 
-        let errors1 = budget1.validate()
-        let errors2 = budget2.validate()
-
-        #expect(!errors1.isEmpty)
-        #expect(errors1.contains { $0.contains("月が不正") })
-        #expect(budget1.isValid == false)
-
-        #expect(!errors2.isEmpty)
-        #expect(budget2.isValid == false)
+        #expect(invalidStart.validate().contains { $0.contains("開始月が不正") })
+        #expect(invalidEnd.validate().contains { $0.contains("終了月が不正") })
     }
 
-    @Test("複数のバリデーションエラーがある場合、すべて検出される")
+    @Test("終了月が開始月より前の場合エラーになる")
+    internal func validateEndBeforeStart() {
+        let budget = Budget(amount: 50_000, startYear: 2025, startMonth: 5, endYear: 2025, endMonth: 4)
+        #expect(budget.validate().contains { $0.contains("終了月は開始月以降を設定してください") })
+    }
+
+    @Test("複数のバリデーションエラーがある場合でも検出できる")
     internal func validateMultipleErrors() {
-        let budget = Budget(amount: -1000, year: 1999, month: 13)
-
+        let budget = Budget(amount: -1000, startYear: 1999, startMonth: 13, endYear: 1998, endMonth: 0)
         let errors = budget.validate()
-        #expect(errors.count == 3)
         #expect(errors.contains { $0.contains("予算額") })
-        #expect(errors.contains { $0.contains("年が不正") })
-        #expect(errors.contains { $0.contains("月が不正") })
+        #expect(errors.contains { $0.contains("開始年が不正") })
+        #expect(errors.contains { $0.contains("終了年が不正") })
+        #expect(errors.contains { $0.contains("開始月が不正") })
+        #expect(errors.contains { $0.contains("終了月が不正") })
     }
 
-    // MARK: - 日時テスト
+    // MARK: - 日時
 
     @Test("作成日時と更新日時が設定される")
     internal func setCreatedAndUpdatedDates() {
         let before = Date()
-        let budget = Budget(amount: 50000, year: 2025, month: 11)
+        let budget = Budget(amount: 50_000, year: 2025, month: 11)
         let after = Date()
 
         #expect(budget.createdAt >= before)

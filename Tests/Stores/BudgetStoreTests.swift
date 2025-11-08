@@ -23,7 +23,14 @@ internal struct BudgetStoreTests {
     internal func addBudget_createsOverallBudget() throws {
         let (store, _) = try makeStore()
 
-        try store.addBudget(amount: 50000, categoryId: nil)
+        try store.addBudget(
+            amount: 50000,
+            categoryId: nil,
+            startYear: store.currentYear,
+            startMonth: store.currentMonth,
+            endYear: store.currentYear,
+            endMonth: store.currentMonth
+        )
 
         #expect(store.monthlyBudgets.count == 1)
         #expect(store.overallBudgetEntry?.calculation.budgetAmount == 50000)
@@ -46,7 +53,14 @@ internal struct BudgetStoreTests {
         context.insert(transaction)
         try context.save()
 
-        try store.addBudget(amount: 5000, categoryId: food.id)
+        try store.addBudget(
+            amount: 5000,
+            categoryId: food.id,
+            startYear: store.currentYear,
+            startMonth: store.currentMonth,
+            endYear: store.currentYear,
+            endMonth: store.currentMonth
+        )
 
         let entries = store.categoryBudgetEntries
         #expect(entries.count == 1)
@@ -54,6 +68,103 @@ internal struct BudgetStoreTests {
         #expect(entry.calculation.actualAmount == 2000)
         #expect(entry.calculation.remainingAmount == 3000)
         #expect(entry.calculation.isOverBudget == false)
+    }
+
+    @Test("期間予算は複数月で参照できる")
+    internal func periodBudget_appliesAcrossMonths() throws {
+        let (store, _) = try makeStore()
+
+        try store.addBudget(
+            amount: 4000,
+            categoryId: nil,
+            startYear: store.currentYear,
+            startMonth: store.currentMonth,
+            endYear: store.currentYear + 1,
+            endMonth: 1
+        )
+
+        #expect(store.monthlyBudgets.count == 1)
+        store.moveToNextMonth()
+        #expect(store.monthlyBudgets.count == 1)
+        store.moveToNextMonth()
+        #expect(store.monthlyBudgets.count == 1)
+    }
+
+    @Test("期間が不正な場合はエラーになる")
+    internal func addBudget_invalidPeriodThrows() throws {
+        let (store, _) = try makeStore()
+
+        #expect(
+            throws: BudgetStoreError.invalidPeriod
+        ) {
+            try store.addBudget(
+                amount: 1000,
+                categoryId: nil,
+                startYear: store.currentYear,
+                startMonth: store.currentMonth,
+                endYear: store.currentYear,
+                endMonth: store.currentMonth - 1
+            )
+        }
+    }
+
+    @Test("年次予算：全体とカテゴリ別の集計を算出する")
+    internal func annualBudgetEntries_calculatesYearlyTotals() throws {
+        let (store, context) = try makeStore()
+        let food = Category(name: "食費", displayOrder: 1)
+        let transport = Category(name: "交通", displayOrder: 2)
+        context.insert(food)
+        context.insert(transport)
+
+        let year = store.currentYear
+
+        let budgets: [Budget] = [
+            Budget(amount: 100_000, year: year, month: 1),
+            Budget(amount: 120_000, year: year, month: 2),
+            Budget(amount: 50_000, category: food, year: year, month: 1),
+            Budget(amount: 60_000, category: food, year: year, month: 2),
+            Budget(amount: 40_000, category: transport, year: year, month: 1),
+        ]
+        budgets.forEach(context.insert)
+
+        let transactions: [Transaction] = [
+            Transaction(
+                date: makeDate(year: year, month: 1, day: 10),
+                title: "食費1",
+                amount: -20_000,
+                majorCategory: food
+            ),
+            Transaction(
+                date: makeDate(year: year, month: 2, day: 5),
+                title: "食費2",
+                amount: -30_000,
+                majorCategory: food
+            ),
+            Transaction(
+                date: makeDate(year: year, month: 1, day: 15),
+                title: "交通費",
+                amount: -10_000,
+                majorCategory: transport
+            ),
+        ]
+        transactions.forEach(context.insert)
+        try context.save()
+
+        let overallEntry = try #require(store.annualOverallBudgetEntry)
+        #expect(overallEntry.calculation.budgetAmount == 220_000)
+        #expect(overallEntry.calculation.actualAmount == 60_000)
+        #expect(overallEntry.isOverallBudget)
+
+        let categoryEntries = store.annualCategoryBudgetEntries
+        #expect(categoryEntries.count == 2)
+
+        let foodEntry = try #require(categoryEntries.first { $0.title.contains("食費") })
+        #expect(foodEntry.calculation.budgetAmount == 110_000)
+        #expect(foodEntry.calculation.actualAmount == 50_000)
+
+        let transportEntry = try #require(categoryEntries.first { $0.title.contains("交通") })
+        #expect(transportEntry.calculation.budgetAmount == 40_000)
+        #expect(transportEntry.calculation.actualAmount == 10_000)
     }
 
     @Test("予算更新：金額とカテゴリを変更できる")
@@ -73,10 +184,19 @@ internal struct BudgetStoreTests {
         context.insert(budget)
         try context.save()
 
-        try store.updateBudget(budget: budget, amount: 12000, categoryId: transport.id)
+        try store.updateBudget(
+            budget: budget,
+            amount: 12000,
+            categoryId: transport.id,
+            startYear: store.currentYear,
+            startMonth: store.currentMonth,
+            endYear: store.currentYear,
+            endMonth: store.currentMonth + 1
+        )
 
         #expect(budget.amount == 12000)
         #expect(budget.category?.id == transport.id)
+        #expect(budget.endMonth == store.currentMonth + 1)
     }
 
     @Test("予算削除：削除後にリストから除外される")
@@ -175,5 +295,9 @@ internal struct BudgetStoreTests {
 
     private func createInMemoryContainer() throws -> ModelContainer {
         try ModelContainer.createInMemoryContainer()
+    }
+
+    private func makeDate(year: Int, month: Int, day: Int) -> Date {
+        Date.from(year: year, month: month, day: day) ?? Date()
     }
 }

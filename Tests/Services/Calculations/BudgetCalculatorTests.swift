@@ -91,6 +91,31 @@ internal struct BudgetCalculatorTests {
         #expect(!result.categoryCalculations.isEmpty)
     }
 
+    @Test("期間予算は対象月の計算に含まれる")
+    internal func monthlyBudget_includesSpanningBudget() throws {
+        let category = Category(name: "食費")
+        let transactions = createSampleTransactions(category: category)
+        let budgets = [
+            Budget(
+                amount: 80_000,
+                startYear: 2025,
+                startMonth: 10,
+                endYear: 2026,
+                endMonth: 1
+            ),
+        ]
+
+        let result = calculator.calculateMonthlyBudget(
+            transactions: transactions,
+            budgets: budgets,
+            year: 2025,
+            month: 11
+        )
+
+        let overall = try #require(result.overallCalculation)
+        #expect(overall.budgetAmount == 80_000)
+    }
+
     @Test("予算超過チェック")
     internal func willExceedBudgetCheck() throws {
         // Given

@@ -118,7 +118,7 @@ internal struct BudgetCalculator: Sendable {
 
         // 対象月の予算を取得
         let monthlyBudgets = budgets.filter { budget in
-            budget.year == year && budget.month == month
+            budget.contains(year: year, month: month)
         }
 
         // 全体予算（categoryがnilのもの）

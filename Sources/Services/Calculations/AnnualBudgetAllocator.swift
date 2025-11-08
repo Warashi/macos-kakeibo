@@ -213,7 +213,7 @@ internal struct AnnualBudgetAllocator: Sendable {
 
         // 対象月の予算を取得
         let monthlyBudgets = params.budgets.filter { budget in
-            budget.year == year && budget.month == month
+            budget.contains(year: year, month: month)
         }
 
         // カテゴリ別予算がある場合のみ処理

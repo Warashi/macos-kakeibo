@@ -12,6 +12,7 @@ internal final class BudgetStore {
 
     private let modelContext: ModelContext
     private let budgetCalculator: BudgetCalculator
+    private let aggregator: TransactionAggregator
     private let annualBudgetAllocator: AnnualBudgetAllocator
 
     // MARK: - State
@@ -22,16 +23,28 @@ internal final class BudgetStore {
     /// 現在の表示対象月
     internal var currentMonth: Int
 
+    /// 表示モード（月次/年次）
+    internal var displayMode: DisplayMode = .monthly
+
     // MARK: - Initialization
 
     internal init(modelContext: ModelContext) {
         self.modelContext = modelContext
         self.budgetCalculator = BudgetCalculator()
+        self.aggregator = TransactionAggregator()
         self.annualBudgetAllocator = AnnualBudgetAllocator()
 
         let now = Date()
         self.currentYear = now.year
         self.currentMonth = now.month
+    }
+
+    // MARK: - Display Mode
+
+    /// 表示モード
+    internal enum DisplayMode: String, CaseIterable {
+        case monthly = "月次"
+        case annual = "年次"
     }
 
     // MARK: - Fetch Helpers
@@ -68,9 +81,12 @@ internal final class BudgetStore {
 
     /// 月次予算の一覧（当月）
     internal var monthlyBudgets: [Budget] {
-        allBudgets.filter { budget in
-            budget.year == currentYear && budget.month == currentMonth
-        }
+        allBudgets.filter { $0.contains(year: currentYear, month: currentMonth) }
+    }
+
+    /// 年次予算の一覧（対象年に期間が重なるもの）
+    private var annualBudgets: [Budget] {
+        allBudgets.filter { $0.overlaps(year: currentYear) }
     }
 
     /// カテゴリ選択用の候補
@@ -157,6 +173,79 @@ internal final class BudgetStore {
         )
     }
 
+    /// 年次集計
+    private var annualSummary: AnnualSummary {
+        aggregator.aggregateAnnually(
+            transactions: allTransactions,
+            year: currentYear,
+            filter: .default,
+        )
+    }
+
+    /// 年次全体予算エントリ
+    internal var annualOverallBudgetEntry: AnnualBudgetEntry? {
+        let overallBudgets = annualBudgets.filter { $0.category == nil }
+        guard !overallBudgets.isEmpty else { return nil }
+
+        let totalAmount = overallBudgets.reduce(Decimal.zero) { partial, budget in
+            partial + budget.annualBudgetAmount(for: currentYear)
+        }
+        let actualAmount = annualSummary.totalExpense
+        let calculation = budgetCalculator.calculate(
+            budgetAmount: totalAmount,
+            actualAmount: actualAmount,
+        )
+
+        return AnnualBudgetEntry(
+            id: .overall,
+            title: "全体予算",
+            calculation: calculation,
+            isOverallBudget: true,
+            displayOrderTuple: (-1, -1, "全体予算")
+        )
+    }
+
+    /// 年次カテゴリ別予算エントリ
+    internal var annualCategoryBudgetEntries: [AnnualBudgetEntry] {
+        let categoryBudgets = annualBudgets.compactMap { budget -> (Category, Budget)? in
+            guard let category = budget.category else { return nil }
+            return (category, budget)
+        }
+
+        let groupedBudgets = Dictionary(grouping: categoryBudgets, by: { $0.0.id })
+
+        let actualMap: [UUID: Decimal] = Dictionary(
+            uniqueKeysWithValues: annualSummary.categorySummaries.compactMap { summary in
+                guard let categoryId = summary.categoryId else { return nil }
+                return (categoryId, summary.totalExpense)
+            }
+        )
+
+        return groupedBudgets.compactMap { categoryId, pairedItems -> AnnualBudgetEntry? in
+            guard let category = pairedItems.first?.0 else { return nil }
+
+            let totalAmount = pairedItems.reduce(Decimal.zero) { partial, pair in
+                partial + pair.1.annualBudgetAmount(for: currentYear)
+            }
+            let actualAmount = actualMap[categoryId] ?? 0
+            let calculation = budgetCalculator.calculate(
+                budgetAmount: totalAmount,
+                actualAmount: actualAmount,
+            )
+
+            return AnnualBudgetEntry(
+                id: .category(categoryId),
+                title: category.fullName,
+                calculation: calculation,
+                isOverallBudget: false,
+                displayOrderTuple: displayOrderTuple(for: category)
+            )
+        }
+        .sorted { lhs, rhs in
+            lhs.displayOrderTuple < rhs.displayOrderTuple
+        }
+    }
+
     // MARK: - Actions (Navigation)
 
     internal func moveToPreviousMonth() {
@@ -183,19 +272,43 @@ internal final class BudgetStore {
         currentMonth = now.month
     }
 
+    internal func moveToPreviousYear() {
+        currentYear -= 1
+    }
+
+    internal func moveToNextYear() {
+        currentYear += 1
+    }
+
+    internal func moveToCurrentYear() {
+        currentYear = Date().year
+    }
+
     // MARK: - CRUD
 
     /// 月次予算を追加
     internal func addBudget(
         amount: Decimal,
         categoryId: UUID?,
+        startYear: Int,
+        startMonth: Int,
+        endYear: Int,
+        endMonth: Int
     ) throws {
+        try validatePeriod(
+            startYear: startYear,
+            startMonth: startMonth,
+            endYear: endYear,
+            endMonth: endMonth
+        )
         let category = try resolvedCategory(categoryId: categoryId)
         let budget = Budget(
             amount: amount,
             category: category,
-            year: currentYear,
-            month: currentMonth,
+            startYear: startYear,
+            startMonth: startMonth,
+            endYear: endYear,
+            endMonth: endMonth,
         )
         modelContext.insert(budget)
         try modelContext.save()
@@ -206,10 +319,24 @@ internal final class BudgetStore {
         budget: Budget,
         amount: Decimal,
         categoryId: UUID?,
+        startYear: Int,
+        startMonth: Int,
+        endYear: Int,
+        endMonth: Int
     ) throws {
+        try validatePeriod(
+            startYear: startYear,
+            startMonth: startMonth,
+            endYear: endYear,
+            endMonth: endMonth
+        )
         let category = try resolvedCategory(categoryId: categoryId)
         budget.amount = amount
         budget.category = category
+        budget.startYear = startYear
+        budget.startMonth = startMonth
+        budget.endYear = endYear
+        budget.endMonth = endMonth
         budget.updatedAt = Date()
         try modelContext.save()
     }
@@ -257,6 +384,26 @@ internal final class BudgetStore {
             throw BudgetStoreError.categoryNotFound
         }
         return category
+    }
+
+    private func validatePeriod(
+        startYear: Int,
+        startMonth: Int,
+        endYear: Int,
+        endMonth: Int
+    ) throws {
+        guard (2000 ... 2100).contains(startYear),
+              (2000 ... 2100).contains(endYear),
+              (1 ... 12).contains(startMonth),
+              (1 ... 12).contains(endMonth) else {
+            throw BudgetStoreError.invalidPeriod
+        }
+
+        let startIndex = startYear * 12 + startMonth
+        let endIndex = endYear * 12 + endMonth
+        guard startIndex <= endIndex else {
+            throw BudgetStoreError.invalidPeriod
+        }
     }
 
     private func syncAllocations(
@@ -317,6 +464,10 @@ internal struct MonthlyBudgetEntry: Identifiable {
 
     internal var id: UUID { budget.id }
 
+    internal var periodDescription: String {
+        budget.periodDescription
+    }
+
     internal var isOverallBudget: Bool {
         budget.category == nil
     }
@@ -329,11 +480,26 @@ internal struct MonthlyBudgetEntry: Identifiable {
     }
 }
 
+/// 年次予算の表示用エントリ
+internal struct AnnualBudgetEntry: Identifiable {
+    internal enum EntryID: Hashable {
+        case overall
+        case category(UUID)
+    }
+
+    internal let id: EntryID
+    internal let title: String
+    internal let calculation: BudgetCalculation
+    internal let isOverallBudget: Bool
+    internal let displayOrderTuple: (Int, Int, String)
+}
+
 // MARK: - Error
 
 internal enum BudgetStoreError: Error {
     case categoryNotFound
     case duplicateAnnualAllocationCategory
+    case invalidPeriod
 }
 
 // MARK: - Annual Allocation Draft
@@ -341,4 +507,14 @@ internal enum BudgetStoreError: Error {
 internal struct AnnualAllocationDraft {
     internal let categoryId: UUID
     internal let amount: Decimal
+}
+
+// MARK: - Private Helpers
+
+private extension BudgetStore {
+    func displayOrderTuple(for category: Category) -> (Int, Int, String) {
+        let parentOrder = category.parent?.displayOrder ?? category.displayOrder
+        let ownOrder = category.displayOrder
+        return (parentOrder, ownOrder, category.fullName)
+    }
 }

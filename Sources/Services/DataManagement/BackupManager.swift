@@ -222,8 +222,10 @@ internal final class BackupManager {
                 id: dto.id,
                 amount: dto.amount,
                 category: dto.categoryId.flatMap { categories[$0] },
-                year: dto.year,
-                month: dto.month,
+                startYear: dto.startYear,
+                startMonth: dto.startMonth,
+                endYear: dto.endYear,
+                endMonth: dto.endMonth,
             )
             budget.createdAt = dto.createdAt
             budget.updatedAt = dto.updatedAt
@@ -349,8 +351,10 @@ private struct BudgetDTO: Codable {
     let id: UUID
     let amount: Decimal
     let categoryId: UUID?
-    let year: Int
-    let month: Int
+    let startYear: Int
+    let startMonth: Int
+    let endYear: Int
+    let endMonth: Int
     let createdAt: Date
     let updatedAt: Date
 
@@ -358,8 +362,10 @@ private struct BudgetDTO: Codable {
         self.id = budget.id
         self.amount = budget.amount
         self.categoryId = budget.category?.id
-        self.year = budget.year
-        self.month = budget.month
+        self.startYear = budget.startYear
+        self.startMonth = budget.startMonth
+        self.endYear = budget.endYear
+        self.endMonth = budget.endMonth
         self.createdAt = budget.createdAt
         self.updatedAt = budget.updatedAt
     }

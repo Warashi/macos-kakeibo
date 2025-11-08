@@ -29,14 +29,22 @@ internal struct BudgetView: View {
                     VStack(spacing: 20) {
                         toolbarSection(store: store)
 
-                        MonthlyBudgetGrid(
-                            title: "\(store.currentYear.yearDisplayString)年\(store.currentMonth)月",
-                            overallEntry: store.overallBudgetEntry,
-                            categoryEntries: store.categoryBudgetEntries,
-                            onAdd: { presentBudgetEditor(for: nil) },
-                            onEdit: { presentBudgetEditor(for: $0) },
-                            onDelete: { budgetPendingDeletion = $0 },
-                        )
+                        if store.displayMode == .monthly {
+                            MonthlyBudgetGrid(
+                                title: "\(store.currentYear.yearDisplayString)年\(store.currentMonth)月",
+                                overallEntry: store.overallBudgetEntry,
+                                categoryEntries: store.categoryBudgetEntries,
+                                onAdd: { presentBudgetEditor(for: nil) },
+                                onEdit: { presentBudgetEditor(for: $0) },
+                                onDelete: { budgetPendingDeletion = $0 },
+                            )
+                        } else {
+                            AnnualBudgetGrid(
+                                title: "\(store.currentYear.yearDisplayString)年",
+                                overallEntry: store.annualOverallBudgetEntry,
+                                categoryEntries: store.annualCategoryBudgetEntries
+                            )
+                        }
 
                         AnnualBudgetPanel(
                             year: store.currentYear,
@@ -109,6 +117,44 @@ internal struct BudgetView: View {
     @ViewBuilder
     private func toolbarSection(store: BudgetStore) -> some View {
         HStack(spacing: 12) {
+            Picker(
+                "表示モード",
+                selection: Binding(
+                    get: { store.displayMode },
+                    set: { store.displayMode = $0 },
+                )
+            ) {
+                ForEach(BudgetStore.DisplayMode.allCases, id: \.self) { mode in
+                    Text(mode.rawValue).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 200)
+
+            Spacer()
+
+            if store.displayMode == .monthly {
+                monthNavigationButtons(store: store)
+            } else {
+                yearNavigationButtons(store: store)
+            }
+
+            Button(store.displayMode == .monthly ? "今月" : "今年") {
+                if store.displayMode == .monthly {
+                    store.moveToCurrentMonth()
+                } else {
+                    store.moveToCurrentYear()
+                }
+            }
+        }
+        .padding()
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(10)
+    }
+
+    @ViewBuilder
+    private func monthNavigationButtons(store: BudgetStore) -> some View {
+        HStack(spacing: 12) {
             Button {
                 store.moveToPreviousMonth()
             } label: {
@@ -124,16 +170,28 @@ internal struct BudgetView: View {
             } label: {
                 Image(systemName: "chevron.right")
             }
+        }
+    }
 
-            Spacer()
+    @ViewBuilder
+    private func yearNavigationButtons(store: BudgetStore) -> some View {
+        HStack(spacing: 12) {
+            Button {
+                store.moveToPreviousYear()
+            } label: {
+                Image(systemName: "chevron.left")
+            }
 
-            Button("今月") {
-                store.moveToCurrentMonth()
+            Text("\(store.currentYear.yearDisplayString)年")
+                .font(.title3)
+                .frame(minWidth: 140)
+
+            Button {
+                store.moveToNextYear()
+            } label: {
+                Image(systemName: "chevron.right")
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(10)
     }
 
     // MARK: - Store Preparation
@@ -146,13 +204,17 @@ internal struct BudgetView: View {
     // MARK: - Budget Editor
 
     private func presentBudgetEditor(for budget: Budget?) {
+        guard let store else { return }
         budgetFormError = nil
         if let budget {
             budgetEditorMode = .edit(budget)
             budgetFormState.load(from: budget)
         } else {
             budgetEditorMode = .create
-            budgetFormState.reset()
+            budgetFormState.reset(
+                defaultYear: store.currentYear,
+                defaultMonth: store.currentMonth
+            )
         }
         isPresentingBudgetEditor = true
     }
@@ -168,20 +230,45 @@ internal struct BudgetView: View {
             return
         }
 
+        let normalizedStart = budgetFormState.normalizedStartDate
+        let normalizedEnd = budgetFormState.normalizedEndDate
+        guard normalizedStart <= normalizedEnd else {
+            budgetFormError = "終了月は開始月以降を選択してください"
+            return
+        }
+
+        let startYear = normalizedStart.year
+        let startMonth = normalizedStart.month
+        let endYear = normalizedEnd.year
+        let endMonth = normalizedEnd.month
+
         do {
             switch budgetEditorMode {
             case .create:
-                try store.addBudget(amount: amount, categoryId: budgetFormState.selectedCategoryId)
+                try store.addBudget(
+                    amount: amount,
+                    categoryId: budgetFormState.selectedCategoryId,
+                    startYear: startYear,
+                    startMonth: startMonth,
+                    endYear: endYear,
+                    endMonth: endMonth
+                )
             case let .edit(budget):
                 try store.updateBudget(
                     budget: budget,
                     amount: amount,
                     categoryId: budgetFormState.selectedCategoryId,
+                    startYear: startYear,
+                    startMonth: startMonth,
+                    endYear: endYear,
+                    endMonth: endMonth
                 )
             }
             isPresentingBudgetEditor = false
         } catch BudgetStoreError.categoryNotFound {
             budgetFormError = "選択したカテゴリが見つかりませんでした"
+        } catch BudgetStoreError.invalidPeriod {
+            budgetFormError = "期間が不正です。終了月は開始月以降を選択してください"
         } catch {
             showError(message: "予算の保存に失敗しました: \(error.localizedDescription)")
         }
@@ -294,6 +381,33 @@ private struct BudgetEditorSheet: View {
                     TextField("", text: $formState.amountText)
                         .textFieldStyle(.roundedBorder)
                         .frame(maxWidth: .infinity)
+                }
+
+                LabeledField(title: "期間") {
+                    VStack(spacing: 8) {
+                        HStack(spacing: 12) {
+                            DatePicker(
+                                "開始",
+                                selection: $formState.startDate,
+                                displayedComponents: [.date]
+                            )
+                            .datePickerStyle(.field)
+                            .labelsHidden()
+
+                            Text("〜")
+
+                            DatePicker(
+                                "終了",
+                                selection: $formState.endDate,
+                                displayedComponents: [.date]
+                            )
+                            .datePickerStyle(.field)
+                            .labelsHidden()
+                        }
+                        Text("月あたりの金額として扱われます。")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
 
                 LabeledField(title: "対象カテゴリ") {
@@ -480,6 +594,8 @@ private struct BudgetEditorFormState {
     internal var amountText: String = ""
     internal var selectedMajorCategoryId: UUID?
     internal var selectedMinorCategoryId: UUID?
+    internal var startDate: Date = Date()
+    internal var endDate: Date = Date()
 
     internal var selectedCategoryId: UUID? {
         selectedMinorCategoryId ?? selectedMajorCategoryId
@@ -487,6 +603,8 @@ private struct BudgetEditorFormState {
 
     internal mutating func load(from budget: Budget) {
         amountText = budget.amount.plainString
+        startDate = budget.targetDate
+        endDate = budget.endDate
         if let category = budget.category {
             if category.isMajor {
                 selectedMajorCategoryId = category.id
@@ -501,10 +619,17 @@ private struct BudgetEditorFormState {
         }
     }
 
-    internal mutating func reset() {
+    internal mutating func reset(defaultYear: Int, defaultMonth: Int) {
         amountText = ""
         selectedMajorCategoryId = nil
         selectedMinorCategoryId = nil
+        if let defaultDate = Date.from(year: defaultYear, month: defaultMonth) {
+            startDate = defaultDate
+            endDate = defaultDate
+        } else {
+            startDate = Date()
+            endDate = Date()
+        }
     }
 
     private var normalizedAmountText: String {
@@ -517,8 +642,16 @@ private struct BudgetEditorFormState {
     }
 
     internal var isValid: Bool {
-        guard let amount = decimalAmount else { return false }
-        return amount > 0
+        guard let amount = decimalAmount, amount > 0 else { return false }
+        return normalizedStartDate <= normalizedEndDate
+    }
+
+    internal var normalizedStartDate: Date {
+        startDate.startOfMonth
+    }
+
+    internal var normalizedEndDate: Date {
+        endDate.startOfMonth
     }
 
     internal mutating func updateMajorSelection(to newValue: UUID?) {

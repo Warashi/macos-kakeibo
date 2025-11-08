@@ -34,16 +34,17 @@ public extension Date {
         return endOfMonth
     }
 
-    /// 指定した年月のDateを生成（その月の1日）
+    /// 指定した年月日のDateを生成
     /// - Parameters:
     ///   - year: 年
     ///   - month: 月
-    /// - Returns: 指定した年月の1日のDate
-    static func from(year: Int, month: Int) -> Date? {
+    ///   - day: 日（省略時は1日）
+    /// - Returns: 指定した年月日のDate
+    static func from(year: Int, month: Int, day: Int = 1) -> Date? {
         var components = DateComponents()
         components.year = year
         components.month = month
-        components.day = 1
+        components.day = day
         return Calendar.current.date(from: components)
     }
 
