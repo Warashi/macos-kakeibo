@@ -259,7 +259,7 @@ internal final class ImportStore {
         defer { isProcessing = false }
 
         do {
-            let preview = try await importer.makePreview(
+            let preview = try importer.makePreview(
                 document: document,
                 mapping: mapping,
                 configuration: configuration
@@ -290,7 +290,7 @@ internal final class ImportStore {
         defer { isProcessing = false }
 
         do {
-            let summary = try await importer.performImport(preview: preview)
+            let summary = try importer.performImport(preview: preview)
             self.summary = summary
             self.statusMessage = "取り込みが完了しました"
             self.lastUpdatedAt = Date()

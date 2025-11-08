@@ -1,8 +1,9 @@
 import Foundation
 import SwiftData
 
-/// CSVインポート処理を担当するActor
-internal actor CSVImporter {
+/// CSVインポート処理を担当するヘルパー
+@MainActor
+internal final class CSVImporter {
     internal enum ImportError: Error, LocalizedError {
         case incompleteMapping
         case emptyDocument

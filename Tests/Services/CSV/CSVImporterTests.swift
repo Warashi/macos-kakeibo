@@ -14,7 +14,7 @@ internal struct CSVImporterTests {
         let config = CSVImportConfiguration(hasHeaderRow: true)
         let mapping = sampleMapping()
 
-        let preview = try await importer.makePreview(
+        let preview = try importer.makePreview(
             document: document,
             mapping: mapping,
             configuration: config
@@ -42,7 +42,7 @@ internal struct CSVImporterTests {
         mapping.assign(.title, to: 1)
 
         await #expect(throws: CSVImporter.ImportError.self) {
-            _ = try await importer.makePreview(
+            _ = try importer.makePreview(
                 document: document,
                 mapping: mapping,
                 configuration: CSVImportConfiguration()
@@ -55,13 +55,13 @@ internal struct CSVImporterTests {
         let context = try makeInMemoryContext()
         let importer = CSVImporter(modelContext: context)
 
-        let preview = try await importer.makePreview(
+        let preview = try importer.makePreview(
             document: sampleDocument(),
             mapping: sampleMapping(),
             configuration: CSVImportConfiguration(hasHeaderRow: true)
         )
 
-        let summary = try await importer.performImport(preview: preview)
+        let summary = try importer.performImport(preview: preview)
         #expect(summary.importedCount == 1)
         #expect(summary.skippedCount == 0)
 
