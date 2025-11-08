@@ -8,7 +8,7 @@ internal struct SeedHelperTests {
     // MARK: - データ投入テスト
 
     @Test("サンプルデータを投入できる")
-    internal func caseサンプルデータ投入() throws {
+    internal func seedSampleData() throws {
         let container = try ModelContainer.createInMemoryContainer()
 
         try SeedHelper.seedSampleData(to: container)
@@ -22,7 +22,7 @@ internal struct SeedHelperTests {
     }
 
     @Test("金融機関のみを投入できる")
-    internal func case金融機関のみ投入() throws {
+    internal func seedFinancialInstitutionsOnly() throws {
         let container = try ModelContainer.createInMemoryContainer()
 
         try SeedHelper.seedFinancialInstitutions(to: container)
@@ -33,7 +33,7 @@ internal struct SeedHelperTests {
     }
 
     @Test("カテゴリのみを投入できる")
-    internal func caseカテゴリのみ投入() throws {
+    internal func seedCategoriesOnly() throws {
         let container = try ModelContainer.createInMemoryContainer()
 
         try SeedHelper.seedCategories(to: container)
@@ -46,7 +46,7 @@ internal struct SeedHelperTests {
     // MARK: - データクリアテスト
 
     @Test("すべてのデータをクリアできる")
-    internal func caseすべてのデータクリア() throws {
+    internal func clearAllData() throws {
         let container = try ModelContainer.createInMemoryContainer()
 
         // まずデータを投入
@@ -68,7 +68,7 @@ internal struct SeedHelperTests {
     // MARK: - カウントテスト
 
     @Test("データ件数を取得できる")
-    internal func caseデータ件数取得() throws {
+    internal func countData() throws {
         let container = try ModelContainer.createInMemoryContainer()
 
         // 初期状態は0件
@@ -83,7 +83,7 @@ internal struct SeedHelperTests {
     // MARK: - データ整合性テスト
 
     @Test("投入されたデータは整合性を保っている")
-    internal func caseデータ整合性() throws {
+    internal func dataIntegrity() throws {
         let container = try ModelContainer.createInMemoryContainer()
         try SeedHelper.seedSampleData(to: container)
 
@@ -105,7 +105,7 @@ internal struct SeedHelperTests {
     }
 
     @Test("投入されたカテゴリは親子関係を保っている")
-    internal func caseカテゴリ親子関係() throws {
+    internal func categoryParentChildRelationship() throws {
         let container = try ModelContainer.createInMemoryContainer()
         try SeedHelper.seedCategories(to: container)
 

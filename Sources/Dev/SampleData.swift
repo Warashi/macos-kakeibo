@@ -81,130 +81,13 @@ internal enum SampleData {
         categories: [Category],
         institutions: [FinancialInstitution],
     ) -> [Transaction] {
+        let refs = findCategoriesAndInstitutions(categories: categories, institutions: institutions)
         let calendar = Calendar.current
         let now = Date()
 
         var transactions: [Transaction] = []
-
-        // 今月のデータ
-        let food = categories.first { $0.name == "食費" }
-        let eating = categories.first { $0.name == "外食" }
-        let cooking = categories.first { $0.name == "自炊" }
-        let cafe = categories.first { $0.name == "カフェ" }
-
-        let hobby = categories.first { $0.name == "趣味・娯楽" }
-        let book = categories.first { $0.name == "書籍" }
-        let movie = categories.first { $0.name == "映画・動画" }
-
-        let transport = categories.first { $0.name == "交通費" }
-        let train = categories.first { $0.name == "電車" }
-
-        let incomeCategory = categories.first { $0.name == "収入" }
-        let salary = categories.first { $0.name == "給与" }
-
-        let card = institutions.first { $0.name == "楽天カード" }
-        let cash = institutions.first { $0.name == "現金" }
-        let bank = institutions.first { $0.name == "三菱UFJ銀行" }
-
-        // 給料
-        transactions.append(
-            Transaction(
-                date: calendar.date(byAdding: .day, value: -25, to: now) ?? now,
-                title: "給与",
-                amount: 300_000,
-                memo: "11月分給与",
-                financialInstitution: bank,
-                majorCategory: incomeCategory,
-                minorCategory: salary,
-            ),
-        )
-
-        // 外食
-        transactions.append(
-            Transaction(
-                date: calendar.date(byAdding: .day, value: -1, to: now) ?? now,
-                title: "ランチ",
-                amount: -1200,
-                memo: "同僚とランチ",
-                financialInstitution: card,
-                majorCategory: food,
-                minorCategory: eating,
-            ),
-        )
-
-        transactions.append(
-            Transaction(
-                date: calendar.date(byAdding: .day, value: -3, to: now) ?? now,
-                title: "居酒屋",
-                amount: -4500,
-                memo: "会社の飲み会",
-                financialInstitution: card,
-                majorCategory: food,
-                minorCategory: eating,
-            ),
-        )
-
-        // カフェ
-        transactions.append(
-            Transaction(
-                date: calendar.date(byAdding: .day, value: -2, to: now) ?? now,
-                title: "スターバックス",
-                amount: -680,
-                financialInstitution: cash,
-                majorCategory: food,
-                minorCategory: cafe,
-            ),
-        )
-
-        // 自炊
-        transactions.append(
-            Transaction(
-                date: calendar.date(byAdding: .day, value: -5, to: now) ?? now,
-                title: "スーパー",
-                amount: -3200,
-                memo: "週末の食材",
-                financialInstitution: card,
-                majorCategory: food,
-                minorCategory: cooking,
-            ),
-        )
-
-        // 交通費
-        transactions.append(
-            Transaction(
-                date: calendar.date(byAdding: .day, value: -1, to: now) ?? now,
-                title: "Suicaチャージ",
-                amount: -3000,
-                financialInstitution: cash,
-                majorCategory: transport,
-                minorCategory: train,
-            ),
-        )
-
-        // 趣味
-        transactions.append(
-            Transaction(
-                date: calendar.date(byAdding: .day, value: -7, to: now) ?? now,
-                title: "技術書",
-                amount: -3800,
-                memo: "Swift入門書",
-                financialInstitution: card,
-                majorCategory: hobby,
-                minorCategory: book,
-            ),
-        )
-
-        transactions.append(
-            Transaction(
-                date: calendar.date(byAdding: .day, value: -10, to: now) ?? now,
-                title: "Netflix",
-                amount: -1490,
-                memo: "月額料金",
-                financialInstitution: card,
-                majorCategory: hobby,
-                minorCategory: movie,
-            ),
-        )
+        transactions.append(contentsOf: createIncomeTransactions(calendar: calendar, now: now, refs: refs))
+        transactions.append(contentsOf: createExpenseTransactions(calendar: calendar, now: now, refs: refs))
 
         return transactions
     }
@@ -256,4 +139,171 @@ internal enum SampleData {
         )
     }
 }
+
+// MARK: - Private Helper Functions
+
+/// 収入取引を作成
+private func createIncomeTransactions(
+    calendar: Calendar,
+    now: Date,
+    refs: CategoryAndInstitutionRefs,
+) -> [Transaction] {
+    [
+        Transaction(
+            date: calendar.date(byAdding: .day, value: -25, to: now) ?? now,
+            title: "給与",
+            amount: 300_000,
+            memo: "11月分給与",
+            financialInstitution: refs.bank,
+            majorCategory: refs.incomeCategory,
+            minorCategory: refs.salary,
+        ),
+    ]
+}
+
+/// 支出取引を作成
+private func createExpenseTransactions(
+    calendar: Calendar,
+    now: Date,
+    refs: CategoryAndInstitutionRefs,
+) -> [Transaction] {
+    var transactions: [Transaction] = []
+    transactions.append(contentsOf: createFoodTransactions(calendar: calendar, now: now, refs: refs))
+    transactions.append(contentsOf: createTransportTransactions(calendar: calendar, now: now, refs: refs))
+    transactions.append(contentsOf: createHobbyTransactions(calendar: calendar, now: now, refs: refs))
+    return transactions
+}
+
+/// 食費取引を作成
+private func createFoodTransactions(
+    calendar: Calendar,
+    now: Date,
+    refs: CategoryAndInstitutionRefs,
+) -> [Transaction] {
+    [
+        Transaction(
+            date: calendar.date(byAdding: .day, value: -1, to: now) ?? now,
+            title: "ランチ",
+            amount: -1200,
+            memo: "同僚とランチ",
+            financialInstitution: refs.card,
+            majorCategory: refs.food,
+            minorCategory: refs.eating,
+        ),
+        Transaction(
+            date: calendar.date(byAdding: .day, value: -3, to: now) ?? now,
+            title: "居酒屋",
+            amount: -4500,
+            memo: "会社の飲み会",
+            financialInstitution: refs.card,
+            majorCategory: refs.food,
+            minorCategory: refs.eating,
+        ),
+        Transaction(
+            date: calendar.date(byAdding: .day, value: -2, to: now) ?? now,
+            title: "スターバックス",
+            amount: -680,
+            financialInstitution: refs.cash,
+            majorCategory: refs.food,
+            minorCategory: refs.cafe,
+        ),
+        Transaction(
+            date: calendar.date(byAdding: .day, value: -5, to: now) ?? now,
+            title: "スーパー",
+            amount: -3200,
+            memo: "週末の食材",
+            financialInstitution: refs.card,
+            majorCategory: refs.food,
+            minorCategory: refs.cooking,
+        ),
+    ]
+}
+
+/// 交通費取引を作成
+private func createTransportTransactions(
+    calendar: Calendar,
+    now: Date,
+    refs: CategoryAndInstitutionRefs,
+) -> [Transaction] {
+    [
+        Transaction(
+            date: calendar.date(byAdding: .day, value: -1, to: now) ?? now,
+            title: "Suicaチャージ",
+            amount: -3000,
+            financialInstitution: refs.cash,
+            majorCategory: refs.transport,
+            minorCategory: refs.train,
+        ),
+    ]
+}
+
+/// 趣味・娯楽取引を作成
+private func createHobbyTransactions(
+    calendar: Calendar,
+    now: Date,
+    refs: CategoryAndInstitutionRefs,
+) -> [Transaction] {
+    [
+        Transaction(
+            date: calendar.date(byAdding: .day, value: -7, to: now) ?? now,
+            title: "技術書",
+            amount: -3800,
+            memo: "Swift入門書",
+            financialInstitution: refs.card,
+            majorCategory: refs.hobby,
+            minorCategory: refs.book,
+        ),
+        Transaction(
+            date: calendar.date(byAdding: .day, value: -10, to: now) ?? now,
+            title: "Netflix",
+            amount: -1490,
+            memo: "月額料金",
+            financialInstitution: refs.card,
+            majorCategory: refs.hobby,
+            minorCategory: refs.movie,
+        ),
+    ]
+}
+
+/// カテゴリと金融機関の参照をまとめて検索
+private func findCategoriesAndInstitutions(
+    categories: [Category],
+    institutions: [FinancialInstitution],
+) -> CategoryAndInstitutionRefs {
+    CategoryAndInstitutionRefs(
+        food: categories.first { $0.name == "食費" },
+        eating: categories.first { $0.name == "外食" },
+        cooking: categories.first { $0.name == "自炊" },
+        cafe: categories.first { $0.name == "カフェ" },
+        hobby: categories.first { $0.name == "趣味・娯楽" },
+        book: categories.first { $0.name == "書籍" },
+        movie: categories.first { $0.name == "映画・動画" },
+        transport: categories.first { $0.name == "交通費" },
+        train: categories.first { $0.name == "電車" },
+        incomeCategory: categories.first { $0.name == "収入" },
+        salary: categories.first { $0.name == "給与" },
+        card: institutions.first { $0.name == "楽天カード" },
+        cash: institutions.first { $0.name == "現金" },
+        bank: institutions.first { $0.name == "三菱UFJ銀行" },
+    )
+}
+
+/// カテゴリと金融機関の参照を保持する構造体
+private struct CategoryAndInstitutionRefs {
+    internal let food: Category?
+    internal let eating: Category?
+    internal let cooking: Category?
+    internal let cafe: Category?
+    internal let hobby: Category?
+    internal let book: Category?
+    internal let movie: Category?
+    internal let transport: Category?
+    internal let train: Category?
+    internal let incomeCategory: Category?
+    internal let salary: Category?
+    internal let card: FinancialInstitution?
+    internal let cash: FinancialInstitution?
+    internal let bank: FinancialInstitution?
+}
+
 #endif

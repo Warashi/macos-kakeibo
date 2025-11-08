@@ -8,7 +8,7 @@ internal struct FinancialInstitutionTests {
     // MARK: - 初期化テスト
 
     @Test("金融機関を初期化できる")
-    internal func 金融機関初期化() {
+    internal func initializeFinancialInstitution() {
         let institution = FinancialInstitution(name: "三菱UFJ")
 
         #expect(institution.name == "三菱UFJ")
@@ -16,7 +16,7 @@ internal struct FinancialInstitutionTests {
     }
 
     @Test("パラメータ付きで金融機関を初期化できる")
-    internal func パラメータ付き金融機関初期化() {
+    internal func initializeFinancialInstitutionWithParameters() {
         let institution = FinancialInstitution(
             name: "楽天銀行",
             displayOrder: 5,
@@ -29,7 +29,7 @@ internal struct FinancialInstitutionTests {
     // MARK: - 表示順序テスト
 
     @Test("表示順序を設定できる")
-    internal func 表示順序設定() {
+    internal func setDisplayOrder() {
         let institution1 = FinancialInstitution(name: "三菱UFJ", displayOrder: 1)
         let institution2 = FinancialInstitution(name: "三井住友", displayOrder: 2)
         let institution3 = FinancialInstitution(name: "楽天", displayOrder: 3)
@@ -42,7 +42,7 @@ internal struct FinancialInstitutionTests {
     // MARK: - 日時テスト
 
     @Test("作成日時と更新日時が設定される")
-    internal func 作成更新日時設定() {
+    internal func setCreatedAndUpdatedDates() {
         let before = Date()
         let institution = FinancialInstitution(name: "三菱UFJ")
         let after = Date()
@@ -57,7 +57,7 @@ internal struct FinancialInstitutionTests {
     // MARK: - 複数インスタンステスト
 
     @Test("複数の金融機関を作成できる")
-    internal func 複数金融機関作成() {
+    internal func createMultipleFinancialInstitutions() {
         let institutions = [
             FinancialInstitution(name: "三菱UFJ", displayOrder: 1),
             FinancialInstitution(name: "三井住友", displayOrder: 2),

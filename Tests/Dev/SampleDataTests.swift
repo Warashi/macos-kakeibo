@@ -8,7 +8,7 @@ internal struct SampleDataTests {
     // MARK: - FinancialInstitution Tests
 
     @Test("サンプル金融機関データが定義されている")
-    internal func サンプル金融機関データ() {
+    internal func sampleFinancialInstitutionsData() {
         let institutions = SampleData.financialInstitutions()
 
         #expect(!institutions.isEmpty)
@@ -19,7 +19,7 @@ internal struct SampleDataTests {
     }
 
     @Test("金融機関は表示順序が設定されている")
-    internal func 金融機関表示順序() {
+    internal func financialInstitutionsDisplayOrder() {
         let institutions = SampleData.financialInstitutions()
 
         for institution in institutions {
@@ -30,7 +30,7 @@ internal struct SampleDataTests {
     // MARK: - Category Tests
 
     @Test("サンプルカテゴリデータが生成できる")
-    internal func サンプルカテゴリデータ() {
+    internal func sampleCategoriesData() {
         let categories = SampleData.createSampleCategories()
 
         #expect(!categories.isEmpty)
@@ -47,7 +47,7 @@ internal struct SampleDataTests {
     }
 
     @Test("カテゴリは階層構造を持つ")
-    internal func カテゴリ階層構造() {
+    internal func categoryHierarchyStructure() {
         let categories = SampleData.createSampleCategories()
 
         let food = categories.first { $0.name == "食費" && $0.isMajor }
@@ -59,7 +59,7 @@ internal struct SampleDataTests {
     }
 
     @Test("カテゴリは年次特別枠フラグが適切に設定されている")
-    internal func カテゴリ年次特別枠フラグ() {
+    internal func categoryAnnualBudgetFlag() {
         let categories = SampleData.createSampleCategories()
 
         let hobby = categories.first { $0.name == "趣味・娯楽" && $0.isMajor }
@@ -75,7 +75,7 @@ internal struct SampleDataTests {
     // MARK: - Transaction Tests
 
     @Test("サンプル取引データが生成できる")
-    internal func サンプル取引データ() {
+    internal func sampleTransactionsData() {
         let categories = SampleData.createSampleCategories()
         let institutions = SampleData.financialInstitutions()
         let transactions = SampleData.createSampleTransactions(
@@ -88,7 +88,7 @@ internal struct SampleDataTests {
     }
 
     @Test("取引データに収入と支出が含まれる")
-    internal func 取引データ収入支出() {
+    internal func transactionsIncomeAndExpense() {
         let categories = SampleData.createSampleCategories()
         let institutions = SampleData.financialInstitutions()
         let transactions = SampleData.createSampleTransactions(
@@ -104,7 +104,7 @@ internal struct SampleDataTests {
     }
 
     @Test("取引データは有効なデータである")
-    internal func 取引データバリデーション() {
+    internal func transactionsValidation() {
         let categories = SampleData.createSampleCategories()
         let institutions = SampleData.financialInstitutions()
         let transactions = SampleData.createSampleTransactions(
@@ -120,7 +120,7 @@ internal struct SampleDataTests {
     // MARK: - Budget Tests
 
     @Test("サンプル予算データが生成できる")
-    internal func サンプル予算データ() {
+    internal func sampleBudgetsData() {
         let categories = SampleData.createSampleCategories()
         let budgets = SampleData.createSampleBudgets(categories: categories)
 
@@ -128,7 +128,7 @@ internal struct SampleDataTests {
     }
 
     @Test("予算データには全体予算が含まれる")
-    internal func 全体予算() {
+    internal func overallBudget() {
         let categories = SampleData.createSampleCategories()
         let budgets = SampleData.createSampleBudgets(categories: categories)
 
@@ -138,7 +138,7 @@ internal struct SampleDataTests {
     }
 
     @Test("予算データは有効なデータである")
-    internal func 予算データバリデーション() {
+    internal func budgetsValidation() {
         let categories = SampleData.createSampleCategories()
         let budgets = SampleData.createSampleBudgets(categories: categories)
 
@@ -150,7 +150,7 @@ internal struct SampleDataTests {
     // MARK: - AnnualBudgetConfig Tests
 
     @Test("サンプル年次特別枠設定が生成できる")
-    internal func サンプル年次特別枠設定() {
+    internal func sampleAnnualBudgetConfig() {
         let config = SampleData.createSampleAnnualBudgetConfig()
 
         #expect(config.totalAmount > 0)
@@ -158,7 +158,7 @@ internal struct SampleDataTests {
     }
 
     @Test("年次特別枠設定は有効なデータである")
-    internal func 年次特別枠設定バリデーション() {
+    internal func annualBudgetConfigValidation() {
         let config = SampleData.createSampleAnnualBudgetConfig()
 
         #expect(config.isValid)

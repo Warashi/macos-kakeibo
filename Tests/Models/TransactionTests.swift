@@ -6,7 +6,7 @@ import Testing
 @Suite("Transaction Initialization Tests")
 internal struct TransactionInitializationTests {
     @Test("取引を初期化できる")
-    internal func 取引初期化() {
+    internal func initializeTransaction() {
         let date = Date()
         let transaction = Transaction(
             date: date,
@@ -26,7 +26,7 @@ internal struct TransactionInitializationTests {
     }
 
     @Test("すべてのパラメータ付きで取引を初期化できる")
-    internal func フルパラメータ取引初期化() {
+    internal func initializeTransactionWithAllParameters() {
         let date = Date()
         let institution = FinancialInstitution(name: "三菱UFJ")
         let majorCategory = Category(name: "食費")
@@ -58,7 +58,7 @@ internal struct TransactionInitializationTests {
 @Suite("Transaction Computed Property Tests")
 internal struct TransactionComputedPropertyTests {
     @Test("isExpenseはマイナス金額の場合にtrueを返す")
-    internal func 支出判定() {
+    internal func checkIsExpense() {
         let transaction = Transaction(
             date: Date(),
             title: "買い物",
@@ -69,7 +69,7 @@ internal struct TransactionComputedPropertyTests {
     }
 
     @Test("isIncomeはプラス金額の場合にtrueを返す")
-    internal func 収入判定() {
+    internal func checkIsIncome() {
         let transaction = Transaction(
             date: Date(),
             title: "給料",
@@ -80,7 +80,7 @@ internal struct TransactionComputedPropertyTests {
     }
 
     @Test("ゼロ金額の場合、isExpenseとisIncomeは両方falseを返す")
-    internal func ゼロ金額判定() {
+    internal func checkZeroAmount() {
         let transaction = Transaction(
             date: Date(),
             title: "テスト",
@@ -91,7 +91,7 @@ internal struct TransactionComputedPropertyTests {
     }
 
     @Test("absoluteAmountは絶対値を返す")
-    internal func 絶対値金額() {
+    internal func absoluteAmount() {
         let transaction1 = Transaction(date: Date(), title: "支出", amount: -1000)
         let transaction2 = Transaction(date: Date(), title: "収入", amount: 5000)
 
@@ -100,7 +100,7 @@ internal struct TransactionComputedPropertyTests {
     }
 
     @Test("categoryFullNameは中項目がある場合フルパスを返す")
-    internal func カテゴリフルパス名_中項目あり() {
+    internal func categoryFullNameWithMinorCategory() {
         let major = Category(name: "食費")
         let minor = Category(name: "外食", parent: major)
 
@@ -116,7 +116,7 @@ internal struct TransactionComputedPropertyTests {
     }
 
     @Test("categoryFullNameは大項目のみの場合その名前を返す")
-    internal func カテゴリフルパス名_大項目のみ() {
+    internal func categoryFullNameWithMajorCategoryOnly() {
         let major = Category(name: "食費")
 
         let transaction = Transaction(
@@ -130,7 +130,7 @@ internal struct TransactionComputedPropertyTests {
     }
 
     @Test("categoryFullNameはカテゴリ未設定の場合「未分類」を返す")
-    internal func カテゴリフルパス名_未分類() {
+    internal func categoryFullNameUncategorized() {
         let transaction = Transaction(
             date: Date(),
             title: "買い物",
@@ -144,7 +144,7 @@ internal struct TransactionComputedPropertyTests {
 @Suite("Transaction Validation Tests")
 internal struct TransactionValidationTests {
     @Test("有効な取引データの場合、バリデーションエラーがない")
-    internal func 有効な取引バリデーション() {
+    internal func validateValidTransaction() {
         let major = Category(name: "食費")
         let minor = Category(name: "外食", parent: major)
 
@@ -162,7 +162,7 @@ internal struct TransactionValidationTests {
     }
 
     @Test("内容が空の場合、バリデーションエラーが発生する")
-    internal func 内容空バリデーション() {
+    internal func validateEmptyTitle() {
         let transaction = Transaction(
             date: Date(),
             title: "",
@@ -176,7 +176,7 @@ internal struct TransactionValidationTests {
     }
 
     @Test("金額が0の場合、バリデーションエラーが発生する")
-    internal func 金額ゼロバリデーション() {
+    internal func validateZeroAmount() {
         let transaction = Transaction(
             date: Date(),
             title: "テスト",
@@ -190,7 +190,7 @@ internal struct TransactionValidationTests {
     }
 
     @Test("中項目のみ設定されている場合、バリデーションエラーが発生する")
-    internal func 中項目のみバリデーション() {
+    internal func validateMinorCategoryOnly() {
         let minor = Category(name: "外食")
 
         let transaction = Transaction(
@@ -207,7 +207,7 @@ internal struct TransactionValidationTests {
     }
 
     @Test("中項目の親と大項目が一致しない場合、バリデーションエラーが発生する")
-    internal func カテゴリ不整合バリデーション() {
+    internal func validateCategoryMismatch() {
         let major1 = Category(name: "食費")
         let major2 = Category(name: "日用品")
         let minor = Category(name: "外食", parent: major1)
@@ -227,7 +227,7 @@ internal struct TransactionValidationTests {
     }
 
     @Test("複数のバリデーションエラーがある場合、すべて検出される")
-    internal func 複数バリデーションエラー() {
+    internal func validateMultipleErrors() {
         let transaction = Transaction(
             date: Date(),
             title: "",
@@ -244,7 +244,7 @@ internal struct TransactionValidationTests {
 @Suite("Transaction Flag Tests")
 internal struct TransactionFlagTests {
     @Test("計算対象フラグを設定できる")
-    internal func 計算対象フラグ() {
+    internal func checkIsIncludedInCalculationFlag() {
         let transaction1 = Transaction(
             date: Date(),
             title: "テスト1",
@@ -263,7 +263,7 @@ internal struct TransactionFlagTests {
     }
 
     @Test("振替フラグを設定できる")
-    internal func 振替フラグ() {
+    internal func checkIsTransferFlag() {
         let transaction1 = Transaction(
             date: Date(),
             title: "振替",
@@ -285,7 +285,7 @@ internal struct TransactionFlagTests {
 @Suite("Transaction Timestamp Tests")
 internal struct TransactionTimestampTests {
     @Test("作成日時と更新日時が設定される")
-    internal func 作成更新日時設定() {
+    internal func setCreatedAndUpdatedDates() {
         let before = Date()
         let transaction = Transaction(
             date: Date(),
