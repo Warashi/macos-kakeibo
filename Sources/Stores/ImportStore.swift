@@ -229,6 +229,10 @@ internal final class ImportStore {
         lastUpdatedAt = Date()
     }
 
+    internal func presentError(_ message: String) {
+        errorMessage = message
+    }
+
     // MARK: - Private helpers
 
     internal func applyDocument(_ document: CSVDocument, fileName: String?) {

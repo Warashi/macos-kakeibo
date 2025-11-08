@@ -175,7 +175,7 @@ private struct CSVFileSelectionStepView: View {
                 guard let url = urls.first else { return }
                 Task { await store.loadFile(from: url) }
             case .failure(let error):
-                store.errorMessage = error.localizedDescription
+                store.presentError(error.localizedDescription)
             }
         }
     }
@@ -304,9 +304,11 @@ private struct CSVValidationStepView: View {
                     }
                 }
             } else {
-                ContentUnavailableView("プレビューを生成してください") {
-                    Text("列マッピングを設定し、「検証を開始」を押してプレビューを作成します。")
-                }
+                ContentUnavailableView(
+                    "プレビューを生成してください",
+                    image: "doc.text.magnifyingglass",
+                    description: Text("列マッピングを設定し、「検証を開始」を押してプレビューを作成します。")
+                )
             }
         }
     }
