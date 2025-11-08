@@ -2,7 +2,6 @@ import Foundation
 import SwiftData
 
 /// CSVインポート処理を担当するActor
-@MainActor
 internal actor CSVImporter {
     internal enum ImportError: Error, LocalizedError {
         case incompleteMapping
