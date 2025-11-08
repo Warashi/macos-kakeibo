@@ -3,13 +3,14 @@ import SwiftUI
 
 internal struct RootView: View {
     @Bindable private var appState: AppState
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     internal init(appState: AppState) {
         self.appState = appState
     }
 
     internal var body: some View {
-        NavigationSplitView(columnVisibility: .constant(.all)) {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             SidebarView(appState: appState)
         } detail: {
             RootDetailView(screen: appState.selectedScreen ?? .dashboard)
