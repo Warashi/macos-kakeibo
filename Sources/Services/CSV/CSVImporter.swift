@@ -353,14 +353,17 @@ private extension CSVImporter {
             if let cached = minorCache[key] {
                 minorCategory = cached
             } else {
-                var descriptor = FetchDescriptor<Category>(
+                let descriptor = FetchDescriptor<Category>(
                     predicate: #Predicate { category in
-                        category.name == minorName && category.parent?.id == majorCategory.id
+                        category.name == minorName
                     }
                 )
-                descriptor.fetchLimit = 1
 
-                if let existing = try modelContext.fetch(descriptor).first {
+                let existing = try modelContext
+                    .fetch(descriptor)
+                    .first { $0.parent?.id == majorCategory.id }
+
+                if let existing {
                     minorCategory = existing
                 } else {
                     let newCategory = Category(name: minorName, parent: majorCategory)
