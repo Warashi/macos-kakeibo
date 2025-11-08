@@ -1,5 +1,166 @@
 import Foundation
+import Observation
 import SwiftData
+
+// MARK: - SpecialPaymentListStore
+
+/// 特別支払い一覧表示用のストア
+@Observable
+@MainActor
+internal final class SpecialPaymentListStore {
+    // MARK: - Dependencies
+
+    private let modelContext: ModelContext
+
+    // MARK: - Filter State
+
+    /// 期間フィルタ開始日
+    internal var startDate: Date
+
+    /// 期間フィルタ終了日
+    internal var endDate: Date
+
+    /// 検索テキスト（名目での部分一致）
+    internal var searchText: String = ""
+
+    /// カテゴリフィルタ
+    internal var selectedCategoryId: UUID?
+
+    /// ステータスフィルタ
+    internal var selectedStatus: SpecialPaymentStatus?
+
+    /// ソート順
+    internal var sortOrder: SortOrder = .dateAscending
+
+    // MARK: - Initialization
+
+    internal init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+
+        // デフォルト期間：当月〜6ヶ月後
+        let now = Date()
+        self.startDate = Calendar.current.startOfMonth(for: now) ?? now
+        self.endDate = Calendar.current.date(byAdding: .month, value: 6, to: startDate) ?? now
+    }
+
+    // MARK: - Sort Order
+
+    internal enum SortOrder {
+        case dateAscending
+        case dateDescending
+        case nameAscending
+        case nameDescending
+        case amountAscending
+        case amountDescending
+    }
+
+    // MARK: - Data Access
+
+    private var allOccurrences: [SpecialPaymentOccurrence] {
+        let descriptor = FetchDescriptor<SpecialPaymentOccurrence>()
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private var allBalances: [SpecialPaymentSavingBalance] {
+        let descriptor = FetchDescriptor<SpecialPaymentSavingBalance>()
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    // MARK: - Computed Properties
+
+    /// フィルタリング・ソート済みのエントリ一覧
+    internal var entries: [SpecialPaymentListEntry] {
+        let balanceMap = Dictionary(
+            uniqueKeysWithValues: allBalances.map { ($0.definition.id, $0) },
+        )
+
+        let filtered = allOccurrences
+            .filter { occurrence in
+                // 期間フィルタ
+                guard occurrence.scheduledDate >= startDate,
+                      occurrence.scheduledDate <= endDate else {
+                    return false
+                }
+
+                // 検索テキストフィルタ
+                if !searchText.isEmpty {
+                    let normalizedSearch = searchText.lowercased()
+                    let normalizedName = occurrence.definition.name.lowercased()
+                    guard normalizedName.contains(normalizedSearch) else {
+                        return false
+                    }
+                }
+
+                // カテゴリフィルタ
+                if let categoryId = selectedCategoryId {
+                    guard occurrence.definition.category?.id == categoryId else {
+                        return false
+                    }
+                }
+
+                // ステータスフィルタ
+                if let status = selectedStatus {
+                    guard occurrence.status == status else {
+                        return false
+                    }
+                }
+
+                return true
+            }
+            .map { occurrence in
+                let balance = balanceMap[occurrence.definition.id]
+                return SpecialPaymentListEntry.from(occurrence: occurrence, balance: balance)
+            }
+
+        return sortEntries(filtered)
+    }
+
+    // MARK: - Actions
+
+    /// フィルタをリセット
+    internal func resetFilters() {
+        searchText = ""
+        selectedCategoryId = nil
+        selectedStatus = nil
+
+        let now = Date()
+        startDate = Calendar.current.startOfMonth(for: now) ?? now
+        endDate = Calendar.current.date(byAdding: .month, value: 6, to: startDate) ?? now
+    }
+
+    /// ソート順を切り替え
+    internal func toggleSort(by order: SortOrder) {
+        sortOrder = order
+    }
+
+    // MARK: - Helper Methods
+
+    private func sortEntries(_ entries: [SpecialPaymentListEntry]) -> [SpecialPaymentListEntry] {
+        switch sortOrder {
+        case .dateAscending:
+            entries.sorted { $0.scheduledDate < $1.scheduledDate }
+        case .dateDescending:
+            entries.sorted { $0.scheduledDate > $1.scheduledDate }
+        case .nameAscending:
+            entries.sorted { $0.name < $1.name }
+        case .nameDescending:
+            entries.sorted { $0.name > $1.name }
+        case .amountAscending:
+            entries.sorted { $0.expectedAmount < $1.expectedAmount }
+        case .amountDescending:
+            entries.sorted { $0.expectedAmount > $1.expectedAmount }
+        }
+    }
+}
+
+// MARK: - Calendar Extension
+
+private extension Calendar {
+    func startOfMonth(for date: Date) -> Date? {
+        let components = dateComponents([.year, .month], from: date)
+        return self.date(from: components)
+    }
+}
 
 // MARK: - SpecialPaymentListEntry
 
