@@ -12,6 +12,7 @@ internal extension ModelContainer {
             FinancialInstitution.self,
             SpecialPaymentDefinition.self,
             SpecialPaymentOccurrence.self,
+            SpecialPaymentSavingBalance.self,
         ])
 
         let modelConfiguration = ModelConfiguration(
@@ -35,6 +36,7 @@ internal extension ModelContainer {
             FinancialInstitution.self,
             SpecialPaymentDefinition.self,
             SpecialPaymentOccurrence.self,
+            SpecialPaymentSavingBalance.self,
         ])
 
         let modelConfiguration = ModelConfiguration(
