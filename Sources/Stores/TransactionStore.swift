@@ -1,0 +1,560 @@
+import Foundation
+import Observation
+import SwiftData
+
+/// 取引一覧画面用のストア
+///
+/// - 検索やフィルタの状態管理
+/// - 取引のCRUD操作
+/// - 金額サマリの計算
+@Observable
+@MainActor
+internal final class TransactionStore {
+    // MARK: - Nested Types
+
+    /// 取引リストの表示種別フィルタ
+    internal enum TransactionFilterKind: String, CaseIterable, Identifiable, Hashable {
+        case all = "すべて"
+        case income = "収入"
+        case expense = "支出"
+
+        internal var id: Self { self }
+        internal var label: String { rawValue }
+    }
+
+    /// 取引フォームで使用する入出金種別
+    internal enum TransactionKind: String, CaseIterable, Identifiable {
+        case income = "収入"
+        case expense = "支出"
+
+        internal var id: Self { self }
+        internal var label: String { rawValue }
+    }
+
+    /// 並び替えオプション
+    internal enum SortOption: String, CaseIterable, Identifiable {
+        case dateDescending = "日付（新しい順）"
+        case dateAscending = "日付（古い順）"
+        case amountDescending = "金額（大きい順）"
+        case amountAscending = "金額（小さい順）"
+
+        internal var id: Self { self }
+        internal var label: String { rawValue }
+    }
+
+    /// 日毎の取引セクション
+    internal struct TransactionSection: Identifiable {
+        internal let date: Date
+        internal let transactions: [Transaction]
+
+        internal var id: Date { date }
+        internal var title: String { date.longDateFormatted }
+    }
+
+    /// 取引フォーム状態
+    internal struct TransactionFormState: Equatable {
+        internal var date: Date
+        internal var title: String
+        internal var memo: String
+        internal var amountText: String
+        internal var transactionKind: TransactionKind
+        internal var isIncludedInCalculation: Bool
+        internal var isTransfer: Bool
+        internal var financialInstitutionId: UUID?
+        internal var majorCategoryId: UUID?
+        internal var minorCategoryId: UUID?
+
+        internal static func empty(defaultDate: Date) -> TransactionFormState {
+            TransactionFormState(
+                date: defaultDate,
+                title: "",
+                memo: "",
+                amountText: "",
+                transactionKind: .expense,
+                isIncludedInCalculation: true,
+                isTransfer: false,
+                financialInstitutionId: nil,
+                majorCategoryId: nil,
+                minorCategoryId: nil
+            )
+        }
+
+        internal static func from(transaction: Transaction) -> TransactionFormState {
+            TransactionFormState(
+                date: transaction.date,
+                title: transaction.title,
+                memo: transaction.memo,
+                amountText: TransactionStore.amountString(from: transaction.absoluteAmount),
+                transactionKind: transaction.isExpense ? .expense : .income,
+                isIncludedInCalculation: transaction.isIncludedInCalculation,
+                isTransfer: transaction.isTransfer,
+                financialInstitutionId: transaction.financialInstitution?.id,
+                majorCategoryId: transaction.majorCategory?.id,
+                minorCategoryId: transaction.minorCategory?.id
+            )
+        }
+    }
+
+    // MARK: - Properties
+
+    private let modelContext: ModelContext
+
+    private var cachedTransactions: [Transaction] = [] {
+        didSet { applyFilters() }
+    }
+
+    internal var transactions: [Transaction] = []
+    internal var searchText: String = "" {
+        didSet { applyFilters() }
+    }
+
+    internal var selectedFilterKind: TransactionFilterKind = .all {
+        didSet { applyFilters() }
+    }
+
+    internal var selectedInstitutionId: UUID? {
+        didSet { applyFilters() }
+    }
+
+    internal var selectedCategoryId: UUID? {
+        didSet { applyFilters() }
+    }
+
+    internal var includeOnlyCalculationTarget: Bool = true {
+        didSet { applyFilters() }
+    }
+
+    internal var excludeTransfers: Bool = true {
+        didSet { applyFilters() }
+    }
+
+    internal var sortOption: SortOption = .dateDescending {
+        didSet { applyFilters() }
+    }
+
+    internal var currentMonth: Date {
+        didSet {
+            let normalized = currentMonth.startOfMonth
+            if currentMonth != normalized {
+                currentMonth = normalized
+                return
+            }
+            applyFilters()
+        }
+    }
+
+    internal private(set) var availableInstitutions: [FinancialInstitution] = []
+    internal private(set) var availableCategories: [Category] = []
+
+    internal var isEditorPresented: Bool = false
+    internal private(set) var editingTransaction: Transaction?
+    internal var formState: TransactionFormState
+    internal var formErrors: [String] = []
+
+    // MARK: - Initialization
+
+    internal init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+        self.currentMonth = Date().startOfMonth
+        self.formState = .empty(defaultDate: Date())
+        refresh()
+    }
+
+    // MARK: - Public API
+
+    /// 参照データと取引を再取得
+    internal func refresh() {
+        loadReferenceData()
+        loadTransactions()
+    }
+
+    /// 現在の月ラベル
+    internal var currentMonthLabel: String {
+        currentMonth.yearMonthFormatted
+    }
+
+    /// 収入合計
+    internal var totalIncome: Decimal {
+        transactions
+            .filter(\.isIncome)
+            .reduce(into: Decimal.zero) { $0 += $1.amount }
+    }
+
+    /// 支出合計（正の値）
+    internal var totalExpense: Decimal {
+        transactions
+            .filter(\.isExpense)
+            .reduce(into: Decimal.zero) { $0 += abs($1.amount) }
+    }
+
+    /// 差引（収入 - 支出）
+    internal var netAmount: Decimal {
+        totalIncome - totalExpense
+    }
+
+    /// セクション化された取引
+    internal var sections: [TransactionSection] {
+        var order: [Date] = []
+        var grouped: [Date: [Transaction]] = [:]
+        for transaction in transactions {
+            let day = Calendar.current.startOfDay(for: transaction.date)
+            if grouped[day] == nil {
+                order.append(day)
+            }
+            grouped[day, default: []].append(transaction)
+        }
+
+        return order.compactMap { day in
+            guard let entries = grouped[day] else { return nil }
+            return TransactionSection(date: day, transactions: entries)
+        }
+    }
+
+    /// 大項目一覧
+    internal var majorCategories: [Category] {
+        availableCategories
+            .filter(\.isMajor)
+            .sorted { lhs, rhs in
+                if lhs.displayOrder == rhs.displayOrder {
+                    return lhs.name < rhs.name
+                }
+                return lhs.displayOrder < rhs.displayOrder
+            }
+    }
+
+    /// 指定した大項目に紐づく中項目一覧
+    internal func minorCategories(for majorCategoryId: UUID?) -> [Category] {
+        guard let majorCategoryId else { return [] }
+        return availableCategories
+            .filter { $0.parent?.id == majorCategoryId }
+            .sorted { lhs, rhs in
+                if lhs.displayOrder == rhs.displayOrder {
+                    return lhs.name < rhs.name
+                }
+                return lhs.displayOrder < rhs.displayOrder
+            }
+    }
+
+    /// 月を前に移動
+    internal func moveToPreviousMonth() {
+        guard let previous = Calendar.current.date(byAdding: .month, value: -1, to: currentMonth) else { return }
+        currentMonth = previous
+    }
+
+    /// 月を次に移動
+    internal func moveToNextMonth() {
+        guard let next = Calendar.current.date(byAdding: .month, value: 1, to: currentMonth) else { return }
+        currentMonth = next
+    }
+
+    /// 今月に戻る
+    internal func moveToCurrentMonth() {
+        currentMonth = Date().startOfMonth
+    }
+
+    /// フィルタを初期状態に戻す
+    internal func resetFilters() {
+        searchText = ""
+        selectedFilterKind = .all
+        selectedInstitutionId = nil
+        selectedCategoryId = nil
+        includeOnlyCalculationTarget = true
+        excludeTransfers = true
+        sortOption = .dateDescending
+    }
+
+    /// 新規作成モードに切り替え
+    internal func prepareForNewTransaction() {
+        editingTransaction = nil
+        let today = Date()
+        let defaultDate = today.isSameMonth(as: currentMonth) ? today : currentMonth
+        formState = .empty(defaultDate: defaultDate)
+        formErrors = []
+        isEditorPresented = true
+    }
+
+    /// 既存取引の編集を開始
+    internal func startEditing(transaction: Transaction) {
+        editingTransaction = transaction
+        formState = .from(transaction: transaction)
+        formErrors = []
+        isEditorPresented = true
+    }
+
+    /// 編集をキャンセル
+    internal func cancelEditing() {
+        editingTransaction = nil
+        isEditorPresented = false
+        formErrors = []
+    }
+
+    /// 中項目選択の整合性を確保
+    internal func ensureMinorCategoryConsistency() {
+        guard let majorId = formState.majorCategoryId else {
+            formState.minorCategoryId = nil
+            return
+        }
+
+        if let minorId = formState.minorCategoryId,
+           lookupCategory(id: minorId)?.parent?.id != majorId {
+            formState.minorCategoryId = nil
+        }
+    }
+
+    /// フォーム内容を保存
+    @discardableResult
+    internal func saveCurrentForm() -> Bool {
+        formErrors = validateForm()
+        guard formErrors.isEmpty else { return false }
+
+        guard let amountMagnitude = parsedAmountMagnitude() else {
+            formErrors = ["金額を正しく入力してください"]
+            return false
+        }
+
+        let signedAmount = signedAmount(from: amountMagnitude)
+        let institution = lookupInstitution(id: formState.financialInstitutionId)
+        let majorCategory = lookupCategory(id: formState.majorCategoryId)
+        let minorCategory = lookupCategory(id: formState.minorCategoryId)
+
+        if let editingTransaction {
+            update(transaction: editingTransaction, with: signedAmount, institution: institution, majorCategory: majorCategory, minorCategory: minorCategory)
+        } else {
+            createTransaction(amount: signedAmount, institution: institution, majorCategory: majorCategory, minorCategory: minorCategory)
+        }
+
+        do {
+            try modelContext.save()
+            formErrors = []
+            isEditorPresented = false
+            refresh()
+            return true
+        } catch {
+            formErrors = ["保存に失敗しました: \(error.localizedDescription)"]
+            return false
+        }
+    }
+
+    /// 取引を削除
+    @discardableResult
+    internal func deleteTransaction(_ transaction: Transaction) -> Bool {
+        modelContext.delete(transaction)
+        do {
+            try modelContext.save()
+            formErrors = []
+            refresh()
+            return true
+        } catch {
+            formErrors = ["削除に失敗しました: \(error.localizedDescription)"]
+            return false
+        }
+    }
+
+    // MARK: - Private Helpers
+
+    private func loadReferenceData() {
+        let institutionDescriptor = FetchDescriptor<FinancialInstitution>(
+            sortBy: [SortDescriptor(\.displayOrder), SortDescriptor(\.name)]
+        )
+        let categoryDescriptor = FetchDescriptor<Category>(
+            sortBy: [SortDescriptor(\.displayOrder), SortDescriptor(\.name)]
+        )
+
+        availableInstitutions = (try? modelContext.fetch(institutionDescriptor)) ?? []
+        availableCategories = (try? modelContext.fetch(categoryDescriptor)) ?? []
+    }
+
+    private func loadTransactions() {
+        let descriptor = FetchDescriptor<Transaction>(
+            sortBy: [
+                SortDescriptor(\.date, order: .reverse),
+                SortDescriptor(\.createdAt, order: .reverse),
+            ]
+        )
+        cachedTransactions = (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func applyFilters() {
+        guard !cachedTransactions.isEmpty else {
+            transactions = []
+            return
+        }
+
+        let trimmedSearch = searchText
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+
+        let shouldSearch = !trimmedSearch.isEmpty
+        let filtered = cachedTransactions.filter { transaction in
+            guard transaction.date.year == currentMonth.year,
+                  transaction.date.month == currentMonth.month else {
+                return false
+            }
+
+            if includeOnlyCalculationTarget, !transaction.isIncludedInCalculation {
+                return false
+            }
+
+            if excludeTransfers, transaction.isTransfer {
+                return false
+            }
+
+            switch selectedFilterKind {
+            case .income:
+                guard transaction.isIncome else { return false }
+            case .expense:
+                guard transaction.isExpense else { return false }
+            case .all:
+                break
+            }
+
+            if let institutionId = selectedInstitutionId {
+                guard transaction.financialInstitution?.id == institutionId else {
+                    return false
+                }
+            }
+
+            if let categoryId = selectedCategoryId {
+                let majorMatches = transaction.majorCategory?.id == categoryId
+                let minorMatches = transaction.minorCategory?.id == categoryId
+                guard majorMatches || minorMatches else { return false }
+            }
+
+            if shouldSearch {
+                let haystacks = [
+                    transaction.title.lowercased(),
+                    transaction.memo.lowercased(),
+                    transaction.categoryFullName.lowercased(),
+                    transaction.financialInstitution?.name.lowercased() ?? "",
+                ]
+                return haystacks.contains { $0.contains(trimmedSearch) }
+            }
+
+            return true
+        }
+
+        transactions = sort(transactions: filtered)
+    }
+
+    private func sort(transactions: [Transaction]) -> [Transaction] {
+        transactions.sorted { lhs, rhs in
+            switch sortOption {
+            case .dateDescending:
+                if lhs.date == rhs.date {
+                    return lhs.createdAt > rhs.createdAt
+                }
+                return lhs.date > rhs.date
+            case .dateAscending:
+                if lhs.date == rhs.date {
+                    return lhs.createdAt < rhs.createdAt
+                }
+                return lhs.date < rhs.date
+            case .amountDescending:
+                let lhsAmount = lhs.absoluteAmount
+                let rhsAmount = rhs.absoluteAmount
+                if lhsAmount == rhsAmount {
+                    return lhs.date > rhs.date
+                }
+                return lhsAmount > rhsAmount
+            case .amountAscending:
+                let lhsAmount = lhs.absoluteAmount
+                let rhsAmount = rhs.absoluteAmount
+                if lhsAmount == rhsAmount {
+                    return lhs.date < rhs.date
+                }
+                return lhsAmount < rhsAmount
+            }
+        }
+    }
+
+    private func validateForm() -> [String] {
+        var errors: [String] = []
+
+        if formState.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            errors.append("内容を入力してください")
+        }
+
+        if parsedAmountMagnitude() == nil {
+            errors.append("金額を入力してください")
+        }
+
+        if let minorId = formState.minorCategoryId {
+            guard let majorId = formState.majorCategoryId else {
+                errors.append("中項目を選択した場合は大項目も選択してください")
+                return errors
+            }
+
+            if lookupCategory(id: minorId)?.parent?.id != majorId {
+                errors.append("中項目の親カテゴリが一致していません")
+            }
+        }
+
+        return errors
+    }
+
+    private func parsedAmountMagnitude() -> Decimal? {
+        let sanitized = formState.amountText
+            .replacingOccurrences(of: ",", with: "")
+            .replacingOccurrences(of: "¥", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !sanitized.isEmpty else { return nil }
+        return Decimal(string: sanitized)?.magnitude
+    }
+
+    private func signedAmount(from magnitude: Decimal) -> Decimal {
+        formState.transactionKind == .expense ? -magnitude : magnitude
+    }
+
+    private func lookupInstitution(id: UUID?) -> FinancialInstitution? {
+        guard let id else { return nil }
+        return availableInstitutions.first { $0.id == id }
+    }
+
+    private func lookupCategory(id: UUID?) -> Category? {
+        guard let id else { return nil }
+        return availableCategories.first { $0.id == id }
+    }
+
+    private func update(
+        transaction: Transaction,
+        with amount: Decimal,
+        institution: FinancialInstitution?,
+        majorCategory: Category?,
+        minorCategory: Category?
+    ) {
+        transaction.title = formState.title
+        transaction.memo = formState.memo
+        transaction.date = formState.date
+        transaction.amount = amount
+        transaction.isIncludedInCalculation = formState.isIncludedInCalculation
+        transaction.isTransfer = formState.isTransfer
+        transaction.financialInstitution = institution
+        transaction.majorCategory = majorCategory
+        transaction.minorCategory = minorCategory
+        transaction.updatedAt = Date()
+    }
+
+    private func createTransaction(
+        amount: Decimal,
+        institution: FinancialInstitution?,
+        majorCategory: Category?,
+        minorCategory: Category?
+    ) {
+        let transaction = Transaction(
+            date: formState.date,
+            title: formState.title,
+            amount: amount,
+            memo: formState.memo,
+            isIncludedInCalculation: formState.isIncludedInCalculation,
+            isTransfer: formState.isTransfer,
+            financialInstitution: institution,
+            majorCategory: majorCategory,
+            minorCategory: minorCategory
+        )
+        modelContext.insert(transaction)
+    }
+
+    private nonisolated static func amountString(from decimal: Decimal) -> String {
+        NSDecimalNumber(decimal: decimal).stringValue
+    }
+}

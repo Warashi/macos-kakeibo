@@ -26,6 +26,8 @@ private struct RootDetailView: View {
         switch screen {
         case .dashboard:
             DashboardView()
+        case .transactions:
+            TransactionListView()
         default:
             ContentUnavailableView {
                 Label(screen.displayName, systemImage: screen.symbolName)
