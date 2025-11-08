@@ -34,21 +34,6 @@ public extension FetchDescriptor {
     }
 }
 
-// MARK: - Predicate Helpers
-
-/// Predicate のヘルパー拡張
-public extension Predicate {
-    /// 常にtrueを返すPredicate
-    static var all: Predicate<T> {
-        #Predicate { _ in true }
-    }
-
-    /// 常にfalseを返すPredicate
-    static var none: Predicate<T> {
-        #Predicate { _ in false }
-    }
-}
-
 // MARK: - ModelContext Extensions
 
 /// ModelContext の拡張
