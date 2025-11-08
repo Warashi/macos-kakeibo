@@ -36,15 +36,6 @@ private struct RootDetailView: View {
             CSVImportView()
         case .settings:
             SettingsView(modelContext: modelContext)
-        default:
-            ContentUnavailableView {
-                Label(screen.displayName, systemImage: screen.symbolName)
-                    .font(.largeTitle)
-            } description: {
-                Text(screen.description)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(.background)
         }
     }
 }
