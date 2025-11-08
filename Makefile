@@ -31,6 +31,7 @@ test: generate
 		-scheme $(SCHEME) \
 		-destination 'platform=macOS,arch=arm64' \
 		-derivedDataPath $(DERIVED_DATA) \
+		-enableCodeCoverage YES \
 		CODE_SIGNING_ALLOWED=NO test
 
 clean:

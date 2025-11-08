@@ -88,6 +88,49 @@ internal struct TransactionStoreTests {
         #expect(store.transactions.isEmpty)
     }
 
+    @Test("既存取引の編集が保存される")
+    internal func editTransactionPersistsChanges() throws {
+        let (context, targetDate) = try prepareContext()
+        let (institution, major, minor) = try seedReferenceData(in: context)
+
+        let transaction = Transaction(
+            date: targetDate,
+            title: "昼食",
+            amount: -800,
+            memo: "Before",
+            financialInstitution: institution,
+            majorCategory: major,
+            minorCategory: minor,
+        )
+        context.insert(transaction)
+        try context.save()
+
+        let store = TransactionStore(modelContext: context)
+        store.currentMonth = targetDate
+
+        store.startEditing(transaction: transaction)
+        store.formState.title = "会食"
+        store.formState.memo = "After"
+        store.formState.amountText = "12,000"
+        store.formState.transactionKind = .income
+        store.formState.isIncludedInCalculation = false
+        store.formState.isTransfer = true
+        store.formState.financialInstitutionId = institution.id
+        store.formState.majorCategoryId = major.id
+        store.formState.minorCategoryId = minor.id
+
+        let result = store.saveCurrentForm()
+
+        #expect(result)
+        #expect(transaction.title == "会食")
+        #expect(transaction.amount == 12_000)
+        #expect(transaction.isIncludedInCalculation == false)
+        #expect(transaction.isTransfer == true)
+        #expect(transaction.financialInstitution?.id == institution.id)
+        #expect(transaction.majorCategory?.id == major.id)
+        #expect(transaction.minorCategory?.id == minor.id)
+    }
+
     // MARK: - Helpers
 
     private func prepareContext() throws -> (ModelContext, Date) {
@@ -99,5 +142,16 @@ internal struct TransactionStoreTests {
 
         let targetDate = Date.from(year: 2025, month: 11) ?? Date()
         return (context, targetDate)
+    }
+
+    private func seedReferenceData(in context: ModelContext) throws -> (FinancialInstitution, Kakeibo.Category, Kakeibo.Category) {
+        let institution = FinancialInstitution(name: "メイン銀行")
+        let major = Kakeibo.Category(name: "食費", displayOrder: 1)
+        let minor = Kakeibo.Category(name: "外食", parent: major, displayOrder: 1)
+        context.insert(major)
+        context.insert(minor)
+        context.insert(institution)
+        try context.save()
+        return (institution, major, minor)
     }
 }

@@ -27,4 +27,19 @@ internal struct AppStateTests {
         ]
         #expect(AppState.Screen.allCases == expectedOrder)
     }
+
+    @Test("各画面の説明文が定義されている")
+    internal func screenDescriptionsMatchExpectations() {
+        let expectedDescriptions: [AppState.Screen: String] = [
+            .dashboard: "家計簿の全体状況を確認できます。",
+            .transactions: "収支の一覧を閲覧・管理する画面です。",
+            .budgets: "予算の設定や進捗を管理します。",
+            .imports: "CSVなどからデータを取り込みます。",
+            .settings: "アプリの各種設定を調整します。",
+        ]
+
+        for screen in AppState.Screen.allCases {
+            #expect(screen.description == expectedDescriptions[screen])
+        }
+    }
 }
