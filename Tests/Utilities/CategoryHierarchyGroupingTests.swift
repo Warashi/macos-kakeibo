@@ -17,5 +17,8 @@ internal struct CategoryHierarchyGroupingTests {
 
         #expect(grouping.majorCategories.map(\.id) == [food.id, transport.id])
         #expect(grouping.minorCategories.map(\.id) == [eatingOut.id, taxi.id])
+        #expect(grouping.minorCategories(forMajorId: food.id).map(\.id) == [eatingOut.id])
+        #expect(grouping.minorCategories(forMajorId: transport.id).map(\.id) == [taxi.id])
+        #expect(grouping.minorCategories(forMajorId: nil).isEmpty)
     }
 }

@@ -278,6 +278,15 @@ private struct BudgetEditorSheet: View {
         CategoryHierarchyGrouping(categories: categories)
     }
 
+    private var majorSelectionBinding: Binding<UUID?> {
+        Binding(
+            get: { formState.selectedMajorCategoryId },
+            set: { newValue in
+                formState.updateMajorSelection(to: newValue)
+            }
+        )
+    }
+
     internal var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 20) {
@@ -288,26 +297,36 @@ private struct BudgetEditorSheet: View {
                 }
 
                 LabeledField(title: "対象カテゴリ") {
-                    Picker("対象カテゴリ", selection: $formState.selectedCategoryId) {
-                        Text("全体予算").tag(UUID?.none)
-                        if !categoryGrouping.majorCategories.isEmpty {
-                            Section("大項目") {
-                                ForEach(categoryGrouping.majorCategories, id: \.id) { category in
-                                    Text(category.fullName).tag(Optional(category.id))
-                                }
+                    VStack(alignment: .leading, spacing: 12) {
+                        Picker("大項目", selection: majorSelectionBinding) {
+                            Text("全体予算").tag(UUID?.none)
+                            ForEach(categoryGrouping.majorCategories, id: \.id) { category in
+                                Text(category.name).tag(Optional(category.id))
                             }
                         }
-                        if !categoryGrouping.minorCategories.isEmpty {
-                            Section("中項目") {
-                                ForEach(categoryGrouping.minorCategories, id: \.id) { category in
-                                    Text(category.fullName).tag(Optional(category.id))
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        if let selectedMajorId = formState.selectedMajorCategoryId {
+                            let minors = categoryGrouping.minorCategories(forMajorId: selectedMajorId)
+                            if minors.isEmpty {
+                                Text("この大項目に中項目はありません")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Picker("中項目", selection: $formState.selectedMinorCategoryId) {
+                                    Text("中項目を選択").tag(UUID?.none)
+                                    ForEach(minors, id: \.id) { category in
+                                        Text(category.name).tag(Optional(category.id))
+                                    }
                                 }
+                                .labelsHidden()
+                                .pickerStyle(.menu)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
                         }
                     }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 if let errorMessage {
@@ -459,16 +478,33 @@ private struct LabeledField<Content: View>: View {
 
 private struct BudgetEditorFormState {
     internal var amountText: String = ""
-    internal var selectedCategoryId: UUID?
+    internal var selectedMajorCategoryId: UUID?
+    internal var selectedMinorCategoryId: UUID?
+
+    internal var selectedCategoryId: UUID? {
+        selectedMinorCategoryId ?? selectedMajorCategoryId
+    }
 
     internal mutating func load(from budget: Budget) {
         amountText = budget.amount.plainString
-        selectedCategoryId = budget.category?.id
+        if let category = budget.category {
+            if category.isMajor {
+                selectedMajorCategoryId = category.id
+                selectedMinorCategoryId = nil
+            } else {
+                selectedMajorCategoryId = category.parent?.id
+                selectedMinorCategoryId = category.id
+            }
+        } else {
+            selectedMajorCategoryId = nil
+            selectedMinorCategoryId = nil
+        }
     }
 
     internal mutating func reset() {
         amountText = ""
-        selectedCategoryId = nil
+        selectedMajorCategoryId = nil
+        selectedMinorCategoryId = nil
     }
 
     private var normalizedAmountText: String {
@@ -483,6 +519,12 @@ private struct BudgetEditorFormState {
     internal var isValid: Bool {
         guard let amount = decimalAmount else { return false }
         return amount > 0
+    }
+
+    internal mutating func updateMajorSelection(to newValue: UUID?) {
+        guard selectedMajorCategoryId != newValue else { return }
+        selectedMajorCategoryId = newValue
+        selectedMinorCategoryId = nil
     }
 }
 
