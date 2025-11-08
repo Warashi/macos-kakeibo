@@ -7,60 +7,57 @@ import SwiftUI
 /// 月次/年次の総括、年次特別枠の状況、カテゴリ別ハイライトを表示します。
 internal struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext: ModelContext
-    @State private var store: DashboardStore
-
-    internal init() {
-        // StateはinitではなくbodyのonAppearで初期化する必要がある
-        // 一時的にダミー値を設定
-        let container = try! ModelContainer(
-            for: Transaction.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-        )
-        _store = State(initialValue: DashboardStore(modelContext: container.mainContext))
-    }
+    @State private var store: DashboardStore?
 
     internal var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // ツールバー（月次/年次切り替え、月移動）
-                toolbarSection
+        Group {
+            if let store {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        toolbarSection(store: store)
 
-                // 月次総括カード
-                if store.displayMode == .monthly {
-                    MonthlySummaryCard(
-                        summary: store.monthlySummary,
-                        budgetCalculation: store.monthlyBudgetCalculation,
-                    )
-                } else {
-                    // 年次総括カード（簡易版）
-                    AnnualSummaryCard(summary: store.annualSummary)
+                        if store.displayMode == .monthly {
+                            MonthlySummaryCard(
+                                summary: store.monthlySummary,
+                                budgetCalculation: store.monthlyBudgetCalculation,
+                            )
+                        } else {
+                            AnnualSummaryCard(summary: store.annualSummary)
+                        }
+
+                        if let annualBudgetUsage = store.annualBudgetUsage {
+                            AnnualBudgetCard(usage: annualBudgetUsage)
+                        }
+
+                        CategoryHighlightTable(
+                            categories: store.categoryHighlights,
+                            title: store.displayMode == .monthly ? "今月のカテゴリ別支出" : "今年のカテゴリ別支出",
+                        )
+                    }
+                    .padding()
                 }
-
-                // 年次特別枠カード
-                if let annualBudgetUsage = store.annualBudgetUsage {
-                    AnnualBudgetCard(usage: annualBudgetUsage)
-                }
-
-                // カテゴリ別ハイライト
-                CategoryHighlightTable(
-                    categories: store.categoryHighlights,
-                    title: store.displayMode == .monthly ? "今月のカテゴリ別支出" : "今年のカテゴリ別支出",
-                )
+            } else {
+                ProgressView("データを読み込み中…")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .padding()
         }
         .navigationTitle("ダッシュボード")
         .onAppear {
-            // 正しいModelContextで初期化
+            guard store == nil else { return }
             store = DashboardStore(modelContext: modelContext)
         }
     }
 
     @ViewBuilder
-    private var toolbarSection: some View {
+    private func toolbarSection(store: DashboardStore) -> some View {
         HStack {
-            // 表示モード切り替え
-            Picker("表示モード", selection: $store.displayMode) {
+            Picker(
+                "表示モード",
+                selection: Binding(
+                    get: { store.displayMode },
+                    set: { store.displayMode = $0 }
+                )
+            ) {
                 ForEach(DashboardStore.DisplayMode.allCases, id: \.self) { mode in
                     Text(mode.rawValue).tag(mode)
                 }
@@ -70,11 +67,10 @@ internal struct DashboardView: View {
 
             Spacer()
 
-            // 月次の場合は月移動ボタン
             if store.displayMode == .monthly {
-                monthNavigationButtons
+                monthNavigationButtons(store: store)
             } else {
-                yearNavigationButtons
+                yearNavigationButtons(store: store)
             }
 
             Button("今日") {
@@ -91,7 +87,7 @@ internal struct DashboardView: View {
     }
 
     @ViewBuilder
-    private var monthNavigationButtons: some View {
+    private func monthNavigationButtons(store: DashboardStore) -> some View {
         HStack {
             Button(action: store.moveToPreviousMonth) {
                 Image(systemName: "chevron.left")
@@ -107,7 +103,7 @@ internal struct DashboardView: View {
     }
 
     @ViewBuilder
-    private var yearNavigationButtons: some View {
+    private func yearNavigationButtons(store: DashboardStore) -> some View {
         HStack {
             Button(action: store.moveToPreviousYear) {
                 Image(systemName: "chevron.left")
