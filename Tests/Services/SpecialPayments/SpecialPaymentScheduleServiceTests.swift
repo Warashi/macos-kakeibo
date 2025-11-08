@@ -33,11 +33,11 @@ internal struct SpecialPaymentScheduleServiceTests {
             (2025, 11),
             (2026, 5),
         ]
-        #expect(
-            scheduledMonths.elementsEqual(expectedMonths, by: { lhs, rhs in
-                lhs.0 == rhs.0 && lhs.1 == rhs.1
-            })
-        )
+        #expect(scheduledMonths.count == expectedMonths.count)
+        for (index, expected) in expectedMonths.enumerated() {
+            let actual = scheduledMonths[index]
+            #expect(actual.0 == expected.0 && actual.1 == expected.1)
+        }
     }
 
     @Test("参照日より後の初回予定日を保持する")
