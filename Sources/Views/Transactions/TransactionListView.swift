@@ -55,16 +55,16 @@ internal struct TransactionListContentView: View {
 
     private var summaryBar: some View {
         HStack(spacing: 16) {
-            summaryItem(title: "収入", value: store.totalIncome, tint: .green)
-            summaryItem(title: "支出", value: store.totalExpense, tint: .red)
-            summaryItem(title: "差引", value: store.netAmount, tint: store.netAmount >= 0 ? .green : .red)
+            summaryItem(title: "収入", value: store.totalIncome, tint: .income)
+            summaryItem(title: "支出", value: store.totalExpense, tint: .expense)
+            summaryItem(title: "差引", value: store.netAmount, tint: store.netAmount >= 0 ? .positive : .negative)
             Spacer()
             Text("\(store.transactions.count)件")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
         .padding()
-        .background(Color.gray.opacity(0.08))
+        .background(Color.backgroundSecondary)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 

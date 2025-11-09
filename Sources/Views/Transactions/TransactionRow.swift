@@ -6,7 +6,7 @@ internal struct TransactionRow: View {
     internal let onDelete: (Transaction) -> Void
 
     private var accentColor: Color {
-        transaction.isExpense ? .red : .green
+        transaction.isExpense ? .expense : .income
     }
 
     internal var body: some View {
@@ -88,6 +88,6 @@ private struct TagView: View {
             .font(.caption2)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(Capsule().fill(Color.gray.opacity(0.2)))
+            .background(Capsule().fill(Color.badgeBackgroundDefault))
     }
 }
