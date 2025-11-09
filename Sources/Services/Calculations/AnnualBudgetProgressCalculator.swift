@@ -1,5 +1,22 @@
 import Foundation
 
+/// 表示順序を表す構造体
+internal struct DisplayOrder: Comparable {
+    internal let parentOrder: Int
+    internal let ownOrder: Int
+    internal let name: String
+
+    internal static func < (lhs: DisplayOrder, rhs: DisplayOrder) -> Bool {
+        if lhs.parentOrder != rhs.parentOrder {
+            return lhs.parentOrder < rhs.parentOrder
+        }
+        if lhs.ownOrder != rhs.ownOrder {
+            return lhs.ownOrder < rhs.ownOrder
+        }
+        return lhs.name < rhs.name
+    }
+}
+
 /// 年次予算エントリ
 internal struct AnnualBudgetEntry: Identifiable {
     internal enum EntryID: Hashable {
@@ -12,7 +29,7 @@ internal struct AnnualBudgetEntry: Identifiable {
     internal let title: String
     internal let calculation: BudgetCalculation
     internal let isOverallBudget: Bool
-    internal let displayOrderTuple: (Int, Int, String)
+    internal let displayOrder: DisplayOrder
 }
 
 /// 年次予算進捗計算結果
@@ -118,7 +135,7 @@ internal struct AnnualBudgetProgressCalculator {
             title: "全体予算",
             calculation: calculation,
             isOverallBudget: true,
-            displayOrderTuple: (-1, -1, "全体予算"),
+            displayOrder: DisplayOrder(parentOrder: -1, ownOrder: -1, name: "全体予算"),
         )
     }
 
@@ -152,17 +169,17 @@ internal struct AnnualBudgetProgressCalculator {
                 title: category.fullName,
                 calculation: calculation,
                 isOverallBudget: false,
-                displayOrderTuple: displayOrderTuple(for: category),
+                displayOrder: createDisplayOrder(for: category),
             )
         }
         .sorted { lhs, rhs in
-            lhs.displayOrderTuple < rhs.displayOrderTuple
+            lhs.displayOrder < rhs.displayOrder
         }
     }
 
-    private func displayOrderTuple(for category: Category) -> (Int, Int, String) {
+    private func createDisplayOrder(for category: Category) -> DisplayOrder {
         let parentOrder = category.parent?.displayOrder ?? category.displayOrder
         let ownOrder = category.displayOrder
-        return (parentOrder, ownOrder, category.fullName)
+        return DisplayOrder(parentOrder: parentOrder, ownOrder: ownOrder, name: category.fullName)
     }
 }
