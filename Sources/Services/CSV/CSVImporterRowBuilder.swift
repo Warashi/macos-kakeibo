@@ -5,7 +5,7 @@ import SwiftData
 
 extension CSVImporter {
     /// CSVRowからCSVImportRecordを構築
-    func buildRecord(
+    internal func buildRecord(
         for row: CSVRow,
         mapping: CSVColumnMapping,
     ) -> CSVImportRecord {
@@ -48,7 +48,7 @@ extension CSVImporter {
     }
 
     /// 識別子を抽出
-    func extractIdentifier(from row: CSVRow, mapping: CSVColumnMapping) -> CSVTransactionIdentifier? {
+    internal func extractIdentifier(from row: CSVRow, mapping: CSVColumnMapping) -> CSVTransactionIdentifier? {
         guard let rawId = normalizedOptional(mapping.value(for: .identifier, in: row)) else {
             return nil
         }
@@ -56,7 +56,7 @@ extension CSVImporter {
     }
 
     /// 必須フィールドをバリデーション
-    func validateRequiredFields(
+    internal func validateRequiredFields(
         row: CSVRow,
         mapping: CSVColumnMapping,
     ) -> RequiredFieldsResult? {
@@ -78,7 +78,7 @@ extension CSVImporter {
     }
 
     /// エラーレコードを作成（必須フィールドのバリデーションに失敗した場合）
-    func createErrorRecord(
+    internal func createErrorRecord(
         row: CSVRow,
         mapping: CSVColumnMapping,
         issues: inout [CSVImportIssue],
@@ -107,7 +107,7 @@ extension CSVImporter {
     }
 
     /// オプションフィールドを抽出
-    func extractOptionalFields(
+    internal func extractOptionalFields(
         from row: CSVRow,
         mapping: CSVColumnMapping,
         issues: inout [CSVImportIssue],
@@ -126,7 +126,7 @@ extension CSVImporter {
     }
 
     /// フラグ（ブール値）フィールドを抽出
-    func extractFlags(
+    internal func extractFlags(
         from row: CSVRow,
         mapping: CSVColumnMapping,
         issues: inout [CSVImportIssue],

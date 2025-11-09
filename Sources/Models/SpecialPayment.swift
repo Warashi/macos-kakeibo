@@ -318,7 +318,7 @@ internal extension SpecialPaymentOccurrence {
 
 extension DayOfMonthPattern {
     /// 指定された年月でこのパターンに該当する日付を計算
-    func date(
+    internal func date(
         in year: Int,
         month: Int,
         calendar: Calendar,

@@ -22,7 +22,7 @@ internal struct RootView: View {
 
 private struct RootDetailView: View {
     internal let screen: AppState.Screen
-    @Environment(\.modelContext) private var modelContext
+    @Environment(\.modelContext) private var modelContext: ModelContext
 
     internal var body: some View {
         switch screen {
