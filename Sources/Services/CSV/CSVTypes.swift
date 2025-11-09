@@ -211,27 +211,22 @@ internal struct CSVColumnMapping: Sendable, Equatable {
 private extension CSVColumn {
     /// カラムとヘッダー文字列のマッチングロジック
     func matches(_ header: String) -> Bool {
+        matchingFunction(header)
+    }
+
+    /// 各カラムに対応するマッチング関数を取得
+    private var matchingFunction: (String) -> Bool {
         switch self {
-        case .identifier:
-            matchesIdentifier(header)
-        case .date:
-            matchesDate(header)
-        case .title:
-            matchesTitle(header)
-        case .amount:
-            matchesAmount(header)
-        case .memo:
-            matchesMemo(header)
-        case .financialInstitution:
-            matchesFinancialInstitution(header)
-        case .majorCategory:
-            matchesMajorCategory(header)
-        case .minorCategory:
-            matchesMinorCategory(header)
-        case .includeInCalculation:
-            matchesIncludeInCalculation(header)
-        case .transfer:
-            matchesTransfer(header)
+        case .identifier: matchesIdentifier
+        case .date: matchesDate
+        case .title: matchesTitle
+        case .amount: matchesAmount
+        case .memo: matchesMemo
+        case .financialInstitution: matchesFinancialInstitution
+        case .majorCategory: matchesMajorCategory
+        case .minorCategory: matchesMinorCategory
+        case .includeInCalculation: matchesIncludeInCalculation
+        case .transfer: matchesTransfer
         }
     }
 
