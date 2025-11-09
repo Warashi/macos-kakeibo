@@ -19,7 +19,7 @@ internal struct BudgetToolbarView: View {
                 }
             }
             .pickerStyle(.segmented)
-            .frame(maxWidth: 200)
+            .fixedSize()
 
             Spacer()
 
