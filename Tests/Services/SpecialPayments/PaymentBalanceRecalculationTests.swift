@@ -62,13 +62,15 @@ internal struct PaymentBalanceRecalculationTests {
 
         // When: 2025年11月時点での再計算（積立開始は2025年1月）
         service.recalculateBalance(
-            for: definition,
-            balance: balance,
-            year: 2025,
-            month: 11,
-            startYear: 2025,
-            startMonth: 1,
-            context: context,
+            params: SpecialPaymentBalanceService.RecalculateBalanceParameters(
+                definition: definition,
+                balance: balance,
+                year: 2025,
+                month: 11,
+                startYear: 2025,
+                startMonth: 1,
+                context: context,
+            ),
         )
 
         // Then
@@ -103,11 +105,13 @@ internal struct PaymentBalanceRecalculationTests {
 
         // When
         service.recalculateBalance(
-            for: definition,
-            balance: balance,
-            year: 2025,
-            month: 11,
-            context: context,
+            params: SpecialPaymentBalanceService.RecalculateBalanceParameters(
+                definition: definition,
+                balance: balance,
+                year: 2025,
+                month: 11,
+                context: context,
+            ),
         )
 
         // Then

@@ -27,11 +27,13 @@ internal struct PaymentBalanceSavingsTests {
 
         // When
         let balance = service.recordMonthlySavings(
-            for: definition,
-            balance: nil,
-            year: 2025,
-            month: 11,
-            context: context,
+            params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                definition: definition,
+                balance: nil,
+                year: 2025,
+                month: 11,
+                context: context,
+            ),
         )
 
         // Then
@@ -59,11 +61,13 @@ internal struct PaymentBalanceSavingsTests {
 
         // When
         let balance = service.recordMonthlySavings(
-            for: definition,
-            balance: existingBalance,
-            year: 2025,
-            month: 11,
-            context: context,
+            params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                definition: definition,
+                balance: existingBalance,
+                year: 2025,
+                month: 11,
+                context: context,
+            ),
         )
 
         // Then
@@ -90,11 +94,13 @@ internal struct PaymentBalanceSavingsTests {
 
         // When
         let balance = service.recordMonthlySavings(
-            for: definition,
-            balance: existingBalance,
-            year: 2025,
-            month: 11, // 同じ年月
-            context: context,
+            params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                definition: definition,
+                balance: existingBalance,
+                year: 2025,
+                month: 11, // 同じ年月
+                context: context,
+            ),
         )
 
         // Then
@@ -114,11 +120,13 @@ internal struct PaymentBalanceSavingsTests {
         // 6ヶ月分の積立を記録
         for month in 1 ... 6 {
             balance = service.recordMonthlySavings(
-                for: definition,
-                balance: balance,
-                year: 2025,
-                month: month,
-                context: context,
+                params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                    definition: definition,
+                    balance: balance,
+                    year: 2025,
+                    month: month,
+                    context: context,
+                ),
             )
         }
 
