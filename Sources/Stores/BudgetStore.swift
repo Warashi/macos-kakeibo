@@ -140,7 +140,7 @@ internal final class BudgetStore {
                 )
             }
             .sorted { lhs, rhs in
-                lhs.displayOrderTuple < rhs.displayOrderTuple
+                lhs.displayOrderKey < rhs.displayOrderKey
             }
     }
 
@@ -495,11 +495,30 @@ internal struct MonthlyBudgetEntry: Identifiable {
         budget.category == nil
     }
 
-    /// ソート用にカテゴリのdisplayOrderを親子で考慮したタプルを返す
-    internal var displayOrderTuple: (Int, Int, String) {
+    /// ソート用にカテゴリのdisplayOrderを親子で考慮した順序情報を返す
+    internal var displayOrderKey: CategoryDisplayOrderKey {
         let parentOrder = budget.category?.parent?.displayOrder ?? budget.category?.displayOrder ?? 0
         let ownOrder = budget.category?.displayOrder ?? 0
-        return (parentOrder, ownOrder, title)
+        return CategoryDisplayOrderKey(parentOrder: parentOrder, ownOrder: ownOrder, title: title)
+    }
+}
+
+// MARK: - Category Display Order Key
+
+/// カテゴリの表示順序を表すキー
+internal struct CategoryDisplayOrderKey: Comparable {
+    internal let parentOrder: Int
+    internal let ownOrder: Int
+    internal let title: String
+
+    internal static func < (lhs: CategoryDisplayOrderKey, rhs: CategoryDisplayOrderKey) -> Bool {
+        if lhs.parentOrder != rhs.parentOrder {
+            return lhs.parentOrder < rhs.parentOrder
+        }
+        if lhs.ownOrder != rhs.ownOrder {
+            return lhs.ownOrder < rhs.ownOrder
+        }
+        return lhs.title < rhs.title
     }
 }
 
