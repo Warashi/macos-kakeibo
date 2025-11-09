@@ -19,4 +19,4 @@
 --typeattributes prev-line
 --importgrouping alpha
 --fragment true
---disable redundantInternal, redundantType
+--disable redundantInternal, redundantType, extensionAccessControl

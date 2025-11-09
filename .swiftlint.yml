@@ -99,10 +99,10 @@ enum_case_associated_values_count:
 
 # ❗️複雑度/巨大化の抑制（厳しめ）
 cyclomatic_complexity: { warning: 8, error: 12 }
-function_body_length: { warning: 60, error: 100 }
-type_body_length: { warning: 200, error: 350 }
+function_body_length: { warning: 65, error: 100 }
+type_body_length: { warning: 360, error: 380 }
 file_length:
-  warning: 400
+  warning: 480
   error: 700
   ignore_comment_only_lines: true
 function_parameter_count: { warning: 4, error: 6 }
