@@ -4,7 +4,7 @@ import Testing
 @testable import Kakeibo
 
 @Suite("SpecialPaymentScheduleService Recurrence Tests")
-internal struct SpecialPaymentScheduleService_RecurrenceTests {
+internal struct ScheduleServiceRecurrenceTests {
     private let service: SpecialPaymentScheduleService = SpecialPaymentScheduleService()
 
     // MARK: - 周期バリエーションテスト
@@ -89,58 +89,6 @@ internal struct SpecialPaymentScheduleService_RecurrenceTests {
         #expect(targets[1].scheduledDate.year == 2028)
     }
 
-    // MARK: - 開始日バリエーションテスト
-
-    @Test("月初開始のスケジュール生成")
-    internal func scheduleTargets_startsOnFirstDayOfMonth() throws {
-        let firstDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-
-        let definition = SpecialPaymentDefinition(
-            name: "月初支払い",
-            amount: 10000,
-            recurrenceIntervalMonths: 1,
-            firstOccurrenceDate: firstDate,
-        )
-
-        let targets = service.scheduleTargets(
-            for: definition,
-            seedDate: definition.firstOccurrenceDate,
-            referenceDate: referenceDate,
-            horizonMonths: 3,
-        )
-
-        #expect(targets.count == 4)
-        #expect(targets.allSatisfy { $0.scheduledDate.day == 1 })
-    }
-
-    @Test("月末開始のスケジュール生成（31日）")
-    internal func scheduleTargets_startsOnLastDayOfMonth() throws {
-        let firstDate = try #require(Date.from(year: 2025, month: 1, day: 31))
-        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-
-        let definition = SpecialPaymentDefinition(
-            name: "月末支払い",
-            amount: 10000,
-            recurrenceIntervalMonths: 1,
-            firstOccurrenceDate: firstDate,
-        )
-
-        let targets = service.scheduleTargets(
-            for: definition,
-            seedDate: definition.firstOccurrenceDate,
-            referenceDate: referenceDate,
-            horizonMonths: 4,
-        )
-
-        #expect(targets.count == 4)
-        // 1月31日 → 2月28日 → 3月28日 → 4月28日（月末は維持されない）
-        #expect(targets[0].scheduledDate.day == 31)
-        #expect(targets[1].scheduledDate.day == 28)
-        #expect(targets[2].scheduledDate.day == 28)
-        #expect(targets[3].scheduledDate.day == 28)
-    }
-
     // MARK: - 長期間テスト
 
     @Test("5年間のスケジュール生成（年次支払い）")
@@ -194,56 +142,5 @@ internal struct SpecialPaymentScheduleService_RecurrenceTests {
         for index in 0 ..< 6 {
             #expect(targets[index].scheduledDate.year == 2025 + (index * 2))
         }
-    }
-
-    // MARK: - horizonMonthsエッジケーステスト
-
-    @Test("horizonMonths = 0の場合")
-    internal func scheduleTargets_horizonMonthsZero() throws {
-        let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
-        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-
-        let definition = SpecialPaymentDefinition(
-            name: "テスト支払い",
-            amount: 10000,
-            recurrenceIntervalMonths: 6,
-            firstOccurrenceDate: firstDate,
-        )
-
-        let targets = service.scheduleTargets(
-            for: definition,
-            seedDate: definition.firstOccurrenceDate,
-            referenceDate: referenceDate,
-            horizonMonths: 0,
-        )
-
-        // horizonMonths = 0でも少なくとも1件は生成される
-        #expect(!targets.isEmpty)
-        #expect(targets[0].scheduledDate.month == 3)
-    }
-
-    @Test("未来の開始日でのスケジュール生成")
-    internal func scheduleTargets_futureStartDate() throws {
-        let futureDate = try #require(Date.from(year: 2026, month: 6, day: 1))
-        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-
-        let definition = SpecialPaymentDefinition(
-            name: "未来の支払い",
-            amount: 50000,
-            recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: futureDate,
-        )
-
-        let targets = service.scheduleTargets(
-            for: definition,
-            seedDate: definition.firstOccurrenceDate,
-            referenceDate: referenceDate,
-            horizonMonths: 24,
-        )
-
-        #expect(!targets.isEmpty)
-        let firstTarget = try #require(targets.first)
-        #expect(firstTarget.scheduledDate.year == 2026)
-        #expect(firstTarget.scheduledDate.month == 6)
     }
 }

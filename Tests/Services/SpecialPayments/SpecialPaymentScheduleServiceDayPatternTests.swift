@@ -4,7 +4,7 @@ import Testing
 @testable import Kakeibo
 
 @Suite("SpecialPaymentScheduleService DayPattern Tests")
-internal struct SpecialPaymentScheduleService_DayPatternTests {
+internal struct ScheduleServiceDayPatternTests {
     private let service: SpecialPaymentScheduleService = SpecialPaymentScheduleService()
 
     // MARK: - recurrenceDayPattern Integration Tests
