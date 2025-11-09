@@ -20,6 +20,31 @@ internal enum DateAdjustmentPolicy: String, Codable {
     case moveToNextBusinessDay // 次営業日に移動
 }
 
+internal enum Weekday: Int, Codable, CaseIterable {
+    case sunday = 1
+    case monday = 2
+    case tuesday = 3
+    case wednesday = 4
+    case thursday = 5
+    case friday = 6
+    case saturday = 7
+}
+
+internal enum DayOfMonthPattern: Codable, Equatable {
+    // カレンダー日ベース
+    case fixed(Int) // 固定日（例：15日）
+    case endOfMonth // 月末
+    case endOfMonthMinus(days: Int) // 月末前N日（例：月末3日前）
+    case nthWeekday(week: Int, weekday: Weekday) // 第N週のM曜日（例：第2水曜日）
+    case lastWeekday(Weekday) // 最終M曜日（例：最終金曜日）
+
+    // 営業日ベース
+    case firstBusinessDay // 最初の営業日
+    case lastBusinessDay // 最終営業日
+    case nthBusinessDay(Int) // N番目の営業日（例：5営業日目）
+    case lastBusinessDayMinus(days: Int) // 最終営業日前N営業日
+}
+
 @Model
 internal final class SpecialPaymentDefinition {
     internal var id: UUID
@@ -33,6 +58,7 @@ internal final class SpecialPaymentDefinition {
     internal var savingStrategy: SpecialPaymentSavingStrategy
     internal var customMonthlySavingAmount: Decimal?
     internal var dateAdjustmentPolicy: DateAdjustmentPolicy
+    internal var recurrenceDayPattern: DayOfMonthPattern?
 
     @Relationship(deleteRule: .cascade, inverse: \SpecialPaymentOccurrence.definition)
     private var occurrencesStorage: [SpecialPaymentOccurrence]
@@ -52,6 +78,7 @@ internal final class SpecialPaymentDefinition {
         savingStrategy: SpecialPaymentSavingStrategy = .evenlyDistributed,
         customMonthlySavingAmount: Decimal? = nil,
         dateAdjustmentPolicy: DateAdjustmentPolicy = .none,
+        recurrenceDayPattern: DayOfMonthPattern? = nil,
     ) {
         self.id = id
         self.name = name
@@ -64,6 +91,7 @@ internal final class SpecialPaymentDefinition {
         self.savingStrategy = savingStrategy
         self.customMonthlySavingAmount = customMonthlySavingAmount
         self.dateAdjustmentPolicy = dateAdjustmentPolicy
+        self.recurrenceDayPattern = recurrenceDayPattern
         self.occurrencesStorage = []
 
         let now = Date()
@@ -283,5 +311,82 @@ internal extension SpecialPaymentOccurrence {
 
     var isValid: Bool {
         validate().isEmpty
+    }
+}
+
+// MARK: - DayOfMonthPattern Extension
+
+extension DayOfMonthPattern {
+    /// 指定された年月でこのパターンに該当する日付を計算
+    func date(
+        in year: Int,
+        month: Int,
+        calendar: Calendar,
+        businessDayService: BusinessDayService,
+    ) -> Date? {
+        switch self {
+        case let .fixed(day):
+            return calendar.date(from: DateComponents(year: year, month: month, day: day))
+
+        case .endOfMonth:
+            guard let firstDay = calendar.date(from: DateComponents(year: year, month: month, day: 1)),
+                  let nextMonth = calendar.date(byAdding: .month, value: 1, to: firstDay),
+                  let lastDay = calendar.date(byAdding: .day, value: -1, to: nextMonth) else {
+                return nil
+            }
+            return lastDay
+
+        case let .endOfMonthMinus(days):
+            guard let endDate = DayOfMonthPattern.endOfMonth.date(
+                in: year,
+                month: month,
+                calendar: calendar,
+                businessDayService: businessDayService,
+            ) else {
+                return nil
+            }
+            return calendar.date(byAdding: .day, value: -days, to: endDate)
+
+        case let .nthWeekday(week, weekday):
+            var components = DateComponents()
+            components.year = year
+            components.month = month
+            components.weekday = weekday.rawValue
+            components.weekdayOrdinal = week
+
+            return calendar.date(from: components)
+
+        case let .lastWeekday(weekday):
+            guard let firstDay = calendar.date(from: DateComponents(year: year, month: month, day: 1)),
+                  let nextMonth = calendar.date(byAdding: .month, value: 1, to: firstDay) else {
+                return nil
+            }
+
+            var current = nextMonth
+            for _ in 0 ..< 7 {
+                guard let previous = calendar.date(byAdding: .day, value: -1, to: current) else {
+                    return nil
+                }
+                current = previous
+
+                if calendar.component(.weekday, from: current) == weekday.rawValue {
+                    return current
+                }
+            }
+            return nil
+
+        // 営業日ベース
+        case .firstBusinessDay:
+            return businessDayService.firstBusinessDay(of: year, month: month)
+
+        case .lastBusinessDay:
+            return businessDayService.lastBusinessDay(of: year, month: month)
+
+        case let .nthBusinessDay(n):
+            return businessDayService.nthBusinessDay(n, of: year, month: month)
+
+        case let .lastBusinessDayMinus(days):
+            return businessDayService.lastBusinessDayMinus(days: days, of: year, month: month)
+        }
     }
 }

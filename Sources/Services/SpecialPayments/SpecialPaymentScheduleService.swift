@@ -10,15 +10,16 @@ internal struct SpecialPaymentScheduleService {
         internal let expectedAmount: Decimal
     }
 
-    private let calendar: Calendar = Calendar(identifier: .gregorian)
+    private let calendar: Calendar
+    private let businessDayService: BusinessDayService
     private let maxIterations: Int = 600
 
-    /// 日付が休日（土日）かどうかを判定する
-    /// - Parameter date: 判定対象の日付
-    /// - Returns: 休日の場合true
-    private func isWeekend(_ date: Date) -> Bool {
-        let weekday = calendar.component(.weekday, from: date)
-        return weekday == 1 || weekday == 7 // 日曜日または土曜日
+    internal init(
+        calendar: Calendar = Calendar(identifier: .gregorian),
+        businessDayService: BusinessDayService = BusinessDayService()
+    ) {
+        self.calendar = calendar
+        self.businessDayService = businessDayService
     }
 
     /// 営業日への日付調整を行う
@@ -32,24 +33,16 @@ internal struct SpecialPaymentScheduleService {
             return date
 
         case .moveToPreviousBusinessDay:
-            var currentDate = date
-            while isWeekend(currentDate) {
-                guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDate) else {
-                    return date
-                }
-                currentDate = previousDay
+            if businessDayService.isBusinessDay(date) {
+                return date
             }
-            return currentDate
+            return businessDayService.previousBusinessDay(from: date) ?? date
 
         case .moveToNextBusinessDay:
-            var currentDate = date
-            while isWeekend(currentDate) {
-                guard let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
-                    return date
-                }
-                currentDate = nextDay
+            if businessDayService.isBusinessDay(date) {
+                return date
             }
-            return currentDate
+            return businessDayService.nextBusinessDay(from: date) ?? date
         }
     }
 
@@ -78,7 +71,11 @@ internal struct SpecialPaymentScheduleService {
         var iterationCount = 0
 
         while currentDate < referenceStart, iterationCount < maxIterations {
-            guard let next = advance(date: currentDate, months: definition.recurrenceIntervalMonths) else {
+            guard let next = nextOccurrence(
+                from: currentDate,
+                intervalMonths: definition.recurrenceIntervalMonths,
+                pattern: definition.recurrenceDayPattern,
+            ) else {
                 break
             }
             currentDate = next
@@ -101,9 +98,10 @@ internal struct SpecialPaymentScheduleService {
                 ),
             )
 
-            guard let next = advance(
-                date: generationDate,
-                months: definition.recurrenceIntervalMonths,
+            guard let next = nextOccurrence(
+                from: generationDate,
+                intervalMonths: definition.recurrenceIntervalMonths,
+                pattern: definition.recurrenceDayPattern,
             ) else {
                 break
             }
@@ -151,6 +149,40 @@ internal struct SpecialPaymentScheduleService {
         ).month ?? 0
 
         return monthsUntil <= clampedLeadTime ? .saving : .planned
+    }
+
+    /// 次の発生日を計算する
+    /// - Parameters:
+    ///   - date: 基準となる日付
+    ///   - intervalMonths: 周期（月数）
+    ///   - pattern: 日付パターン（nilの場合は標準カレンダー計算）
+    /// - Returns: 次の発生日
+    private func nextOccurrence(
+        from date: Date,
+        intervalMonths: Int,
+        pattern: DayOfMonthPattern?,
+    ) -> Date? {
+        // まず月を進める
+        guard let nextMonth = calendar.date(byAdding: .month, value: intervalMonths, to: date) else {
+            return nil
+        }
+
+        // パターンが指定されている場合は、そのパターンに従って日付を計算
+        if let pattern {
+            let components = calendar.dateComponents([.year, .month], from: nextMonth)
+            guard let year = components.year, let month = components.month else {
+                return nil
+            }
+            return pattern.date(
+                in: year,
+                month: month,
+                calendar: calendar,
+                businessDayService: businessDayService,
+            )
+        } else {
+            // パターンがない場合は標準のカレンダー計算
+            return nextMonth
+        }
     }
 
     private func advance(date: Date, months: Int) -> Date? {
