@@ -393,11 +393,14 @@ internal extension SpecialPaymentReconciliationStore {
         let transaction = selectedTransactionId.flatMap(transactionById)
 
         do {
-            try specialPaymentStore.markOccurrenceCompleted(
-                occurrence,
+            let input = OccurrenceCompletionInput(
                 actualDate: actualDate,
                 actualAmount: amount,
                 transaction: transaction,
+            )
+            try specialPaymentStore.markOccurrenceCompleted(
+                occurrence,
+                input: input,
             )
             statusMessage = "実績を保存しました。"
             refresh()

@@ -26,12 +26,15 @@ internal struct SpecialPaymentStoreUpdateTests {
         let occurrence = try #require(definition.occurrences.first)
 
         let actualDate = try #require(Date.from(year: 2025, month: 3, day: 16))
-        try store.updateOccurrence(
-            occurrence,
+        let input = OccurrenceUpdateInput(
             status: .completed,
             actualDate: actualDate,
             actualAmount: 48000,
             transaction: nil,
+        )
+        try store.updateOccurrence(
+            occurrence,
+            input: input,
         )
 
         #expect(occurrence.status == .completed)
@@ -59,22 +62,28 @@ internal struct SpecialPaymentStoreUpdateTests {
         #expect(definition.occurrences.count == 2)
 
         let actualDate = try #require(Date.from(year: 2025, month: 3, day: 16))
-        try store.markOccurrenceCompleted(
-            occurrence,
+        let completionInput = OccurrenceCompletionInput(
             actualDate: actualDate,
             actualAmount: 50000,
+        )
+        try store.markOccurrenceCompleted(
+            occurrence,
+            input: completionInput,
             horizonMonths: 24,
         )
 
         let occurrenceCountAfterCompleted = definition.occurrences.count
         #expect(occurrenceCountAfterCompleted == 4)
 
-        try store.updateOccurrence(
-            occurrence,
+        let updateInput = OccurrenceUpdateInput(
             status: .planned,
             actualDate: nil,
             actualAmount: nil,
             transaction: nil,
+        )
+        try store.updateOccurrence(
+            occurrence,
+            input: updateInput,
             horizonMonths: 12,
         )
 
@@ -105,12 +114,15 @@ internal struct SpecialPaymentStoreUpdateTests {
         let occurrenceCountBefore = definition.occurrences.count
 
         let actualDate = try #require(Date.from(year: 2025, month: 3, day: 16))
-        try store.updateOccurrence(
-            occurrence,
+        let input = OccurrenceUpdateInput(
             status: .completed,
             actualDate: actualDate,
             actualAmount: 48000,
             transaction: nil,
+        )
+        try store.updateOccurrence(
+            occurrence,
+            input: input,
         )
 
         #expect(occurrence.status == .completed)
@@ -137,21 +149,27 @@ internal struct SpecialPaymentStoreUpdateTests {
         let occurrence = try #require(definition.occurrences.first)
 
         let actualDate1 = try #require(Date.from(year: 2025, month: 3, day: 16))
-        try store.markOccurrenceCompleted(
-            occurrence,
+        let completionInput = OccurrenceCompletionInput(
             actualDate: actualDate1,
             actualAmount: 50000,
+        )
+        try store.markOccurrenceCompleted(
+            occurrence,
+            input: completionInput,
         )
 
         let occurrenceCountAfterCompleted = definition.occurrences.count
 
         let actualDate2 = try #require(Date.from(year: 2025, month: 3, day: 17))
-        try store.updateOccurrence(
-            occurrence,
+        let updateInput = OccurrenceUpdateInput(
             status: .completed,
             actualDate: actualDate2,
             actualAmount: 48000,
             transaction: nil,
+        )
+        try store.updateOccurrence(
+            occurrence,
+            input: updateInput,
         )
 
         #expect(occurrence.actualDate == actualDate2)
@@ -178,12 +196,15 @@ internal struct SpecialPaymentStoreUpdateTests {
         let occurrence = try #require(definition.occurrences.first)
 
         #expect(throws: SpecialPaymentStoreError.self) {
-            try store.updateOccurrence(
-                occurrence,
+            let input = OccurrenceUpdateInput(
                 status: .completed,
                 actualDate: nil,
                 actualAmount: 50000,
                 transaction: nil,
+            )
+            try store.updateOccurrence(
+                occurrence,
+                input: input,
             )
         }
     }
@@ -209,12 +230,15 @@ internal struct SpecialPaymentStoreUpdateTests {
         let farActualDate = try #require(Date.from(year: 2025, month: 7, day: 1))
 
         #expect(throws: SpecialPaymentStoreError.self) {
-            try store.updateOccurrence(
-                occurrence,
+            let input = OccurrenceUpdateInput(
                 status: .completed,
                 actualDate: farActualDate,
                 actualAmount: 50000,
                 transaction: nil,
+            )
+            try store.updateOccurrence(
+                occurrence,
+                input: input,
             )
         }
     }

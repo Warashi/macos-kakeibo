@@ -50,6 +50,43 @@ internal struct SpecialPaymentDefinitionInput {
     }
 }
 
+/// 特別支払いOccurrence完了時の入力パラメータ
+internal struct OccurrenceCompletionInput {
+    internal let actualDate: Date
+    internal let actualAmount: Decimal
+    internal let transaction: Transaction?
+
+    internal init(
+        actualDate: Date,
+        actualAmount: Decimal,
+        transaction: Transaction? = nil,
+    ) {
+        self.actualDate = actualDate
+        self.actualAmount = actualAmount
+        self.transaction = transaction
+    }
+}
+
+/// 特別支払いOccurrence更新時の入力パラメータ
+internal struct OccurrenceUpdateInput {
+    internal let status: SpecialPaymentStatus
+    internal let actualDate: Date?
+    internal let actualAmount: Decimal?
+    internal let transaction: Transaction?
+
+    internal init(
+        status: SpecialPaymentStatus,
+        actualDate: Date? = nil,
+        actualAmount: Decimal? = nil,
+        transaction: Transaction? = nil,
+    ) {
+        self.status = status
+        self.actualDate = actualDate
+        self.actualAmount = actualAmount
+        self.transaction = transaction
+    }
+}
+
 @Observable
 @MainActor
 internal final class SpecialPaymentStore {
@@ -152,14 +189,12 @@ internal final class SpecialPaymentStore {
 
     internal func markOccurrenceCompleted(
         _ occurrence: SpecialPaymentOccurrence,
-        actualDate: Date,
-        actualAmount: Decimal,
-        transaction: Transaction? = nil,
+        input: OccurrenceCompletionInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) throws {
-        occurrence.actualDate = actualDate
-        occurrence.actualAmount = actualAmount
-        occurrence.transaction = transaction
+        occurrence.actualDate = input.actualDate
+        occurrence.actualAmount = input.actualAmount
+        occurrence.transaction = input.transaction
         occurrence.status = .completed
         occurrence.updatedAt = currentDateProvider()
 
@@ -177,27 +212,21 @@ internal final class SpecialPaymentStore {
     /// Occurrenceの実績データとステータスを更新
     /// - Parameters:
     ///   - occurrence: 更新対象のOccurrence
-    ///   - status: 新しいステータス
-    ///   - actualDate: 実績日（nilの場合はクリア）
-    ///   - actualAmount: 実績金額（nilの場合はクリア）
-    ///   - transaction: 紐付けるTransaction（nilの場合はクリア）
+    ///   - input: 更新内容
     ///   - horizonMonths: スケジュール生成期間
     internal func updateOccurrence(
         _ occurrence: SpecialPaymentOccurrence,
-        status: SpecialPaymentStatus,
-        actualDate: Date?,
-        actualAmount: Decimal?,
-        transaction: Transaction?,
+        input: OccurrenceUpdateInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) throws {
         let now = currentDateProvider()
         let wasCompleted = occurrence.status == .completed
-        let willBeCompleted = status == .completed
+        let willBeCompleted = input.status == .completed
 
-        occurrence.status = status
-        occurrence.actualDate = actualDate
-        occurrence.actualAmount = actualAmount
-        occurrence.transaction = transaction
+        occurrence.status = input.status
+        occurrence.actualDate = input.actualDate
+        occurrence.actualAmount = input.actualAmount
+        occurrence.transaction = input.transaction
         occurrence.updatedAt = now
 
         let errors = occurrence.validate()
@@ -224,7 +253,7 @@ extension SpecialPaymentStore {
     /// 特別支払い定義を作成
     internal func createDefinition(
         _ input: SpecialPaymentDefinitionInput,
-        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths
+        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) throws {
         let category = try resolvedCategory(categoryId: input.categoryId)
 
@@ -257,7 +286,7 @@ extension SpecialPaymentStore {
     internal func updateDefinition(
         _ definition: SpecialPaymentDefinition,
         input: SpecialPaymentDefinitionInput,
-        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths
+        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) throws {
         let category = try resolvedCategory(categoryId: input.categoryId)
 

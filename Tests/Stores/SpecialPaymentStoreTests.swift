@@ -86,10 +86,13 @@ internal struct SpecialPaymentStoreTests {
         let occurrence = try #require(definition.occurrences.first)
 
         let actualDate = try #require(Date.from(year: 2024, month: 1, day: 16))
-        try store.markOccurrenceCompleted(
-            occurrence,
+        let input = OccurrenceCompletionInput(
             actualDate: actualDate,
             actualAmount: 98000,
+        )
+        try store.markOccurrenceCompleted(
+            occurrence,
+            input: input,
         )
 
         #expect(occurrence.status == .completed)
