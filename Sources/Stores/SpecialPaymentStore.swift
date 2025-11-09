@@ -175,9 +175,11 @@ internal final class SpecialPaymentStore {
             )
         }
     }
+}
 
-    // MARK: - CRUD Operations
+// MARK: - CRUD Operations
 
+extension SpecialPaymentStore {
     /// 特別支払い定義を作成
     internal func createDefinition(
         name: String,
@@ -266,12 +268,16 @@ internal final class SpecialPaymentStore {
         modelContext.delete(definition)
         try modelContext.save()
     }
+}
 
-    // MARK: - Helpers
+// MARK: - Helpers
 
-    private let calendar: Calendar = Calendar(identifier: .gregorian)
+private extension SpecialPaymentStore {
+    var calendar: Calendar {
+        Calendar(identifier: .gregorian)
+    }
 
-    private func resolvedCategory(categoryId: UUID?) throws -> Category? {
+    func resolvedCategory(categoryId: UUID?) throws -> Category? {
         guard let id = categoryId else { return nil }
         var descriptor = FetchDescriptor<Category>(
             predicate: #Predicate { $0.id == id },
@@ -283,7 +289,7 @@ internal final class SpecialPaymentStore {
         return category
     }
 
-    private func nextSeedDate(for definition: SpecialPaymentDefinition) -> Date {
+    func nextSeedDate(for definition: SpecialPaymentDefinition) -> Date {
         let latestCompleted = definition.occurrences
             .filter { $0.status == .completed }
             .map(\.scheduledDate)
@@ -300,7 +306,7 @@ internal final class SpecialPaymentStore {
         ) ?? definition.firstOccurrenceDate
     }
 
-    private func apply(
+    func apply(
         target: SpecialPaymentScheduleService.ScheduleTarget,
         to occurrence: SpecialPaymentOccurrence,
         referenceDate: Date,
@@ -322,7 +328,7 @@ internal final class SpecialPaymentStore {
         occurrence.updatedAt = referenceDate
     }
 
-    private func updateStatusIfNeeded(
+    func updateStatusIfNeeded(
         for occurrence: SpecialPaymentOccurrence,
         referenceDate: Date,
         leadTimeMonths: Int,
