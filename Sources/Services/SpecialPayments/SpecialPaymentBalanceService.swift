@@ -45,7 +45,7 @@ internal struct PaymentDifference: Sendable {
 /// 月次積立の記録、実績支払いの反映、残高の再計算を行います。
 internal struct SpecialPaymentBalanceService: Sendable {
     /// 月次積立記録パラメータ
-    internal struct MonthlySavingsParameters: Sendable {
+    internal struct MonthlySavingsParameters {
         internal let definition: SpecialPaymentDefinition
         internal let balance: SpecialPaymentSavingBalance?
         internal let year: Int
@@ -123,7 +123,7 @@ internal struct SpecialPaymentBalanceService: Sendable {
     }
 
     /// 残高再計算パラメータ
-    internal struct RecalculateBalanceParameters: Sendable {
+    internal struct RecalculateBalanceParameters {
         internal let definition: SpecialPaymentDefinition
         internal let balance: SpecialPaymentSavingBalance
         internal let year: Int
