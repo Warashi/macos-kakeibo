@@ -164,9 +164,23 @@ internal struct BudgetCalculator: Sendable {
             guard let category = budget.category else { return nil }
 
             // このカテゴリの実績を取得
-            let categoryActual = monthlySummary.categorySummaries
-                .first { $0.categoryId == category.id }?
-                .totalExpense ?? 0
+            let categoryActual: Decimal
+            if category.isMajor {
+                // 大項目の場合：大項目自身と全ての子カテゴリの実績を合計
+                let childCategoryIds = Set(category.children.map(\.id))
+                categoryActual = monthlySummary.categorySummaries
+                    .filter { summary in
+                        // 大項目自身のID、または子カテゴリのIDと一致するものを集計
+                        summary.categoryId == category
+                            .id || (summary.categoryId.map { childCategoryIds.contains($0) } ?? false)
+                    }
+                    .reduce(Decimal.zero) { $0 + $1.totalExpense }
+            } else {
+                // 中項目の場合：そのカテゴリIDと完全一致するもののみ
+                categoryActual = monthlySummary.categorySummaries
+                    .first { $0.categoryId == category.id }?
+                    .totalExpense ?? 0
+            }
 
             let calculation = calculate(
                 budgetAmount: budget.amount,
