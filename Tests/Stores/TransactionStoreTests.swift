@@ -4,6 +4,12 @@ import Testing
 
 @testable import Kakeibo
 
+internal struct ReferenceData {
+    internal let institution: FinancialInstitution
+    internal let majorCategory: Kakeibo.Category
+    internal let minorCategory: Kakeibo.Category
+}
+
 @Suite(.serialized)
 @MainActor
 internal struct TransactionStoreTests {
@@ -91,16 +97,16 @@ internal struct TransactionStoreTests {
     @Test("既存取引の編集が保存される")
     internal func editTransactionPersistsChanges() throws {
         let (context, targetDate) = try prepareContext()
-        let (institution, major, minor) = try seedReferenceData(in: context)
+        let refData = try seedReferenceData(in: context)
 
         let transaction = Transaction(
             date: targetDate,
             title: "昼食",
             amount: -800,
             memo: "Before",
-            financialInstitution: institution,
-            majorCategory: major,
-            minorCategory: minor,
+            financialInstitution: refData.institution,
+            majorCategory: refData.majorCategory,
+            minorCategory: refData.minorCategory,
         )
         context.insert(transaction)
         try context.save()
@@ -144,8 +150,7 @@ internal struct TransactionStoreTests {
         return (context, targetDate)
     }
 
-    private func seedReferenceData(in context: ModelContext) throws
-    -> (FinancialInstitution, Kakeibo.Category, Kakeibo.Category) {
+    private func seedReferenceData(in context: ModelContext) throws -> ReferenceData {
         let institution = FinancialInstitution(name: "メイン銀行")
         let major = Kakeibo.Category(name: "食費", displayOrder: 1)
         let minor = Kakeibo.Category(name: "外食", parent: major, displayOrder: 1)
@@ -153,6 +158,6 @@ internal struct TransactionStoreTests {
         context.insert(minor)
         context.insert(institution)
         try context.save()
-        return (institution, major, minor)
+        return ReferenceData(institution: institution, majorCategory: major, minorCategory: minor)
     }
 }
