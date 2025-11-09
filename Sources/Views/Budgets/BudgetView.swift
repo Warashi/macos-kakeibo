@@ -476,6 +476,8 @@ internal struct BudgetView: View {
                     categoryId: specialPaymentFormState.selectedCategoryId,
                     savingStrategy: specialPaymentFormState.savingStrategy,
                     customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
+                    dateAdjustmentPolicy: .none,
+                    recurrenceDayPattern: nil,
                 )
             case let .edit(definition):
                 try specialPaymentStore.updateDefinition(
@@ -489,6 +491,8 @@ internal struct BudgetView: View {
                     categoryId: specialPaymentFormState.selectedCategoryId,
                     savingStrategy: specialPaymentFormState.savingStrategy,
                     customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
+                    dateAdjustmentPolicy: .none,
+                    recurrenceDayPattern: nil,
                 )
             }
             isPresentingSpecialPaymentEditor = false
