@@ -13,7 +13,7 @@ internal struct CompositeHolidayProviderTests {
     }
 
     @Test("複数のプロバイダーを統合して祝日を取得できる")
-    func 複数のプロバイダーを統合して祝日を取得できる() throws {
+    internal func 複数のプロバイダーを統合して祝日を取得できる() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -42,7 +42,7 @@ internal struct CompositeHolidayProviderTests {
     }
 
     @Test("空のプロバイダーリストでも動作する")
-    func 空のプロバイダーリストでも動作する() throws {
+    internal func 空のプロバイダーリストでも動作する() throws {
         let compositeProvider = CompositeHolidayProvider(providers: [])
         let holidays = compositeProvider.holidays(for: 2025)
 
@@ -50,7 +50,7 @@ internal struct CompositeHolidayProviderTests {
     }
 
     @Test("重複する祝日は1つにまとめられる")
-    func 重複する祝日は1つにまとめられる() throws {
+    internal func 重複する祝日は1つにまとめられる() throws {
         // 同じ祝日を返す2つのプロバイダーを作成
         let japaneseProvider1 = JapaneseHolidayProvider(calendar: calendar)
         let japaneseProvider2 = JapaneseHolidayProvider(calendar: calendar)
@@ -64,7 +64,7 @@ internal struct CompositeHolidayProviderTests {
     }
 
     @Test("期間指定で複数のプロバイダーから祝日を取得できる")
-    func 期間指定で複数のプロバイダーから祝日を取得できる() throws {
+    internal func 期間指定で複数のプロバイダーから祝日を取得できる() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -98,6 +98,9 @@ internal struct CompositeHolidayProviderTests {
 
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         let components = DateComponents(year: year, month: month, day: day)
-        return calendar.date(from: components)!
+        guard let date = calendar.date(from: components) else {
+            fatalError("Invalid date components: year=\(year), month=\(month), day=\(day)")
+        }
+        return date
     }
 }

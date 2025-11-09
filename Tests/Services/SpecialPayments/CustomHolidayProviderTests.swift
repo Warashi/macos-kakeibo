@@ -13,7 +13,7 @@ internal struct CustomHolidayProviderTests {
     }
 
     @Test("ユーザー定義の祝日を取得できる")
-    func ユーザー定義の祝日を取得できる() throws {
+    internal func ユーザー定義の祝日を取得できる() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -34,7 +34,7 @@ internal struct CustomHolidayProviderTests {
     }
 
     @Test("繰り返し祝日が毎年適用される")
-    func 繰り返し祝日が毎年適用される() throws {
+    internal func 繰り返し祝日が毎年適用される() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -60,7 +60,7 @@ internal struct CustomHolidayProviderTests {
     }
 
     @Test("繰り返しでない祝日は指定年のみ適用される")
-    func 繰り返しでない祝日は指定年のみ適用される() throws {
+    internal func 繰り返しでない祝日は指定年のみ適用される() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -85,7 +85,7 @@ internal struct CustomHolidayProviderTests {
     }
 
     @Test("複数のカスタム祝日を管理できる")
-    func 複数のカスタム祝日を管理できる() throws {
+    internal func 複数のカスタム祝日を管理できる() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -117,7 +117,7 @@ internal struct CustomHolidayProviderTests {
     }
 
     @Test("カスタム祝日が存在しない場合は空のSetを返す")
-    func カスタム祝日が存在しない場合は空のSetを返す() throws {
+    internal func カスタム祝日が存在しない場合は空のSetを返す() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -128,7 +128,7 @@ internal struct CustomHolidayProviderTests {
     }
 
     @Test("期間を指定してカスタム祝日を取得できる")
-    func 期間を指定してカスタム祝日を取得できる() throws {
+    internal func 期間を指定してカスタム祝日を取得できる() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -163,6 +163,9 @@ internal struct CustomHolidayProviderTests {
 
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         let components = DateComponents(year: year, month: month, day: day)
-        return calendar.date(from: components)!
+        guard let date = calendar.date(from: components) else {
+            fatalError("Invalid date components: year=\(year), month=\(month), day=\(day)")
+        }
+        return date
     }
 }
