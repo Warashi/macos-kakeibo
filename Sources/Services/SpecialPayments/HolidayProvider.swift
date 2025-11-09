@@ -16,7 +16,7 @@ internal protocol HolidayProvider {
 }
 
 /// HolidayProviderの期間指定祝日取得メソッドのデフォルト実装
-public extension HolidayProvider {
+internal extension HolidayProvider {
     /// 指定された期間の祝日を取得（デフォルト実装）
     /// - Parameters:
     ///   - startDate: 開始日
