@@ -129,7 +129,10 @@ internal struct DashboardView: View {
             )
 
             if let annualBudgetUsage = store.annualBudgetUsage {
-                AnnualBudgetCard(usage: annualBudgetUsage)
+                AnnualBudgetCard(
+                    usage: annualBudgetUsage,
+                    categoryAllocations: store.monthlyAllocation?.categoryAllocations ?? [],
+                )
             }
         }
         .frame(maxWidth: .infinity, alignment: .top)

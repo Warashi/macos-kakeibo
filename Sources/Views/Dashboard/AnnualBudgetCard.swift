@@ -5,6 +5,7 @@ import SwiftUI
 /// 年次特別枠の総額・使用額・残額・使用率を表示します。
 internal struct AnnualBudgetCard: View {
     internal let usage: AnnualBudgetUsage
+    internal let categoryAllocations: [CategoryAllocation]
 
     internal var body: some View {
         Card(title: "年次特別枠") {
@@ -50,8 +51,46 @@ internal struct AnnualBudgetCard: View {
                         showLabel: false,
                     )
                 }
+
+                if !categoryAllocations.isEmpty {
+                    Divider()
+
+                    categoryAllocationsTable
+                }
             }
             .padding()
+        }
+    }
+
+    @ViewBuilder
+    private var categoryAllocationsTable: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("カテゴリ別詳細")
+                .font(.headline)
+
+            Table(of: CategoryAllocation.self) {
+                TableColumn("カテゴリ") { allocation in
+                    Text(allocation.categoryName)
+                }
+                TableColumn("月次予算") { allocation in
+                    Text(allocation.monthlyBudgetAmount.currencyFormatted)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                TableColumn("実績") { allocation in
+                    Text(allocation.actualAmount.currencyFormatted)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                TableColumn("年次枠充当") { allocation in
+                    Text(allocation.allocatableAmount.currencyFormatted)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .foregroundColor(allocation.allocatableAmount > 0 ? .expense : .secondary)
+                }
+            } rows: {
+                ForEach(categoryAllocations) { allocation in
+                    TableRow(allocation)
+                }
+            }
+            .frame(minHeight: 150, maxHeight: 300)
         }
     }
 

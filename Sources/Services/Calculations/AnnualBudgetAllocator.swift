@@ -21,7 +21,7 @@ internal struct AnnualBudgetUsage: Sendable {
 }
 
 /// カテゴリ別年次特別枠充当結果
-internal struct CategoryAllocation: Sendable {
+internal struct CategoryAllocation: Sendable, Identifiable {
     /// カテゴリID
     internal let categoryId: UUID
 
@@ -42,6 +42,11 @@ internal struct CategoryAllocation: Sendable {
 
     /// 充当後の残額
     internal let remainingAfterAllocation: Decimal
+
+    /// IdentifiableプロトコルのためのIDプロパティ
+    internal var id: UUID {
+        categoryId
+    }
 }
 
 /// 月次の年次特別枠充当結果
