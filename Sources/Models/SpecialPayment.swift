@@ -382,8 +382,8 @@ extension DayOfMonthPattern {
         case .lastBusinessDay:
             return businessDayService.lastBusinessDay(of: year, month: month)
 
-        case let .nthBusinessDay(n):
-            return businessDayService.nthBusinessDay(n, of: year, month: month)
+        case let .nthBusinessDay(nth):
+            return businessDayService.nthBusinessDay(nth, of: year, month: month)
 
         case let .lastBusinessDayMinus(days):
             return businessDayService.lastBusinessDayMinus(days: days, of: year, month: month)

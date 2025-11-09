@@ -4,15 +4,20 @@ import Foundation
 internal struct BusinessDayService {
     private let calendar: Calendar
 
-    /// 祝日リスト（将来的に外部から注入可能にする）
+    /// 祝日プロバイダー
+    private let holidayProvider: HolidayProvider?
+
+    /// 直接指定された祝日リスト（後方互換性のため残す）
     private var holidays: Set<Date>
 
     internal init(
         calendar: Calendar = Calendar(identifier: .gregorian),
         holidays: Set<Date> = [],
+        holidayProvider: HolidayProvider? = nil,
     ) {
         self.calendar = calendar
         self.holidays = holidays
+        self.holidayProvider = holidayProvider
     }
 
     /// 指定日が営業日かどうか判定
@@ -25,8 +30,19 @@ internal struct BusinessDayService {
 
         // 祝日判定
         let normalizedDate = calendar.startOfDay(for: date)
+
+        // 直接指定された祝日
         if holidays.contains(normalizedDate) {
             return false
+        }
+
+        // HolidayProviderから祝日を取得
+        if let provider = holidayProvider {
+            let year = calendar.component(.year, from: date)
+            let yearHolidays = provider.holidays(for: year)
+            if yearHolidays.contains(normalizedDate) {
+                return false
+            }
         }
 
         return true
@@ -95,8 +111,8 @@ internal struct BusinessDayService {
     }
 
     /// 指定月のN番目の営業日
-    internal func nthBusinessDay(_ n: Int, of year: Int, month: Int) -> Date? {
-        guard n > 0 else { return nil }
+    internal func nthBusinessDay(_ nth: Int, of year: Int, month: Int) -> Date? {
+        guard nth > 0 else { return nil }
         guard let firstDay = calendar.date(from: DateComponents(year: year, month: month, day: 1)) else {
             return nil
         }
@@ -108,7 +124,7 @@ internal struct BusinessDayService {
         for _ in 0 ..< maxDays {
             if isBusinessDay(current) {
                 count += 1
-                if count == n {
+                if count == nth {
                     return current
                 }
             }
