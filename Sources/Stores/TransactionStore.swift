@@ -395,56 +395,71 @@ internal final class TransactionStore {
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
 
-        let shouldSearch = !trimmedSearch.isEmpty
         let filtered = cachedTransactions.filter { transaction in
-            guard transaction.date.year == currentMonth.year,
-                  transaction.date.month == currentMonth.month else {
-                return false
-            }
-
-            if includeOnlyCalculationTarget, !transaction.isIncludedInCalculation {
-                return false
-            }
-
-            if excludeTransfers, transaction.isTransfer {
-                return false
-            }
-
-            switch selectedFilterKind {
-            case .income:
-                guard transaction.isIncome else { return false }
-            case .expense:
-                guard transaction.isExpense else { return false }
-            case .all:
-                break
-            }
-
-            if let institutionId = selectedInstitutionId {
-                guard transaction.financialInstitution?.id == institutionId else {
-                    return false
-                }
-            }
-
-            if let categoryId = selectedCategoryId {
-                let majorMatches = transaction.majorCategory?.id == categoryId
-                let minorMatches = transaction.minorCategory?.id == categoryId
-                guard majorMatches || minorMatches else { return false }
-            }
-
-            if shouldSearch {
-                let haystacks = [
-                    transaction.title.lowercased(),
-                    transaction.memo.lowercased(),
-                    transaction.categoryFullName.lowercased(),
-                    transaction.financialInstitution?.name.lowercased() ?? "",
-                ]
-                return haystacks.contains { $0.contains(trimmedSearch) }
-            }
-
-            return true
+            shouldIncludeTransaction(transaction, trimmedSearch: trimmedSearch)
         }
 
         transactions = sort(transactions: filtered)
+    }
+
+    private func shouldIncludeTransaction(_ transaction: Transaction, trimmedSearch: String) -> Bool {
+        guard matchesDateRange(transaction) else { return false }
+        guard matchesCalculationTarget(transaction) else { return false }
+        guard matchesTransferFilter(transaction) else { return false }
+        guard matchesTransactionKind(transaction) else { return false }
+        guard matchesInstitution(transaction) else { return false }
+        guard matchesCategory(transaction) else { return false }
+        guard matchesSearchText(transaction, trimmedSearch: trimmedSearch) else { return false }
+
+        return true
+    }
+
+    private func matchesDateRange(_ transaction: Transaction) -> Bool {
+        transaction.date.year == currentMonth.year &&
+            transaction.date.month == currentMonth.month
+    }
+
+    private func matchesCalculationTarget(_ transaction: Transaction) -> Bool {
+        !includeOnlyCalculationTarget || transaction.isIncludedInCalculation
+    }
+
+    private func matchesTransferFilter(_ transaction: Transaction) -> Bool {
+        !excludeTransfers || !transaction.isTransfer
+    }
+
+    private func matchesTransactionKind(_ transaction: Transaction) -> Bool {
+        switch selectedFilterKind {
+        case .income:
+            transaction.isIncome
+        case .expense:
+            transaction.isExpense
+        case .all:
+            true
+        }
+    }
+
+    private func matchesInstitution(_ transaction: Transaction) -> Bool {
+        guard let institutionId = selectedInstitutionId else { return true }
+        return transaction.financialInstitution?.id == institutionId
+    }
+
+    private func matchesCategory(_ transaction: Transaction) -> Bool {
+        guard let categoryId = selectedCategoryId else { return true }
+        let majorMatches = transaction.majorCategory?.id == categoryId
+        let minorMatches = transaction.minorCategory?.id == categoryId
+        return majorMatches || minorMatches
+    }
+
+    private func matchesSearchText(_ transaction: Transaction, trimmedSearch: String) -> Bool {
+        guard !trimmedSearch.isEmpty else { return true }
+
+        let haystacks = [
+            transaction.title.lowercased(),
+            transaction.memo.lowercased(),
+            transaction.categoryFullName.lowercased(),
+            transaction.financialInstitution?.name.lowercased() ?? "",
+        ]
+        return haystacks.contains { $0.contains(trimmedSearch) }
     }
 
     private func sort(transactions: [Transaction]) -> [Transaction] {
