@@ -275,7 +275,7 @@ internal struct BusinessDayServiceTests {
     // MARK: - HolidayProvider統合テスト
 
     @Test("日本の祝日プロバイダーを使用して営業日判定ができる")
-    internal func 日本の祝日プロバイダーを使用して営業日判定ができる() throws {
+    internal func testCanDetermineBusinessDaysUsingJapaneseHolidayProvider() throws {
         let japaneseProvider = JapaneseHolidayProvider(calendar: calendar)
         let serviceWithHolidays = BusinessDayService(holidayProvider: japaneseProvider)
 
@@ -289,7 +289,7 @@ internal struct BusinessDayServiceTests {
     }
 
     @Test("祝日プロバイダーを使用した営業日計算")
-    internal func 祝日プロバイダーを使用した営業日計算() throws {
+    internal func testBusinessDayCalculationUsingHolidayProvider() throws {
         let japaneseProvider = JapaneseHolidayProvider(calendar: calendar)
         let serviceWithHolidays = BusinessDayService(holidayProvider: japaneseProvider)
 
@@ -301,7 +301,7 @@ internal struct BusinessDayServiceTests {
     }
 
     @Test("ゴールデンウィークの営業日計算")
-    internal func ゴールデンウィークの営業日計算() throws {
+    internal func testBusinessDayCalculationDuringGoldenWeek() throws {
         let japaneseProvider = JapaneseHolidayProvider(calendar: calendar)
         let serviceWithHolidays = BusinessDayService(holidayProvider: japaneseProvider)
 
@@ -315,7 +315,7 @@ internal struct BusinessDayServiceTests {
     }
 
     @Test("直接指定された祝日とプロバイダーの祝日が両方適用される")
-    internal func 直接指定された祝日とプロバイダーの祝日が両方適用される() throws {
+    internal func testBothDirectHolidaysAndProviderHolidaysAreApplied() throws {
         let japaneseProvider = JapaneseHolidayProvider(calendar: calendar)
 
         // 直接指定の祝日（会社独自の休日）
