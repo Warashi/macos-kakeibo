@@ -7,7 +7,7 @@ internal struct AnnualBudgetCategoryUsageTable: View {
 
     internal init(
         allocations: [CategoryAllocation],
-        title: String = "カテゴリ別年次枠（当月まで）"
+        title: String = "カテゴリ別年次枠（当月まで）",
     ) {
         self.allocations = allocations
         self.title = title

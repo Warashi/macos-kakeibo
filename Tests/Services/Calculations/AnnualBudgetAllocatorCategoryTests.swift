@@ -19,7 +19,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         let config = makeConfig(
             allocations: [
                 (category1, 100_000, AnnualBudgetPolicy.fullCoverage),
-                (category2, 50_000, AnnualBudgetPolicy.fullCoverage),
+                (category2, 50000, AnnualBudgetPolicy.fullCoverage),
             ],
         )
 
@@ -46,7 +46,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
 
         let category2Allocation = result.categoryAllocations.first { $0.categoryId == category2.id }
         #expect(category2Allocation != nil)
-        #expect(category2Allocation?.annualBudgetAmount == 50_000)
+        #expect(category2Allocation?.annualBudgetAmount == 50000)
         #expect(category2Allocation?.actualAmount == 0)
         #expect(category2Allocation?.allocatableAmount == 0)
     }
@@ -56,14 +56,14 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         // Given
         let category = Category(name: "教育", allowsAnnualBudget: true)
         let transactions = [
-            createTransaction(amount: -40_000, category: category, month: 1),
-            createTransaction(amount: -60_000, category: category, month: 2),
-            createTransaction(amount: -20_000, category: category, month: 4),
+            createTransaction(amount: -40000, category: category, month: 1),
+            createTransaction(amount: -60000, category: category, month: 2),
+            createTransaction(amount: -20000, category: category, month: 4),
         ]
         let budgets = [
-            Budget(amount: 30_000, category: category, year: 2025, month: 1),
-            Budget(amount: 30_000, category: category, year: 2025, month: 2),
-            Budget(amount: 30_000, category: category, year: 2025, month: 4),
+            Budget(amount: 30000, category: category, year: 2025, month: 1),
+            Budget(amount: 30000, category: category, year: 2025, month: 2),
+            Budget(amount: 30000, category: category, year: 2025, month: 4),
         ]
         let config = makeConfig(
             allocations: [
@@ -87,10 +87,10 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         // Then
         #expect(allocation.annualBudgetAmount == 120_000)
         #expect(allocation.actualAmount == 100_000) // 1〜2月の実績のみ
-        #expect(allocation.monthlyBudgetAmount == 60_000) // 1〜2月の予算のみ
-        #expect(allocation.allocatableAmount == 40_000)
-        #expect(allocation.annualBudgetRemainingAmount == 80_000)
-        #expect(result.usedAmount == 40_000)
+        #expect(allocation.monthlyBudgetAmount == 60000) // 1〜2月の予算のみ
+        #expect(allocation.allocatableAmount == 40000)
+        #expect(allocation.annualBudgetRemainingAmount == 80000)
+        #expect(result.usedAmount == 40000)
     }
 
     @Test("親子カテゴリの配分が重複計上されない")
@@ -100,12 +100,12 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         major.addChild(minor)
 
         let transactions = [
-            createTransaction(amount: -25_000, category: major, minorCategory: minor),
+            createTransaction(amount: -25000, category: major, minorCategory: minor),
         ]
         let config = makeConfig(
             allocations: [
                 (major, 150_000, nil),
-                (minor, 50_000, nil),
+                (minor, 50000, nil),
             ],
         )
 
@@ -120,11 +120,11 @@ internal struct AnnualBudgetAllocatorCategoryTests {
             upToMonth: 11,
         )
 
-        #expect(result.usedAmount == 25_000)
+        #expect(result.usedAmount == 25000)
         let majorAllocation = try #require(result.categoryAllocations.first { $0.categoryId == major.id })
         let minorAllocation = try #require(result.categoryAllocations.first { $0.categoryId == minor.id })
         #expect(majorAllocation.allocatableAmount == 0)
-        #expect(minorAllocation.allocatableAmount == 25_000)
+        #expect(minorAllocation.allocatableAmount == 25000)
     }
 
     // MARK: - Helper Functions

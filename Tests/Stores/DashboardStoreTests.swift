@@ -68,16 +68,16 @@ internal struct DashboardStoreTests {
                 date: decemberDate,
                 title: "年末出費",
                 amount: -8000,
-                majorCategory: category
-            )
+                majorCategory: category,
+            ),
         )
         context.insert(
             Transaction(
                 date: januaryDate,
                 title: "年始出費",
                 amount: -4000,
-                majorCategory: category
-            )
+                majorCategory: category,
+            ),
         )
         try context.save()
 
@@ -113,7 +113,11 @@ internal struct DashboardStoreTests {
         let august = try #require(Date.from(year: 2025, month: 8, day: 3))
         context.insert(Transaction(date: january, title: "初売り", amount: -5000))
         context.insert(Transaction(date: august, title: "旅行", amount: -15000))
-        context.insert(Transaction(date: Date.from(year: 2024, month: 12, day: 25) ?? Date(), title: "前年", amount: -7000))
+        context.insert(Transaction(
+            date: Date.from(year: 2024, month: 12, day: 25) ?? Date(),
+            title: "前年",
+            amount: -7000,
+        ))
         try context.save()
 
         let store = DashboardStore(modelContext: context)
@@ -122,7 +126,7 @@ internal struct DashboardStoreTests {
 
         let summary = store.annualSummary
         #expect(summary.transactionCount == 2)
-        #expect(summary.totalExpense == 20_000)
+        #expect(summary.totalExpense == 20000)
     }
 
     @Test("月移動：前月")
@@ -342,12 +346,12 @@ internal struct DashboardStoreTests {
         let transaction = Transaction(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "特別支出",
-            amount: -40_000,
-            majorCategory: category
+            amount: -40000,
+            majorCategory: category,
         )
         context.insert(transaction)
 
-        let budget = Budget(amount: 30_000, category: category, year: 2025, month: 1)
+        let budget = Budget(amount: 30000, category: category, year: 2025, month: 1)
         context.insert(budget)
 
         let config = AnnualBudgetConfig(year: 2025, totalAmount: 200_000, policy: .automatic)
@@ -368,8 +372,8 @@ internal struct DashboardStoreTests {
 
         // Then
         #expect(categoryUsage.categoryId == category.id)
-        #expect(categoryUsage.allocatableAmount == 10_000)
-        #expect(usage.usedAmount == 10_000)
+        #expect(categoryUsage.allocatableAmount == 10000)
+        #expect(usage.usedAmount == 10000)
     }
 
     // MARK: - Helper Methods

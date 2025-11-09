@@ -571,12 +571,11 @@ internal struct AnnualBudgetAllocator: Sendable {
         let categoryId = category.id
         if category.isMajor {
             // 大項目の場合：子カテゴリのうち年次枠配分がないものだけを合算
-            let childCategoryIds: Set<UUID>
-            if category.children.isEmpty,
-               let fallbackChildren = childFallbackMap[categoryId] {
-                childCategoryIds = fallbackChildren
+            let childCategoryIds: Set<UUID> = if category.children.isEmpty,
+                                                 let fallbackChildren = childFallbackMap[categoryId] {
+                fallbackChildren
             } else {
-                childCategoryIds = Set(category.children.map(\.id))
+                Set(category.children.map(\.id))
             }
             var total = actualExpenseMap[categoryId] ?? 0
 

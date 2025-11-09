@@ -72,7 +72,7 @@ internal struct AnnualBudgetPanel: View {
             } label: {
                 Label(
                     config == nil ? "設定を作成" : "設定を編集",
-                    systemImage: config == nil ? "plus" : "slider.horizontal.3"
+                    systemImage: config == nil ? "plus" : "slider.horizontal.3",
                 )
             }
         }
@@ -93,7 +93,7 @@ internal struct AnnualBudgetPanel: View {
                 summaryItem(
                     title: "残額",
                     value: summary.remainingAmount.currencyFormatted,
-                    isDanger: summary.remainingAmount < 0
+                    isDanger: summary.remainingAmount < 0,
                 )
                 summaryItem(title: "使用率", value: percentageText(summary.usageRate))
                 summaryItem(title: "充当ポリシー", value: summary.policyName)
@@ -121,7 +121,7 @@ internal struct AnnualBudgetPanel: View {
         guard let config else { return nil }
         return AnnualBudgetPanelContentBuilder.build(
             config: config,
-            usage: usage
+            usage: usage,
         )
     }
 }
@@ -159,7 +159,7 @@ internal struct AnnualBudgetPanelRow: Identifiable {
 internal enum AnnualBudgetPanelContentBuilder {
     internal static func build(
         config: AnnualBudgetConfig,
-        usage: AnnualBudgetUsage?
+        usage: AnnualBudgetUsage?,
     ) -> AnnualBudgetPanelContent {
         let usedAmount = usage?.usedAmount ?? 0
         let remainingAmount = usage?.remainingAmount ?? (config.totalAmount - usedAmount)
@@ -169,9 +169,9 @@ internal enum AnnualBudgetPanelContentBuilder {
             remainingAmount: remainingAmount,
             usageRate: decimalUsageRate(
                 actualAmount: usedAmount,
-                budgetAmount: config.totalAmount
+                budgetAmount: config.totalAmount,
             ),
-            policyName: config.policy.displayName
+            policyName: config.policy.displayName,
         )
 
         let overallRow = AnnualBudgetPanelRow(
@@ -182,7 +182,7 @@ internal enum AnnualBudgetPanelContentBuilder {
             actualAmount: usedAmount,
             remainingAmount: remainingAmount,
             usageRate: summary.usageRate,
-            isOverall: true
+            isOverall: true,
         )
 
         let allocationRows = sortedAllocations(config.allocations).map { allocation in
@@ -198,29 +198,29 @@ internal enum AnnualBudgetPanelContentBuilder {
                 remainingAmount: remainingAmount,
                 usageRate: allocationUsage?.annualBudgetUsageRate
                     ?? decimalUsageRate(actualAmount: actualAmount, budgetAmount: allocation.amount),
-                isOverall: false
+                isOverall: false,
             )
         }
 
         return AnnualBudgetPanelContent(
             summary: summary,
-            rows: [overallRow] + allocationRows
+            rows: [overallRow] + allocationRows,
         )
     }
 
     private static func sortedAllocations(
-        _ allocations: [AnnualBudgetAllocation]
+        _ allocations: [AnnualBudgetAllocation],
     ) -> [AnnualBudgetAllocation] {
         allocations.sorted { lhs, rhs in
             let lhsOrder = (
                 lhs.category.parent?.displayOrder ?? lhs.category.displayOrder,
                 lhs.category.displayOrder,
-                lhs.category.fullName
+                lhs.category.fullName,
             )
             let rhsOrder = (
                 rhs.category.parent?.displayOrder ?? rhs.category.displayOrder,
                 rhs.category.displayOrder,
-                rhs.category.fullName
+                rhs.category.fullName,
             )
             return lhsOrder < rhsOrder
         }
@@ -228,7 +228,7 @@ internal enum AnnualBudgetPanelContentBuilder {
 
     private static func decimalUsageRate(
         actualAmount: Decimal,
-        budgetAmount: Decimal
+        budgetAmount: Decimal,
     ) -> Double {
         guard budgetAmount > 0 else { return 0 }
         return NSDecimalNumber(decimal: actualAmount)

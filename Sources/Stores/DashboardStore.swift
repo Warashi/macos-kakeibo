@@ -81,7 +81,7 @@ internal final class DashboardStore {
             predicate: #Predicate {
                 $0.date >= startDate && $0.date < endDate
             },
-            sortBy: [SortDescriptor(\.date, order: .reverse)]
+            sortBy: [SortDescriptor(\.date, order: .reverse)],
         )
         return (try? modelContext.fetch(descriptor)) ?? []
     }
@@ -96,7 +96,7 @@ internal final class DashboardStore {
                 SortDescriptor(\.startYear),
                 SortDescriptor(\.startMonth),
                 SortDescriptor(\.createdAt),
-            ]
+            ],
         )
         return (try? modelContext.fetch(descriptor)) ?? []
     }
@@ -107,7 +107,7 @@ internal final class DashboardStore {
             sortBy: [
                 SortDescriptor(\.displayOrder),
                 SortDescriptor(\.name),
-            ]
+            ],
         )
         return (try? modelContext.fetch(descriptor)) ?? []
     }
@@ -124,7 +124,7 @@ internal final class DashboardStore {
     /// 最新の年次特別枠設定の年を取得
     private func latestAnnualBudgetConfigYear() -> Int? {
         var descriptor = FetchDescriptor<AnnualBudgetConfig>(
-            sortBy: [SortDescriptor(\.year, order: .reverse)]
+            sortBy: [SortDescriptor(\.year, order: .reverse)],
         )
         descriptor.fetchLimit = 1
         return try? modelContext.fetch(descriptor).first?.year

@@ -237,7 +237,7 @@ internal struct AnnualBudgetAllocatorTests {
         let budgets: [Budget] = []
         let config = makeConfig(
             allocations: [
-                (category, 90_000, AnnualBudgetPolicy.fullCoverage),
+                (category, 90000, AnnualBudgetPolicy.fullCoverage),
             ],
         )
 
@@ -259,7 +259,7 @@ internal struct AnnualBudgetAllocatorTests {
             Issue.record()
             return
         }
-        #expect(allocation.annualBudgetAmount == 90_000)
+        #expect(allocation.annualBudgetAmount == 90000)
         #expect(allocation.monthlyBudgetAmount == 0)
         #expect(allocation.allocatableAmount == 60000)
         #expect(allocation.excessAmount == 60000)
@@ -311,7 +311,7 @@ internal struct AnnualBudgetAllocatorTests {
         ]
         let config = makeConfig(
             allocations: [
-                (major, 80_000, AnnualBudgetPolicy.fullCoverage),
+                (major, 80000, AnnualBudgetPolicy.fullCoverage),
             ],
         )
 
@@ -331,7 +331,7 @@ internal struct AnnualBudgetAllocatorTests {
         // Then
         let allocation = try #require(result.categoryAllocations.first)
         #expect(allocation.categoryName == major.name)
-        #expect(allocation.annualBudgetAmount == 80_000)
+        #expect(allocation.annualBudgetAmount == 80000)
         #expect(allocation.allocatableAmount == 25000)
         #expect(result.annualBudgetUsage.usedAmount == 25000)
     }
@@ -346,7 +346,7 @@ internal struct AnnualBudgetAllocatorTests {
         ]
         let config = makeConfig(
             allocations: [
-                (major, 80_000, AnnualBudgetPolicy.fullCoverage),
+                (major, 80000, AnnualBudgetPolicy.fullCoverage),
             ],
         )
 
@@ -366,7 +366,7 @@ internal struct AnnualBudgetAllocatorTests {
         // Then
         let allocation = try #require(result.categoryAllocations.first)
         #expect(allocation.categoryName == major.name)
-        #expect(allocation.annualBudgetAmount == 80_000)
+        #expect(allocation.annualBudgetAmount == 80000)
         #expect(allocation.allocatableAmount == 18000)
         #expect(result.annualBudgetUsage.usedAmount == 18000)
     }
