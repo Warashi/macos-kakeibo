@@ -560,6 +560,12 @@ internal struct AnnualAllocationDraft {
     }
 }
 
+internal extension AnnualAllocationDraft {
+    func effectivePolicy(globalPolicy: AnnualBudgetPolicy) -> AnnualBudgetPolicy {
+        policyOverride ?? globalPolicy
+    }
+}
+
 // MARK: - Special Payment Savings Entry
 
 /// 特別支払い積立の表示用エントリ

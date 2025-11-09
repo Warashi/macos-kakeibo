@@ -76,6 +76,12 @@ internal struct BudgetEditorFormState {
 
 // MARK: - Annual Budget Form State
 
+internal enum AnnualAllocationFinalizationError: Error, Equatable {
+    case noAllocations
+    case manualExceedsTotal
+    case manualDoesNotMatchTotal
+}
+
 internal struct AnnualBudgetFormState {
     internal var totalAmountText: String = ""
     internal var policy: AnnualBudgetPolicy = .automatic
@@ -177,6 +183,53 @@ internal struct AnnualBudgetFormState {
             amount: amount,
             policyOverride: row.selectedPolicyOverride,
         )
+    }
+
+    internal func finalizeAllocations(totalAmount: Decimal)
+    -> Result<[AnnualAllocationDraft], AnnualAllocationFinalizationError> {
+        guard let drafts = makeAllocationDrafts(), !drafts.isEmpty else {
+            return .failure(.noAllocations)
+        }
+
+        var manualSum: Decimal = 0
+        var automaticIndices: [Int] = []
+
+        for (index, draft) in drafts.enumerated() {
+            let policy = draft.effectivePolicy(globalPolicy: policy)
+            if policy == .automatic {
+                automaticIndices.append(index)
+            } else {
+                manualSum = manualSum.safeAdd(draft.amount)
+            }
+        }
+
+        if manualSum > totalAmount {
+            return .failure(.manualExceedsTotal)
+        }
+
+        var finalDrafts: [AnnualAllocationDraft] = drafts
+        if !automaticIndices.isEmpty {
+            let remaining = totalAmount.safeSubtract(manualSum)
+            let perCategory = remaining
+                .safeDivide(Decimal(automaticIndices.count))
+                .roundedDown()
+            let automaticIndexSet = Set(automaticIndices)
+
+            finalDrafts = finalDrafts.enumerated().map { index, draft in
+                if automaticIndexSet.contains(index) {
+                    return AnnualAllocationDraft(
+                        categoryId: draft.categoryId,
+                        amount: perCategory,
+                        policyOverride: draft.policyOverride,
+                    )
+                }
+                return draft
+            }
+        } else if manualSum != totalAmount {
+            return .failure(.manualDoesNotMatchTotal)
+        }
+
+        return .success(finalDrafts)
     }
 }
 

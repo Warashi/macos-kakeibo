@@ -71,4 +71,130 @@ internal struct AnnualBudgetFormStateTests {
         #expect(drafts.first?.amount == 0)
         #expect(drafts.first?.policyOverride == .automatic)
     }
+
+    @Test("自動充当行には残額が均等に割り当てられる")
+    internal func finalizeDistributesRemainingAcrossAutomaticRows() throws {
+        var state = AnnualBudgetFormState()
+        state.policy = .automatic
+        let manualCategory = UUID()
+        let automaticCategory1 = UUID()
+        let automaticCategory2 = UUID()
+
+        state.allocationRows = [
+            AnnualBudgetAllocationRowState(
+                selectedMajorCategoryId: manualCategory,
+                amountText: "40000",
+                selectedPolicyOverride: .manual,
+            ),
+            AnnualBudgetAllocationRowState(
+                selectedMajorCategoryId: automaticCategory1,
+                amountText: "",
+                selectedPolicyOverride: nil,
+            ),
+            AnnualBudgetAllocationRowState(
+                selectedMajorCategoryId: automaticCategory2,
+                amountText: "",
+                selectedPolicyOverride: nil,
+            ),
+        ]
+
+        let result = state.finalizeAllocations(totalAmount: 100_000)
+        guard case let .success(drafts) = result else {
+            Issue.record()
+            return
+        }
+        let amounts = Dictionary(uniqueKeysWithValues: drafts.map { ($0.categoryId, $0.amount) })
+
+        #expect(amounts[manualCategory] == 40000)
+        #expect(amounts[automaticCategory1] == 30000)
+        #expect(amounts[automaticCategory2] == 30000)
+    }
+
+    @Test("残額が自動行の数で割り切れない場合でも切り捨てで配分される")
+    internal func finalizeTruncatesRemainder() throws {
+        var state = AnnualBudgetFormState()
+        state.policy = .automatic
+        let manualCategory = UUID()
+        let automaticCategory1 = UUID()
+        let automaticCategory2 = UUID()
+
+        state.allocationRows = [
+            AnnualBudgetAllocationRowState(
+                selectedMajorCategoryId: manualCategory,
+                amountText: "51000",
+                selectedPolicyOverride: .manual,
+            ),
+            AnnualBudgetAllocationRowState(
+                selectedMajorCategoryId: automaticCategory1,
+                amountText: "",
+                selectedPolicyOverride: nil,
+            ),
+            AnnualBudgetAllocationRowState(
+                selectedMajorCategoryId: automaticCategory2,
+                amountText: "",
+                selectedPolicyOverride: nil,
+            ),
+        ]
+
+        let result = state.finalizeAllocations(totalAmount: 100_000)
+        guard case let .success(drafts) = result else {
+            Issue.record()
+            return
+        }
+        let amounts = Dictionary(uniqueKeysWithValues: drafts.map { ($0.categoryId, $0.amount) })
+
+        #expect(amounts[automaticCategory1] == 24000)
+        #expect(amounts[automaticCategory2] == 24000)
+        #expect(amounts[manualCategory] == 51000)
+    }
+
+    @Test("自動配分でも手動合計が総額を超えたらエラー")
+    internal func finalizeFailsWhenManualExceedsTotal() {
+        var state = AnnualBudgetFormState()
+        state.policy = .automatic
+        state.allocationRows = [
+            AnnualBudgetAllocationRowState(
+                selectedMajorCategoryId: UUID(),
+                amountText: "120000",
+                selectedPolicyOverride: .manual,
+            ),
+            AnnualBudgetAllocationRowState(
+                selectedMajorCategoryId: UUID(),
+                amountText: "",
+                selectedPolicyOverride: nil,
+            ),
+        ]
+
+        let result = state.finalizeAllocations(totalAmount: 100_000)
+        if case let .failure(error) = result {
+            #expect(error == .manualExceedsTotal)
+        } else {
+            Issue.record()
+        }
+    }
+
+    @Test("自動行が無いときは合計が一致しないとエラー")
+    internal func finalizeRequiresExactSumWithoutAutomatic() {
+        var state = AnnualBudgetFormState()
+        state.policy = .manual
+        state.allocationRows = [
+            AnnualBudgetAllocationRowState(
+                selectedMajorCategoryId: UUID(),
+                amountText: "30000",
+                selectedPolicyOverride: .manual,
+            ),
+            AnnualBudgetAllocationRowState(
+                selectedMajorCategoryId: UUID(),
+                amountText: "40000",
+                selectedPolicyOverride: .manual,
+            ),
+        ]
+
+        let result = state.finalizeAllocations(totalAmount: 60000)
+        if case let .failure(error) = result {
+            #expect(error == .manualDoesNotMatchTotal)
+        } else {
+            Issue.record()
+        }
+    }
 }

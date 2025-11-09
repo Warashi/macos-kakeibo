@@ -283,44 +283,33 @@ private extension BudgetView {
             return
         }
 
-        guard let drafts = annualFormState.makeAllocationDrafts(), !drafts.isEmpty else {
-            annualFormError = "カテゴリと金額を入力してください"
+        let finalizedDrafts: [AnnualAllocationDraft]
+        switch annualFormState.finalizeAllocations(totalAmount: amount) {
+        case let .success(result):
+            finalizedDrafts = result
+        case let .failure(error):
+            switch error {
+            case .noAllocations:
+                annualFormError = "カテゴリと金額を入力してください"
+            case .manualExceedsTotal:
+                annualFormError = "手動配分の合計が総額を超えています"
+            case .manualDoesNotMatchTotal:
+                annualFormError = "カテゴリ合計が総額と一致していません"
+            }
             return
         }
 
-        let uniqueCategoryIds = Set(drafts.map(\.categoryId))
-        guard uniqueCategoryIds.count == drafts.count else {
+        let uniqueCategoryIds = Set(finalizedDrafts.map(\.categoryId))
+        guard uniqueCategoryIds.count == finalizedDrafts.count else {
             annualFormError = "カテゴリが重複しています"
             return
-        }
-
-        let manualAllocationSum = drafts.reduce(into: Decimal.zero) { partialResult, draft in
-            let effectivePolicy = draft.policyOverride ?? annualFormState.policy
-            if effectivePolicy == .manual {
-                partialResult += draft.amount
-            }
-        }
-
-        let hasAutomaticPolicy = annualFormState.policy == .automatic
-            || drafts.contains { ($0.policyOverride ?? annualFormState.policy) == .automatic }
-
-        if hasAutomaticPolicy {
-            guard manualAllocationSum <= amount else {
-                annualFormError = "手動配分の合計（\(manualAllocationSum.currencyFormatted)）が総額を超えています"
-                return
-            }
-        } else {
-            guard manualAllocationSum == amount else {
-                annualFormError = "カテゴリ合計（\(manualAllocationSum.currencyFormatted)）と総額（\(amount.currencyFormatted)）が一致していません"
-                return
-            }
         }
 
         do {
             try store.upsertAnnualBudgetConfig(
                 totalAmount: amount,
                 policy: annualFormState.policy,
-                allocations: drafts,
+                allocations: finalizedDrafts,
             )
             isPresentingAnnualEditor = false
         } catch BudgetStoreError.categoryNotFound {
