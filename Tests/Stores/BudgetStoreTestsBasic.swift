@@ -23,7 +23,7 @@ internal struct BudgetStoreTestsBasic {
     internal func addBudget_createsOverallBudget() throws {
         let (store, _) = try makeStore()
 
-        try store.addBudget(
+        let input = BudgetInput(
             amount: 50000,
             categoryId: nil,
             startYear: store.currentYear,
@@ -31,6 +31,7 @@ internal struct BudgetStoreTestsBasic {
             endYear: store.currentYear,
             endMonth: store.currentMonth,
         )
+        try store.addBudget(input)
 
         #expect(store.monthlyBudgets.count == 1)
         #expect(store.overallBudgetEntry?.calculation.budgetAmount == 50000)
@@ -41,7 +42,7 @@ internal struct BudgetStoreTestsBasic {
     internal func periodBudget_appliesAcrossMonths() throws {
         let (store, _) = try makeStore()
 
-        try store.addBudget(
+        let input = BudgetInput(
             amount: 4000,
             categoryId: nil,
             startYear: store.currentYear,
@@ -49,6 +50,7 @@ internal struct BudgetStoreTestsBasic {
             endYear: store.currentYear + 1,
             endMonth: 1,
         )
+        try store.addBudget(input)
 
         #expect(store.monthlyBudgets.count == 1)
         store.moveToNextMonth()
@@ -64,7 +66,7 @@ internal struct BudgetStoreTestsBasic {
         #expect(
             throws: BudgetStoreError.invalidPeriod,
         ) {
-            try store.addBudget(
+            let input = BudgetInput(
                 amount: 1000,
                 categoryId: nil,
                 startYear: store.currentYear,
@@ -72,6 +74,7 @@ internal struct BudgetStoreTestsBasic {
                 endYear: store.currentYear,
                 endMonth: store.currentMonth - 1,
             )
+            try store.addBudget(input)
         }
     }
 
@@ -92,8 +95,7 @@ internal struct BudgetStoreTestsBasic {
         context.insert(budget)
         try context.save()
 
-        try store.updateBudget(
-            budget: budget,
+        let input = BudgetInput(
             amount: 12000,
             categoryId: transport.id,
             startYear: store.currentYear,
@@ -101,6 +103,7 @@ internal struct BudgetStoreTestsBasic {
             endYear: store.currentYear,
             endMonth: store.currentMonth + 1,
         )
+        try store.updateBudget(budget: budget, input: input)
 
         #expect(budget.amount == 12000)
         #expect(budget.category?.id == transport.id)

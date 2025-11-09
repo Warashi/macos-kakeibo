@@ -355,26 +355,20 @@ private extension BudgetView {
         let endMonth = normalizedEnd.month
 
         do {
+            let input = BudgetInput(
+                amount: amount,
+                categoryId: budgetFormState.selectedCategoryId,
+                startYear: startYear,
+                startMonth: startMonth,
+                endYear: endYear,
+                endMonth: endMonth,
+            )
+
             switch budgetEditorMode {
             case .create:
-                try store.addBudget(
-                    amount: amount,
-                    categoryId: budgetFormState.selectedCategoryId,
-                    startYear: startYear,
-                    startMonth: startMonth,
-                    endYear: endYear,
-                    endMonth: endMonth,
-                )
+                try store.addBudget(input)
             case let .edit(budget):
-                try store.updateBudget(
-                    budget: budget,
-                    amount: amount,
-                    categoryId: budgetFormState.selectedCategoryId,
-                    startYear: startYear,
-                    startMonth: startMonth,
-                    endYear: endYear,
-                    endMonth: endMonth,
-                )
+                try store.updateBudget(budget: budget, input: input)
             }
             isPresentingBudgetEditor = false
         } catch BudgetStoreError.categoryNotFound {

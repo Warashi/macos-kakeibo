@@ -310,56 +310,41 @@ internal final class BudgetStore {
     // MARK: - CRUD
 
     /// 月次予算を追加
-    internal func addBudget(
-        amount: Decimal,
-        categoryId: UUID?,
-        startYear: Int,
-        startMonth: Int,
-        endYear: Int,
-        endMonth: Int,
-    ) throws {
+    internal func addBudget(_ input: BudgetInput) throws {
         try validatePeriod(
-            startYear: startYear,
-            startMonth: startMonth,
-            endYear: endYear,
-            endMonth: endMonth,
+            startYear: input.startYear,
+            startMonth: input.startMonth,
+            endYear: input.endYear,
+            endMonth: input.endMonth,
         )
-        let category = try resolvedCategory(categoryId: categoryId)
+        let category = try resolvedCategory(categoryId: input.categoryId)
         let budget = Budget(
-            amount: amount,
+            amount: input.amount,
             category: category,
-            startYear: startYear,
-            startMonth: startMonth,
-            endYear: endYear,
-            endMonth: endMonth,
+            startYear: input.startYear,
+            startMonth: input.startMonth,
+            endYear: input.endYear,
+            endMonth: input.endMonth,
         )
         modelContext.insert(budget)
         try modelContext.save()
     }
 
     /// 月次予算を更新
-    internal func updateBudget(
-        budget: Budget,
-        amount: Decimal,
-        categoryId: UUID?,
-        startYear: Int,
-        startMonth: Int,
-        endYear: Int,
-        endMonth: Int,
-    ) throws {
+    internal func updateBudget(budget: Budget, input: BudgetInput) throws {
         try validatePeriod(
-            startYear: startYear,
-            startMonth: startMonth,
-            endYear: endYear,
-            endMonth: endMonth,
+            startYear: input.startYear,
+            startMonth: input.startMonth,
+            endYear: input.endYear,
+            endMonth: input.endMonth,
         )
-        let category = try resolvedCategory(categoryId: categoryId)
-        budget.amount = amount
+        let category = try resolvedCategory(categoryId: input.categoryId)
+        budget.amount = input.amount
         budget.category = category
-        budget.startYear = startYear
-        budget.startMonth = startMonth
-        budget.endYear = endYear
-        budget.endMonth = endMonth
+        budget.startYear = input.startYear
+        budget.startMonth = input.startMonth
+        budget.endYear = input.endYear
+        budget.endMonth = input.endMonth
         budget.updatedAt = Date()
         try modelContext.save()
     }
@@ -500,6 +485,34 @@ internal struct MonthlyBudgetEntry: Identifiable {
         let parentOrder = budget.category?.parent?.displayOrder ?? budget.category?.displayOrder ?? 0
         let ownOrder = budget.category?.displayOrder ?? 0
         return CategoryDisplayOrderKey(parentOrder: parentOrder, ownOrder: ownOrder, title: title)
+    }
+}
+
+// MARK: - Budget Input
+
+/// 月次予算の入力パラメータ
+internal struct BudgetInput {
+    internal let amount: Decimal
+    internal let categoryId: UUID?
+    internal let startYear: Int
+    internal let startMonth: Int
+    internal let endYear: Int
+    internal let endMonth: Int
+
+    internal init(
+        amount: Decimal,
+        categoryId: UUID?,
+        startYear: Int,
+        startMonth: Int,
+        endYear: Int,
+        endMonth: Int,
+    ) {
+        self.amount = amount
+        self.categoryId = categoryId
+        self.startYear = startYear
+        self.startMonth = startMonth
+        self.endYear = endYear
+        self.endMonth = endMonth
     }
 }
 

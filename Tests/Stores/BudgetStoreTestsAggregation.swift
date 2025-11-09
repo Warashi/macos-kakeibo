@@ -23,7 +23,7 @@ internal struct BudgetStoreTestsAggregation {
         context.insert(transaction)
         try context.save()
 
-        try store.addBudget(
+        let input = BudgetInput(
             amount: 5000,
             categoryId: food.id,
             startYear: store.currentYear,
@@ -31,6 +31,7 @@ internal struct BudgetStoreTestsAggregation {
             endYear: store.currentYear,
             endMonth: store.currentMonth,
         )
+        try store.addBudget(input)
 
         let entries = store.categoryBudgetEntries
         #expect(entries.count == 1)
