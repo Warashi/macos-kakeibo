@@ -1,0 +1,41 @@
+import Foundation
+import XCTest
+
+final class EntitlementsTests: XCTestCase {
+    func testUserSelectedFileAccessEntitlementsAreEnabled() throws {
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+
+        let entitlementsURL = repoRoot
+            .appendingPathComponent("Config")
+            .appendingPathComponent("Kakeibo.entitlements")
+
+        let data = try Data(contentsOf: entitlementsURL)
+        let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
+
+        guard let entitlements = plist as? [String: Any] else {
+            XCTFail("Kakeibo.entitlements が辞書として読み取れませんでした")
+            return
+        }
+
+        XCTAssertEqual(
+            entitlements["com.apple.security.app-sandbox"] as? Bool,
+            true,
+            "App Sandbox を有効にしてください"
+        )
+
+        XCTAssertEqual(
+            entitlements["com.apple.security.files.user-selected.read-only"] as? Bool,
+            true,
+            "ユーザー選択ファイルの読み取り権限がありません"
+        )
+
+        XCTAssertEqual(
+            entitlements["com.apple.security.files.user-selected.read-write"] as? Bool,
+            true,
+            "ユーザー選択ファイルの読み書き権限がありません"
+        )
+    }
+}

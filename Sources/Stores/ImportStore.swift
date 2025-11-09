@@ -47,11 +47,13 @@ internal final class ImportStore {
         defer { isProcessing = false }
 
         do {
-            let data = try Data(contentsOf: url)
-            let document = try parser.parse(
-                data: data,
-                configuration: configuration,
-            )
+            let document = try await SecurityScopedResourceAccess.performAsync(with: url) {
+                let data = try Data(contentsOf: url)
+                return try parser.parse(
+                    data: data,
+                    configuration: configuration
+                )
+            }
             applyDocument(document, fileName: url.lastPathComponent)
             statusMessage = "\(url.lastPathComponent) を読み込みました"
         } catch {

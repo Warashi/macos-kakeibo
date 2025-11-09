@@ -125,7 +125,9 @@ internal struct DataManagementPanel: View {
     private func restoreBackup(from url: URL) {
         Task {
             do {
-                let data = try Data(contentsOf: url)
+                let data = try await SecurityScopedResourceAccess.performAsync(with: url) {
+                    try Data(contentsOf: url)
+                }
                 _ = try await store.restoreBackup(from: data)
             } catch {
                 store.statusMessage = "復元に失敗しました: \(error.localizedDescription)"
