@@ -79,7 +79,7 @@ internal struct TransactionEditorView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(store.formErrors, id: \.self) { error in
                         Label(error, systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.red)
+                            .foregroundColor(.error)
                             .font(.footnote)
                     }
                 }

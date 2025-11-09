@@ -102,7 +102,7 @@ internal struct TransactionFilterBar: View {
             }
         }
         .padding()
-        .background(.thinMaterial)
+        .background(Color.backgroundTertiary)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
