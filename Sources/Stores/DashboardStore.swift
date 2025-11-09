@@ -62,23 +62,53 @@ internal final class DashboardStore {
 
     // MARK: - Data Access
 
-    /// すべての取引を取得
-    private var allTransactions: [Transaction] {
+    /// 指定した期間の取引を取得
+    private func fetchTransactions(year: Int, month: Int? = nil) -> [Transaction] {
+        guard let startDate = Date.from(year: year, month: month ?? 1) else {
+            return []
+        }
+
+        let endDate: Date
+        if let month {
+            let nextMonth = month == 12 ? 1 : month + 1
+            let nextYear = month == 12 ? year + 1 : year
+            endDate = Date.from(year: nextYear, month: nextMonth) ?? startDate
+        } else {
+            endDate = Date.from(year: year + 1, month: 1) ?? startDate
+        }
+
         let descriptor = FetchDescriptor<Transaction>(
-            sortBy: [SortDescriptor(\.date, order: .reverse)],
+            predicate: #Predicate {
+                $0.date >= startDate && $0.date < endDate
+            },
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
-    /// すべての予算を取得
-    private var allBudgets: [Budget] {
-        let descriptor = FetchDescriptor<Budget>()
+    /// 指定年に関係する予算を取得
+    private func fetchBudgets(overlapping year: Int) -> [Budget] {
+        let descriptor = FetchDescriptor<Budget>(
+            predicate: #Predicate {
+                $0.startYear <= year && $0.endYear >= year
+            },
+            sortBy: [
+                SortDescriptor(\.startYear),
+                SortDescriptor(\.startMonth),
+                SortDescriptor(\.createdAt),
+            ]
+        )
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
-    /// すべてのカテゴリを取得
-    private var allCategories: [Category] {
-        let descriptor = FetchDescriptor<Category>()
+    /// カテゴリを取得
+    private func fetchCategories() -> [Category] {
+        let descriptor = FetchDescriptor<Category>(
+            sortBy: [
+                SortDescriptor(\.displayOrder),
+                SortDescriptor(\.name),
+            ]
+        )
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
@@ -104,8 +134,9 @@ internal final class DashboardStore {
 
     /// 月次集計
     internal var monthlySummary: MonthlySummary {
-        aggregator.aggregateMonthly(
-            transactions: allTransactions,
+        let transactions = fetchTransactions(year: currentYear, month: currentMonth)
+        return aggregator.aggregateMonthly(
+            transactions: transactions,
             year: currentYear,
             month: currentMonth,
             filter: .default,
@@ -114,8 +145,9 @@ internal final class DashboardStore {
 
     /// 年次集計
     internal var annualSummary: AnnualSummary {
-        aggregator.aggregateAnnually(
-            transactions: allTransactions,
+        let transactions = fetchTransactions(year: currentYear)
+        return aggregator.aggregateAnnually(
+            transactions: transactions,
             year: currentYear,
             filter: .default,
         )
@@ -124,12 +156,15 @@ internal final class DashboardStore {
     /// 月次予算計算
     internal var monthlyBudgetCalculation: MonthlyBudgetCalculation {
         let config = getAnnualBudgetConfig(year: currentYear)
+        let categories = fetchCategories()
         let excludedCategoryIds = config?.fullCoverageCategoryIDs(
-            includingChildrenFrom: allCategories,
+            includingChildrenFrom: categories,
         ) ?? []
+        let transactions = fetchTransactions(year: currentYear, month: currentMonth)
+        let budgets = fetchBudgets(overlapping: currentYear)
         return budgetCalculator.calculateMonthlyBudget(
-            transactions: allTransactions,
-            budgets: allBudgets,
+            transactions: transactions,
+            budgets: budgets,
             year: currentYear,
             month: currentMonth,
             filter: .default,
@@ -143,9 +178,11 @@ internal final class DashboardStore {
             return nil
         }
 
+        let transactions = fetchTransactions(year: currentYear)
+        let budgets = fetchBudgets(overlapping: currentYear)
         let params = AllocationCalculationParams(
-            transactions: allTransactions,
-            budgets: allBudgets,
+            transactions: transactions,
+            budgets: budgets,
             annualBudgetConfig: config,
             filter: .default,
         )
@@ -162,9 +199,11 @@ internal final class DashboardStore {
             return nil
         }
 
+        let transactions = fetchTransactions(year: currentYear)
+        let budgets = fetchBudgets(overlapping: currentYear)
         let params = AllocationCalculationParams(
-            transactions: allTransactions,
-            budgets: allBudgets,
+            transactions: transactions,
+            budgets: budgets,
             annualBudgetConfig: config,
             filter: .default,
         )
@@ -188,9 +227,11 @@ internal final class DashboardStore {
 
     /// 年次予算進捗
     private var annualBudgetProgressResult: AnnualBudgetProgressResult? {
+        let budgets = fetchBudgets(overlapping: currentYear)
+        let transactions = fetchTransactions(year: currentYear)
         let result = annualBudgetProgressCalculator.calculate(
-            budgets: allBudgets,
-            transactions: allTransactions,
+            budgets: budgets,
+            transactions: transactions,
             year: currentYear,
             filter: .default,
         )

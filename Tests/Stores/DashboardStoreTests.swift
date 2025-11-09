@@ -54,6 +54,42 @@ internal struct DashboardStoreTests {
         #expect(summary.transactionCount == 1)
     }
 
+    @Test("月次集計：年跨ぎ境界でも正しく集計する")
+    internal func monthlySummary_handlesYearBoundary() throws {
+        let container = try createInMemoryContainer()
+        let context = ModelContext(container)
+        let category = Category(name: "雑費")
+        context.insert(category)
+
+        let decemberDate = try #require(Date.from(year: 2025, month: 12, day: 15))
+        let januaryDate = try #require(Date.from(year: 2026, month: 1, day: 5))
+        context.insert(
+            Transaction(
+                date: decemberDate,
+                title: "年末出費",
+                amount: -8000,
+                majorCategory: category
+            )
+        )
+        context.insert(
+            Transaction(
+                date: januaryDate,
+                title: "年始出費",
+                amount: -4000,
+                majorCategory: category
+            )
+        )
+        try context.save()
+
+        let store = DashboardStore(modelContext: context)
+        store.currentYear = 2025
+        store.currentMonth = 12
+
+        let summary = store.monthlySummary
+        #expect(summary.transactionCount == 1)
+        #expect(summary.totalExpense == 8000)
+    }
+
     @Test("表示モード切り替え")
     internal func displayModeSwitch() throws {
         // Given
@@ -66,6 +102,27 @@ internal struct DashboardStoreTests {
 
         store.displayMode = .annual
         #expect(store.displayMode == .annual)
+    }
+
+    @Test("年次集計：対象年の全期間を集計する")
+    internal func annualSummary_includesWholeYear() throws {
+        let container = try createInMemoryContainer()
+        let context = ModelContext(container)
+
+        let january = try #require(Date.from(year: 2025, month: 1, day: 10))
+        let august = try #require(Date.from(year: 2025, month: 8, day: 3))
+        context.insert(Transaction(date: january, title: "初売り", amount: -5000))
+        context.insert(Transaction(date: august, title: "旅行", amount: -15000))
+        context.insert(Transaction(date: Date.from(year: 2024, month: 12, day: 25) ?? Date(), title: "前年", amount: -7000))
+        try context.save()
+
+        let store = DashboardStore(modelContext: context)
+        store.currentYear = 2025
+        store.currentMonth = 8
+
+        let summary = store.annualSummary
+        #expect(summary.transactionCount == 2)
+        #expect(summary.totalExpense == 20_000)
     }
 
     @Test("月移動：前月")
