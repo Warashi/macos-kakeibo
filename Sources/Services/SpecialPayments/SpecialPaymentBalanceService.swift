@@ -44,22 +44,25 @@ internal struct PaymentDifference: Sendable {
 ///
 /// 月次積立の記録、実績支払いの反映、残高の再計算を行います。
 internal struct SpecialPaymentBalanceService: Sendable {
+    /// 月次積立記録パラメータ
+    internal struct MonthlySavingsParameters: Sendable {
+        internal let definition: SpecialPaymentDefinition
+        internal let balance: SpecialPaymentSavingBalance?
+        internal let year: Int
+        internal let month: Int
+        internal let context: ModelContext
+    }
+
     /// 月次積立を記録
-    /// - Parameters:
-    ///   - definition: 特別支払い定義
-    ///   - balance: 積立残高（nilの場合は新規作成）
-    ///   - year: 対象年
-    ///   - month: 対象月
-    ///   - context: ModelContext
+    /// - Parameter params: 月次積立記録パラメータ
     /// - Returns: 更新または新規作成された残高
     @discardableResult
-    internal func recordMonthlySavings(
-        for definition: SpecialPaymentDefinition,
-        balance: SpecialPaymentSavingBalance?,
-        year: Int,
-        month: Int,
-        context: ModelContext,
-    ) -> SpecialPaymentSavingBalance {
+    internal func recordMonthlySavings(params: MonthlySavingsParameters) -> SpecialPaymentSavingBalance {
+        let definition = params.definition
+        let balance = params.balance
+        let year = params.year
+        let month = params.month
+        let context = params.context
         let monthlySaving = definition.monthlySavingAmount
 
         if let existingBalance = balance {
@@ -119,27 +122,47 @@ internal struct SpecialPaymentBalanceService: Sendable {
         return difference
     }
 
+    /// 残高再計算パラメータ
+    internal struct RecalculateBalanceParameters: Sendable {
+        internal let definition: SpecialPaymentDefinition
+        internal let balance: SpecialPaymentSavingBalance
+        internal let year: Int
+        internal let month: Int
+        internal let startYear: Int?
+        internal let startMonth: Int?
+        internal let context: ModelContext
+
+        internal init(
+            definition: SpecialPaymentDefinition,
+            balance: SpecialPaymentSavingBalance,
+            year: Int,
+            month: Int,
+            startYear: Int? = nil,
+            startMonth: Int? = nil,
+            context: ModelContext,
+        ) {
+            self.definition = definition
+            self.balance = balance
+            self.year = year
+            self.month = month
+            self.startYear = startYear
+            self.startMonth = startMonth
+            self.context = context
+        }
+    }
+
     /// 残高を再計算
     ///
     /// definitionの全occurrenceから残高を再計算します。
     /// データ修正時やデバッグ時に使用します。
-    /// - Parameters:
-    ///   - definition: 特別支払い定義
-    ///   - balance: 積立残高
-    ///   - year: 現在の年
-    ///   - month: 現在の月
-    ///   - startYear: 積立開始年（nilの場合は定義の作成日から計算）
-    ///   - startMonth: 積立開始月（nilの場合は定義の作成日から計算）
-    ///   - context: ModelContext
-    internal func recalculateBalance(
-        for definition: SpecialPaymentDefinition,
-        balance: SpecialPaymentSavingBalance,
-        year: Int,
-        month: Int,
-        startYear: Int? = nil,
-        startMonth: Int? = nil,
-        context: ModelContext,
-    ) {
+    /// - Parameter params: 残高再計算パラメータ
+    internal func recalculateBalance(params: RecalculateBalanceParameters) {
+        let definition = params.definition
+        let balance = params.balance
+        let year = params.year
+        let month = params.month
+        let startYear = params.startYear
+        let startMonth = params.startMonth
         // 完了済みのoccurrenceから累計支払額を計算
         let completedOccurrences = definition.occurrences.filter { $0.status == .completed }
         let totalPaid = completedOccurrences.reduce(Decimal(0)) { sum, occurrence in
