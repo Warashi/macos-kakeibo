@@ -126,6 +126,25 @@ internal struct BudgetStoreTestsBasic {
         #expect(store.monthlyBudgets.isEmpty)
     }
 
+    @Test("CRUD後にリフレッシュトークンが更新される")
+    internal func refreshToken_updatesAfterMutations() throws {
+        let (store, _) = try makeStore()
+        let initialToken = store.refreshToken
+
+        let input = BudgetInput(
+            amount: 6000,
+            categoryId: nil,
+            startYear: store.currentYear,
+            startMonth: store.currentMonth,
+            endYear: store.currentYear,
+            endMonth: store.currentMonth,
+        )
+
+        try store.addBudget(input)
+
+        #expect(store.refreshToken != initialToken)
+    }
+
     // MARK: - Helpers
 
     private func makeStore() throws -> (BudgetStore, ModelContext) {

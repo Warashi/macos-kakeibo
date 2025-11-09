@@ -31,62 +31,67 @@ internal struct BudgetView: View {
     internal var body: some View {
         VStack(spacing: 0) {
             if let store {
-                BudgetToolbarView(store: store, isPresentingReconciliation: $isPresentingReconciliation)
-                    .padding(.horizontal)
-                    .padding(.top)
+                let refreshToken = store.refreshToken
 
-                ScrollView {
-                    VStack(spacing: 20) {
-                        switch store.displayMode {
-                        case .monthly:
-                            MonthlyBudgetGrid(
-                                title: "\(store.currentYear.yearDisplayString)年\(store.currentMonth)月",
-                                overallEntry: store.overallBudgetEntry,
-                                categoryEntries: store.categoryBudgetEntries,
-                                onAdd: { presentBudgetEditor(for: nil) },
-                                onEdit: { presentBudgetEditor(for: $0) },
-                                onDelete: { budgetPendingDeletion = $0 },
-                            )
+                Group {
+                    BudgetToolbarView(store: store, isPresentingReconciliation: $isPresentingReconciliation)
+                        .padding(.horizontal)
+                        .padding(.top)
 
-                            AnnualBudgetPanel(
-                                year: store.currentYear,
-                                config: store.annualBudgetConfig,
-                                usage: store.annualBudgetUsage,
-                                onEdit: presentAnnualEditor,
-                            )
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            switch store.displayMode {
+                            case .monthly:
+                                MonthlyBudgetGrid(
+                                    title: "\(store.currentYear.yearDisplayString)年\(store.currentMonth)月",
+                                    overallEntry: store.overallBudgetEntry,
+                                    categoryEntries: store.categoryBudgetEntries,
+                                    onAdd: { presentBudgetEditor(for: nil) },
+                                    onEdit: { presentBudgetEditor(for: $0) },
+                                    onDelete: { budgetPendingDeletion = $0 },
+                                )
 
-                            BudgetSpecialPaymentSection(
-                                onEdit: { presentSpecialPaymentEditor(for: $0) },
-                                onDelete: { specialPaymentPendingDeletion = $0 },
-                                onAdd: { presentSpecialPaymentEditor(for: nil) },
-                            )
+                                AnnualBudgetPanel(
+                                    year: store.currentYear,
+                                    config: store.annualBudgetConfig,
+                                    usage: store.annualBudgetUsage,
+                                    onEdit: presentAnnualEditor,
+                                )
 
-                        case .annual:
-                            AnnualBudgetGrid(
-                                title: "\(store.currentYear.yearDisplayString)年",
-                                overallEntry: store.annualOverallBudgetEntry,
-                                categoryEntries: store.annualCategoryBudgetEntries,
-                            )
+                                BudgetSpecialPaymentSection(
+                                    onEdit: { presentSpecialPaymentEditor(for: $0) },
+                                    onDelete: { specialPaymentPendingDeletion = $0 },
+                                    onAdd: { presentSpecialPaymentEditor(for: nil) },
+                                )
 
-                            AnnualBudgetPanel(
-                                year: store.currentYear,
-                                config: store.annualBudgetConfig,
-                                usage: store.annualBudgetUsage,
-                                onEdit: presentAnnualEditor,
-                            )
+                            case .annual:
+                                AnnualBudgetGrid(
+                                    title: "\(store.currentYear.yearDisplayString)年",
+                                    overallEntry: store.annualOverallBudgetEntry,
+                                    categoryEntries: store.annualCategoryBudgetEntries,
+                                )
 
-                            BudgetSpecialPaymentSection(
-                                onEdit: { presentSpecialPaymentEditor(for: $0) },
-                                onDelete: { specialPaymentPendingDeletion = $0 },
-                                onAdd: { presentSpecialPaymentEditor(for: nil) },
-                            )
+                                AnnualBudgetPanel(
+                                    year: store.currentYear,
+                                    config: store.annualBudgetConfig,
+                                    usage: store.annualBudgetUsage,
+                                    onEdit: presentAnnualEditor,
+                                )
 
-                        case .specialPaymentsList:
-                            SpecialPaymentListView()
+                                BudgetSpecialPaymentSection(
+                                    onEdit: { presentSpecialPaymentEditor(for: $0) },
+                                    onDelete: { specialPaymentPendingDeletion = $0 },
+                                    onAdd: { presentSpecialPaymentEditor(for: nil) },
+                                )
+
+                            case .specialPaymentsList:
+                                SpecialPaymentListView()
+                            }
                         }
+                        .padding()
                     }
-                    .padding()
                 }
+                .id(refreshToken)
             } else {
                 ProgressView("データを読み込み中…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

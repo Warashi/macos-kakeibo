@@ -28,6 +28,9 @@ internal final class BudgetStore {
     /// 表示モード（月次/年次）
     internal var displayMode: DisplayMode = .monthly
 
+    /// データの再取得トリガー
+    internal private(set) var refreshToken: UUID = .init()
+
     // MARK: - Initialization
 
     internal init(modelContext: ModelContext) {
@@ -328,6 +331,7 @@ internal final class BudgetStore {
         )
         modelContext.insert(budget)
         try modelContext.save()
+        notifyDataChanged()
     }
 
     /// 月次予算を更新
@@ -347,12 +351,14 @@ internal final class BudgetStore {
         budget.endMonth = input.endMonth
         budget.updatedAt = Date()
         try modelContext.save()
+        notifyDataChanged()
     }
 
     /// 月次予算を削除
     internal func deleteBudget(_ budget: Budget) throws {
         modelContext.delete(budget)
         try modelContext.save()
+        notifyDataChanged()
     }
 
     /// 年次特別枠設定を登録/更新
@@ -382,11 +388,18 @@ internal final class BudgetStore {
             )
         }
         try modelContext.save()
+        notifyDataChanged()
+    }
+}
+
+// MARK: - Helpers
+
+private extension BudgetStore {
+    func notifyDataChanged() {
+        refreshToken = UUID()
     }
 
-    // MARK: - Helpers
-
-    private func resolvedCategory(categoryId: UUID?) throws -> Category? {
+    func resolvedCategory(categoryId: UUID?) throws -> Category? {
         guard let id = categoryId else { return nil }
         guard let category = category(for: id) else {
             throw BudgetStoreError.categoryNotFound
@@ -394,7 +407,7 @@ internal final class BudgetStore {
         return category
     }
 
-    private func validatePeriod(
+    func validatePeriod(
         startYear: Int,
         startMonth: Int,
         endYear: Int,
@@ -414,7 +427,7 @@ internal final class BudgetStore {
         }
     }
 
-    private func syncAllocations(
+    func syncAllocations(
         config: AnnualBudgetConfig,
         drafts: [AnnualAllocationDraft],
     ) throws {
