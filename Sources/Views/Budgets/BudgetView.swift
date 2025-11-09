@@ -29,12 +29,14 @@ internal struct BudgetView: View {
     @State private var isShowingErrorAlert: Bool = false
 
     internal var body: some View {
-        Group {
+        VStack(spacing: 0) {
             if let store {
+                BudgetToolbarView(store: store, isPresentingReconciliation: $isPresentingReconciliation)
+                    .padding(.horizontal)
+                    .padding(.top)
+
                 ScrollView {
                     VStack(spacing: 20) {
-                        BudgetToolbarView(store: store, isPresentingReconciliation: $isPresentingReconciliation)
-
                         switch store.displayMode {
                         case .monthly:
                             MonthlyBudgetGrid(
