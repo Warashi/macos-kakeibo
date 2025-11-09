@@ -13,7 +13,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         let (store, context) = try makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        try store.createDefinition(
+        let input = SpecialPaymentDefinitionInput(
             name: "月末支払い",
             notes: "毎月末に発生する支払い",
             amount: 30000,
@@ -25,8 +25,8 @@ internal struct SpecialPaymentStoreDayPatternTests {
             customMonthlySavingAmount: nil,
             dateAdjustmentPolicy: .none,
             recurrenceDayPattern: .endOfMonth,
-            horizonMonths: 6,
         )
+        try store.createDefinition(input, horizonMonths: 6)
 
         let descriptor = FetchDescriptor<SpecialPaymentDefinition>()
         let definitions = try context.fetch(descriptor)
@@ -46,7 +46,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         let (store, context) = try makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        try store.createDefinition(
+        let input = SpecialPaymentDefinitionInput(
             name: "営業日払い",
             notes: "休日の場合は前営業日に調整",
             amount: 40000,
@@ -58,8 +58,8 @@ internal struct SpecialPaymentStoreDayPatternTests {
             customMonthlySavingAmount: nil,
             dateAdjustmentPolicy: .moveToPreviousBusinessDay,
             recurrenceDayPattern: nil,
-            horizonMonths: 6,
         )
+        try store.createDefinition(input, horizonMonths: 6)
 
         let descriptor = FetchDescriptor<SpecialPaymentDefinition>()
         let definitions = try context.fetch(descriptor)
@@ -89,8 +89,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         try store.synchronizeOccurrences(for: definition, horizonMonths: 6)
 
         // パターンを月末に変更
-        try store.updateDefinition(
-            definition,
+        let input = SpecialPaymentDefinitionInput(
             name: "給料日",
             notes: "月末払いに変更",
             amount: 250_000,
@@ -102,8 +101,8 @@ internal struct SpecialPaymentStoreDayPatternTests {
             customMonthlySavingAmount: nil,
             dateAdjustmentPolicy: .none,
             recurrenceDayPattern: .endOfMonth,
-            horizonMonths: 6,
         )
+        try store.updateDefinition(definition, input: input, horizonMonths: 6)
 
         #expect(definition.recurrenceDayPattern == .endOfMonth)
         #expect(definition.notes == "月末払いに変更")
@@ -130,8 +129,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         try store.synchronizeOccurrences(for: definition, horizonMonths: 6)
 
         // ポリシーを変更
-        try store.updateDefinition(
-            definition,
+        let input = SpecialPaymentDefinitionInput(
             name: "家賃",
             notes: "休日の場合は翌営業日払い",
             amount: 100_000,
@@ -143,8 +141,8 @@ internal struct SpecialPaymentStoreDayPatternTests {
             customMonthlySavingAmount: nil,
             dateAdjustmentPolicy: .moveToNextBusinessDay,
             recurrenceDayPattern: nil,
-            horizonMonths: 6,
         )
+        try store.updateDefinition(definition, input: input, horizonMonths: 6)
 
         #expect(definition.dateAdjustmentPolicy == .moveToNextBusinessDay)
         #expect(definition.notes == "休日の場合は翌営業日払い")
