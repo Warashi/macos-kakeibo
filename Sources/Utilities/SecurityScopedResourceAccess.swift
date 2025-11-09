@@ -2,7 +2,7 @@ import Foundation
 
 /// ユーザーが選択したセキュリティスコープ付きURLへのアクセスを管理する
 internal enum SecurityScopedResourceAccess {
-    @discardableResult
+    @MainActor @discardableResult
     static func perform<T>(
         with url: URL,
         controller: SecurityScopedResourceAccessControlling = SystemSecurityScopedResourceAccessController(),
@@ -17,7 +17,7 @@ internal enum SecurityScopedResourceAccess {
         return try work()
     }
 
-    @discardableResult
+    @MainActor @discardableResult
     static func performAsync<T>(
         with url: URL,
         controller: SecurityScopedResourceAccessControlling = SystemSecurityScopedResourceAccessController(),
