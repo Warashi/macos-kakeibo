@@ -22,15 +22,15 @@ internal struct SpecialPaymentEditorSheet: View {
                     }
 
                     LabeledField(title: "カテゴリ") {
-                        Picker("カテゴリ", selection: $formState.selectedCategoryId) {
-                            Text("カテゴリを選択").tag(UUID?.none)
-                            ForEach(categories, id: \.id) { category in
-                                Text(category.fullName).tag(Optional(category.id))
-                            }
-                        }
-                        .labelsHidden()
-                        .pickerStyle(.menu)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        CategoryHierarchyPicker(
+                            categories: categories,
+                            selectedMajorCategoryId: $formState.selectedMajorCategoryId,
+                            selectedMinorCategoryId: $formState.selectedMinorCategoryId,
+                            majorPlaceholder: "大項目を選択",
+                            minorPlaceholder: "中項目を選択",
+                            inactiveMinorMessage: "大項目を選択すると中項目を指定できます",
+                            noMinorMessage: "この大項目に中項目はありません",
+                        )
                     }
 
                     LabeledField(title: "金額（例: 50000）") {

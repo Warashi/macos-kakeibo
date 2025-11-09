@@ -149,13 +149,147 @@ internal struct SpecialPaymentListStoreFilterTests {
         #expect(store.entries.first?.status == .completed)
     }
 
+    @Test("entries: 大項目フィルタで配下の中項目も含まれる")
+    internal func entries_majorCategoryFilterIncludesChildren() throws {
+        let (store, context) = try makeStore()
+
+        let major = Category(name: "生活費")
+        let minor = Category(name: "食費", parent: major)
+        let otherMajor = Category(name: "趣味")
+
+        context.insert(major)
+        context.insert(minor)
+        context.insert(otherMajor)
+
+        let definitionMajor = SpecialPaymentDefinition(
+            name: "家賃",
+            amount: 80000,
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
+            category: major,
+        )
+
+        let definitionMinor = SpecialPaymentDefinition(
+            name: "外食",
+            amount: 15000,
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: Date.from(year: 2026, month: 2) ?? Date(),
+            category: minor,
+        )
+
+        let definitionOther = SpecialPaymentDefinition(
+            name: "サブスク",
+            amount: 2000,
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: Date.from(year: 2026, month: 3) ?? Date(),
+            category: otherMajor,
+        )
+
+        let occurrence1 = SpecialPaymentOccurrence(
+            definition: definitionMajor,
+            scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
+            expectedAmount: 80000,
+            status: .saving,
+        )
+
+        let occurrence2 = SpecialPaymentOccurrence(
+            definition: definitionMinor,
+            scheduledDate: Date.from(year: 2026, month: 2) ?? Date(),
+            expectedAmount: 15000,
+            status: .saving,
+        )
+
+        let occurrence3 = SpecialPaymentOccurrence(
+            definition: definitionOther,
+            scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
+            expectedAmount: 2000,
+            status: .saving,
+        )
+
+        context.insert(definitionMajor)
+        context.insert(definitionMinor)
+        context.insert(definitionOther)
+        context.insert(occurrence1)
+        context.insert(occurrence2)
+        context.insert(occurrence3)
+        try context.save()
+
+        store.startDate = Date.from(year: 2026, month: 1) ?? Date()
+        store.endDate = Date.from(year: 2026, month: 12) ?? Date()
+
+        store.selectedMajorCategoryId = major.id
+
+        let filteredDefinitions = Set(store.entries.map(\.definitionId))
+        #expect(filteredDefinitions.contains(definitionMajor.id))
+        #expect(filteredDefinitions.contains(definitionMinor.id))
+        #expect(!filteredDefinitions.contains(definitionOther.id))
+    }
+
+    @Test("entries: 中項目フィルタは該当カテゴリのみを対象にする")
+    internal func entries_minorCategoryFilterIsPrecise() throws {
+        let (store, context) = try makeStore()
+
+        let major = Category(name: "生活費")
+        let minor = Category(name: "食費", parent: major)
+        let anotherMinor = Category(name: "日用品", parent: major)
+
+        context.insert(major)
+        context.insert(minor)
+        context.insert(anotherMinor)
+
+        let definitionMinor = SpecialPaymentDefinition(
+            name: "外食",
+            amount: 15000,
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: Date.from(year: 2026, month: 2) ?? Date(),
+            category: minor,
+        )
+
+        let definitionAnother = SpecialPaymentDefinition(
+            name: "日用品",
+            amount: 8000,
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: Date.from(year: 2026, month: 2) ?? Date(),
+            category: anotherMinor,
+        )
+
+        let occurrence1 = SpecialPaymentOccurrence(
+            definition: definitionMinor,
+            scheduledDate: Date.from(year: 2026, month: 2) ?? Date(),
+            expectedAmount: 15000,
+            status: .saving,
+        )
+
+        let occurrence2 = SpecialPaymentOccurrence(
+            definition: definitionAnother,
+            scheduledDate: Date.from(year: 2026, month: 2) ?? Date(),
+            expectedAmount: 8000,
+            status: .saving,
+        )
+
+        context.insert(definitionMinor)
+        context.insert(definitionAnother)
+        context.insert(occurrence1)
+        context.insert(occurrence2)
+        try context.save()
+
+        store.startDate = Date.from(year: 2026, month: 1) ?? Date()
+        store.endDate = Date.from(year: 2026, month: 12) ?? Date()
+        store.selectedMajorCategoryId = major.id
+        store.selectedMinorCategoryId = minor.id
+
+        let filteredDefinitions = Set(store.entries.map(\.definitionId))
+        #expect(filteredDefinitions == Set([definitionMinor.id]))
+    }
+
     @Test("resetFilters: フィルタがリセットされる")
     internal func resetFilters_clearsAllFilters() throws {
         let (store, _) = try makeStore()
 
         // Given
         store.searchText = "テスト"
-        store.selectedCategoryId = UUID()
+        store.selectedMajorCategoryId = UUID()
+        store.selectedMinorCategoryId = UUID()
         store.selectedStatus = .completed
         store.startDate = Date.from(year: 2025, month: 1) ?? Date()
         store.endDate = Date.from(year: 2025, month: 12) ?? Date()
@@ -165,7 +299,8 @@ internal struct SpecialPaymentListStoreFilterTests {
 
         // Then
         #expect(store.searchText == "")
-        #expect(store.selectedCategoryId == nil)
+        #expect(store.selectedMajorCategoryId == nil)
+        #expect(store.selectedMinorCategoryId == nil)
         #expect(store.selectedStatus == nil)
         // 期間は当月〜6ヶ月後にリセットされる
         let now = Date()

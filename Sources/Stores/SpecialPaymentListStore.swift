@@ -23,8 +23,11 @@ internal final class SpecialPaymentListStore {
     /// 検索テキスト（名目での部分一致）
     internal var searchText: String = ""
 
-    /// カテゴリフィルタ
-    internal var selectedCategoryId: UUID?
+    /// カテゴリフィルタ（大項目）
+    internal var selectedMajorCategoryId: UUID?
+
+    /// カテゴリフィルタ（中項目）
+    internal var selectedMinorCategoryId: UUID?
 
     /// ステータスフィルタ
     internal var selectedStatus: SpecialPaymentStatus?
@@ -95,10 +98,8 @@ internal final class SpecialPaymentListStore {
                 }
 
                 // カテゴリフィルタ
-                if let categoryId = selectedCategoryId {
-                    guard occurrence.definition.category?.id == categoryId else {
-                        return false
-                    }
+                if !matchesCategoryFilter(for: occurrence.definition.category) {
+                    return false
                 }
 
                 // ステータスフィルタ
@@ -123,7 +124,8 @@ internal final class SpecialPaymentListStore {
     /// フィルタをリセット
     internal func resetFilters() {
         searchText = ""
-        selectedCategoryId = nil
+        selectedMajorCategoryId = nil
+        selectedMinorCategoryId = nil
         selectedStatus = nil
 
         let now = Date()
@@ -156,6 +158,22 @@ internal final class SpecialPaymentListStore {
         case .amountDescending:
             entries.sorted { $0.expectedAmount > $1.expectedAmount }
         }
+    }
+
+    private func matchesCategoryFilter(for category: Category?) -> Bool {
+        if let minorId = selectedMinorCategoryId {
+            return category?.id == minorId
+        }
+
+        if let majorId = selectedMajorCategoryId {
+            guard let category else { return false }
+            if category.isMajor {
+                return category.id == majorId
+            }
+            return category.parent?.id == majorId
+        }
+
+        return true
     }
 }
 

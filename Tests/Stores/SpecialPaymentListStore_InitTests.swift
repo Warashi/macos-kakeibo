@@ -21,7 +21,8 @@ internal struct SpecialPaymentListStoreInitTests {
         #expect(store.startDate.timeIntervalSince(expectedStart ?? now) < 60) // 1分以内
         #expect(store.endDate.timeIntervalSince(expectedEnd ?? now) < 60)
         #expect(store.searchText == "")
-        #expect(store.selectedCategoryId == nil)
+        #expect(store.selectedMajorCategoryId == nil)
+        #expect(store.selectedMinorCategoryId == nil)
         #expect(store.selectedStatus == nil)
         #expect(store.sortOrder == .dateAscending)
     }

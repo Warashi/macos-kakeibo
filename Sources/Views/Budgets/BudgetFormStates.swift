@@ -85,11 +85,18 @@ internal struct AnnualBudgetFormState {
         totalAmountText = config.totalAmount.plainString
         policy = config.policy
         allocationRows = config.allocations.map { allocation in
-            AnnualBudgetAllocationRowState(
+            var row = AnnualBudgetAllocationRowState(
                 id: allocation.id,
-                selectedCategoryId: allocation.category.id,
                 amountText: allocation.amount.plainString,
             )
+            if allocation.category.isMajor {
+                row.selectedMajorCategoryId = allocation.category.id
+                row.selectedMinorCategoryId = nil
+            } else {
+                row.selectedMajorCategoryId = allocation.category.parent?.id
+                row.selectedMinorCategoryId = allocation.category.id
+            }
+            return row
         }
         ensureInitialRow()
     }
@@ -153,17 +160,27 @@ internal struct AnnualBudgetFormState {
 
 internal struct AnnualBudgetAllocationRowState: Identifiable {
     internal let id: UUID
-    internal var selectedCategoryId: UUID?
+    internal var selectedMajorCategoryId: UUID?
+    internal var selectedMinorCategoryId: UUID?
     internal var amountText: String
+    internal var selectedPolicyOverride: AnnualBudgetPolicy?
 
     internal init(
         id: UUID = UUID(),
-        selectedCategoryId: UUID? = nil,
+        selectedMajorCategoryId: UUID? = nil,
+        selectedMinorCategoryId: UUID? = nil,
         amountText: String = "",
+        selectedPolicyOverride: AnnualBudgetPolicy? = nil,
     ) {
         self.id = id
-        self.selectedCategoryId = selectedCategoryId
+        self.selectedMajorCategoryId = selectedMajorCategoryId
+        self.selectedMinorCategoryId = selectedMinorCategoryId
         self.amountText = amountText
+        self.selectedPolicyOverride = selectedPolicyOverride
+    }
+
+    internal var selectedCategoryId: UUID? {
+        selectedMinorCategoryId ?? selectedMajorCategoryId
     }
 
     private var normalizedAmountText: String {
@@ -202,11 +219,16 @@ internal struct SpecialPaymentFormState {
     internal var recurrenceMonths: Int = 1
     internal var firstOccurrenceDate: Date = Date()
     internal var leadTimeMonths: Int = 0
-    internal var selectedCategoryId: UUID?
+    internal var selectedMajorCategoryId: UUID?
+    internal var selectedMinorCategoryId: UUID?
     internal var savingStrategy: SpecialPaymentSavingStrategy = .evenlyDistributed
     internal var customMonthlySavingAmountText: String = ""
     internal var dateAdjustmentPolicy: DateAdjustmentPolicy = .none
     internal var recurrenceDayPattern: DayOfMonthPattern?
+
+    internal var selectedCategoryId: UUID? {
+        selectedMinorCategoryId ?? selectedMajorCategoryId
+    }
 
     internal mutating func load(from definition: SpecialPaymentDefinition) {
         nameText = definition.name
@@ -216,7 +238,18 @@ internal struct SpecialPaymentFormState {
         recurrenceMonths = definition.recurrenceIntervalMonths % 12
         firstOccurrenceDate = definition.firstOccurrenceDate
         leadTimeMonths = definition.leadTimeMonths
-        selectedCategoryId = definition.category?.id
+        if let category = definition.category {
+            if category.isMajor {
+                selectedMajorCategoryId = category.id
+                selectedMinorCategoryId = nil
+            } else {
+                selectedMajorCategoryId = category.parent?.id
+                selectedMinorCategoryId = category.id
+            }
+        } else {
+            selectedMajorCategoryId = nil
+            selectedMinorCategoryId = nil
+        }
         savingStrategy = definition.savingStrategy
         customMonthlySavingAmountText = definition.customMonthlySavingAmount?.plainString ?? ""
         dateAdjustmentPolicy = definition.dateAdjustmentPolicy
@@ -231,7 +264,8 @@ internal struct SpecialPaymentFormState {
         recurrenceMonths = 1
         firstOccurrenceDate = Date()
         leadTimeMonths = 0
-        selectedCategoryId = nil
+        selectedMajorCategoryId = nil
+        selectedMinorCategoryId = nil
         savingStrategy = .evenlyDistributed
         customMonthlySavingAmountText = ""
         dateAdjustmentPolicy = .none

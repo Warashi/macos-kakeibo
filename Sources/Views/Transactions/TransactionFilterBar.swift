@@ -12,12 +12,6 @@ internal struct TransactionFilterBar: View {
         }
     }
 
-    private var categories: [Category] {
-        store.availableCategories.sorted { lhs, rhs in
-            lhs.fullName < rhs.fullName
-        }
-    }
-
     internal var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
@@ -87,18 +81,16 @@ internal struct TransactionFilterBar: View {
                 .pickerStyle(.menu)
                 .frame(width: 220)
 
-                Picker("カテゴリ", selection: Binding(get: {
-                    store.selectedCategoryId
-                }, set: { newValue in
-                    store.selectedCategoryId = newValue
-                })) {
-                    Text("すべて").tag(UUID?.none)
-                    ForEach(categories, id: \.id) { category in
-                        Text(category.fullName).tag(Optional(category.id))
-                    }
-                }
-                .pickerStyle(.menu)
-                .frame(minWidth: 220)
+                CategoryHierarchyPicker(
+                    categories: store.availableCategories,
+                    selectedMajorCategoryId: $store.selectedMajorCategoryId,
+                    selectedMinorCategoryId: $store.selectedMinorCategoryId,
+                    majorPlaceholder: "すべて",
+                    minorPlaceholder: "中項目を選択",
+                    inactiveMinorMessage: "大項目を選択すると中項目でも絞り込めます",
+                    noMinorMessage: "この大項目に中項目はありません",
+                )
+                .frame(minWidth: 220, alignment: .leading)
             }
         }
         .padding()

@@ -79,18 +79,32 @@ internal struct AnnualBudgetEditorSheet: View {
                 let disableRemove: Bool = formState.allocationRows.count <= 1
                 ForEach($formState.allocationRows) { $row in
                     HStack(spacing: 12) {
-                        Picker("カテゴリ", selection: $row.selectedCategoryId) {
-                            Text("カテゴリを選択").tag(UUID?.none)
-                            ForEach(categories, id: \.id) { category in
-                                Text(category.fullName).tag(Optional(category.id))
+                        CategoryHierarchyPicker(
+                            categories: categories,
+                            selectedMajorCategoryId: $row.selectedMajorCategoryId,
+                            selectedMinorCategoryId: $row.selectedMinorCategoryId,
+                            majorPlaceholder: "大項目を選択",
+                            minorPlaceholder: "中項目を選択",
+                            inactiveMinorMessage: "大項目を選択すると中項目を指定できます",
+                            noMinorMessage: "この大項目に中項目はありません",
+                        )
+                        .frame(width: 220, alignment: .leading)
+
+                        TextField("金額", text: $row.amountText)
+                            .textFieldStyle(.roundedBorder)
+
+                        Picker(
+                            "カテゴリポリシー",
+                            selection: $row.selectedPolicyOverride,
+                        ) {
+                            Text("全体設定 (\(formState.policy.displayName))").tag(AnnualBudgetPolicy?.none)
+                            ForEach(AnnualBudgetPolicy.allCases, id: \.self) { policy in
+                                Text(policy.displayName).tag(Optional(policy))
                             }
                         }
                         .labelsHidden()
                         .pickerStyle(.menu)
                         .frame(width: 180, alignment: .leading)
-
-                        TextField("金額", text: $row.amountText)
-                            .textFieldStyle(.roundedBorder)
 
                         Button {
                             formState.removeAllocationRow(id: row.id)

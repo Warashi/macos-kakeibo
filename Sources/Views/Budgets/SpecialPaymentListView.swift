@@ -150,15 +150,16 @@ private struct SpecialPaymentFilterToolbarView: View {
                     Text("カテゴリ")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Picker("", selection: $store.selectedCategoryId) {
-                        Text("すべて").tag(nil as UUID?)
-                        ForEach(allCategories, id: \.id) { category in
-                            Text(category.fullName).tag(category.id as UUID?)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .labelsHidden()
-                    .frame(minWidth: 180)
+                    CategoryHierarchyPicker(
+                        categories: allCategories,
+                        selectedMajorCategoryId: $store.selectedMajorCategoryId,
+                        selectedMinorCategoryId: $store.selectedMinorCategoryId,
+                        majorPlaceholder: "すべて",
+                        minorPlaceholder: "中項目を選択",
+                        inactiveMinorMessage: "大項目を選択すると中項目で絞り込めます",
+                        noMinorMessage: "この大項目に中項目はありません",
+                    )
+                    .frame(minWidth: 200, alignment: .leading)
                 }
 
                 // ステータスフィルタ

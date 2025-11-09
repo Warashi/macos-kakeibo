@@ -124,8 +124,24 @@ internal final class TransactionStore {
         didSet { applyFilters() }
     }
 
-    internal var selectedCategoryId: UUID? {
-        didSet { applyFilters() }
+    internal var selectedMajorCategoryId: UUID? {
+        didSet {
+            guard oldValue != selectedMajorCategoryId else { return }
+            if selectedMajorCategoryId == nil {
+                selectedMinorCategoryId = nil
+            } else if let minorId = selectedMinorCategoryId,
+                      lookupCategory(id: minorId)?.parent?.id != selectedMajorCategoryId {
+                selectedMinorCategoryId = nil
+            }
+            applyFilters()
+        }
+    }
+
+    internal var selectedMinorCategoryId: UUID? {
+        didSet {
+            guard oldValue != selectedMinorCategoryId else { return }
+            applyFilters()
+        }
     }
 
     internal var includeOnlyCalculationTarget: Bool = true {
@@ -267,7 +283,8 @@ internal extension TransactionStore {
         searchText = ""
         selectedFilterKind = .all
         selectedInstitutionId = nil
-        selectedCategoryId = nil
+        selectedMajorCategoryId = nil
+        selectedMinorCategoryId = nil
         includeOnlyCalculationTarget = true
         excludeTransfers = true
         sortOption = .dateDescending
@@ -452,10 +469,17 @@ private extension TransactionStore {
     }
 
     private func matchesCategory(_ transaction: Transaction) -> Bool {
-        guard let categoryId = selectedCategoryId else { return true }
-        let majorMatches = transaction.majorCategory?.id == categoryId
-        let minorMatches = transaction.minorCategory?.id == categoryId
-        return majorMatches || minorMatches
+        if let minorId = selectedMinorCategoryId {
+            return transaction.minorCategory?.id == minorId
+        }
+
+        guard let majorId = selectedMajorCategoryId else { return true }
+
+        if transaction.majorCategory?.id == majorId {
+            return true
+        }
+
+        return transaction.minorCategory?.parent?.id == majorId
     }
 
     private func matchesSearchText(_ transaction: Transaction, trimmedSearch: String) -> Bool {

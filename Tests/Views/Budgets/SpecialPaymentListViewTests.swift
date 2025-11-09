@@ -138,7 +138,8 @@ internal struct SpecialPaymentListViewTests {
         // フィルタがリセットされたことを確認
         #expect(store.searchText == "")
         #expect(store.selectedStatus == nil)
-        #expect(store.selectedCategoryId == nil)
+        #expect(store.selectedMajorCategoryId == nil)
+        #expect(store.selectedMinorCategoryId == nil)
 
         // 期間が当月〜6ヶ月後にリセットされることを確認
         let now = Date()
