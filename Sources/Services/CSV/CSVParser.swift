@@ -112,21 +112,7 @@ internal struct CSVParser {
 
         while let character = iterator.next() {
             if buffer == "\\" {
-                switch character {
-                case "n":
-                    result.append("\n")
-                case "r":
-                    result.append("\r")
-                case "t":
-                    result.append("\t")
-                case "\"":
-                    result.append("\"")
-                case "\\":
-                    result.append("\\")
-                default:
-                    result.append("\\")
-                    result.append(character)
-                }
+                appendEscapedCharacter(character, to: &result)
                 buffer = nil
             } else if character == "\\" {
                 buffer = character
@@ -137,5 +123,23 @@ internal struct CSVParser {
 
         appendBufferedBackslashIfNeeded()
         return result
+    }
+
+    private func appendEscapedCharacter(_ character: Character, to result: inout String) {
+        switch character {
+        case "n":
+            result.append("\n")
+        case "r":
+            result.append("\r")
+        case "t":
+            result.append("\t")
+        case "\"":
+            result.append("\"")
+        case "\\":
+            result.append("\\")
+        default:
+            result.append("\\")
+            result.append(character)
+        }
     }
 }
