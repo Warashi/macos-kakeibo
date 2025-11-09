@@ -32,7 +32,7 @@ internal struct AnnualBudgetEditorSheet: View {
 
                 if let errorMessage {
                     Text(errorMessage)
-                        .foregroundColor(.red)
+                        .foregroundColor(.error)
                 }
 
                 Divider()

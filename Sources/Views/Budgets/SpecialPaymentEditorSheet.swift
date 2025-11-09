@@ -146,7 +146,7 @@ internal struct SpecialPaymentEditorSheet: View {
 
                     if let errorMessage {
                         Text(errorMessage)
-                            .foregroundColor(.red)
+                            .foregroundColor(.error)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .topLeading)
