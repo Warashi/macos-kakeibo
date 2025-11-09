@@ -189,6 +189,8 @@ internal final class SpecialPaymentStore {
         categoryId: UUID? = nil,
         savingStrategy: SpecialPaymentSavingStrategy = .evenlyDistributed,
         customMonthlySavingAmount: Decimal? = nil,
+        dateAdjustmentPolicy: DateAdjustmentPolicy = .none,
+        recurrenceDayPattern: DayOfMonthPattern? = nil,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) throws {
         let category = try resolvedCategory(categoryId: categoryId)
@@ -203,6 +205,8 @@ internal final class SpecialPaymentStore {
             category: category,
             savingStrategy: savingStrategy,
             customMonthlySavingAmount: customMonthlySavingAmount,
+            dateAdjustmentPolicy: dateAdjustmentPolicy,
+            recurrenceDayPattern: recurrenceDayPattern,
         )
 
         let errors = definition.validate()
@@ -228,6 +232,8 @@ internal final class SpecialPaymentStore {
         categoryId: UUID?,
         savingStrategy: SpecialPaymentSavingStrategy,
         customMonthlySavingAmount: Decimal?,
+        dateAdjustmentPolicy: DateAdjustmentPolicy,
+        recurrenceDayPattern: DayOfMonthPattern?,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) throws {
         let category = try resolvedCategory(categoryId: categoryId)
@@ -241,6 +247,8 @@ internal final class SpecialPaymentStore {
         definition.category = category
         definition.savingStrategy = savingStrategy
         definition.customMonthlySavingAmount = customMonthlySavingAmount
+        definition.dateAdjustmentPolicy = dateAdjustmentPolicy
+        definition.recurrenceDayPattern = recurrenceDayPattern
         definition.updatedAt = currentDateProvider()
 
         let errors = definition.validate()

@@ -16,7 +16,7 @@ internal struct SpecialPaymentScheduleService {
 
     internal init(
         calendar: Calendar = Calendar(identifier: .gregorian),
-        businessDayService: BusinessDayService = BusinessDayService()
+        businessDayService: BusinessDayService = BusinessDayService(),
     ) {
         self.calendar = calendar
         self.businessDayService = businessDayService
