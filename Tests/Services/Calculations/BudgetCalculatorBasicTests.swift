@@ -116,6 +116,36 @@ internal struct BudgetCalculatorBasicTests {
         #expect(overall.budgetAmount == 80000)
     }
 
+    @Test("全額年次枠カテゴリは全体予算実績から除外される")
+    internal func monthlyBudget_excludesFullCoverageCategoriesFromOverall() throws {
+        let special = Category(name: "特別費", allowsAnnualBudget: true)
+        let travel = Category(name: "旅行", parent: special, allowsAnnualBudget: true)
+        let general = Category(name: "食費")
+
+        let transactions = [
+            createTransaction(amount: -20000, majorCategory: special),
+            createTransaction(amount: -15000, majorCategory: special, minorCategory: travel),
+            createTransaction(amount: -10000, category: general),
+        ]
+
+        let budgets = [
+            Budget(amount: 100_000, year: 2025, month: 11),
+        ]
+
+        let excludedIds: Set<UUID> = [special.id, travel.id]
+
+        let result = calculator.calculateMonthlyBudget(
+            transactions: transactions,
+            budgets: budgets,
+            year: 2025,
+            month: 11,
+            excludedCategoryIds: excludedIds,
+        )
+
+        let overall = try #require(result.overallCalculation)
+        #expect(overall.actualAmount == 10000)
+    }
+
     @Test("予算超過チェック")
     internal func willExceedBudgetCheck() throws {
         // Given
@@ -155,13 +185,22 @@ internal struct BudgetCalculatorBasicTests {
 
     private func createTransaction(
         amount: Decimal,
-        category: Kakeibo.Category,
+        category: Kakeibo.Category
+    ) -> Transaction {
+        createTransaction(amount: amount, majorCategory: category)
+    }
+
+    private func createTransaction(
+        amount: Decimal,
+        majorCategory: Kakeibo.Category?,
+        minorCategory: Kakeibo.Category? = nil
     ) -> Transaction {
         Transaction(
             date: Date.from(year: 2025, month: 11) ?? Date(),
             title: "テスト取引",
             amount: amount,
-            majorCategory: category,
+            majorCategory: majorCategory,
+            minorCategory: minorCategory,
         )
     }
 }

@@ -71,6 +71,12 @@ internal final class DashboardStore {
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
+    /// すべてのカテゴリを取得
+    private var allCategories: [Category] {
+        let descriptor = FetchDescriptor<Category>()
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
     /// 年次特別枠設定を取得
     private func getAnnualBudgetConfig(year: Int) -> AnnualBudgetConfig? {
         var descriptor = FetchDescriptor<AnnualBudgetConfig>(
@@ -103,12 +109,17 @@ internal final class DashboardStore {
 
     /// 月次予算計算
     internal var monthlyBudgetCalculation: MonthlyBudgetCalculation {
-        budgetCalculator.calculateMonthlyBudget(
+        let config = getAnnualBudgetConfig(year: currentYear)
+        let excludedCategoryIds = config?.fullCoverageCategoryIDs(
+            includingChildrenFrom: allCategories
+        ) ?? []
+        return budgetCalculator.calculateMonthlyBudget(
             transactions: allTransactions,
             budgets: allBudgets,
             year: currentYear,
             month: currentMonth,
             filter: .default,
+            excludedCategoryIds: excludedCategoryIds,
         )
     }
 

@@ -15,6 +15,34 @@ internal enum AnnualBudgetPolicy: String, Codable, CaseIterable {
     case disabled // 無効
 }
 
+internal extension AnnualBudgetConfig {
+    func fullCoverageCategoryIDs(
+        includingChildrenFrom categories: [Category] = []
+    ) -> Set<UUID> {
+        guard !allocations.isEmpty else { return [] }
+
+        let fallbackChildren = Dictionary(grouping: categories, by: { $0.parent?.id })
+        var identifiers: Set<UUID> = []
+
+        for allocation in allocations {
+            let effectivePolicy = allocation.policyOverride ?? policy
+            guard effectivePolicy == .fullCoverage else { continue }
+            let category = allocation.category
+            identifiers.insert(category.id)
+
+            guard category.isMajor else { continue }
+            let directChildren = category.children
+            if !directChildren.isEmpty {
+                identifiers.formUnion(directChildren.map(\.id))
+            } else if let fallback = fallbackChildren[category.id] {
+                identifiers.formUnion(fallback.map(\.id))
+            }
+        }
+
+        return identifiers
+    }
+}
+
 /// 月次予算（期間指定）
 @Model
 internal final class Budget {

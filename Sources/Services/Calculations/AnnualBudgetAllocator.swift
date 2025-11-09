@@ -378,7 +378,7 @@ internal struct AnnualBudgetAllocator: Sendable {
             guard transaction.isExpense else { return }
             let amount = abs(transaction.amount)
 
-            if let majorId = transaction.majorCategory?.id {
+            if let majorId = transaction.majorCategory?.id ?? transaction.minorCategory?.parent?.id {
                 partialResult[majorId, default: 0] += amount
             }
 

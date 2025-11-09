@@ -134,6 +134,7 @@ internal struct BudgetCalculator: Sendable {
         year: Int,
         month: Int,
         filter: AggregationFilter = .default,
+        excludedCategoryIds: Set<UUID> = [],
     ) -> MonthlyBudgetCalculation {
         // 月次集計を取得
         let monthlySummary = aggregator.aggregateMonthly(
@@ -150,10 +151,19 @@ internal struct BudgetCalculator: Sendable {
 
         // 全体予算（categoryがnilのもの）
         let overallBudget = monthlyBudgets.first { $0.category == nil }
+        let excludedExpense = monthlySummary.categorySummaries.reduce(Decimal.zero) { partial, summary in
+            guard let categoryId = summary.categoryId,
+                  excludedCategoryIds.contains(categoryId) else {
+                return partial
+            }
+            return partial + summary.totalExpense
+        }
+        let adjustedTotalExpense = monthlySummary.totalExpense - excludedExpense
+
         let overallCalculation: BudgetCalculation? = if let budget = overallBudget {
             calculate(
                 budgetAmount: budget.amount,
-                actualAmount: monthlySummary.totalExpense,
+                actualAmount: max(0, adjustedTotalExpense),
             )
         } else {
             nil
