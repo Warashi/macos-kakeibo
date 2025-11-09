@@ -376,6 +376,62 @@ internal struct DashboardStoreTests {
         #expect(usage.usedAmount == 10000)
     }
 
+    @Test("年次予算進捗：年次特別枠のfullCoverageカテゴリは全体予算から除外される")
+    internal func annualBudgetProgress_excludesFullCoverageCategories() throws {
+        let container = try createInMemoryContainer()
+        let context = ModelContext(container)
+
+        // カテゴリ作成
+        let foodCategory = Category(name: "食費", allowsAnnualBudget: false)
+        let specialCategory = Category(name: "特別費", allowsAnnualBudget: true)
+        context.insert(foodCategory)
+        context.insert(specialCategory)
+
+        // 全体予算
+        let overallBudget = Budget(amount: 100_000, category: nil, year: 2025, month: 1)
+        context.insert(overallBudget)
+
+        // 取引作成
+        let foodTransaction = Transaction(
+            date: Date.from(year: 2025, month: 1) ?? Date(),
+            title: "食費",
+            amount: -20000,
+            majorCategory: foodCategory,
+        )
+        let specialTransaction = Transaction(
+            date: Date.from(year: 2025, month: 1) ?? Date(),
+            title: "特別支出",
+            amount: -30000,
+            majorCategory: specialCategory,
+        )
+        context.insert(foodTransaction)
+        context.insert(specialTransaction)
+
+        // 年次特別枠設定（specialCategoryをfullCoverageに設定）
+        let config = AnnualBudgetConfig(year: 2025, totalAmount: 200_000, policy: .automatic)
+        let allocation = AnnualBudgetAllocation(
+            amount: 100_000,
+            category: specialCategory,
+            policyOverride: .fullCoverage,
+        )
+        allocation.config = config
+        config.allocations.append(allocation)
+        context.insert(config)
+        context.insert(allocation)
+
+        try context.save()
+
+        let store = DashboardStore(modelContext: context)
+        store.currentYear = 2025
+
+        // When
+        let progress = try #require(store.annualBudgetProgressCalculation)
+
+        // Then: 全体予算の実績は食費のみ（20,000円）で、特別費（30,000円）は除外される
+        #expect(progress.budgetAmount == 100_000)
+        #expect(progress.actualAmount == 20000, "全体予算の実績が食費のみになっている（特別費は除外）")
+    }
+
     // MARK: - Helper Methods
 
     private func createInMemoryContainer() throws -> ModelContainer {

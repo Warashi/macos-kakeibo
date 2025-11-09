@@ -229,11 +229,17 @@ internal final class DashboardStore {
     private var annualBudgetProgressResult: AnnualBudgetProgressResult? {
         let budgets = fetchBudgets(overlapping: currentYear)
         let transactions = fetchTransactions(year: currentYear)
+        let config = getAnnualBudgetConfig(year: currentYear)
+        let categories = fetchCategories()
+        let excludedCategoryIds = config?.fullCoverageCategoryIDs(
+            includingChildrenFrom: categories,
+        ) ?? []
         let result = annualBudgetProgressCalculator.calculate(
             budgets: budgets,
             transactions: transactions,
             year: currentYear,
             filter: .default,
+            excludedCategoryIds: excludedCategoryIds,
         )
         if result.overallEntry == nil, result.categoryEntries.isEmpty {
             return nil
