@@ -237,9 +237,9 @@ internal extension ImportStore {
     }
 }
 
-// MARK: - Private Helpers
+// MARK: - Internal Helpers (for testing)
 
-private extension ImportStore {
+internal extension ImportStore {
     func applyDocument(_ document: CSVDocument, fileName: String?) {
         self.document = document
         self.preview = nil
@@ -251,7 +251,11 @@ private extension ImportStore {
 
         mapping = CSVColumnMapping.automatic(for: columnOptions)
     }
+}
 
+// MARK: - Private Helpers
+
+private extension ImportStore {
     func generatePreview() async {
         guard let document else {
             errorMessage = "CSVファイルが読み込まれていません"
