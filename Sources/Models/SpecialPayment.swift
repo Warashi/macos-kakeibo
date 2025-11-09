@@ -316,6 +316,14 @@ internal extension SpecialPaymentOccurrence {
 
 // MARK: - DayOfMonthPattern Extension
 
+/// DayOfMonthPatternの日付計算用コンテキスト
+internal struct DateCalculationContext {
+    internal let year: Int
+    internal let month: Int
+    internal let calendar: Calendar
+    internal let businessDayService: BusinessDayService
+}
+
 extension DayOfMonthPattern {
     /// 指定された年月でこのパターンに該当する日付を計算
     internal func date(
@@ -324,27 +332,22 @@ extension DayOfMonthPattern {
         calendar: Calendar,
         businessDayService: BusinessDayService,
     ) -> Date? {
+        let context = DateCalculationContext(
+            year: year,
+            month: month,
+            calendar: calendar,
+            businessDayService: businessDayService,
+        )
+
         switch self {
         case let .fixed(day):
             return calendar.date(from: DateComponents(year: year, month: month, day: day))
         case .endOfMonth:
             return endOfMonthDate(year: year, month: month, calendar: calendar)
         case let .endOfMonthMinus(days):
-            return endOfMonthMinusDate(
-                year: year,
-                month: month,
-                days: days,
-                calendar: calendar,
-                businessDayService: businessDayService,
-            )
+            return endOfMonthMinusDate(context: context, days: days)
         case let .nthWeekday(week, weekday):
-            return nthWeekdayDate(
-                year: year,
-                month: month,
-                week: week,
-                weekday: weekday,
-                calendar: calendar,
-            )
+            return nthWeekdayDate(context: context, week: week, weekday: weekday)
         case let .lastWeekday(weekday):
             return lastWeekdayDate(year: year, month: month, weekday: weekday, calendar: calendar)
         case .firstBusinessDay, .lastBusinessDay, .nthBusinessDay, .lastBusinessDayMinus:
@@ -355,15 +358,15 @@ extension DayOfMonthPattern {
     private func businessDayDate(year: Int, month: Int, businessDayService: BusinessDayService) -> Date? {
         switch self {
         case .firstBusinessDay:
-            return businessDayService.firstBusinessDay(of: year, month: month)
+            businessDayService.firstBusinessDay(of: year, month: month)
         case .lastBusinessDay:
-            return businessDayService.lastBusinessDay(of: year, month: month)
+            businessDayService.lastBusinessDay(of: year, month: month)
         case let .nthBusinessDay(nth):
-            return businessDayService.nthBusinessDay(nth, of: year, month: month)
+            businessDayService.nthBusinessDay(nth, of: year, month: month)
         case let .lastBusinessDayMinus(days):
-            return businessDayService.lastBusinessDayMinus(days: days, of: year, month: month)
+            businessDayService.lastBusinessDayMinus(days: days, of: year, month: month)
         default:
-            return nil
+            nil
         }
     }
 
@@ -376,31 +379,25 @@ extension DayOfMonthPattern {
         return lastDay
     }
 
-    private func endOfMonthMinusDate(
-        year: Int,
-        month: Int,
-        days: Int,
-        calendar: Calendar,
-        businessDayService: BusinessDayService,
-    ) -> Date? {
+    private func endOfMonthMinusDate(context: DateCalculationContext, days: Int) -> Date? {
         guard let endDate = DayOfMonthPattern.endOfMonth.date(
-            in: year,
-            month: month,
-            calendar: calendar,
-            businessDayService: businessDayService,
+            in: context.year,
+            month: context.month,
+            calendar: context.calendar,
+            businessDayService: context.businessDayService,
         ) else {
             return nil
         }
-        return calendar.date(byAdding: .day, value: -days, to: endDate)
+        return context.calendar.date(byAdding: .day, value: -days, to: endDate)
     }
 
-    private func nthWeekdayDate(year: Int, month: Int, week: Int, weekday: Weekday, calendar: Calendar) -> Date? {
+    private func nthWeekdayDate(context: DateCalculationContext, week: Int, weekday: Weekday) -> Date? {
         var components = DateComponents()
-        components.year = year
-        components.month = month
+        components.year = context.year
+        components.month = context.month
         components.weekday = weekday.rawValue
         components.weekdayOrdinal = week
-        return calendar.date(from: components)
+        return context.calendar.date(from: components)
     }
 
     private func lastWeekdayDate(year: Int, month: Int, weekday: Weekday, calendar: Calendar) -> Date? {
