@@ -100,11 +100,13 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         var balance: SpecialPaymentSavingBalance?
         for month in 1 ... 12 {
             balance = balanceService.recordMonthlySavings(
-                for: definition,
-                balance: balance,
-                year: 2025,
-                month: month,
-                context: context,
+                params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                    definition: definition,
+                    balance: balance,
+                    year: 2025,
+                    month: month,
+                    context: context,
+                ),
             )
         }
         try context.save()
