@@ -188,7 +188,7 @@ internal enum AnnualBudgetPanelContentBuilder {
         let allocationRows = sortedAllocations(config.allocations).map { allocation in
             let allocationUsage = usage?.categoryAllocations.first { $0.categoryId == allocation.category.id }
             let actualAmount = allocationUsage?.allocatableAmount ?? 0
-            let remainingAmount = allocationUsage?.remainingAfterAllocation ?? (allocation.amount - actualAmount)
+            let remainingAmount = allocationUsage?.annualBudgetRemainingAmount ?? (allocation.amount - actualAmount)
             return AnnualBudgetPanelRow(
                 id: allocation.id,
                 title: allocation.category.fullName,
