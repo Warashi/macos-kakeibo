@@ -6,38 +6,6 @@ import SwiftData
 @Observable
 @MainActor
 internal final class ImportStore {
-    // MARK: - Nested types
-
-    internal enum Step: Int, CaseIterable, Identifiable {
-        case fileSelection
-        case columnMapping
-        case validation
-
-        internal var id: Self { self }
-
-        internal var title: String {
-            switch self {
-            case .fileSelection:
-                "ファイル選択"
-            case .columnMapping:
-                "列マッピング"
-            case .validation:
-                "検証と取り込み"
-            }
-        }
-
-        internal var description: String {
-            switch self {
-            case .fileSelection:
-                "取り込み対象のCSVファイルを選択します。"
-            case .columnMapping:
-                "CSV列とアプリ内の項目を対応付けます。"
-            case .validation:
-                "プレビューで内容を確認し、データを取り込みます。"
-            }
-        }
-    }
-
     // MARK: - Dependencies
 
     private let modelContext: ModelContext
@@ -66,78 +34,6 @@ internal final class ImportStore {
         self.modelContext = modelContext
         self.parser = CSVParser()
         self.importer = CSVImporter(modelContext: modelContext)
-    }
-
-    // MARK: - Computed State
-
-    internal var canGoBack: Bool {
-        step != .fileSelection && !isProcessing
-    }
-
-    internal var nextButtonTitle: String {
-        switch step {
-        case .fileSelection:
-            "列マッピングへ"
-        case .columnMapping:
-            "検証を開始"
-        case .validation:
-            summary == nil ? "取り込みを実行" : "新しい取り込みを開始"
-        }
-    }
-
-    internal var isNextButtonDisabled: Bool {
-        if isProcessing {
-            return true
-        }
-
-        switch step {
-        case .fileSelection:
-            return document == nil
-        case .columnMapping:
-            return document == nil || !mapping.hasRequiredAssignments
-        case .validation:
-            if summary != nil {
-                return false
-            }
-            guard let preview else { return true }
-            return preview.validRecords.isEmpty
-        }
-    }
-
-    internal var columnOptions: [CSVColumnOption] {
-        guard let document else { return [] }
-
-        let columnCount = document.maxColumnCount
-        guard columnCount > 0 else { return [] }
-
-        let headers: [String]
-        if configuration.hasHeaderRow, let headerRow = document.rows.first {
-            var inferred = headerRow.values
-            if inferred.count < columnCount {
-                inferred.append(
-                    contentsOf: Array(repeating: "", count: columnCount - inferred.count),
-                )
-            }
-            headers = inferred.enumerated().map { index, title in
-                title.trimmed.isEmpty ? "列\(index + 1)" : title
-            }
-        } else {
-            headers = (0 ..< columnCount).map { "列\($0 + 1)" }
-        }
-
-        return headers.enumerated().map { CSVColumnOption(id: $0.offset, title: $0.element) }
-    }
-
-    internal var sampleRows: [CSVRow] {
-        Array(dataRows.prefix(5))
-    }
-
-    internal var dataRows: [CSVRow] {
-        document?.dataRows(skipHeader: configuration.hasHeaderRow) ?? []
-    }
-
-    internal var hasPreview: Bool {
-        preview != nil
     }
 
     // MARK: - Actions
@@ -231,10 +127,120 @@ internal final class ImportStore {
     internal func presentError(_ message: String) {
         errorMessage = message
     }
+}
 
-    // MARK: - Private helpers
+// MARK: - Nested Types
 
-    internal func applyDocument(_ document: CSVDocument, fileName: String?) {
+internal extension ImportStore {
+    enum Step: Int, CaseIterable, Identifiable {
+        case fileSelection
+        case columnMapping
+        case validation
+
+        internal var id: Self { self }
+
+        internal var title: String {
+            switch self {
+            case .fileSelection:
+                "ファイル選択"
+            case .columnMapping:
+                "列マッピング"
+            case .validation:
+                "検証と取り込み"
+            }
+        }
+
+        internal var description: String {
+            switch self {
+            case .fileSelection:
+                "取り込み対象のCSVファイルを選択します。"
+            case .columnMapping:
+                "CSV列とアプリ内の項目を対応付けます。"
+            case .validation:
+                "プレビューで内容を確認し、データを取り込みます。"
+            }
+        }
+    }
+}
+
+// MARK: - Computed State
+
+internal extension ImportStore {
+    var canGoBack: Bool {
+        step != .fileSelection && !isProcessing
+    }
+
+    var nextButtonTitle: String {
+        switch step {
+        case .fileSelection:
+            "列マッピングへ"
+        case .columnMapping:
+            "検証を開始"
+        case .validation:
+            summary == nil ? "取り込みを実行" : "新しい取り込みを開始"
+        }
+    }
+
+    var isNextButtonDisabled: Bool {
+        if isProcessing {
+            return true
+        }
+
+        switch step {
+        case .fileSelection:
+            return document == nil
+        case .columnMapping:
+            return document == nil || !mapping.hasRequiredAssignments
+        case .validation:
+            if summary != nil {
+                return false
+            }
+            guard let preview else { return true }
+            return preview.validRecords.isEmpty
+        }
+    }
+
+    var columnOptions: [CSVColumnOption] {
+        guard let document else { return [] }
+
+        let columnCount = document.maxColumnCount
+        guard columnCount > 0 else { return [] }
+
+        let headers: [String]
+        if configuration.hasHeaderRow, let headerRow = document.rows.first {
+            var inferred = headerRow.values
+            if inferred.count < columnCount {
+                inferred.append(
+                    contentsOf: Array(repeating: "", count: columnCount - inferred.count),
+                )
+            }
+            headers = inferred.enumerated().map { index, title in
+                title.trimmed.isEmpty ? "列\(index + 1)" : title
+            }
+        } else {
+            headers = (0 ..< columnCount).map { "列\($0 + 1)" }
+        }
+
+        return headers.enumerated().map { CSVColumnOption(id: $0.offset, title: $0.element) }
+    }
+
+    var sampleRows: [CSVRow] {
+        Array(dataRows.prefix(5))
+    }
+
+    var dataRows: [CSVRow] {
+        document?.dataRows(skipHeader: configuration.hasHeaderRow) ?? []
+    }
+
+    var hasPreview: Bool {
+        preview != nil
+    }
+}
+
+// MARK: - Private Helpers
+
+private extension ImportStore {
+    func applyDocument(_ document: CSVDocument, fileName: String?) {
         self.document = document
         self.preview = nil
         self.summary = nil
@@ -246,7 +252,7 @@ internal final class ImportStore {
         mapping = CSVColumnMapping.automatic(for: columnOptions)
     }
 
-    private func generatePreview() async {
+    func generatePreview() async {
         guard let document else {
             errorMessage = "CSVファイルが読み込まれていません"
             return
@@ -277,7 +283,7 @@ internal final class ImportStore {
         }
     }
 
-    private func performImport() async {
+    func performImport() async {
         guard let preview else {
             errorMessage = "プレビューが生成されていません"
             return
