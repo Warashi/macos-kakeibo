@@ -22,8 +22,7 @@ internal struct SpecialPaymentStoreUpdateDefinitionTests {
         context.insert(definition)
         try context.save()
 
-        try store.updateDefinition(
-            definition,
+        let input = SpecialPaymentDefinitionInput(
             name: "自動車税（更新）",
             notes: "メモを追加",
             amount: 55000,
@@ -36,6 +35,7 @@ internal struct SpecialPaymentStoreUpdateDefinitionTests {
             dateAdjustmentPolicy: .none,
             recurrenceDayPattern: nil,
         )
+        try store.updateDefinition(definition, input: input)
 
         #expect(definition.name == "自動車税（更新）")
         #expect(definition.notes == "メモを追加")
@@ -61,8 +61,7 @@ internal struct SpecialPaymentStoreUpdateDefinitionTests {
         try context.save()
 
         #expect(throws: SpecialPaymentStoreError.self) {
-            try store.updateDefinition(
-                definition,
+            let input = SpecialPaymentDefinitionInput(
                 name: "",
                 notes: "",
                 amount: -1000,
@@ -75,6 +74,7 @@ internal struct SpecialPaymentStoreUpdateDefinitionTests {
                 dateAdjustmentPolicy: .none,
                 recurrenceDayPattern: nil,
             )
+            try store.updateDefinition(definition, input: input)
         }
     }
 

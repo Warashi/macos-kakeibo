@@ -479,36 +479,25 @@ private extension BudgetView {
                 return
             }
 
+            let input = SpecialPaymentDefinitionInput(
+                name: specialPaymentFormState.nameText.trimmingCharacters(in: .whitespacesAndNewlines),
+                notes: specialPaymentFormState.notesText,
+                amount: amount,
+                recurrenceIntervalMonths: specialPaymentFormState.recurrenceIntervalMonths,
+                firstOccurrenceDate: specialPaymentFormState.firstOccurrenceDate,
+                leadTimeMonths: specialPaymentFormState.leadTimeMonths,
+                categoryId: specialPaymentFormState.selectedCategoryId,
+                savingStrategy: specialPaymentFormState.savingStrategy,
+                customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
+                dateAdjustmentPolicy: specialPaymentFormState.dateAdjustmentPolicy,
+                recurrenceDayPattern: specialPaymentFormState.recurrenceDayPattern,
+            )
+
             switch specialPaymentEditorMode {
             case .create:
-                try specialPaymentStore.createDefinition(
-                    name: specialPaymentFormState.nameText.trimmingCharacters(in: .whitespacesAndNewlines),
-                    notes: specialPaymentFormState.notesText,
-                    amount: amount,
-                    recurrenceIntervalMonths: specialPaymentFormState.recurrenceIntervalMonths,
-                    firstOccurrenceDate: specialPaymentFormState.firstOccurrenceDate,
-                    leadTimeMonths: specialPaymentFormState.leadTimeMonths,
-                    categoryId: specialPaymentFormState.selectedCategoryId,
-                    savingStrategy: specialPaymentFormState.savingStrategy,
-                    customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
-                    dateAdjustmentPolicy: specialPaymentFormState.dateAdjustmentPolicy,
-                    recurrenceDayPattern: specialPaymentFormState.recurrenceDayPattern,
-                )
+                try specialPaymentStore.createDefinition(input)
             case let .edit(definition):
-                try specialPaymentStore.updateDefinition(
-                    definition,
-                    name: specialPaymentFormState.nameText.trimmingCharacters(in: .whitespacesAndNewlines),
-                    notes: specialPaymentFormState.notesText,
-                    amount: amount,
-                    recurrenceIntervalMonths: specialPaymentFormState.recurrenceIntervalMonths,
-                    firstOccurrenceDate: specialPaymentFormState.firstOccurrenceDate,
-                    leadTimeMonths: specialPaymentFormState.leadTimeMonths,
-                    categoryId: specialPaymentFormState.selectedCategoryId,
-                    savingStrategy: specialPaymentFormState.savingStrategy,
-                    customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
-                    dateAdjustmentPolicy: specialPaymentFormState.dateAdjustmentPolicy,
-                    recurrenceDayPattern: specialPaymentFormState.recurrenceDayPattern,
-                )
+                try specialPaymentStore.updateDefinition(definition, input: input)
             }
             isPresentingSpecialPaymentEditor = false
         } catch SpecialPaymentStoreError.categoryNotFound {

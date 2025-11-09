@@ -9,6 +9,47 @@ internal enum SpecialPaymentStoreError: Error, Equatable {
     case categoryNotFound
 }
 
+/// 特別支払い定義の入力パラメータ
+internal struct SpecialPaymentDefinitionInput {
+    internal let name: String
+    internal let notes: String
+    internal let amount: Decimal
+    internal let recurrenceIntervalMonths: Int
+    internal let firstOccurrenceDate: Date
+    internal let leadTimeMonths: Int
+    internal let categoryId: UUID?
+    internal let savingStrategy: SpecialPaymentSavingStrategy
+    internal let customMonthlySavingAmount: Decimal?
+    internal let dateAdjustmentPolicy: DateAdjustmentPolicy
+    internal let recurrenceDayPattern: DayOfMonthPattern?
+
+    internal init(
+        name: String,
+        notes: String = "",
+        amount: Decimal,
+        recurrenceIntervalMonths: Int,
+        firstOccurrenceDate: Date,
+        leadTimeMonths: Int = 0,
+        categoryId: UUID? = nil,
+        savingStrategy: SpecialPaymentSavingStrategy = .evenlyDistributed,
+        customMonthlySavingAmount: Decimal? = nil,
+        dateAdjustmentPolicy: DateAdjustmentPolicy = .none,
+        recurrenceDayPattern: DayOfMonthPattern? = nil,
+    ) {
+        self.name = name
+        self.notes = notes
+        self.amount = amount
+        self.recurrenceIntervalMonths = recurrenceIntervalMonths
+        self.firstOccurrenceDate = firstOccurrenceDate
+        self.leadTimeMonths = leadTimeMonths
+        self.categoryId = categoryId
+        self.savingStrategy = savingStrategy
+        self.customMonthlySavingAmount = customMonthlySavingAmount
+        self.dateAdjustmentPolicy = dateAdjustmentPolicy
+        self.recurrenceDayPattern = recurrenceDayPattern
+    }
+}
+
 @Observable
 @MainActor
 internal final class SpecialPaymentStore {
@@ -182,33 +223,23 @@ internal final class SpecialPaymentStore {
 extension SpecialPaymentStore {
     /// 特別支払い定義を作成
     internal func createDefinition(
-        name: String,
-        notes: String = "",
-        amount: Decimal,
-        recurrenceIntervalMonths: Int,
-        firstOccurrenceDate: Date,
-        leadTimeMonths: Int = 0,
-        categoryId: UUID? = nil,
-        savingStrategy: SpecialPaymentSavingStrategy = .evenlyDistributed,
-        customMonthlySavingAmount: Decimal? = nil,
-        dateAdjustmentPolicy: DateAdjustmentPolicy = .none,
-        recurrenceDayPattern: DayOfMonthPattern? = nil,
-        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
+        _ input: SpecialPaymentDefinitionInput,
+        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths
     ) throws {
-        let category = try resolvedCategory(categoryId: categoryId)
+        let category = try resolvedCategory(categoryId: input.categoryId)
 
         let definition = SpecialPaymentDefinition(
-            name: name,
-            notes: notes,
-            amount: amount,
-            recurrenceIntervalMonths: recurrenceIntervalMonths,
-            firstOccurrenceDate: firstOccurrenceDate,
-            leadTimeMonths: leadTimeMonths,
+            name: input.name,
+            notes: input.notes,
+            amount: input.amount,
+            recurrenceIntervalMonths: input.recurrenceIntervalMonths,
+            firstOccurrenceDate: input.firstOccurrenceDate,
+            leadTimeMonths: input.leadTimeMonths,
             category: category,
-            savingStrategy: savingStrategy,
-            customMonthlySavingAmount: customMonthlySavingAmount,
-            dateAdjustmentPolicy: dateAdjustmentPolicy,
-            recurrenceDayPattern: recurrenceDayPattern,
+            savingStrategy: input.savingStrategy,
+            customMonthlySavingAmount: input.customMonthlySavingAmount,
+            dateAdjustmentPolicy: input.dateAdjustmentPolicy,
+            recurrenceDayPattern: input.recurrenceDayPattern,
         )
 
         let errors = definition.validate()
@@ -225,32 +256,22 @@ extension SpecialPaymentStore {
     /// 特別支払い定義を更新
     internal func updateDefinition(
         _ definition: SpecialPaymentDefinition,
-        name: String,
-        notes: String,
-        amount: Decimal,
-        recurrenceIntervalMonths: Int,
-        firstOccurrenceDate: Date,
-        leadTimeMonths: Int,
-        categoryId: UUID?,
-        savingStrategy: SpecialPaymentSavingStrategy,
-        customMonthlySavingAmount: Decimal?,
-        dateAdjustmentPolicy: DateAdjustmentPolicy,
-        recurrenceDayPattern: DayOfMonthPattern?,
-        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
+        input: SpecialPaymentDefinitionInput,
+        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths
     ) throws {
-        let category = try resolvedCategory(categoryId: categoryId)
+        let category = try resolvedCategory(categoryId: input.categoryId)
 
-        definition.name = name
-        definition.notes = notes
-        definition.amount = amount
-        definition.recurrenceIntervalMonths = recurrenceIntervalMonths
-        definition.firstOccurrenceDate = firstOccurrenceDate
-        definition.leadTimeMonths = leadTimeMonths
+        definition.name = input.name
+        definition.notes = input.notes
+        definition.amount = input.amount
+        definition.recurrenceIntervalMonths = input.recurrenceIntervalMonths
+        definition.firstOccurrenceDate = input.firstOccurrenceDate
+        definition.leadTimeMonths = input.leadTimeMonths
         definition.category = category
-        definition.savingStrategy = savingStrategy
-        definition.customMonthlySavingAmount = customMonthlySavingAmount
-        definition.dateAdjustmentPolicy = dateAdjustmentPolicy
-        definition.recurrenceDayPattern = recurrenceDayPattern
+        definition.savingStrategy = input.savingStrategy
+        definition.customMonthlySavingAmount = input.customMonthlySavingAmount
+        definition.dateAdjustmentPolicy = input.dateAdjustmentPolicy
+        definition.recurrenceDayPattern = input.recurrenceDayPattern
         definition.updatedAt = currentDateProvider()
 
         let errors = definition.validate()

@@ -13,7 +13,7 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         let (store, context) = try makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        try store.createDefinition(
+        let input = SpecialPaymentDefinitionInput(
             name: "自動車税",
             notes: "年1回の支払い",
             amount: 50000,
@@ -23,8 +23,10 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
             categoryId: nil,
             savingStrategy: .evenlyDistributed,
             customMonthlySavingAmount: nil,
-            horizonMonths: 24,
+            dateAdjustmentPolicy: .none,
+            recurrenceDayPattern: nil,
         )
+        try store.createDefinition(input, horizonMonths: 24)
 
         let descriptor = FetchDescriptor<SpecialPaymentDefinition>()
         let definitions = try context.fetch(descriptor)
@@ -51,13 +53,14 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         try context.save()
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 4, day: 1))
-        try store.createDefinition(
+        let input = SpecialPaymentDefinitionInput(
             name: "固定資産税",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: firstOccurrence,
             categoryId: category.id,
         )
+        try store.createDefinition(input)
 
         let descriptor = FetchDescriptor<SpecialPaymentDefinition>()
         let definitions = try context.fetch(descriptor)
@@ -74,12 +77,13 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         #expect(throws: SpecialPaymentStoreError.self) {
-            try store.createDefinition(
+            let input = SpecialPaymentDefinitionInput(
                 name: "",
                 amount: 50000,
                 recurrenceIntervalMonths: 12,
                 firstOccurrenceDate: firstOccurrence,
             )
+            try store.createDefinition(input)
         }
     }
 
@@ -90,12 +94,13 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         #expect(throws: SpecialPaymentStoreError.self) {
-            try store.createDefinition(
+            let input = SpecialPaymentDefinitionInput(
                 name: "テスト",
                 amount: 0,
                 recurrenceIntervalMonths: 12,
                 firstOccurrenceDate: firstOccurrence,
             )
+            try store.createDefinition(input)
         }
     }
 
@@ -106,12 +111,13 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         #expect(throws: SpecialPaymentStoreError.self) {
-            try store.createDefinition(
+            let input = SpecialPaymentDefinitionInput(
                 name: "テスト",
                 amount: 50000,
                 recurrenceIntervalMonths: 0,
                 firstOccurrenceDate: firstOccurrence,
             )
+            try store.createDefinition(input)
         }
     }
 
@@ -124,13 +130,14 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
 
         #expect(throws: SpecialPaymentStoreError.categoryNotFound) {
-            try store.createDefinition(
+            let input = SpecialPaymentDefinitionInput(
                 name: "テスト",
                 amount: 50000,
                 recurrenceIntervalMonths: 12,
                 firstOccurrenceDate: firstOccurrence,
                 categoryId: nonExistentCategoryId,
             )
+            try store.createDefinition(input)
         }
     }
 
