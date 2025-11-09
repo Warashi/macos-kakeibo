@@ -1,0 +1,135 @@
+import Foundation
+import SwiftData
+import Testing
+
+@testable import Kakeibo
+
+@Suite(.serialized)
+internal struct AnnualBudgetAllocatorCategoryTests {
+    private let allocator: AnnualBudgetAllocator = AnnualBudgetAllocator()
+
+    @Test("年次特別枠累積計算：実績0のカテゴリも表示される")
+    internal func annualBudgetUsage_showsZeroCategories() throws {
+        // Given
+        let category1 = Category(name: "旅行", allowsAnnualBudget: true)
+        let category2 = Category(name: "医療", allowsAnnualBudget: true)
+        let transactions = [
+            createTransaction(amount: -50000, category: category1),
+        ]
+        let config = makeConfig(
+            allocations: [
+                (category1, 100_000, AnnualBudgetPolicy.fullCoverage),
+                (category2, 50_000, AnnualBudgetPolicy.fullCoverage),
+            ],
+        )
+
+        let params = AllocationCalculationParams(
+            transactions: transactions,
+            budgets: [],
+            annualBudgetConfig: config,
+        )
+
+        // When
+        let result = allocator.calculateAnnualBudgetUsage(
+            params: params,
+            upToMonth: 11,
+        )
+
+        // Then
+        #expect(result.categoryAllocations.count == 2)
+
+        let category1Allocation = result.categoryAllocations.first { $0.categoryId == category1.id }
+        #expect(category1Allocation != nil)
+        #expect(category1Allocation?.annualBudgetAmount == 100_000)
+        #expect(category1Allocation?.actualAmount == 50000)
+        #expect(category1Allocation?.allocatableAmount == 50000)
+
+        let category2Allocation = result.categoryAllocations.first { $0.categoryId == category2.id }
+        #expect(category2Allocation != nil)
+        #expect(category2Allocation?.annualBudgetAmount == 50_000)
+        #expect(category2Allocation?.actualAmount == 0)
+        #expect(category2Allocation?.allocatableAmount == 0)
+    }
+
+    @Test("年次特別枠累積計算：当月までの実績を集計する")
+    internal func annualBudgetUsage_accumulatesUpToMonth() throws {
+        // Given
+        let category = Category(name: "教育", allowsAnnualBudget: true)
+        let transactions = [
+            createTransaction(amount: -40_000, category: category, month: 1),
+            createTransaction(amount: -60_000, category: category, month: 2),
+            createTransaction(amount: -20_000, category: category, month: 4),
+        ]
+        let budgets = [
+            Budget(amount: 30_000, category: category, year: 2025, month: 1),
+            Budget(amount: 30_000, category: category, year: 2025, month: 2),
+            Budget(amount: 30_000, category: category, year: 2025, month: 4),
+        ]
+        let config = makeConfig(
+            allocations: [
+                (category, 120_000, nil),
+            ],
+        )
+
+        let params = AllocationCalculationParams(
+            transactions: transactions,
+            budgets: budgets,
+            annualBudgetConfig: config,
+        )
+
+        // When
+        let result = allocator.calculateAnnualBudgetUsage(
+            params: params,
+            upToMonth: 2,
+        )
+        let allocation = try #require(result.categoryAllocations.first { $0.categoryId == category.id })
+
+        // Then
+        #expect(allocation.annualBudgetAmount == 120_000)
+        #expect(allocation.actualAmount == 100_000) // 1〜2月の実績のみ
+        #expect(allocation.monthlyBudgetAmount == 60_000) // 1〜2月の予算のみ
+        #expect(allocation.allocatableAmount == 40_000)
+        #expect(allocation.annualBudgetRemainingAmount == 80_000)
+        #expect(result.usedAmount == 40_000)
+    }
+
+    // MARK: - Helper Functions
+
+    private func createTransaction(
+        amount: Decimal,
+        category: Kakeibo.Category? = nil,
+        majorCategory: Kakeibo.Category? = nil,
+        minorCategory: Kakeibo.Category? = nil,
+        year: Int = 2025,
+        month: Int = 11,
+    ) -> Transaction {
+        Transaction(
+            date: Date.from(year: year, month: month) ?? Date(),
+            title: "テスト取引",
+            amount: amount,
+            majorCategory: majorCategory ?? category,
+            minorCategory: minorCategory,
+        )
+    }
+
+    private func makeConfig(
+        policy: AnnualBudgetPolicy = .automatic,
+        allocations: [(Kakeibo.Category, Decimal, AnnualBudgetPolicy?)] = [],
+    ) -> AnnualBudgetConfig {
+        let config = AnnualBudgetConfig(
+            year: 2025,
+            totalAmount: 500_000,
+            policy: policy,
+        )
+        config.allocations = allocations.map { category, amount, override in
+            let allocation = AnnualBudgetAllocation(
+                amount: amount,
+                category: category,
+                policyOverride: override,
+            )
+            allocation.config = config
+            return allocation
+        }
+        return config
+    }
+}

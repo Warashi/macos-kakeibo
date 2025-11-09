@@ -38,6 +38,8 @@ internal struct BudgetStoreTestsAnnualConfig {
         #expect(allocationMap[travel.id]?.amount == 100_000)
         #expect(allocationMap[food.id]?.policyOverride == .automatic)
         #expect(allocationMap[travel.id]?.policyOverride == nil)
+        #expect(food.allowsAnnualBudget)
+        #expect(travel.allowsAnnualBudget)
 
         try store.upsertAnnualBudgetConfig(
             totalAmount: 500_000,

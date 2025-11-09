@@ -259,6 +259,62 @@ internal struct DashboardStoreTests {
         #expect(store.annualBudgetProgressCalculation == nil)
     }
 
+    @Test("初期化：年次特別枠設定のある年にフォールバックする")
+    internal func initialization_fallsBackToExistingAnnualBudgetYear() throws {
+        let container = try createInMemoryContainer()
+        let context = ModelContext(container)
+
+        let fallbackYear = Date().year - 1
+        let config = AnnualBudgetConfig(year: fallbackYear, totalAmount: 100_000, policy: .automatic)
+        context.insert(config)
+        try context.save()
+
+        let store = DashboardStore(modelContext: context)
+
+        #expect(store.currentYear == fallbackYear)
+    }
+
+    @Test("年次特別枠：設定があれば使用状況を計算する")
+    internal func annualBudgetUsage_availableWhenConfigExists() throws {
+        // Given
+        let container = try createInMemoryContainer()
+        let context = ModelContext(container)
+        let category = Category(name: "特別費", allowsAnnualBudget: true)
+        context.insert(category)
+
+        let transaction = Transaction(
+            date: Date.from(year: 2025, month: 1) ?? Date(),
+            title: "特別支出",
+            amount: -40_000,
+            majorCategory: category
+        )
+        context.insert(transaction)
+
+        let budget = Budget(amount: 30_000, category: category, year: 2025, month: 1)
+        context.insert(budget)
+
+        let config = AnnualBudgetConfig(year: 2025, totalAmount: 200_000, policy: .automatic)
+        let allocation = AnnualBudgetAllocation(amount: 100_000, category: category)
+        allocation.config = config
+        context.insert(config)
+        context.insert(allocation)
+
+        try context.save()
+
+        let store = DashboardStore(modelContext: context)
+        store.currentYear = 2025
+        store.currentMonth = 1
+
+        // When
+        let usage = try #require(store.annualBudgetUsage)
+        let categoryUsage = try #require(usage.categoryAllocations.first)
+
+        // Then
+        #expect(categoryUsage.categoryId == category.id)
+        #expect(categoryUsage.allocatableAmount == 10_000)
+        #expect(usage.usedAmount == 10_000)
+    }
+
     // MARK: - Helper Methods
 
     private func createInMemoryContainer() throws -> ModelContainer {

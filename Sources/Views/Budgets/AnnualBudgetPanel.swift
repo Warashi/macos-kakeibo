@@ -111,6 +111,11 @@ internal struct AnnualBudgetPanel: View {
 
             infoRow(title: "使用済み", value: usage.usedAmount.currencyFormatted)
             infoRow(title: "残額", value: usage.remainingAmount.currencyFormatted)
+
+            if !usage.categoryAllocations.isEmpty {
+                Divider()
+                AnnualBudgetCategoryUsageTable(allocations: usage.categoryAllocations)
+            }
         }
     }
 

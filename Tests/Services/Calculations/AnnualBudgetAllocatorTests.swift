@@ -198,7 +198,7 @@ internal struct AnnualBudgetAllocatorTests {
         let config = makeConfig(
             policy: AnnualBudgetPolicy.manual,
             allocations: [
-                (category, AnnualBudgetPolicy.fullCoverage),
+                (category, 120_000, AnnualBudgetPolicy.fullCoverage),
             ],
         )
 
@@ -220,6 +220,7 @@ internal struct AnnualBudgetAllocatorTests {
             Issue.record()
             return
         }
+        #expect(specialAllocation.annualBudgetAmount == 120_000)
         #expect(specialAllocation.allocatableAmount == 40000)
         #expect(specialAllocation.excessAmount == 40000)
         #expect(specialAllocation.monthlyBudgetAmount == 50000)
@@ -236,7 +237,7 @@ internal struct AnnualBudgetAllocatorTests {
         let budgets: [Budget] = []
         let config = makeConfig(
             allocations: [
-                (category, AnnualBudgetPolicy.fullCoverage),
+                (category, 90_000, AnnualBudgetPolicy.fullCoverage),
             ],
         )
 
@@ -258,10 +259,46 @@ internal struct AnnualBudgetAllocatorTests {
             Issue.record()
             return
         }
+        #expect(allocation.annualBudgetAmount == 90_000)
         #expect(allocation.monthlyBudgetAmount == 0)
         #expect(allocation.allocatableAmount == 60000)
         #expect(allocation.excessAmount == 60000)
         #expect(result.annualBudgetUsage.usedAmount == 60000)
+    }
+
+    @Test("自動充当カテゴリは月次予算がなくても集計される")
+    internal func monthlyAllocation_unbudgetedAutomaticCategory() throws {
+        // Given
+        let category = Category(name: "医療", allowsAnnualBudget: true)
+        let transactions = [
+            createTransaction(amount: -20000, category: category),
+        ]
+        let budgets: [Budget] = []
+        let config = makeConfig(
+            allocations: [
+                (category, 150_000, nil),
+            ],
+        )
+
+        let params = AllocationCalculationParams(
+            transactions: transactions,
+            budgets: budgets,
+            annualBudgetConfig: config,
+        )
+
+        // When
+        let result = allocator.calculateMonthlyAllocation(
+            params: params,
+            year: 2025,
+            month: 11,
+        )
+
+        // Then
+        let allocation = try #require(result.categoryAllocations.first)
+        #expect(allocation.monthlyBudgetAmount == 0)
+        #expect(allocation.actualAmount == 20000)
+        #expect(allocation.allocatableAmount == 20000)
+        #expect(result.annualBudgetUsage.usedAmount == 20000)
     }
 
     @Test("全額年次枠の大項目では中項目の支出も集計される")
@@ -274,7 +311,7 @@ internal struct AnnualBudgetAllocatorTests {
         ]
         let config = makeConfig(
             allocations: [
-                (major, AnnualBudgetPolicy.fullCoverage),
+                (major, 80_000, AnnualBudgetPolicy.fullCoverage),
             ],
         )
 
@@ -294,6 +331,7 @@ internal struct AnnualBudgetAllocatorTests {
         // Then
         let allocation = try #require(result.categoryAllocations.first)
         #expect(allocation.categoryName == major.name)
+        #expect(allocation.annualBudgetAmount == 80_000)
         #expect(allocation.allocatableAmount == 25000)
         #expect(result.annualBudgetUsage.usedAmount == 25000)
     }
@@ -308,7 +346,7 @@ internal struct AnnualBudgetAllocatorTests {
         ]
         let config = makeConfig(
             allocations: [
-                (major, AnnualBudgetPolicy.fullCoverage),
+                (major, 80_000, AnnualBudgetPolicy.fullCoverage),
             ],
         )
 
@@ -328,6 +366,7 @@ internal struct AnnualBudgetAllocatorTests {
         // Then
         let allocation = try #require(result.categoryAllocations.first)
         #expect(allocation.categoryName == major.name)
+        #expect(allocation.annualBudgetAmount == 80_000)
         #expect(allocation.allocatableAmount == 18000)
         #expect(result.annualBudgetUsage.usedAmount == 18000)
     }
@@ -402,16 +441,16 @@ internal struct AnnualBudgetAllocatorTests {
 
     private func makeConfig(
         policy: AnnualBudgetPolicy = .automatic,
-        allocations: [(Kakeibo.Category, AnnualBudgetPolicy?)] = [],
+        allocations: [(Kakeibo.Category, Decimal, AnnualBudgetPolicy?)] = [],
     ) -> AnnualBudgetConfig {
         let config = AnnualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
             policy: policy,
         )
-        config.allocations = allocations.map { category, override in
+        config.allocations = allocations.map { category, amount, override in
             let allocation = AnnualBudgetAllocation(
-                amount: 0,
+                amount: amount,
                 category: category,
                 policyOverride: override,
             )

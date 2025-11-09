@@ -45,6 +45,11 @@ internal final class DashboardStore {
         let now = Date()
         self.currentYear = now.year
         self.currentMonth = now.month
+
+        if getAnnualBudgetConfig(year: currentYear) == nil,
+           let fallbackYear = latestAnnualBudgetConfigYear() {
+            self.currentYear = fallbackYear
+        }
     }
 
     // MARK: - Display Mode
@@ -84,6 +89,15 @@ internal final class DashboardStore {
         )
         descriptor.fetchLimit = 1
         return try? modelContext.fetch(descriptor).first
+    }
+
+    /// 最新の年次特別枠設定の年を取得
+    private func latestAnnualBudgetConfigYear() -> Int? {
+        var descriptor = FetchDescriptor<AnnualBudgetConfig>(
+            sortBy: [SortDescriptor(\.year, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1
+        return try? modelContext.fetch(descriptor).first?.year
     }
 
     // MARK: - Computed Properties

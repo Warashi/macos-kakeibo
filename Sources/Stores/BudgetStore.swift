@@ -454,6 +454,11 @@ private extension BudgetStore {
                 throw BudgetStoreError.categoryNotFound
             }
 
+            if !category.allowsAnnualBudget {
+                category.allowsAnnualBudget = true
+                category.updatedAt = now
+            }
+
             seenCategoryIds.insert(category.id)
 
             if let allocation = existingAllocations[category.id] {

@@ -18,6 +18,9 @@ internal struct AnnualBudgetUsage: Sendable {
 
     /// 使用率（0.0 〜 1.0）
     internal let usageRate: Double
+
+    /// カテゴリ別累積充当結果
+    internal let categoryAllocations: [CategoryAllocation]
 }
 
 /// カテゴリ別年次特別枠充当結果
@@ -27,6 +30,9 @@ internal struct CategoryAllocation: Sendable, Identifiable {
 
     /// カテゴリ名
     internal let categoryName: String
+
+    /// 年次特別枠の設定額
+    internal let annualBudgetAmount: Decimal
 
     /// 月次予算額
     internal let monthlyBudgetAmount: Decimal
@@ -47,6 +53,18 @@ internal struct CategoryAllocation: Sendable, Identifiable {
     internal var id: UUID {
         categoryId
     }
+
+    /// 年次特別枠の残額（マイナス値は超過）
+    internal var annualBudgetRemainingAmount: Decimal {
+        annualBudgetAmount - allocatableAmount
+    }
+
+    /// 年次特別枠の使用率
+    internal var annualBudgetUsageRate: Double {
+        guard annualBudgetAmount > 0 else { return 0 }
+        return NSDecimalNumber(decimal: allocatableAmount)
+            .doubleValue / NSDecimalNumber(decimal: annualBudgetAmount).doubleValue
+    }
 }
 
 /// 月次の年次特別枠充当結果
@@ -62,6 +80,34 @@ internal struct MonthlyAllocation: Sendable {
 
     /// カテゴリ別充当結果
     internal let categoryAllocations: [CategoryAllocation]
+}
+
+/// カテゴリ別累積計算用の内部構造体
+private struct CategoryAllocationAccumulator {
+    let categoryId: UUID
+    let categoryName: String
+    let annualBudgetAmount: Decimal
+    var monthlyBudgetAmount: Decimal
+    var actualAmount: Decimal
+    var excessAmount: Decimal
+    var allocatableAmount: Decimal
+    var remainingAfterAllocation: Decimal
+}
+
+/// 累積計算パラメータ
+private struct AccumulationParams {
+    let params: AllocationCalculationParams
+    let year: Int
+    let endMonth: Int
+    let policy: AnnualBudgetPolicy
+    let annualBudgetConfig: AnnualBudgetConfig
+}
+
+/// 充当金額計算結果
+private struct AllocationAmounts {
+    let allocatable: Decimal
+    let excess: Decimal
+    let remainingAfterAllocation: Decimal
 }
 
 // MARK: - 計算パラメータ
@@ -128,30 +174,23 @@ internal struct AnnualBudgetAllocator: Sendable {
                 usedAmount: 0,
                 remainingAmount: params.annualBudgetConfig.totalAmount,
                 usageRate: 0.0,
+                categoryAllocations: [],
             )
         }
 
-        // 各月の充当額を計算
         let endMonth = upToMonth ?? 12
-        var totalUsed: Decimal = 0
+        let accumulationParams = AccumulationParams(
+            params: params,
+            year: year,
+            endMonth: endMonth,
+            policy: policy,
+            annualBudgetConfig: params.annualBudgetConfig,
+        )
+        let result = accumulateCategoryAllocations(accumulationParams: accumulationParams)
 
-        for month in 1 ... endMonth {
-            let monthlyCategoryAllocations = calculateCategoryAllocations(
-                params: params,
-                year: year,
-                month: month,
-                policy: policy,
-            )
-
-            // カテゴリ別充当額の合計を加算
-            let monthlyUsed = monthlyCategoryAllocations
-                .reduce(Decimal.zero) { $0 + $1.allocatableAmount }
-            totalUsed += monthlyUsed
-        }
-
-        let remaining = params.annualBudgetConfig.totalAmount - totalUsed
+        let remaining = params.annualBudgetConfig.totalAmount - result.totalUsed
         let usageRate: Double = if params.annualBudgetConfig.totalAmount > 0 {
-            NSDecimalNumber(decimal: totalUsed)
+            NSDecimalNumber(decimal: result.totalUsed)
                 .doubleValue / NSDecimalNumber(decimal: params.annualBudgetConfig.totalAmount).doubleValue
         } else {
             0.0
@@ -160,10 +199,98 @@ internal struct AnnualBudgetAllocator: Sendable {
         return AnnualBudgetUsage(
             year: year,
             totalAmount: params.annualBudgetConfig.totalAmount,
-            usedAmount: totalUsed,
+            usedAmount: result.totalUsed,
             remainingAmount: remaining,
             usageRate: usageRate,
+            categoryAllocations: result.categoryAllocations,
         )
+    }
+
+    private func accumulateCategoryAllocations(
+        accumulationParams: AccumulationParams,
+    ) -> (totalUsed: Decimal, categoryAllocations: [CategoryAllocation]) {
+        var totalUsed: Decimal = 0
+
+        // 年次特別枠設定に登録されているすべてのカテゴリを初期化
+        var categoryAccumulator: [UUID: CategoryAllocationAccumulator] = [:]
+        for allocation in accumulationParams.annualBudgetConfig.allocations {
+            let category = allocation.category
+            categoryAccumulator[category.id] = CategoryAllocationAccumulator(
+                categoryId: category.id,
+                categoryName: category.fullName,
+                annualBudgetAmount: allocation.amount,
+                monthlyBudgetAmount: 0,
+                actualAmount: 0,
+                excessAmount: 0,
+                allocatableAmount: 0,
+                remainingAfterAllocation: 0,
+            )
+        }
+
+        for month in 1 ... accumulationParams.endMonth {
+            let monthlyCategoryAllocations = calculateCategoryAllocations(
+                params: accumulationParams.params,
+                year: accumulationParams.year,
+                month: month,
+                policy: accumulationParams.policy,
+            )
+
+            // カテゴリ別充当額の合計を加算
+            let monthlyUsed = monthlyCategoryAllocations
+                .reduce(Decimal.zero) { $0 + $1.allocatableAmount }
+            totalUsed += monthlyUsed
+
+            // カテゴリ別に累積
+            accumulateCategory(
+                allocations: monthlyCategoryAllocations,
+                into: &categoryAccumulator,
+            )
+        }
+
+        // カテゴリ別累積をCategoryAllocationに変換
+        let categoryAllocations = categoryAccumulator.values
+            .map { accumulator in
+                CategoryAllocation(
+                    categoryId: accumulator.categoryId,
+                    categoryName: accumulator.categoryName,
+                    annualBudgetAmount: accumulator.annualBudgetAmount,
+                    monthlyBudgetAmount: accumulator.monthlyBudgetAmount,
+                    actualAmount: accumulator.actualAmount,
+                    excessAmount: accumulator.excessAmount,
+                    allocatableAmount: accumulator.allocatableAmount,
+                    remainingAfterAllocation: accumulator.remainingAfterAllocation,
+                )
+            }
+            .sorted { $0.categoryName < $1.categoryName }
+
+        return (totalUsed, categoryAllocations)
+    }
+
+    private func accumulateCategory(
+        allocations: [CategoryAllocation],
+        into categoryAccumulator: inout [UUID: CategoryAllocationAccumulator],
+    ) {
+        for allocation in allocations {
+            if var accumulator = categoryAccumulator[allocation.categoryId] {
+                accumulator.monthlyBudgetAmount += allocation.monthlyBudgetAmount
+                accumulator.actualAmount += allocation.actualAmount
+                accumulator.excessAmount += allocation.excessAmount
+                accumulator.allocatableAmount += allocation.allocatableAmount
+                accumulator.remainingAfterAllocation += allocation.remainingAfterAllocation
+                categoryAccumulator[allocation.categoryId] = accumulator
+            } else {
+                categoryAccumulator[allocation.categoryId] = CategoryAllocationAccumulator(
+                    categoryId: allocation.categoryId,
+                    categoryName: allocation.categoryName,
+                    annualBudgetAmount: allocation.annualBudgetAmount,
+                    monthlyBudgetAmount: allocation.monthlyBudgetAmount,
+                    actualAmount: allocation.actualAmount,
+                    excessAmount: allocation.excessAmount,
+                    allocatableAmount: allocation.allocatableAmount,
+                    remainingAfterAllocation: allocation.remainingAfterAllocation,
+                )
+            }
+        }
     }
 
     /// 月次の年次特別枠充当を計算
@@ -218,6 +345,7 @@ internal struct AnnualBudgetAllocator: Sendable {
         let policyContext = PolicyContext(
             overrides: policyOverrideMap(from: params.annualBudgetConfig),
             defaultPolicy: policy,
+            allocationAmounts: allocationAmountMap(from: params.annualBudgetConfig),
         )
 
         if policy == .disabled, policyContext.overrides.isEmpty {
@@ -244,12 +372,22 @@ internal struct AnnualBudgetAllocator: Sendable {
             ),
         )
 
+        allocations.append(
+            contentsOf: calculateAllocationsForUnbudgetedCategories(
+                config: params.annualBudgetConfig,
+                actualExpenseMap: actualExpenseMap,
+                policyContext: policyContext,
+                processedCategoryIds: &processedCategoryIds,
+            ),
+        )
+
         return allocations
     }
 
     private struct PolicyContext {
         let overrides: [UUID: AnnualBudgetPolicy]
         let defaultPolicy: AnnualBudgetPolicy
+        let allocationAmounts: [UUID: Decimal]
     }
 
     private func calculateAllocationsForMonthlyBudgets(
@@ -262,9 +400,11 @@ internal struct AnnualBudgetAllocator: Sendable {
 
         for budget in budgets {
             guard let category = budget.category else { continue }
-            guard category.allowsAnnualBudget else { continue }
 
             let categoryId = category.id
+            let isEligible = category.allowsAnnualBudget || policyContext.allocationAmounts[categoryId] != nil
+            guard isEligible else { continue }
+            let annualBudgetAmount = policyContext.allocationAmounts[categoryId] ?? 0
             let effectivePolicy = policyContext.overrides[categoryId] ?? policyContext.defaultPolicy
             guard effectivePolicy != .disabled else { continue }
 
@@ -283,7 +423,55 @@ internal struct AnnualBudgetAllocator: Sendable {
                 CategoryAllocation(
                     categoryId: categoryId,
                     categoryName: category.fullName,
+                    annualBudgetAmount: annualBudgetAmount,
                     monthlyBudgetAmount: budget.amount,
+                    actualAmount: actualAmount,
+                    excessAmount: amounts.excess,
+                    allocatableAmount: amounts.allocatable,
+                    remainingAfterAllocation: amounts.remainingAfterAllocation,
+                ),
+            )
+
+            processedCategoryIds.insert(categoryId)
+        }
+
+        return allocations
+    }
+
+    private func calculateAllocationsForUnbudgetedCategories(
+        config: AnnualBudgetConfig,
+        actualExpenseMap: [UUID: Decimal],
+        policyContext: PolicyContext,
+        processedCategoryIds: inout Set<UUID>,
+    ) -> [CategoryAllocation] {
+        var allocations: [CategoryAllocation] = []
+
+        for allocation in config.allocations {
+            let category = allocation.category
+            let categoryId = category.id
+            guard !processedCategoryIds.contains(categoryId) else { continue }
+
+            let effectivePolicy = policyContext.overrides[categoryId] ?? policyContext.defaultPolicy
+            guard effectivePolicy != .disabled else { continue }
+
+            let actualAmount = calculateActualAmount(
+                for: category,
+                from: actualExpenseMap,
+            )
+            guard actualAmount > 0 else { continue }
+
+            let amounts = calculateAllocationAmounts(
+                actualAmount: actualAmount,
+                budgetAmount: 0,
+                policy: effectivePolicy,
+            )
+
+            allocations.append(
+                CategoryAllocation(
+                    categoryId: categoryId,
+                    categoryName: category.fullName,
+                    annualBudgetAmount: allocation.amount,
+                    monthlyBudgetAmount: 0,
                     actualAmount: actualAmount,
                     excessAmount: amounts.excess,
                     allocatableAmount: amounts.allocatable,
@@ -311,7 +499,6 @@ internal struct AnnualBudgetAllocator: Sendable {
         for allocation in fullCoverageAllocations {
             let category = allocation.category
             let categoryId = category.id
-            guard category.allowsAnnualBudget else { continue }
             guard !processedCategoryIds.contains(categoryId) else { continue }
 
             let actualAmount = calculateActualAmount(
@@ -330,6 +517,7 @@ internal struct AnnualBudgetAllocator: Sendable {
                 CategoryAllocation(
                     categoryId: categoryId,
                     categoryName: category.fullName,
+                    annualBudgetAmount: allocation.amount,
                     monthlyBudgetAmount: 0,
                     actualAmount: actualAmount,
                     excessAmount: amounts.excess,
@@ -370,97 +558,105 @@ internal struct AnnualBudgetAllocator: Sendable {
         }
     }
 
+    private func allocationAmountMap(from config: AnnualBudgetConfig) -> [UUID: Decimal] {
+        config.allocations.reduce(into: [:]) { partialResult, allocation in
+            partialResult[allocation.category.id] = allocation.amount
+        }
+    }
+
     private func calculateAllocationAmounts(
         actualAmount: Decimal,
         budgetAmount: Decimal,
         policy: AnnualBudgetPolicy,
-    ) -> (allocatable: Decimal, excess: Decimal, remainingAfterAllocation: Decimal) {
+    ) -> AllocationAmounts {
         switch policy {
         case .automatic:
             let excess = max(0, actualAmount - budgetAmount)
-            return (
+            return AllocationAmounts(
                 allocatable: excess,
                 excess: excess,
                 remainingAfterAllocation: 0,
             )
         case .manual:
             let excess = max(0, actualAmount - budgetAmount)
-            return (
+            return AllocationAmounts(
                 allocatable: 0,
                 excess: excess,
                 remainingAfterAllocation: excess,
             )
         case .disabled:
-            return (
+            return AllocationAmounts(
                 allocatable: 0,
                 excess: 0,
                 remainingAfterAllocation: 0,
             )
         case .fullCoverage:
-            return (
+            return AllocationAmounts(
                 allocatable: actualAmount,
                 excess: actualAmount,
                 remainingAfterAllocation: 0,
             )
         }
     }
+}
 
-    private func filterTransactions(
-        transactions: [Transaction],
-        year: Int,
-        month: Int,
-        filter: AggregationFilter,
-    ) -> [Transaction] {
-        transactions.filter { transaction in
-            guard transaction.date.year == year,
-                  transaction.date.month == month else {
-                return false
-            }
-            return matchesFilter(transaction: transaction, filter: filter)
+// MARK: - Helper Functions
+
+private func filterTransactions(
+    transactions: [Transaction],
+    year: Int,
+    month: Int,
+    filter: AggregationFilter,
+) -> [Transaction] {
+    transactions.filter { transaction in
+        guard transaction.date.year == year,
+              transaction.date.month == month else {
+            return false
+        }
+        return matchesFilter(transaction: transaction, filter: filter)
+    }
+}
+
+private func matchesFilter(
+    transaction: Transaction,
+    filter: AggregationFilter,
+) -> Bool {
+    if filter.includeOnlyCalculationTarget, !transaction.isIncludedInCalculation {
+        return false
+    }
+
+    if filter.excludeTransfers, transaction.isTransfer {
+        return false
+    }
+
+    if let institutionId = filter.financialInstitutionId {
+        guard transaction.financialInstitution?.id == institutionId else {
+            return false
         }
     }
 
-    private func matchesFilter(
-        transaction: Transaction,
-        filter: AggregationFilter,
-    ) -> Bool {
-        if filter.includeOnlyCalculationTarget, !transaction.isIncludedInCalculation {
+    if let categoryId = filter.categoryId {
+        let majorMatches = transaction.majorCategory?.id == categoryId
+        let minorMatches = transaction.minorCategory?.id == categoryId
+        guard majorMatches || minorMatches else {
             return false
         }
-
-        if filter.excludeTransfers, transaction.isTransfer {
-            return false
-        }
-
-        if let institutionId = filter.financialInstitutionId {
-            guard transaction.financialInstitution?.id == institutionId else {
-                return false
-            }
-        }
-
-        if let categoryId = filter.categoryId {
-            let majorMatches = transaction.majorCategory?.id == categoryId
-            let minorMatches = transaction.minorCategory?.id == categoryId
-            guard majorMatches || minorMatches else {
-                return false
-            }
-        }
-
-        return true
     }
 
-    private func makeActualExpenseMap(from transactions: [Transaction]) -> [UUID: Decimal] {
-        transactions.reduce(into: [:]) { partialResult, transaction in
-            guard transaction.isExpense else { return }
-            let amount = abs(transaction.amount)
+    return true
+}
 
-            if let majorId = transaction.majorCategory?.id ?? transaction.minorCategory?.parent?.id {
-                partialResult[majorId, default: 0] += amount
-            }
+private func makeActualExpenseMap(from transactions: [Transaction]) -> [UUID: Decimal] {
+    transactions.reduce(into: [:]) { partialResult, transaction in
+        guard transaction.isExpense else { return }
+        let amount = abs(transaction.amount)
 
-            if let minorId = transaction.minorCategory?.id {
-                partialResult[minorId, default: 0] += amount
-            }
+        if let majorId = transaction.majorCategory?.id ?? transaction.minorCategory?.parent?.id {
+            partialResult[majorId, default: 0] += amount
+        }
+
+        if let minorId = transaction.minorCategory?.id {
+            partialResult[minorId, default: 0] += amount
         }
     }
 }
