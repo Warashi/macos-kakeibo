@@ -289,10 +289,12 @@ internal final class SpecialPaymentReconciliationStore {
         guard let id = selectedOccurrenceId else { return nil }
         return filteredRows.first(where: { $0.id == id }) ?? rows.first(where: { $0.id == id })
     }
+}
 
-    // MARK: - Actions
+// MARK: - Actions
 
-    internal func refresh() {
+internal extension SpecialPaymentReconciliationStore {
+    func refresh() {
         errorMessage = nil
         statusMessage = nil
         isLoading = true
@@ -361,7 +363,7 @@ internal final class SpecialPaymentReconciliationStore {
         }
     }
 
-    internal func selectCandidate(_ candidateId: UUID?) {
+    func selectCandidate(_ candidateId: UUID?) {
         selectedTransactionId = candidateId
         guard let candidateId,
               let candidate = candidateTransactions.first(where: { $0.id == candidateId }) else {
@@ -372,7 +374,7 @@ internal final class SpecialPaymentReconciliationStore {
         actualDate = candidate.transaction.date
     }
 
-    internal func saveSelectedOccurrence() {
+    func saveSelectedOccurrence() {
         guard let occurrence = selectedOccurrence else {
             errorMessage = "保存対象の特別支払いを選択してください。"
             return
@@ -412,7 +414,7 @@ internal final class SpecialPaymentReconciliationStore {
         }
     }
 
-    internal func unlinkSelectedOccurrence() {
+    func unlinkSelectedOccurrence() {
         guard let occurrence = selectedOccurrence else {
             errorMessage = "解除対象の特別支払いを選択してください。"
             return
@@ -440,20 +442,22 @@ internal final class SpecialPaymentReconciliationStore {
         }
     }
 
-    internal func resetFormToExpectedValues() {
+    func resetFormToExpectedValues() {
         guard let occurrence = selectedOccurrence else { return }
         actualAmountText = occurrence.expectedAmount.plainString
         actualDate = occurrence.scheduledDate
         selectedTransactionId = occurrence.transaction?.id
     }
 
-    internal func clearError() {
+    func clearError() {
         errorMessage = nil
     }
+}
 
-    // MARK: - Private Helpers
+// MARK: - Private Helpers
 
-    private var selectedOccurrence: SpecialPaymentOccurrence? {
+private extension SpecialPaymentReconciliationStore {
+    var selectedOccurrence: SpecialPaymentOccurrence? {
         guard let id = selectedOccurrenceId else { return nil }
         return occurrenceLookup[id]
     }
