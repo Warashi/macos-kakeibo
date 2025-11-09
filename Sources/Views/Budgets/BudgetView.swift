@@ -163,11 +163,13 @@ internal struct BudgetView: View {
             },
         )
     }
+}
 
-    // MARK: - View Builders
+// MARK: - View Builders
 
+private extension BudgetView {
     @ViewBuilder
-    private func toolbarSection(store: BudgetStore) -> some View {
+    func toolbarSection(store: BudgetStore) -> some View {
         HStack(spacing: 12) {
             Picker(
                 "表示モード",
@@ -211,7 +213,7 @@ internal struct BudgetView: View {
     }
 
     @ViewBuilder
-    private func monthNavigationButtons(store: BudgetStore) -> some View {
+    func monthNavigationButtons(store: BudgetStore) -> some View {
         HStack(spacing: 12) {
             Button {
                 store.moveToPreviousMonth()
@@ -232,7 +234,7 @@ internal struct BudgetView: View {
     }
 
     @ViewBuilder
-    private func yearNavigationButtons(store: BudgetStore) -> some View {
+    func yearNavigationButtons(store: BudgetStore) -> some View {
         HStack(spacing: 12) {
             Button {
                 store.moveToPreviousYear()
@@ -253,7 +255,7 @@ internal struct BudgetView: View {
     }
 
     @ViewBuilder
-    private var specialPaymentListSection: some View {
+    var specialPaymentListSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("特別支払い")
@@ -290,7 +292,7 @@ internal struct BudgetView: View {
         .cornerRadius(10)
     }
 
-    private var specialPaymentDefinitions: [SpecialPaymentDefinition] {
+    var specialPaymentDefinitions: [SpecialPaymentDefinition] {
         let descriptor = FetchDescriptor<SpecialPaymentDefinition>(
             sortBy: [
                 SortDescriptor(\.firstOccurrenceDate),
@@ -299,17 +301,21 @@ internal struct BudgetView: View {
         )
         return (try? modelContext.fetch(descriptor)) ?? []
     }
+}
 
-    // MARK: - Store Preparation
+// MARK: - Store Preparation
 
-    private func prepareStore() {
+private extension BudgetView {
+    func prepareStore() {
         guard store == nil else { return }
         store = BudgetStore(modelContext: modelContext)
     }
+}
 
-    // MARK: - Budget Editor
+// MARK: - Budget Editor
 
-    private func presentBudgetEditor(for budget: Budget?) {
+private extension BudgetView {
+    func presentBudgetEditor(for budget: Budget?) {
         guard let store else { return }
         budgetFormError = nil
         if let budget {
@@ -325,11 +331,11 @@ internal struct BudgetView: View {
         isPresentingBudgetEditor = true
     }
 
-    private func dismissBudgetEditor() {
+    func dismissBudgetEditor() {
         isPresentingBudgetEditor = false
     }
 
-    private func saveBudget() {
+    func saveBudget() {
         guard let store else { return }
         guard let amount = budgetFormState.decimalAmount, amount > 0 else {
             budgetFormError = "金額を正しく入力してください"
@@ -379,10 +385,12 @@ internal struct BudgetView: View {
             showError(message: "予算の保存に失敗しました: \(error.localizedDescription)")
         }
     }
+}
 
-    // MARK: - Annual Budget Editor
+// MARK: - Annual Budget Editor
 
-    private func presentAnnualEditor() {
+private extension BudgetView {
+    func presentAnnualEditor() {
         annualFormError = nil
         if let config = store?.annualBudgetConfig {
             annualFormState.load(from: config)
@@ -393,11 +401,11 @@ internal struct BudgetView: View {
         isPresentingAnnualEditor = true
     }
 
-    private func dismissAnnualEditor() {
+    func dismissAnnualEditor() {
         isPresentingAnnualEditor = false
     }
 
-    private func saveAnnualBudgetConfig() {
+    func saveAnnualBudgetConfig() {
         guard let store else { return }
         guard let amount = annualFormState.decimalAmount, amount > 0 else {
             annualFormError = "総額を正しく入力してください"
@@ -436,10 +444,12 @@ internal struct BudgetView: View {
             showError(message: "年次特別枠の保存に失敗しました: \(error.localizedDescription)")
         }
     }
+}
 
-    // MARK: - Special Payment Editor
+// MARK: - Special Payment Editor
 
-    private func presentSpecialPaymentEditor(for definition: SpecialPaymentDefinition?) {
+private extension BudgetView {
+    func presentSpecialPaymentEditor(for definition: SpecialPaymentDefinition?) {
         specialPaymentFormError = nil
         if let definition {
             specialPaymentEditorMode = .edit(definition)
@@ -451,11 +461,11 @@ internal struct BudgetView: View {
         isPresentingSpecialPaymentEditor = true
     }
 
-    private func dismissSpecialPaymentEditor() {
+    func dismissSpecialPaymentEditor() {
         isPresentingSpecialPaymentEditor = false
     }
 
-    private func saveSpecialPayment() {
+    func saveSpecialPayment() {
         guard specialPaymentFormState.isValid else {
             specialPaymentFormError = "入力内容を確認してください"
             return
@@ -509,10 +519,12 @@ internal struct BudgetView: View {
             showError(message: "特別支払いの保存に失敗しました: \(error.localizedDescription)")
         }
     }
+}
 
-    // MARK: - Delete
+// MARK: - Delete
 
-    private func deletePendingBudget() {
+private extension BudgetView {
+    func deletePendingBudget() {
         guard let store, let budget = budgetPendingDeletion else { return }
         do {
             try store.deleteBudget(budget)
@@ -522,7 +534,7 @@ internal struct BudgetView: View {
         budgetPendingDeletion = nil
     }
 
-    private func deletePendingSpecialPayment() {
+    func deletePendingSpecialPayment() {
         guard let definition = specialPaymentPendingDeletion else { return }
         let specialPaymentStore = SpecialPaymentStore(modelContext: modelContext)
         do {
@@ -532,10 +544,12 @@ internal struct BudgetView: View {
         }
         specialPaymentPendingDeletion = nil
     }
+}
 
-    // MARK: - Error Handling
+// MARK: - Error Handling
 
-    private func showError(message: String) {
+private extension BudgetView {
+    func showError(message: String) {
         errorMessage = message
         isShowingErrorAlert = true
     }
