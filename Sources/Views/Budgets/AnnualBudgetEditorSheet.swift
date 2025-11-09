@@ -78,7 +78,7 @@ internal struct AnnualBudgetEditorSheet: View {
             } else {
                 let disableRemove: Bool = formState.allocationRows.count <= 1
                 ForEach($formState.allocationRows) { $row in
-                    let effectivePolicy = row.wrappedValue.effectivePolicy(globalPolicy: formState.policy)
+                    let effectivePolicy = row.selectedPolicyOverride ?? formState.policy
                     HStack(spacing: 12) {
                         CategoryHierarchyPicker(
                             categories: categories,
