@@ -22,7 +22,7 @@ internal struct BudgetStoreTestsAnnualConfig {
             totalAmount: 300_000,
             policy: .manual,
             allocations: [
-                AnnualAllocationDraft(categoryId: food.id, amount: 200_000),
+                AnnualAllocationDraft(categoryId: food.id, amount: 200_000, policyOverride: .automatic),
                 AnnualAllocationDraft(categoryId: travel.id, amount: 100_000),
             ],
         )
@@ -33,15 +33,17 @@ internal struct BudgetStoreTestsAnnualConfig {
         #expect(createdConfig.allocations.count == 2)
 
         let allocationMap = Dictionary(uniqueKeysWithValues: createdConfig.allocations
-            .map { ($0.category.id, $0.amount) })
-        #expect(allocationMap[food.id] == 200_000)
-        #expect(allocationMap[travel.id] == 100_000)
+            .map { ($0.category.id, $0) })
+        #expect(allocationMap[food.id]?.amount == 200_000)
+        #expect(allocationMap[travel.id]?.amount == 100_000)
+        #expect(allocationMap[food.id]?.policyOverride == .automatic)
+        #expect(allocationMap[travel.id]?.policyOverride == nil)
 
         try store.upsertAnnualBudgetConfig(
             totalAmount: 500_000,
             policy: .disabled,
             allocations: [
-                AnnualAllocationDraft(categoryId: travel.id, amount: 300_000),
+                AnnualAllocationDraft(categoryId: travel.id, amount: 300_000, policyOverride: .manual),
             ],
         )
 
@@ -49,8 +51,9 @@ internal struct BudgetStoreTestsAnnualConfig {
         #expect(updatedConfig.totalAmount == 500_000)
         #expect(updatedConfig.policy == .disabled)
         #expect(updatedConfig.allocations.count == 1)
-        #expect(updatedConfig.allocations.first?.category.id == travel.id)
-        #expect(updatedConfig.allocations.first?.amount == 300_000)
+        let updatedAllocation = updatedConfig.allocations.first { $0.category.id == travel.id }
+        #expect(updatedAllocation?.amount == 300_000)
+        #expect(updatedAllocation?.policyOverride == .manual)
     }
 
     @Test("年次特別枠：カテゴリ重複はエラー")

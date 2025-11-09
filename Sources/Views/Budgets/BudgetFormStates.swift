@@ -88,6 +88,7 @@ internal struct AnnualBudgetFormState {
             var row = AnnualBudgetAllocationRowState(
                 id: allocation.id,
                 amountText: allocation.amount.plainString,
+                selectedPolicyOverride: allocation.policyOverride,
             )
             if allocation.category.isMajor {
                 row.selectedMajorCategoryId = allocation.category.id
@@ -149,6 +150,7 @@ internal struct AnnualBudgetFormState {
                 AnnualAllocationDraft(
                     categoryId: categoryId,
                     amount: amount,
+                    policyOverride: row.selectedPolicyOverride,
                 ),
             )
         }

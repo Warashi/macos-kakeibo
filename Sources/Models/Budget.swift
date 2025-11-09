@@ -276,6 +276,7 @@ internal final class AnnualBudgetAllocation {
     internal var id: UUID
     internal var amount: Decimal
     internal var category: Category
+    internal var policyOverrideRawValue: String?
 
     internal var config: AnnualBudgetConfig?
 
@@ -286,14 +287,26 @@ internal final class AnnualBudgetAllocation {
         id: UUID = UUID(),
         amount: Decimal,
         category: Category,
+        policyOverride: AnnualBudgetPolicy? = nil,
     ) {
         self.id = id
         self.amount = amount
         self.category = category
+        self.policyOverrideRawValue = policyOverride?.rawValue
 
         let now = Date()
         self.createdAt = now
         self.updatedAt = now
+    }
+
+    internal var policyOverride: AnnualBudgetPolicy? {
+        get {
+            guard let policyOverrideRawValue else { return nil }
+            return AnnualBudgetPolicy(rawValue: policyOverrideRawValue)
+        }
+        set {
+            policyOverrideRawValue = newValue?.rawValue
+        }
     }
 }
 

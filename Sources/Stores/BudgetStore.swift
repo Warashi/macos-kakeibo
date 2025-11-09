@@ -453,11 +453,13 @@ private extension BudgetStore {
 
             if let allocation = existingAllocations[category.id] {
                 allocation.amount = draft.amount
+                allocation.policyOverride = draft.policyOverride
                 allocation.updatedAt = now
             } else {
                 let allocation = AnnualBudgetAllocation(
                     amount: draft.amount,
                     category: category,
+                    policyOverride: draft.policyOverride,
                 )
                 allocation.updatedAt = now
                 config.allocations.append(allocation)
@@ -545,6 +547,17 @@ internal enum BudgetStoreError: Error {
 internal struct AnnualAllocationDraft {
     internal let categoryId: UUID
     internal let amount: Decimal
+    internal let policyOverride: AnnualBudgetPolicy?
+
+    internal init(
+        categoryId: UUID,
+        amount: Decimal,
+        policyOverride: AnnualBudgetPolicy? = nil,
+    ) {
+        self.categoryId = categoryId
+        self.amount = amount
+        self.policyOverride = policyOverride
+    }
 }
 
 // MARK: - Special Payment Savings Entry
