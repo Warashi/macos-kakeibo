@@ -476,8 +476,8 @@ internal struct BudgetView: View {
                     categoryId: specialPaymentFormState.selectedCategoryId,
                     savingStrategy: specialPaymentFormState.savingStrategy,
                     customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
-                    dateAdjustmentPolicy: .none,
-                    recurrenceDayPattern: nil,
+                    dateAdjustmentPolicy: specialPaymentFormState.dateAdjustmentPolicy,
+                    recurrenceDayPattern: specialPaymentFormState.recurrenceDayPattern,
                 )
             case let .edit(definition):
                 try specialPaymentStore.updateDefinition(
@@ -491,8 +491,8 @@ internal struct BudgetView: View {
                     categoryId: specialPaymentFormState.selectedCategoryId,
                     savingStrategy: specialPaymentFormState.savingStrategy,
                     customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
-                    dateAdjustmentPolicy: .none,
-                    recurrenceDayPattern: nil,
+                    dateAdjustmentPolicy: specialPaymentFormState.dateAdjustmentPolicy,
+                    recurrenceDayPattern: specialPaymentFormState.recurrenceDayPattern,
                 )
             }
             isPresentingSpecialPaymentEditor = false
@@ -865,6 +865,37 @@ private struct SpecialPaymentEditorSheet: View {
                             )
                     }
 
+                    LabeledField(title: "休日の日付調整") {
+                        Picker("休日の日付調整", selection: $formState.dateAdjustmentPolicy) {
+                            Text("調整なし").tag(DateAdjustmentPolicy.none)
+                            Text("前営業日に移動").tag(DateAdjustmentPolicy.moveToPreviousBusinessDay)
+                            Text("次営業日に移動").tag(DateAdjustmentPolicy.moveToNextBusinessDay)
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    LabeledField(title: "繰り返しパターン") {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Picker("パターン", selection: $formState.recurrenceDayPattern) {
+                                Text("なし（日付固定）").tag(DayOfMonthPattern?.none)
+                                Text("月末").tag(DayOfMonthPattern?.some(.endOfMonth))
+                                Text("月末3日前").tag(DayOfMonthPattern?.some(.endOfMonthMinus(days: 3)))
+                                Text("月末5日前").tag(DayOfMonthPattern?.some(.endOfMonthMinus(days: 5)))
+                                Text("最初の営業日").tag(DayOfMonthPattern?.some(.firstBusinessDay))
+                                Text("最終営業日").tag(DayOfMonthPattern?.some(.lastBusinessDay))
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                            Text("パターンを使用すると、月ごとに異なる日付に調整されます（例：月末は28〜31日）")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
                     Divider()
 
                     previewSection
@@ -1151,6 +1182,8 @@ private struct SpecialPaymentFormState {
     internal var selectedCategoryId: UUID?
     internal var savingStrategy: SpecialPaymentSavingStrategy = .evenlyDistributed
     internal var customMonthlySavingAmountText: String = ""
+    internal var dateAdjustmentPolicy: DateAdjustmentPolicy = .none
+    internal var recurrenceDayPattern: DayOfMonthPattern?
 
     internal mutating func load(from definition: SpecialPaymentDefinition) {
         nameText = definition.name
@@ -1163,6 +1196,8 @@ private struct SpecialPaymentFormState {
         selectedCategoryId = definition.category?.id
         savingStrategy = definition.savingStrategy
         customMonthlySavingAmountText = definition.customMonthlySavingAmount?.plainString ?? ""
+        dateAdjustmentPolicy = definition.dateAdjustmentPolicy
+        recurrenceDayPattern = definition.recurrenceDayPattern
     }
 
     internal mutating func reset() {
@@ -1176,6 +1211,8 @@ private struct SpecialPaymentFormState {
         selectedCategoryId = nil
         savingStrategy = .evenlyDistributed
         customMonthlySavingAmountText = ""
+        dateAdjustmentPolicy = .none
+        recurrenceDayPattern = nil
     }
 
     private var normalizedAmountText: String {
