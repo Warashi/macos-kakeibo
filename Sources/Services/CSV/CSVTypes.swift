@@ -211,30 +211,76 @@ internal struct CSVColumnMapping: Sendable, Equatable {
 private extension CSVColumn {
     /// カラムとヘッダー文字列のマッチングロジック
     func matches(_ header: String) -> Bool {
-        let lowercased = header.lowercased()
-
         switch self {
         case .identifier:
-            return lowercased == "id" || header.contains("ID")
+            matchesIdentifier(header)
         case .date:
-            return lowercased.contains("date") || header.contains("日付")
+            matchesDate(header)
         case .title:
-            return lowercased.contains("title") || header.contains("内容") || header.contains("摘要")
+            matchesTitle(header)
         case .amount:
-            return lowercased.contains("amount") || header.contains("金額") || header.contains("支払")
+            matchesAmount(header)
         case .memo:
-            return lowercased.contains("memo") || lowercased.contains("note") || header.contains("メモ")
+            matchesMemo(header)
         case .financialInstitution:
-            return lowercased.contains("account") || header.contains("金融") || header.contains("口座")
+            matchesFinancialInstitution(header)
         case .majorCategory:
-            return header.contains("大項目") || header.contains("カテゴリ") && !header.contains("中")
+            matchesMajorCategory(header)
         case .minorCategory:
-            return header.contains("中項目") || header.contains("サブカテゴリ") || header.contains("小項目")
+            matchesMinorCategory(header)
         case .includeInCalculation:
-            return lowercased.contains("include") || header.contains("計算") || header.contains("集計")
+            matchesIncludeInCalculation(header)
         case .transfer:
-            return lowercased.contains("transfer") || header.contains("振替")
+            matchesTransfer(header)
         }
+    }
+
+    private func matchesIdentifier(_ header: String) -> Bool {
+        let lowercased = header.lowercased()
+        return lowercased == "id" || header.contains("ID")
+    }
+
+    private func matchesDate(_ header: String) -> Bool {
+        let lowercased = header.lowercased()
+        return lowercased.contains("date") || header.contains("日付")
+    }
+
+    private func matchesTitle(_ header: String) -> Bool {
+        let lowercased = header.lowercased()
+        return lowercased.contains("title") || header.contains("内容") || header.contains("摘要")
+    }
+
+    private func matchesAmount(_ header: String) -> Bool {
+        let lowercased = header.lowercased()
+        return lowercased.contains("amount") || header.contains("金額") || header.contains("支払")
+    }
+
+    private func matchesMemo(_ header: String) -> Bool {
+        let lowercased = header.lowercased()
+        return lowercased.contains("memo") || lowercased.contains("note") || header.contains("メモ")
+    }
+
+    private func matchesFinancialInstitution(_ header: String) -> Bool {
+        let lowercased = header.lowercased()
+        return lowercased.contains("account") || header.contains("金融") || header.contains("口座")
+    }
+
+    private func matchesMajorCategory(_ header: String) -> Bool {
+        header.contains("大項目") || header.contains("カテゴリ") && !header.contains("中")
+    }
+
+    private func matchesMinorCategory(_ header: String) -> Bool {
+        header.contains("中項目") || header.contains("サブカテゴリ") || header.contains("小項目")
+    }
+
+    private func matchesIncludeInCalculation(_ header: String) -> Bool {
+        let lowercased = header.lowercased()
+        return lowercased.contains("include") || header.contains("計算") || header.contains("集計")
+    }
+
+    private func matchesTransfer(_ header: String) -> Bool {
+        let lowercased = header.lowercased()
+        return lowercased.contains("transfer") || header.contains("振替")
     }
 }
 
