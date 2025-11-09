@@ -83,7 +83,7 @@ internal struct DashboardView: View {
             }
         }
         .padding()
-        .background(Color.gray.opacity(0.1))
+        .background(Color.backgroundTertiary)
         .cornerRadius(8)
     }
 

@@ -13,19 +13,19 @@ internal struct AnnualBudgetCard: View {
                     summaryItem(
                         title: "総額",
                         amount: usage.totalAmount,
-                        color: .blue,
+                        color: .info,
                     )
 
                     summaryItem(
                         title: "使用済み",
                         amount: usage.usedAmount,
-                        color: .orange,
+                        color: .expense,
                     )
 
                     summaryItem(
                         title: "残額",
                         amount: usage.remainingAmount,
-                        color: .green,
+                        color: .success,
                     )
                 }
 
@@ -46,7 +46,7 @@ internal struct AnnualBudgetCard: View {
 
                     ProgressBar(
                         progress: usage.usageRate,
-                        style: usage.usageRate >= 0.9 ? .danger : .custom(.blue),
+                        style: usage.usageRate >= 0.9 ? .danger : .custom(.info),
                         showLabel: false,
                     )
                 }

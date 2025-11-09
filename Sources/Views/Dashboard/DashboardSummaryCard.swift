@@ -49,17 +49,17 @@ internal struct DashboardSummaryCard: View {
             SummaryMetric(
                 title: "収入",
                 amount: displayMode == .monthly ? monthlySummary.totalIncome : annualSummary.totalIncome,
-                color: .blue,
+                color: .income,
             ),
             SummaryMetric(
                 title: "支出",
                 amount: displayMode == .monthly ? monthlySummary.totalExpense : annualSummary.totalExpense,
-                color: .red,
+                color: .expense,
             ),
             SummaryMetric(
                 title: "差引",
                 amount: displayMode == .monthly ? monthlySummary.net : annualSummary.net,
-                color: (displayMode == .monthly ? monthlySummary.net : annualSummary.net) >= 0 ? .green : .orange,
+                color: (displayMode == .monthly ? monthlySummary.net : annualSummary.net) >= 0 ? .positive : .negative,
             ),
         ]
 
@@ -68,7 +68,7 @@ internal struct DashboardSummaryCard: View {
                 SummaryMetric(
                     title: "取引件数",
                     text: "\(annualSummary.transactionCount)件",
-                    color: .gray,
+                    color: .neutral,
                 ),
             )
         }
@@ -157,7 +157,7 @@ private struct BudgetProgressView: View {
 
             ProgressBar(
                 progress: calculation.usageRate,
-                style: calculation.isOverBudget ? .danger : .custom(.blue),
+                style: calculation.isOverBudget ? .danger : .custom(.info),
                 showLabel: false,
             )
 
@@ -178,14 +178,14 @@ private struct BudgetProgressView: View {
                         .foregroundColor(.secondary)
                     Text(abs(calculation.remainingAmount).currencyFormatted)
                         .fontWeight(.semibold)
-                        .foregroundColor(calculation.isOverBudget ? .red : .green)
+                        .foregroundColor(calculation.isOverBudget ? .error : .success)
                 }
             }
 
             Text("使用率 \(usagePercentage)")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(calculation.isOverBudget ? .red : .primary)
+                .foregroundColor(calculation.isOverBudget ? .error : .primary)
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
     }

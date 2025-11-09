@@ -39,7 +39,7 @@ internal struct CategoryHighlightTable: View {
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 8)
-                    .background(Color.gray.opacity(0.1))
+                    .background(Color.backgroundTertiary)
 
                     Divider()
 
@@ -62,12 +62,12 @@ internal struct CategoryHighlightTable: View {
 
             Text(category.totalExpense.currencyFormatted)
                 .font(.body)
-                .foregroundColor(.red)
+                .foregroundColor(.expense)
                 .frame(width: 120, alignment: .trailing)
 
             Text(category.totalIncome.currencyFormatted)
                 .font(.body)
-                .foregroundColor(.blue)
+                .foregroundColor(.income)
                 .frame(width: 120, alignment: .trailing)
 
             Text("\(category.transactionCount)")

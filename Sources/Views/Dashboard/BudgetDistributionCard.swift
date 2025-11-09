@@ -52,12 +52,12 @@ internal struct BudgetDistributionCard: View {
                     }
                     TableColumn("残額") { row in
                         Text(row.calculation.remainingAmount.currencyFormatted)
-                            .foregroundColor(row.calculation.isOverBudget ? .red : .green)
+                            .foregroundColor(row.calculation.isOverBudget ? .error : .success)
                             .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                     TableColumn("使用率") { row in
                         Text(String(format: "%.0f%%", row.calculation.usageRate * 100))
-                            .foregroundColor(row.calculation.isOverBudget ? .red : .primary)
+                            .foregroundColor(row.calculation.isOverBudget ? .error : .primary)
                             .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                 }
