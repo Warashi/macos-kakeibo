@@ -199,7 +199,7 @@ internal struct AnnualBudgetAllocatorTests {
             policy: AnnualBudgetPolicy.manual,
             allocations: [
                 (category, AnnualBudgetPolicy.fullCoverage),
-            ]
+            ],
         )
 
         let params = AllocationCalculationParams(
@@ -237,7 +237,7 @@ internal struct AnnualBudgetAllocatorTests {
         let config = makeConfig(
             allocations: [
                 (category, AnnualBudgetPolicy.fullCoverage),
-            ]
+            ],
         )
 
         let params = AllocationCalculationParams(
@@ -275,7 +275,7 @@ internal struct AnnualBudgetAllocatorTests {
         let config = makeConfig(
             allocations: [
                 (major, AnnualBudgetPolicy.fullCoverage),
-            ]
+            ],
         )
 
         let params = AllocationCalculationParams(
@@ -309,7 +309,7 @@ internal struct AnnualBudgetAllocatorTests {
         let config = makeConfig(
             allocations: [
                 (major, AnnualBudgetPolicy.fullCoverage),
-            ]
+            ],
         )
 
         let params = AllocationCalculationParams(
@@ -377,19 +377,19 @@ internal struct AnnualBudgetAllocatorTests {
     private func createTransaction(
         amount: Decimal,
         category: Kakeibo.Category,
-        minorCategory: Kakeibo.Category? = nil
+        minorCategory: Kakeibo.Category? = nil,
     ) -> Transaction {
         createTransaction(
             amount: amount,
             majorCategory: category,
-            minorCategory: minorCategory
+            minorCategory: minorCategory,
         )
     }
 
     private func createTransaction(
         amount: Decimal,
         majorCategory: Kakeibo.Category?,
-        minorCategory: Kakeibo.Category? = nil
+        minorCategory: Kakeibo.Category? = nil,
     ) -> Transaction {
         Transaction(
             date: Date.from(year: 2025, month: 11) ?? Date(),

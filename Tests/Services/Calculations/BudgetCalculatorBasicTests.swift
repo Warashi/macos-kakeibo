@@ -221,7 +221,7 @@ internal struct BudgetCalculatorBasicTests {
 
     private func createTransaction(
         amount: Decimal,
-        category: Kakeibo.Category
+        category: Kakeibo.Category,
     ) -> Transaction {
         createTransaction(amount: amount, majorCategory: category)
     }
@@ -229,7 +229,7 @@ internal struct BudgetCalculatorBasicTests {
     private func createTransaction(
         amount: Decimal,
         majorCategory: Kakeibo.Category?,
-        minorCategory: Kakeibo.Category? = nil
+        minorCategory: Kakeibo.Category? = nil,
     ) -> Transaction {
         Transaction(
             date: Date.from(year: 2025, month: 11) ?? Date(),

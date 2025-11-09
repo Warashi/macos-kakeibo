@@ -111,7 +111,7 @@ internal final class BudgetStore {
     internal var monthlyBudgetCalculation: MonthlyBudgetCalculation {
         let config = annualBudgetConfig
         let excludedCategoryIds = config?.fullCoverageCategoryIDs(
-            includingChildrenFrom: allCategories
+            includingChildrenFrom: allCategories,
         ) ?? []
         return budgetCalculator.calculateMonthlyBudget(
             transactions: allTransactions,

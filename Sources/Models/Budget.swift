@@ -17,7 +17,7 @@ internal enum AnnualBudgetPolicy: String, Codable, CaseIterable {
 
 internal extension AnnualBudgetConfig {
     func fullCoverageCategoryIDs(
-        includingChildrenFrom categories: [Category] = []
+        includingChildrenFrom categories: [Category] = [],
     ) -> Set<UUID> {
         guard !allocations.isEmpty else { return [] }
 

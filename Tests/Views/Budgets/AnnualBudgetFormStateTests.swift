@@ -49,7 +49,7 @@ internal struct AnnualBudgetFormStateTests {
         let drafts = try #require(state.makeAllocationDrafts())
         #expect(drafts.count == 1)
         #expect(drafts.first?.categoryId == categoryId)
-        #expect(drafts.first?.amount == 50_000)
+        #expect(drafts.first?.amount == 50000)
     }
 
     @Test("カテゴリ合計が総額と一致すれば確定できる")
@@ -77,8 +77,8 @@ internal struct AnnualBudgetFormStateTests {
         }
 
         let amounts = Dictionary(uniqueKeysWithValues: drafts.map { ($0.categoryId, $0.amount) })
-        #expect(amounts[category1] == 30_000)
-        #expect(amounts[category2] == 70_000)
+        #expect(amounts[category1] == 30000)
+        #expect(amounts[category2] == 70000)
     }
 
     @Test("カテゴリ合計が総額と一致しない場合はエラー")
@@ -97,7 +97,7 @@ internal struct AnnualBudgetFormStateTests {
             ),
         ]
 
-        let result = state.finalizeAllocations(totalAmount: 80_000)
+        let result = state.finalizeAllocations(totalAmount: 80000)
         if case let .failure(error) = result {
             #expect(error == .manualDoesNotMatchTotal)
         } else {

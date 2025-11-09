@@ -223,7 +223,6 @@ internal struct AnnualBudgetAllocationRowState: Identifiable {
         Decimal(string: normalizedAmountText, locale: Locale(identifier: "ja_JP"))
             ?? Decimal(string: normalizedAmountText)
     }
-
 }
 
 // MARK: - Budget Editor Mode
