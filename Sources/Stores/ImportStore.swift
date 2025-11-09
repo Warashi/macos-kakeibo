@@ -51,7 +51,7 @@ internal final class ImportStore {
                 let data = try Data(contentsOf: url)
                 return try parser.parse(
                     data: data,
-                    configuration: configuration
+                    configuration: configuration,
                 )
             }
             applyDocument(document, fileName: url.lastPathComponent)
