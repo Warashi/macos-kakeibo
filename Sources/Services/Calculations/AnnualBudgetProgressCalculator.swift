@@ -54,6 +54,7 @@ internal struct AnnualBudgetProgressCalculator {
         transactions: [Transaction],
         year: Int,
         filter: AggregationFilter = .default,
+        excludedCategoryIds: Set<UUID> = [],
     ) -> AnnualBudgetProgressResult {
         let annualBudgets = budgets.filter { $0.overlaps(year: year) }
         guard !annualBudgets.isEmpty else {
@@ -80,7 +81,8 @@ internal struct AnnualBudgetProgressCalculator {
         let overallEntry = makeOverallEntry(
             year: year,
             budgets: annualBudgets,
-            totalExpense: annualSummary.totalExpense,
+            annualSummary: annualSummary,
+            excludedCategoryIds: excludedCategoryIds,
         )
 
         let categoryEntries = makeCategoryEntries(
@@ -115,7 +117,8 @@ internal struct AnnualBudgetProgressCalculator {
     private func makeOverallEntry(
         year: Int,
         budgets: [Budget],
-        totalExpense: Decimal,
+        annualSummary: AnnualSummary,
+        excludedCategoryIds: Set<UUID>,
     ) -> AnnualBudgetEntry? {
         let items = budgets.filter { $0.category == nil }
         guard let budget = items.first else { return nil }
@@ -124,9 +127,21 @@ internal struct AnnualBudgetProgressCalculator {
             partial + budget.annualBudgetAmount(for: year)
         }
 
+        // 除外カテゴリの支出を計算
+        let excludedExpense = annualSummary.categorySummaries.reduce(Decimal.zero) { partial, summary in
+            guard let categoryId = summary.categoryId,
+                  excludedCategoryIds.contains(categoryId) else {
+                return partial
+            }
+            return partial + summary.totalExpense
+        }
+
+        // 全体支出から除外カテゴリの支出を引く
+        let adjustedTotalExpense = annualSummary.totalExpense - excludedExpense
+
         let calculation = budgetCalculator.calculate(
             budgetAmount: totalAmount,
-            actualAmount: totalExpense,
+            actualAmount: adjustedTotalExpense,
         )
 
         return AnnualBudgetEntry(

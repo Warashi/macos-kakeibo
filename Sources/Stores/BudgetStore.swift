@@ -201,11 +201,16 @@ internal final class BudgetStore {
     }
 
     private var annualBudgetProgressResult: AnnualBudgetProgressResult {
-        annualBudgetProgressCalculator.calculate(
+        let config = annualBudgetConfig
+        let excludedCategoryIds = config?.fullCoverageCategoryIDs(
+            includingChildrenFrom: allCategories,
+        ) ?? []
+        return annualBudgetProgressCalculator.calculate(
             budgets: allBudgets,
             transactions: allTransactions,
             year: currentYear,
             filter: .default,
+            excludedCategoryIds: excludedCategoryIds,
         )
     }
 

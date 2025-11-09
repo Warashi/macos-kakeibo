@@ -263,4 +263,141 @@ internal struct AnnualBudgetProgressCalculatorTests {
             transportCategory: transportCategory,
         )
     }
+
+    @Test("全体予算の計算で除外カテゴリの支出が含まれない")
+    internal func overallBudget_excludesExcludedCategoryExpense() throws {
+        // Given: カテゴリと予算を作成
+        let foodCategory = Category(name: "食費", displayOrder: 1)
+        let transportCategory = Category(name: "交通費", displayOrder: 2)
+
+        // 全体予算: 600,000円/年（50,000円/月 × 12ヶ月）
+        let overallBudget = Budget(
+            amount: 50000,
+            category: nil,
+            startYear: 2025,
+            startMonth: 1,
+            endYear: 2025,
+            endMonth: 12,
+        )
+
+        // カテゴリ別予算
+        let foodBudget = Budget(
+            amount: 30000,
+            category: foodCategory,
+            startYear: 2025,
+            startMonth: 1,
+            endYear: 2025,
+            endMonth: 12,
+        )
+
+        // 取引データを作成
+        let transactions: [Transaction] = [
+            // 食費: 10,000円
+            Transaction(
+                date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
+                title: "食材",
+                amount: -10000,
+                majorCategory: foodCategory,
+            ),
+            // 交通費: 5,000円
+            Transaction(
+                date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
+                title: "電車",
+                amount: -5000,
+                majorCategory: transportCategory,
+            ),
+        ]
+
+        // When: 食費カテゴリを除外して年次予算進捗を計算
+        let excludedCategoryIds: Set<UUID> = [foodCategory.id]
+        let result = calculator.calculate(
+            budgets: [overallBudget, foodBudget],
+            transactions: transactions,
+            year: 2025,
+            excludedCategoryIds: excludedCategoryIds,
+        )
+
+        // Then: 全体予算の実績が交通費のみ（5,000円）になっていることを確認
+        #expect(result.overallEntry != nil, "全体予算エントリが存在する")
+
+        if let overallEntry = result.overallEntry {
+            // 食費(10,000円)は除外され、交通費(5,000円)のみが実績に含まれる
+            let expectedActual: Decimal = 5000
+            #expect(
+                overallEntry.calculation.actualAmount == expectedActual,
+                "全体予算の実績が除外カテゴリ以外の支出のみになっている（\(expectedActual)円）。実際: \(overallEntry.calculation.actualAmount)円",
+            )
+
+            // 予算額: 50,000 × 12 = 600,000円
+            let expectedBudget: Decimal = 600_000
+            #expect(
+                overallEntry.calculation.budgetAmount == expectedBudget,
+                "全体予算額が正しい（\(expectedBudget)円）",
+            )
+        }
+    }
+
+    @Test("除外カテゴリが複数ある場合も正しく計算される")
+    internal func overallBudget_excludesMultipleCategories() throws {
+        // Given: 複数のカテゴリと予算を作成
+        let foodCategory = Category(name: "食費", displayOrder: 1)
+        let transportCategory = Category(name: "交通費", displayOrder: 2)
+        let entertainmentCategory = Category(name: "娯楽費", displayOrder: 3)
+
+        // 全体予算: 600,000円/年
+        let overallBudget = Budget(
+            amount: 50000,
+            category: nil,
+            startYear: 2025,
+            startMonth: 1,
+            endYear: 2025,
+            endMonth: 12,
+        )
+
+        // 取引データを作成
+        let transactions: [Transaction] = [
+            // 食費: 10,000円
+            Transaction(
+                date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
+                title: "食材",
+                amount: -10000,
+                majorCategory: foodCategory,
+            ),
+            // 交通費: 5,000円
+            Transaction(
+                date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
+                title: "電車",
+                amount: -5000,
+                majorCategory: transportCategory,
+            ),
+            // 娯楽費: 8,000円
+            Transaction(
+                date: Date.from(year: 2025, month: 1, day: 25) ?? Date(),
+                title: "映画",
+                amount: -8000,
+                majorCategory: entertainmentCategory,
+            ),
+        ]
+
+        // When: 食費と娯楽費を除外して年次予算進捗を計算
+        let excludedCategoryIds: Set<UUID> = [foodCategory.id, entertainmentCategory.id]
+        let result = calculator.calculate(
+            budgets: [overallBudget],
+            transactions: transactions,
+            year: 2025,
+            excludedCategoryIds: excludedCategoryIds,
+        )
+
+        // Then: 全体予算の実績が交通費のみ（5,000円）になっていることを確認
+        #expect(result.overallEntry != nil, "全体予算エントリが存在する")
+
+        if let overallEntry = result.overallEntry {
+            // 食費(10,000円)と娯楽費(8,000円)は除外され、交通費(5,000円)のみが実績に含まれる
+            let expectedActual: Decimal = 5000
+            #expect(
+                overallEntry.calculation.actualAmount == expectedActual,
+                "全体予算の実績が除外カテゴリ以外の支出のみになっている（\(expectedActual)円）。実際: \(overallEntry.calculation.actualAmount)円",
+            )
+        }
+    }
 }
