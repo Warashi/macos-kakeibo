@@ -95,6 +95,14 @@ internal final class TransactionStore {
         }
     }
 
+    /// 取引作成・更新時のデータ
+    internal struct TransactionData {
+        internal let amount: Decimal
+        internal let institution: FinancialInstitution?
+        internal let majorCategory: Category?
+        internal let minorCategory: Category?
+    }
+
     // MARK: - Properties
 
     private let modelContext: ModelContext
@@ -317,21 +325,17 @@ internal final class TransactionStore {
         let majorCategory = lookupCategory(id: formState.majorCategoryId)
         let minorCategory = lookupCategory(id: formState.minorCategoryId)
 
+        let data = TransactionData(
+            amount: signedAmount,
+            institution: institution,
+            majorCategory: majorCategory,
+            minorCategory: minorCategory,
+        )
+
         if let editingTransaction {
-            update(
-                transaction: editingTransaction,
-                with: signedAmount,
-                institution: institution,
-                majorCategory: majorCategory,
-                minorCategory: minorCategory,
-            )
+            update(transaction: editingTransaction, data: data)
         } else {
-            createTransaction(
-                amount: signedAmount,
-                institution: institution,
-                majorCategory: majorCategory,
-                minorCategory: minorCategory,
-            )
+            createTransaction(data: data)
         }
 
         do {
@@ -541,41 +545,30 @@ internal final class TransactionStore {
         return availableCategories.first { $0.id == id }
     }
 
-    private func update(
-        transaction: Transaction,
-        with amount: Decimal,
-        institution: FinancialInstitution?,
-        majorCategory: Category?,
-        minorCategory: Category?,
-    ) {
+    private func update(transaction: Transaction, data: TransactionData) {
         transaction.title = formState.title
         transaction.memo = formState.memo
         transaction.date = formState.date
-        transaction.amount = amount
+        transaction.amount = data.amount
         transaction.isIncludedInCalculation = formState.isIncludedInCalculation
         transaction.isTransfer = formState.isTransfer
-        transaction.financialInstitution = institution
-        transaction.majorCategory = majorCategory
-        transaction.minorCategory = minorCategory
+        transaction.financialInstitution = data.institution
+        transaction.majorCategory = data.majorCategory
+        transaction.minorCategory = data.minorCategory
         transaction.updatedAt = Date()
     }
 
-    private func createTransaction(
-        amount: Decimal,
-        institution: FinancialInstitution?,
-        majorCategory: Category?,
-        minorCategory: Category?,
-    ) {
+    private func createTransaction(data: TransactionData) {
         let transaction = Transaction(
             date: formState.date,
             title: formState.title,
-            amount: amount,
+            amount: data.amount,
             memo: formState.memo,
             isIncludedInCalculation: formState.isIncludedInCalculation,
             isTransfer: formState.isTransfer,
-            financialInstitution: institution,
-            majorCategory: majorCategory,
-            minorCategory: minorCategory,
+            financialInstitution: data.institution,
+            majorCategory: data.majorCategory,
+            minorCategory: data.minorCategory,
         )
         modelContext.insert(transaction)
     }
