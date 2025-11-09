@@ -27,7 +27,7 @@ internal struct SpecialPaymentListContentView: View {
     @Bindable internal var store: SpecialPaymentListStore
     @Query private var allCategories: [Category]
     @State private var csvDocument: DataFileDocument?
-    @State private var isExportingCSV = false
+    @State private var isExportingCSV: Bool = false
     @State private var exportError: String?
 
     internal var body: some View {
