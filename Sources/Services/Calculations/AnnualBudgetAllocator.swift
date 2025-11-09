@@ -343,6 +343,7 @@ internal struct AnnualBudgetAllocator: Sendable {
         let expenseMaps = makeActualExpenseMaps(from: filteredTransactions)
         let actualExpenseMap = expenseMaps.categoryExpenses
         let childExpenseMap = expenseMaps.childExpenseByParent
+        let childFallbackMap = buildChildFallbackMap(from: filteredTransactions)
         let monthlyBudgets = params.budgets.filter { $0.contains(year: year, month: month) }
         let allocationAmounts = allocationAmountMap(from: params.annualBudgetConfig)
         let policyContext = PolicyContext(
@@ -365,6 +366,7 @@ internal struct AnnualBudgetAllocator: Sendable {
                 actualExpenseMap: actualExpenseMap,
                 childExpenseMap: childExpenseMap,
                 policyContext: policyContext,
+                childFallbackMap: childFallbackMap,
                 processedCategoryIds: &processedCategoryIds,
             ),
         )
@@ -375,6 +377,7 @@ internal struct AnnualBudgetAllocator: Sendable {
                 actualExpenseMap: actualExpenseMap,
                 childExpenseMap: childExpenseMap,
                 policyContext: policyContext,
+                childFallbackMap: childFallbackMap,
                 processedCategoryIds: &processedCategoryIds,
             ),
         )
@@ -385,6 +388,7 @@ internal struct AnnualBudgetAllocator: Sendable {
                 actualExpenseMap: actualExpenseMap,
                 childExpenseMap: childExpenseMap,
                 policyContext: policyContext,
+                childFallbackMap: childFallbackMap,
                 processedCategoryIds: &processedCategoryIds,
             ),
         )
@@ -404,6 +408,7 @@ internal struct AnnualBudgetAllocator: Sendable {
         actualExpenseMap: [UUID: Decimal],
         childExpenseMap: [UUID: Decimal],
         policyContext: PolicyContext,
+        childFallbackMap: [UUID: Set<UUID>],
         processedCategoryIds: inout Set<UUID>,
     ) -> [CategoryAllocation] {
         var allocations: [CategoryAllocation] = []
@@ -422,6 +427,7 @@ internal struct AnnualBudgetAllocator: Sendable {
                 for: category,
                 from: actualExpenseMap,
                 childExpenseMap: childExpenseMap,
+                childFallbackMap: childFallbackMap,
                 allocatedCategoryIds: policyContext.allocatedCategoryIds,
             )
 
@@ -455,6 +461,7 @@ internal struct AnnualBudgetAllocator: Sendable {
         actualExpenseMap: [UUID: Decimal],
         childExpenseMap: [UUID: Decimal],
         policyContext: PolicyContext,
+        childFallbackMap: [UUID: Set<UUID>],
         processedCategoryIds: inout Set<UUID>,
     ) -> [CategoryAllocation] {
         var allocations: [CategoryAllocation] = []
@@ -471,6 +478,7 @@ internal struct AnnualBudgetAllocator: Sendable {
                 for: category,
                 from: actualExpenseMap,
                 childExpenseMap: childExpenseMap,
+                childFallbackMap: childFallbackMap,
                 allocatedCategoryIds: policyContext.allocatedCategoryIds,
             )
             guard actualAmount > 0 else { continue }
@@ -505,6 +513,7 @@ internal struct AnnualBudgetAllocator: Sendable {
         actualExpenseMap: [UUID: Decimal],
         childExpenseMap: [UUID: Decimal],
         policyContext: PolicyContext,
+        childFallbackMap: [UUID: Set<UUID>],
         processedCategoryIds: inout Set<UUID>,
     ) -> [CategoryAllocation] {
         let fullCoverageAllocations = config.allocations
@@ -522,6 +531,7 @@ internal struct AnnualBudgetAllocator: Sendable {
                 for: category,
                 from: actualExpenseMap,
                 childExpenseMap: childExpenseMap,
+                childFallbackMap: childFallbackMap,
                 allocatedCategoryIds: policyContext.allocatedCategoryIds,
             )
             guard actualAmount > 0 else { continue }
@@ -555,12 +565,19 @@ internal struct AnnualBudgetAllocator: Sendable {
         for category: Category,
         from actualExpenseMap: [UUID: Decimal],
         childExpenseMap: [UUID: Decimal],
+        childFallbackMap: [UUID: Set<UUID>],
         allocatedCategoryIds: Set<UUID>,
     ) -> Decimal {
         let categoryId = category.id
         if category.isMajor {
             // 大項目の場合：子カテゴリのうち年次枠配分がないものだけを合算
-            let childCategoryIds = Set(category.children.map(\.id))
+            let childCategoryIds: Set<UUID>
+            if category.children.isEmpty,
+               let fallbackChildren = childFallbackMap[categoryId] {
+                childCategoryIds = fallbackChildren
+            } else {
+                childCategoryIds = Set(category.children.map(\.id))
+            }
             var total = actualExpenseMap[categoryId] ?? 0
 
             for childId in childCategoryIds where !allocatedCategoryIds.contains(childId) {
@@ -700,4 +717,14 @@ private func makeActualExpenseMaps(from transactions: [Transaction]) -> ActualEx
         categoryExpenses: categoryExpenses,
         childExpenseByParent: childExpenseByParent,
     )
+}
+
+private func buildChildFallbackMap(from transactions: [Transaction]) -> [UUID: Set<UUID>] {
+    transactions.reduce(into: [:]) { partialResult, transaction in
+        guard let minorId = transaction.minorCategory?.id else { return }
+        guard let parentId = transaction.majorCategory?.id ?? transaction.minorCategory?.parent?.id else {
+            return
+        }
+        partialResult[parentId, default: []].insert(minorId)
+    }
 }
