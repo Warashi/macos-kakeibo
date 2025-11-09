@@ -327,66 +327,99 @@ extension DayOfMonthPattern {
         switch self {
         case let .fixed(day):
             return calendar.date(from: DateComponents(year: year, month: month, day: day))
-
         case .endOfMonth:
-            guard let firstDay = calendar.date(from: DateComponents(year: year, month: month, day: 1)),
-                  let nextMonth = calendar.date(byAdding: .month, value: 1, to: firstDay),
-                  let lastDay = calendar.date(byAdding: .day, value: -1, to: nextMonth) else {
-                return nil
-            }
-            return lastDay
-
+            return endOfMonthDate(year: year, month: month, calendar: calendar)
         case let .endOfMonthMinus(days):
-            guard let endDate = DayOfMonthPattern.endOfMonth.date(
-                in: year,
+            return endOfMonthMinusDate(
+                year: year,
                 month: month,
+                days: days,
                 calendar: calendar,
                 businessDayService: businessDayService,
-            ) else {
-                return nil
-            }
-            return calendar.date(byAdding: .day, value: -days, to: endDate)
-
+            )
         case let .nthWeekday(week, weekday):
-            var components = DateComponents()
-            components.year = year
-            components.month = month
-            components.weekday = weekday.rawValue
-            components.weekdayOrdinal = week
-
-            return calendar.date(from: components)
-
+            return nthWeekdayDate(
+                year: year,
+                month: month,
+                week: week,
+                weekday: weekday,
+                calendar: calendar,
+            )
         case let .lastWeekday(weekday):
-            guard let firstDay = calendar.date(from: DateComponents(year: year, month: month, day: 1)),
-                  let nextMonth = calendar.date(byAdding: .month, value: 1, to: firstDay) else {
-                return nil
-            }
+            return lastWeekdayDate(year: year, month: month, weekday: weekday, calendar: calendar)
+        case .firstBusinessDay, .lastBusinessDay, .nthBusinessDay, .lastBusinessDayMinus:
+            return businessDayDate(year: year, month: month, businessDayService: businessDayService)
+        }
+    }
 
-            var current = nextMonth
-            for _ in 0 ..< 7 {
-                guard let previous = calendar.date(byAdding: .day, value: -1, to: current) else {
-                    return nil
-                }
-                current = previous
-
-                if calendar.component(.weekday, from: current) == weekday.rawValue {
-                    return current
-                }
-            }
-            return nil
-
-        // 営業日ベース
+    private func businessDayDate(year: Int, month: Int, businessDayService: BusinessDayService) -> Date? {
+        switch self {
         case .firstBusinessDay:
             return businessDayService.firstBusinessDay(of: year, month: month)
-
         case .lastBusinessDay:
             return businessDayService.lastBusinessDay(of: year, month: month)
-
         case let .nthBusinessDay(nth):
             return businessDayService.nthBusinessDay(nth, of: year, month: month)
-
         case let .lastBusinessDayMinus(days):
             return businessDayService.lastBusinessDayMinus(days: days, of: year, month: month)
+        default:
+            return nil
         }
+    }
+
+    private func endOfMonthDate(year: Int, month: Int, calendar: Calendar) -> Date? {
+        guard let firstDay = calendar.date(from: DateComponents(year: year, month: month, day: 1)),
+              let nextMonth = calendar.date(byAdding: .month, value: 1, to: firstDay),
+              let lastDay = calendar.date(byAdding: .day, value: -1, to: nextMonth) else {
+            return nil
+        }
+        return lastDay
+    }
+
+    private func endOfMonthMinusDate(
+        year: Int,
+        month: Int,
+        days: Int,
+        calendar: Calendar,
+        businessDayService: BusinessDayService,
+    ) -> Date? {
+        guard let endDate = DayOfMonthPattern.endOfMonth.date(
+            in: year,
+            month: month,
+            calendar: calendar,
+            businessDayService: businessDayService,
+        ) else {
+            return nil
+        }
+        return calendar.date(byAdding: .day, value: -days, to: endDate)
+    }
+
+    private func nthWeekdayDate(year: Int, month: Int, week: Int, weekday: Weekday, calendar: Calendar) -> Date? {
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.weekday = weekday.rawValue
+        components.weekdayOrdinal = week
+        return calendar.date(from: components)
+    }
+
+    private func lastWeekdayDate(year: Int, month: Int, weekday: Weekday, calendar: Calendar) -> Date? {
+        guard let firstDay = calendar.date(from: DateComponents(year: year, month: month, day: 1)),
+              let nextMonth = calendar.date(byAdding: .month, value: 1, to: firstDay) else {
+            return nil
+        }
+
+        var current = nextMonth
+        for _ in 0 ..< 7 {
+            guard let previous = calendar.date(byAdding: .day, value: -1, to: current) else {
+                return nil
+            }
+            current = previous
+
+            if calendar.component(.weekday, from: current) == weekday.rawValue {
+                return current
+            }
+        }
+        return nil
     }
 }
