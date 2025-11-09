@@ -30,7 +30,7 @@ internal enum Weekday: Int, Codable, CaseIterable {
     case saturday = 7
 }
 
-internal enum DayOfMonthPattern: Codable, Equatable {
+internal enum DayOfMonthPattern: Codable, Equatable, Hashable {
     // カレンダー日ベース
     case fixed(Int) // 固定日（例：15日）
     case endOfMonth // 月末
@@ -318,7 +318,7 @@ internal extension SpecialPaymentOccurrence {
 
 extension DayOfMonthPattern {
     /// 指定された年月でこのパターンに該当する日付を計算
-    internal func date(
+    func date(
         in year: Int,
         month: Int,
         calendar: Calendar,
