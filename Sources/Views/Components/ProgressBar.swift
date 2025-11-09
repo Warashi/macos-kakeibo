@@ -15,11 +15,11 @@ public enum ProgressBarStyle {
     internal var color: Color {
         switch self {
         case .standard:
-            Color.green
+            Color.budgetHealthy
         case .warning:
-            Color.orange
+            Color.budgetWarning
         case .danger:
-            Color.red
+            Color.budgetDanger
         case let .custom(color):
             color
         }
@@ -87,7 +87,7 @@ public struct ProgressBar: View {
                 ZStack(alignment: .leading) {
                     // 背景
                     Rectangle()
-                        .fill(Color.gray.opacity(0.2))
+                        .fill(Color.badgeBackgroundDefault)
                         .frame(height: height)
                         .cornerRadius(height / 2)
 

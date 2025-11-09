@@ -15,12 +15,12 @@ public struct CardStyle: ViewModifier {
 
     /// CardStyleを初期化します
     /// - Parameters:
-    ///   - backgroundColor: カードの背景色（デフォルト: .white）
+    ///   - backgroundColor: カードの背景色（デフォルト: .backgroundPrimary）
     ///   - cornerRadius: カードのコーナー半径（デフォルト: 12）
     ///   - shadowRadius: カードの影の半径（デフォルト: 4）
     ///   - padding: カードのパディング（デフォルト: 16）
     public init(
-        backgroundColor: Color = .white,
+        backgroundColor: Color = .backgroundPrimary,
         cornerRadius: CGFloat = 12,
         shadowRadius: CGFloat = 4,
         padding: EdgeInsets = EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16),
@@ -36,7 +36,7 @@ public struct CardStyle: ViewModifier {
             .padding(padding)
             .background(backgroundColor)
             .cornerRadius(cornerRadius)
-            .shadow(color: .black.opacity(0.1), radius: shadowRadius, x: 0, y: 2)
+            .shadow(color: .shadowDefault, radius: shadowRadius, x: 0, y: 2)
     }
 }
 
@@ -44,13 +44,13 @@ public struct CardStyle: ViewModifier {
 public extension View {
     /// カードスタイルを適用します
     /// - Parameters:
-    ///   - backgroundColor: カードの背景色（デフォルト: .white）
+    ///   - backgroundColor: カードの背景色（デフォルト: .backgroundPrimary）
     ///   - cornerRadius: カードのコーナー半径（デフォルト: 12）
     ///   - shadowRadius: カードの影の半径（デフォルト: 4）
     ///   - padding: カードのパディング（デフォルト: 16）
     /// - Returns: カードスタイルが適用されたビュー
     func cardStyle(
-        backgroundColor: Color = .white,
+        backgroundColor: Color = .backgroundPrimary,
         cornerRadius: CGFloat = 12,
         shadowRadius: CGFloat = 4,
         padding: EdgeInsets = EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16),

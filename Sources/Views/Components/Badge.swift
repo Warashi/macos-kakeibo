@@ -21,13 +21,13 @@ public enum BadgeStyle {
         case .default:
             Color.secondary
         case .primary:
-            Color.blue
+            Color.info
         case .success:
-            Color.green
+            Color.success
         case .warning:
-            Color.orange
+            Color.warning
         case .error:
-            Color.red
+            Color.error
         case let .custom(foreground, _):
             foreground
         }
@@ -37,15 +37,15 @@ public enum BadgeStyle {
     internal var backgroundColor: Color {
         switch self {
         case .default:
-            Color.gray.opacity(0.2)
+            Color.badgeBackgroundDefault
         case .primary:
-            Color.blue.opacity(0.2)
+            Color.badgeBackgroundPrimary
         case .success:
-            Color.green.opacity(0.2)
+            Color.badgeBackgroundSuccess
         case .warning:
-            Color.orange.opacity(0.2)
+            Color.badgeBackgroundWarning
         case .error:
-            Color.red.opacity(0.2)
+            Color.badgeBackgroundError
         case let .custom(_, background):
             background
         }
