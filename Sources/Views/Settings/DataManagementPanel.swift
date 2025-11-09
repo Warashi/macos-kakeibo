@@ -27,21 +27,13 @@ internal struct DataManagementPanel: View {
             iconName: "externaldrive",
             description: "バックアップやリストア、CSVエクスポートを実行します。",
             content: {
-                VStack(alignment: .leading, spacing: 16) {
-                    statisticsSection
-                    backupInfoSection
-                    if store.isProcessingBackup {
-                        ProgressView("処理中…")
-                    }
-                    if store.isProcessingDeletion {
-                        ProgressView("データを削除しています…")
-                    }
-                    actionButtons
-                    deletionSection
-                    if let status = store.statusMessage {
-                        StatusMessageView(message: status)
-                    }
-                }
+                DataManagementContentView(
+                    store: store,
+                    onCreateBackup: createBackup,
+                    onExportCSV: exportCSV,
+                    onImportBackup: { showBackupImporter = true },
+                    onDeleteAll: { showDeleteConfirmationDialog = true },
+                )
             },
         )
         .fileExporter(
@@ -87,115 +79,6 @@ internal struct DataManagementPanel: View {
                     showDeleteVerificationSheet = false
                 },
             )
-        }
-    }
-
-    // MARK: - Sections
-
-    private var statisticsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("データ件数")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Button {
-                    store.refreshStatistics()
-                } label: {
-                    Label("更新", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.borderless)
-            }
-            VStack(alignment: .leading, spacing: 4) {
-                statRow(label: "取引", value: store.statistics.transactions)
-                statRow(label: "カテゴリ", value: store.statistics.categories)
-                statRow(label: "予算", value: store.statistics.budgets)
-                statRow(label: "年次特別枠", value: store.statistics.annualBudgetConfigs)
-                statRow(label: "金融機関", value: store.statistics.financialInstitutions)
-                Divider()
-                statRow(label: "合計", value: store.statistics.totalRecords, emphasize: true)
-            }
-        }
-    }
-
-    private func statRow(label: String, value: Int, emphasize: Bool = false) -> some View {
-        HStack {
-            Text(label)
-                .font(emphasize ? .headline : .body)
-            Spacer()
-            Text("\(value)")
-                .font(emphasize ? .headline : .body)
-        }
-    }
-
-    private var backupInfoSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("バックアップ情報")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            if let metadata = store.lastBackupMetadata {
-                let counts = metadata.recordCounts
-                let total = counts.transactions + counts.categories + counts.budgets + counts
-                    .annualBudgetConfigs + counts.financialInstitutions
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("最終生成: \(metadata.generatedAt.longDateFormatted)")
-                    Text("対象件数: 取引\(counts.transactions)件 / 合計\(total)件")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-            } else {
-                Text("まだバックアップは作成されていません。")
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private var actionButtons: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Button {
-                    createBackup()
-                } label: {
-                    Label("バックアップを作成", systemImage: "square.and.arrow.down")
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(store.isProcessingBackup)
-
-                Button {
-                    showBackupImporter = true
-                } label: {
-                    Label("バックアップから復元", systemImage: "arrow.triangle.2.circlepath")
-                }
-                .disabled(store.isProcessingBackup)
-            }
-
-            Button {
-                exportCSV()
-            } label: {
-                Label("取引CSVをエクスポート", systemImage: "doc.text")
-            }
-        }
-    }
-
-    private var deletionSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Divider()
-            Label {
-                Text("データ初期化")
-                    .font(.subheadline)
-            } icon: {
-                Image(systemName: "exclamationmark.triangle")
-                    .foregroundStyle(.orange)
-            }
-            Text("アプリケーション内のすべてのデータを削除します。実行前にバックアップを取得してください。")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-            Button(role: .destructive) {
-                showDeleteConfirmationDialog = true
-            } label: {
-                Label("全データを削除", systemImage: "trash")
-            }
-            .disabled(store.isProcessingDeletion || store.statistics.totalRecords == 0)
         }
     }
 
@@ -260,7 +143,7 @@ internal struct DataManagementPanel: View {
     }
 
     private func makeCSVFileName() -> String {
-        let formatter = DateFormatter()
+        let formatter: DateFormatter = DateFormatter()
         formatter.dateFormat = "yyyyMMdd_HHmm"
         formatter.locale = Foundation.Locale(identifier: "en_US_POSIX")
         return "transactions_\(formatter.string(from: Date())).csv"
@@ -274,6 +157,178 @@ internal struct DataManagementPanel: View {
         }
         showDeleteVerificationSheet = false
         deleteVerificationText = ""
+    }
+}
+
+// MARK: - Content View
+
+private struct DataManagementContentView: View {
+    @Bindable internal var store: SettingsStore
+    internal let onCreateBackup: () -> Void
+    internal let onExportCSV: () -> Void
+    internal let onImportBackup: () -> Void
+    internal let onDeleteAll: () -> Void
+
+    internal var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            DataStatisticsSection(store: store)
+            BackupInfoSection(store: store)
+
+            if store.isProcessingBackup {
+                ProgressView("処理中…")
+            }
+            if store.isProcessingDeletion {
+                ProgressView("データを削除しています…")
+            }
+
+            ActionButtonsSection(
+                store: store,
+                onCreateBackup: onCreateBackup,
+                onExportCSV: onExportCSV,
+                onImportBackup: onImportBackup,
+            )
+
+            DeletionSection(store: store, onDeleteAll: onDeleteAll)
+
+            if let status = store.statusMessage {
+                StatusMessageView(message: status)
+            }
+        }
+    }
+}
+
+// MARK: - Statistics Section
+
+private struct DataStatisticsSection: View {
+    @Bindable internal var store: SettingsStore
+
+    internal var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("データ件数")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button {
+                    store.refreshStatistics()
+                } label: {
+                    Label("更新", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.borderless)
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                statRow(label: "取引", value: store.statistics.transactions)
+                statRow(label: "カテゴリ", value: store.statistics.categories)
+                statRow(label: "予算", value: store.statistics.budgets)
+                statRow(label: "年次特別枠", value: store.statistics.annualBudgetConfigs)
+                statRow(label: "金融機関", value: store.statistics.financialInstitutions)
+                Divider()
+                statRow(label: "合計", value: store.statistics.totalRecords, emphasize: true)
+            }
+        }
+    }
+
+    private func statRow(label: String, value: Int, emphasize: Bool = false) -> some View {
+        HStack {
+            Text(label)
+                .font(emphasize ? .headline : .body)
+            Spacer()
+            Text("\(value)")
+                .font(emphasize ? .headline : .body)
+        }
+    }
+}
+
+// MARK: - Backup Info Section
+
+private struct BackupInfoSection: View {
+    @Bindable internal var store: SettingsStore
+
+    internal var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("バックアップ情報")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            if let metadata = store.lastBackupMetadata {
+                let counts = metadata.recordCounts
+                let total: Int = counts.transactions + counts.categories + counts.budgets + counts
+                    .annualBudgetConfigs + counts.financialInstitutions
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("最終生成: \(metadata.generatedAt.longDateFormatted)")
+                    Text("対象件数: 取引\(counts.transactions)件 / 合計\(total)件")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Text("まだバックアップは作成されていません。")
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+// MARK: - Action Buttons Section
+
+private struct ActionButtonsSection: View {
+    @Bindable internal var store: SettingsStore
+    internal let onCreateBackup: () -> Void
+    internal let onExportCSV: () -> Void
+    internal let onImportBackup: () -> Void
+
+    internal var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Button {
+                    onCreateBackup()
+                } label: {
+                    Label("バックアップを作成", systemImage: "square.and.arrow.down")
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(store.isProcessingBackup)
+
+                Button {
+                    onImportBackup()
+                } label: {
+                    Label("バックアップから復元", systemImage: "arrow.triangle.2.circlepath")
+                }
+                .disabled(store.isProcessingBackup)
+            }
+
+            Button {
+                onExportCSV()
+            } label: {
+                Label("取引CSVをエクスポート", systemImage: "doc.text")
+            }
+        }
+    }
+}
+
+// MARK: - Deletion Section
+
+private struct DeletionSection: View {
+    @Bindable internal var store: SettingsStore
+    internal let onDeleteAll: () -> Void
+
+    internal var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Divider()
+            Label {
+                Text("データ初期化")
+                    .font(.subheadline)
+            } icon: {
+                Image(systemName: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+            }
+            Text("アプリケーション内のすべてのデータを削除します。実行前にバックアップを取得してください。")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            Button(role: .destructive) {
+                onDeleteAll()
+            } label: {
+                Label("全データを削除", systemImage: "trash")
+            }
+            .disabled(store.isProcessingDeletion || store.statistics.totalRecords == 0)
+        }
     }
 }
 

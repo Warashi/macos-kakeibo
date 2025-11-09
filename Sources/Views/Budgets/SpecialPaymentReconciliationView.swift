@@ -32,13 +32,13 @@ internal struct SpecialPaymentReconciliationContentView: View {
 
     internal var body: some View {
         VStack(spacing: 16) {
-            header
+            ReconciliationHeaderView(store: store)
             Divider()
             HStack(spacing: 16) {
-                occurrenceList
+                ReconciliationOccurrenceListView(store: store)
                     .frame(width: 320)
                 Divider()
-                detailPanel
+                ReconciliationDetailPanelView(store: store)
             }
         }
         .padding()
@@ -65,9 +65,14 @@ internal struct SpecialPaymentReconciliationContentView: View {
             Text(message)
         }
     }
+}
 
-    @ViewBuilder
-    private var header: some View {
+// MARK: - Header View
+
+private struct ReconciliationHeaderView: View {
+    @Bindable internal var store: SpecialPaymentReconciliationStore
+
+    internal var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("特別支払いと取引の突合")
@@ -105,8 +110,14 @@ internal struct SpecialPaymentReconciliationContentView: View {
             }
         }
     }
+}
 
-    private var occurrenceList: some View {
+// MARK: - Occurrence List View
+
+private struct ReconciliationOccurrenceListView: View {
+    @Bindable internal var store: SpecialPaymentReconciliationStore
+
+    internal var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("特別支払い一覧")
                 .font(.headline)
@@ -132,18 +143,23 @@ internal struct SpecialPaymentReconciliationContentView: View {
             }
         }
     }
+}
 
-    @ViewBuilder
-    private var detailPanel: some View {
+// MARK: - Detail Panel View
+
+private struct ReconciliationDetailPanelView: View {
+    @Bindable internal var store: SpecialPaymentReconciliationStore
+
+    internal var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if let selected = store.selectedRow {
-                detailHeader(for: selected)
+                ReconciliationDetailHeaderView(row: selected)
                 Divider()
-                plannedInfo(for: selected)
+                ReconciliationPlannedInfoView(row: selected)
                 Divider()
-                formSection
+                ReconciliationFormView(store: store)
                 Divider()
-                candidateList
+                ReconciliationCandidateListView(store: store)
                 Spacer()
             } else {
                 ContentUnavailableView {
@@ -155,8 +171,14 @@ internal struct SpecialPaymentReconciliationContentView: View {
             }
         }
     }
+}
 
-    private func detailHeader(for row: SpecialPaymentReconciliationStore.OccurrenceRow) -> some View {
+// MARK: - Detail Header View
+
+private struct ReconciliationDetailHeaderView: View {
+    internal let row: SpecialPaymentReconciliationStore.OccurrenceRow
+
+    internal var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text(row.definitionName)
@@ -168,8 +190,14 @@ internal struct SpecialPaymentReconciliationContentView: View {
                 .foregroundStyle(.secondary)
         }
     }
+}
 
-    private func plannedInfo(for row: SpecialPaymentReconciliationStore.OccurrenceRow) -> some View {
+// MARK: - Planned Info View
+
+private struct ReconciliationPlannedInfoView: View {
+    internal let row: SpecialPaymentReconciliationStore.OccurrenceRow
+
+    internal var body: some View {
         Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 12) {
             gridRow(title: "予定日", value: row.scheduledDate.longDateFormatted)
             gridRow(title: "予定金額", value: row.expectedAmount.currencyFormatted)
@@ -189,8 +217,14 @@ internal struct SpecialPaymentReconciliationContentView: View {
             Text(value)
         }
     }
+}
 
-    private var formSection: some View {
+// MARK: - Form View
+
+private struct ReconciliationFormView: View {
+    @Bindable internal var store: SpecialPaymentReconciliationStore
+
+    internal var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("実績の調整")
                 .font(.headline)
@@ -239,8 +273,14 @@ internal struct SpecialPaymentReconciliationContentView: View {
             }
         }
     }
+}
 
-    private var candidateList: some View {
+// MARK: - Candidate List View
+
+private struct ReconciliationCandidateListView: View {
+    @Bindable internal var store: SpecialPaymentReconciliationStore
+
+    internal var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("候補取引")
                 .font(.headline)
@@ -267,6 +307,8 @@ internal struct SpecialPaymentReconciliationContentView: View {
         }
     }
 }
+
+// MARK: - Occurrence Row View
 
 private struct OccurrenceRowView: View {
     internal let row: SpecialPaymentReconciliationStore.OccurrenceRow

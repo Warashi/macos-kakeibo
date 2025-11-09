@@ -32,8 +32,8 @@ internal struct SpecialPaymentListContentView: View {
 
     internal var body: some View {
         VStack(spacing: 16) {
-            filterToolbar
-            entriesTable
+            SpecialPaymentFilterToolbarView(store: store, allCategories: allCategories)
+            SpecialPaymentEntriesTableView(store: store)
         }
         .padding()
         .navigationTitle("特別支払い一覧")
@@ -75,10 +75,45 @@ internal struct SpecialPaymentListContentView: View {
         )
     }
 
-    // MARK: - Filter Toolbar
+    // MARK: - Export Helpers
 
-    @ViewBuilder
-    private var filterToolbar: some View {
+    private func exportToCSV() {
+        let exporter: CSVExporter = CSVExporter()
+
+        do {
+            let result = try exporter.exportSpecialPaymentListEntries(store.entries)
+            csvDocument = DataFileDocument(data: result.data)
+            isExportingCSV = true
+        } catch {
+            exportError = "CSVエクスポートに失敗しました: \(error.localizedDescription)"
+        }
+    }
+
+    private func defaultCSVFilename() -> String {
+        let formatter: DateFormatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd"
+        let dateString: String = formatter.string(from: Date())
+        return "特別支払い一覧_\(dateString).csv"
+    }
+
+    private func handleExportCompletion(result: Result<URL, Error>) {
+        switch result {
+        case .success:
+            // エクスポート成功
+            break
+        case let .failure(error):
+            exportError = "ファイル保存に失敗しました: \(error.localizedDescription)"
+        }
+    }
+}
+
+// MARK: - Filter Toolbar View
+
+private struct SpecialPaymentFilterToolbarView: View {
+    @Bindable internal var store: SpecialPaymentListStore
+    internal let allCategories: [Category]
+
+    internal var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // 期間選択
             HStack(spacing: 16) {
@@ -178,11 +213,14 @@ internal struct SpecialPaymentListContentView: View {
         .background(Color.gray.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
+}
 
-    // MARK: - Entries Table
+// MARK: - Entries Table View
 
-    @ViewBuilder
-    private var entriesTable: some View {
+private struct SpecialPaymentEntriesTableView: View {
+    @Bindable internal var store: SpecialPaymentListStore
+
+    internal var body: some View {
         if store.entries.isEmpty {
             ContentUnavailableView {
                 Label("特別支払いがありません", systemImage: "tray")
@@ -269,37 +307,6 @@ internal struct SpecialPaymentListContentView: View {
                 }
             }
             .frame(minHeight: 400)
-        }
-    }
-
-    // MARK: - Export Helpers
-
-    private func exportToCSV() {
-        let exporter = CSVExporter()
-
-        do {
-            let result = try exporter.exportSpecialPaymentListEntries(store.entries)
-            csvDocument = DataFileDocument(data: result.data)
-            isExportingCSV = true
-        } catch {
-            exportError = "CSVエクスポートに失敗しました: \(error.localizedDescription)"
-        }
-    }
-
-    private func defaultCSVFilename() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyyMMdd"
-        let dateString = formatter.string(from: Date())
-        return "特別支払い一覧_\(dateString).csv"
-    }
-
-    private func handleExportCompletion(result: Result<URL, Error>) {
-        switch result {
-        case .success:
-            // エクスポート成功
-            break
-        case let .failure(error):
-            exportError = "ファイル保存に失敗しました: \(error.localizedDescription)"
         }
     }
 }

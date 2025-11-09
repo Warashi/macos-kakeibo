@@ -89,24 +89,45 @@ internal struct SpecialPaymentSavingsComplexTests {
 
     // MARK: - Private Helpers
 
+    /// 特別支払い定義のパラメータ
+    private struct DefinitionParams {
+        internal let name: String
+        internal let amount: Decimal
+        internal let year: Int
+        internal let month: Int
+        internal let category: Category?
+        internal let strategy: SpecialPaymentSavingStrategy
+        internal let customAmount: Decimal?
+
+        internal init(
+            name: String,
+            amount: Decimal,
+            year: Int,
+            month: Int,
+            category: Category? = nil,
+            strategy: SpecialPaymentSavingStrategy,
+            customAmount: Decimal? = nil,
+        ) {
+            self.name = name
+            self.amount = amount
+            self.year = year
+            self.month = month
+            self.category = category
+            self.strategy = strategy
+            self.customAmount = customAmount
+        }
+    }
+
     /// 特別支払い定義を作成するヘルパー
-    private func makeDefinition(
-        name: String,
-        amount: Decimal,
-        year: Int,
-        month: Int,
-        category: Category? = nil,
-        strategy: SpecialPaymentSavingStrategy,
-        customAmount: Decimal? = nil,
-    ) -> SpecialPaymentDefinition {
+    private func makeDefinition(params: DefinitionParams) -> SpecialPaymentDefinition {
         SpecialPaymentDefinition(
-            name: name,
-            amount: amount,
+            name: params.name,
+            amount: params.amount,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: Date.from(year: year, month: month) ?? Date(),
-            category: category,
-            savingStrategy: strategy,
-            customMonthlySavingAmount: customAmount,
+            firstOccurrenceDate: Date.from(year: params.year, month: params.month) ?? Date(),
+            category: params.category,
+            savingStrategy: params.strategy,
+            customMonthlySavingAmount: params.customAmount,
         )
     }
 
@@ -116,24 +137,24 @@ internal struct SpecialPaymentSavingsComplexTests {
         categoryEducation: Category,
         context: ModelContext,
     ) -> [SpecialPaymentDefinition] {
-        let definitions = [
-            makeDefinition(
+        let definitions: [SpecialPaymentDefinition] = [
+            makeDefinition(params: DefinitionParams(
                 name: "自動車税",
                 amount: 45000,
                 year: 2026,
                 month: 5,
                 category: categoryTax,
                 strategy: .evenlyDistributed,
-            ),
-            makeDefinition(
+            )),
+            makeDefinition(params: DefinitionParams(
                 name: "固定資産税",
                 amount: 150_000,
                 year: 2026,
                 month: 4,
                 category: categoryTax,
                 strategy: .evenlyDistributed,
-            ),
-            makeDefinition(
+            )),
+            makeDefinition(params: DefinitionParams(
                 name: "学資保険",
                 amount: 120_000,
                 year: 2026,
@@ -141,14 +162,14 @@ internal struct SpecialPaymentSavingsComplexTests {
                 category: categoryEducation,
                 strategy: .customMonthly,
                 customAmount: 12000,
-            ),
-            makeDefinition(
+            )),
+            makeDefinition(params: DefinitionParams(
                 name: "積立なし",
                 amount: 50000,
                 year: 2026,
                 month: 6,
                 strategy: .disabled,
-            ),
+            )),
         ]
 
         definitions.forEach(context.insert)

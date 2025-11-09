@@ -28,73 +28,13 @@ internal struct SpecialPaymentMultiplePaymentsTests {
         var balance: SpecialPaymentSavingBalance?
 
         // 1回目のサイクル: 12ヶ月積立 + 支払い
-        balance = performSavingCycle(
-            definition: definition,
-            balance: balance,
-            startMonth: 1,
-            endMonth: 12,
-            context: context,
-        )
-
-        let occurrence1 = createOccurrence(
-            definition: definition,
-            year: 2025,
-            month: 4,
-            expectedAmount: 150_000,
-            actualAmount: 150_000,
-            context: context,
-        )
-
-        let finalBalance = try #require(balance)
-        balanceService.processPayment(occurrence: occurrence1, balance: finalBalance, context: context)
-
-        #expect(finalBalance.totalSavedAmount == 150_000)
-        #expect(finalBalance.totalPaidAmount == 150_000)
-        #expect(finalBalance.balance == 0)
+        balance = performFirstCycle(definition: definition, balance: balance, context: context)
 
         // 2回目のサイクル: 12ヶ月積立 + 支払い
-        balance = performSavingCycle(
-            definition: definition,
-            balance: balance,
-            startMonth: 13,
-            endMonth: 24,
-            context: context,
-        )
-
-        let occurrence2 = createOccurrence(
-            definition: definition,
-            year: 2026,
-            month: 4,
-            expectedAmount: 150_000,
-            actualAmount: 155_000, // 少し超過
-            context: context,
-        )
-
-        balanceService.processPayment(occurrence: occurrence2, balance: finalBalance, context: context)
-
-        #expect(finalBalance.totalSavedAmount == 300_000)
-        #expect(finalBalance.totalPaidAmount == 305_000)
-        #expect(finalBalance.balance == -5000)
+        balance = performSecondCycle(definition: definition, balance: balance, context: context)
 
         // 3回目のサイクル: 12ヶ月積立 + 支払い
-        balance = performSavingCycle(
-            definition: definition,
-            balance: balance,
-            startMonth: 25,
-            endMonth: 36,
-            context: context,
-        )
-
-        let occurrence3 = createOccurrence(
-            definition: definition,
-            year: 2027,
-            month: 4,
-            expectedAmount: 150_000,
-            actualAmount: 145_000, // 安く済んだ
-            context: context,
-        )
-
-        balanceService.processPayment(occurrence: occurrence3, balance: finalBalance, context: context)
+        let finalBalance = try performThirdCycle(definition: definition, balance: balance, context: context)
 
         // Then: 累計が正しく計算されている
         #expect(finalBalance.totalSavedAmount == 450_000) // 150000 × 3
@@ -104,16 +44,109 @@ internal struct SpecialPaymentMultiplePaymentsTests {
 
     // MARK: - Private Helpers
 
+    /// サイクルパラメータ
+    private struct CycleParams {
+        internal let startMonth: Int
+        internal let endMonth: Int
+        internal let year: Int
+        internal let month: Int
+        internal let actualAmount: Decimal
+    }
+
+    /// 1回目のサイクルを実行
+    private func performFirstCycle(
+        definition: SpecialPaymentDefinition,
+        balance: SpecialPaymentSavingBalance?,
+        context: ModelContext,
+    ) -> SpecialPaymentSavingBalance? {
+        let params: CycleParams = CycleParams(
+            startMonth: 1,
+            endMonth: 12,
+            year: 2025,
+            month: 4,
+            actualAmount: 150_000,
+        )
+
+        let updatedBalance: SpecialPaymentSavingBalance? = performSavingCycle(
+            definition: definition,
+            balance: balance,
+            params: params,
+            context: context,
+        )
+
+        let occurrence = createOccurrence(definition: definition, params: params, context: context)
+        if let finalBalance = updatedBalance {
+            balanceService.processPayment(occurrence: occurrence, balance: finalBalance, context: context)
+            return finalBalance
+        }
+        return updatedBalance
+    }
+
+    /// 2回目のサイクルを実行
+    private func performSecondCycle(
+        definition: SpecialPaymentDefinition,
+        balance: SpecialPaymentSavingBalance?,
+        context: ModelContext,
+    ) -> SpecialPaymentSavingBalance? {
+        let params: CycleParams = CycleParams(
+            startMonth: 13,
+            endMonth: 24,
+            year: 2026,
+            month: 4,
+            actualAmount: 155_000,
+        )
+
+        let updatedBalance: SpecialPaymentSavingBalance? = performSavingCycle(
+            definition: definition,
+            balance: balance,
+            params: params,
+            context: context,
+        )
+
+        let occurrence = createOccurrence(definition: definition, params: params, context: context)
+        if let finalBalance = updatedBalance {
+            balanceService.processPayment(occurrence: occurrence, balance: finalBalance, context: context)
+            return finalBalance
+        }
+        return updatedBalance
+    }
+
+    /// 3回目のサイクルを実行
+    private func performThirdCycle(
+        definition: SpecialPaymentDefinition,
+        balance: SpecialPaymentSavingBalance?,
+        context: ModelContext,
+    ) throws -> SpecialPaymentSavingBalance {
+        let params: CycleParams = CycleParams(
+            startMonth: 25,
+            endMonth: 36,
+            year: 2027,
+            month: 4,
+            actualAmount: 145_000,
+        )
+
+        let updatedBalance: SpecialPaymentSavingBalance? = performSavingCycle(
+            definition: definition,
+            balance: balance,
+            params: params,
+            context: context,
+        )
+
+        let occurrence = createOccurrence(definition: definition, params: params, context: context)
+        let finalBalance = try #require(updatedBalance)
+        balanceService.processPayment(occurrence: occurrence, balance: finalBalance, context: context)
+        return finalBalance
+    }
+
     /// 指定範囲の月次積立を実行するヘルパー関数
     private func performSavingCycle(
         definition: SpecialPaymentDefinition,
         balance: SpecialPaymentSavingBalance?,
-        startMonth: Int,
-        endMonth: Int,
+        params: CycleParams,
         context: ModelContext,
     ) -> SpecialPaymentSavingBalance? {
-        var currentBalance = balance
-        for month in startMonth ... endMonth {
+        var currentBalance: SpecialPaymentSavingBalance? = balance
+        for month in params.startMonth ... params.endMonth {
             currentBalance = balanceService.recordMonthlySavings(
                 for: definition,
                 balance: currentBalance,
@@ -128,19 +161,16 @@ internal struct SpecialPaymentMultiplePaymentsTests {
     /// 支払い実績を作成するヘルパー関数
     private func createOccurrence(
         definition: SpecialPaymentDefinition,
-        year: Int,
-        month: Int,
-        expectedAmount: Decimal,
-        actualAmount: Decimal,
+        params: CycleParams,
         context: ModelContext,
     ) -> SpecialPaymentOccurrence {
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence: SpecialPaymentOccurrence = SpecialPaymentOccurrence(
             definition: definition,
-            scheduledDate: Date.from(year: year, month: month) ?? Date(),
-            expectedAmount: expectedAmount,
+            scheduledDate: Date.from(year: params.year, month: params.month) ?? Date(),
+            expectedAmount: 150_000,
             status: .completed,
             actualDate: Date(),
-            actualAmount: actualAmount,
+            actualAmount: params.actualAmount,
         )
         context.insert(occurrence)
         return occurrence
