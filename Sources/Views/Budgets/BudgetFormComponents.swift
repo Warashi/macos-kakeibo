@@ -36,7 +36,7 @@ internal struct SpecialPaymentRow: View {
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 2)
-                            .background(Color.blue.opacity(0.1), in: Capsule())
+                            .background(Color.backgroundInfo, in: Capsule())
                     }
                 }
 
@@ -80,7 +80,7 @@ internal struct SpecialPaymentRow: View {
             }
         }
         .padding()
-        .background(Color.gray.opacity(0.05))
+        .background(Color.backgroundSecondary)
         .cornerRadius(8)
     }
 }

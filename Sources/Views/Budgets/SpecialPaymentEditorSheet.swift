@@ -105,7 +105,7 @@ internal struct SpecialPaymentEditorSheet: View {
                             .frame(height: 80)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 5)
-                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1),
+                                    .stroke(Color.neutral.opacity(0.3), lineWidth: 1),
                             )
                     }
 
@@ -191,7 +191,7 @@ internal struct SpecialPaymentEditorSheet: View {
             .font(.subheadline)
         }
         .padding()
-        .background(Color.gray.opacity(0.08))
+        .background(Color.backgroundSecondary)
         .cornerRadius(8)
     }
 

@@ -95,7 +95,7 @@ internal struct BudgetEditorSheet: View {
 
                 if let errorMessage {
                     Text(errorMessage)
-                        .foregroundColor(.red)
+                        .foregroundColor(.error)
                 }
 
                 Spacer(minLength: 0)

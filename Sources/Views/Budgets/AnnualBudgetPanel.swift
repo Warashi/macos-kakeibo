@@ -105,7 +105,7 @@ internal struct AnnualBudgetPanel: View {
 
             ProgressBar(
                 progress: usage.usageRate,
-                style: usage.usageRate >= 1.0 ? .danger : .custom(.blue),
+                style: usage.usageRate >= 1.0 ? .danger : .custom(.info),
                 showLabel: false,
             )
 

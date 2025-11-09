@@ -334,7 +334,7 @@ private struct OccurrenceRowView: View {
                         .font(.caption2)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Color.orange.opacity(0.15), in: Capsule())
+                        .background(Color.backgroundWarning, in: Capsule())
                 }
             }
         }
@@ -360,7 +360,7 @@ private struct CandidateRow: View {
                         .font(.caption)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Color.blue.opacity(0.15), in: Capsule())
+                        .background(Color.backgroundInfo, in: Capsule())
                 }
                 HStack {
                     Text(transaction.date.shortDateFormatted)
@@ -377,7 +377,7 @@ private struct CandidateRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(isSelected ? Color.blue.opacity(0.08) : Color.gray.opacity(0.08)),
+                    .fill(isSelected ? Color.backgroundInfo : Color.backgroundSecondary),
             )
         }
         .buttonStyle(.plain)
@@ -403,11 +403,11 @@ private struct StatusBadge: View {
 
     private var badgeColor: Color {
         if isCompleted {
-            return .green
+            return .success
         }
         if isHighlighted {
-            return .orange
+            return .warning
         }
-        return .gray
+        return .neutral
     }
 }

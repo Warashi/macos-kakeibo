@@ -64,12 +64,12 @@ internal struct MonthlyBudgetGrid: View {
                         TableColumn("残額") { entry in
                             Text(entry.calculation.remainingAmount.currencyFormatted)
                                 .frame(maxWidth: .infinity, alignment: .trailing)
-                                .foregroundColor(entry.calculation.isOverBudget ? .red : .green)
+                                .foregroundColor(entry.calculation.isOverBudget ? .error : .success)
                         }
                         TableColumn("使用率") { entry in
                             Text(String(format: "%.0f%%", entry.calculation.usageRate * 100))
                                 .frame(maxWidth: .infinity, alignment: .trailing)
-                                .foregroundColor(entry.calculation.isOverBudget ? .red : .primary)
+                                .foregroundColor(entry.calculation.isOverBudget ? .error : .primary)
                         }
                         TableColumn("操作") { entry in
                             HStack {

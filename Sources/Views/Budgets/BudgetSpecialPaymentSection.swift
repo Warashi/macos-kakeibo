@@ -41,7 +41,7 @@ internal struct BudgetSpecialPaymentSection: View {
             }
         }
         .padding()
-        .background(Color.gray.opacity(0.05))
+        .background(Color.backgroundSecondary)
         .cornerRadius(10)
     }
 
