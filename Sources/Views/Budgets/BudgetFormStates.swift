@@ -203,16 +203,17 @@ internal struct AnnualBudgetFormState {
             }
         }
 
+        let hasAutomaticRows = !automaticIndices.isEmpty
         if manualSum > totalAmount {
-            return .failure(.manualExceedsTotal)
+            return hasAutomaticRows ? .failure(.manualExceedsTotal) : .failure(.manualDoesNotMatchTotal)
         }
 
         var finalDrafts: [AnnualAllocationDraft] = drafts
         if !automaticIndices.isEmpty {
             let remaining = totalAmount.safeSubtract(manualSum)
-            let perCategory = remaining
-                .safeDivide(Decimal(automaticIndices.count))
-                .roundedDown()
+            let perCategory = roundDownToThousand(
+                remaining.safeDivide(Decimal(automaticIndices.count)),
+            )
             let automaticIndexSet = Set(automaticIndices)
 
             finalDrafts = finalDrafts.enumerated().map { index, draft in
@@ -230,6 +231,10 @@ internal struct AnnualBudgetFormState {
         }
 
         return .success(finalDrafts)
+    }
+
+    private func roundDownToThousand(_ value: Decimal) -> Decimal {
+        value.roundedDown(scale: -3)
     }
 }
 
