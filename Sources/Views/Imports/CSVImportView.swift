@@ -31,29 +31,31 @@ private struct CSVImportContentView: View {
 
     internal var body: some View {
         ZStack {
-            VStack(alignment: .leading, spacing: 16) {
-                CSVImportStepIndicator(currentStep: store.step)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    CSVImportStepIndicator(currentStep: store.step)
 
-                if let status = store.statusMessage {
-                    Label(status, systemImage: "info.circle")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    if let status = store.statusMessage {
+                        Label(status, systemImage: "info.circle")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    if let error = store.errorMessage {
+                        Label(error, systemImage: "exclamationmark.triangle.fill")
+                            .font(.callout)
+                            .foregroundStyle(.red)
+                    }
+
+                    stepContent
+
+                    Divider()
+
+                    footerButtons
                 }
-
-                if let error = store.errorMessage {
-                    Label(error, systemImage: "exclamationmark.triangle.fill")
-                        .font(.callout)
-                        .foregroundStyle(.red)
-                }
-
-                stepContent
-
-                Divider()
-
-                footerButtons
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .disabled(store.isProcessing)
 
             if store.isProcessing {
@@ -295,11 +297,9 @@ private struct CSVValidationStepView: View {
                         description: Text("列マッピングやCSVの内容をご確認ください。"),
                     )
                 } else {
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 8) {
-                            ForEach(preview.records) { record in
-                                CSVImportRecordRow(record: record)
-                            }
+                    LazyVStack(alignment: .leading, spacing: 8) {
+                        ForEach(preview.records) { record in
+                            CSVImportRecordRow(record: record)
                         }
                     }
                 }
