@@ -21,9 +21,9 @@ internal final class CSVImporter {
         }
     }
 
-    private let modelContext: ModelContext
-    private let dateFormatters: [DateFormatter]
-    private let locale: Foundation.Locale
+    internal let modelContext: ModelContext
+    internal let dateFormatters: [DateFormatter]
+    internal let locale: Foundation.Locale
 
     internal init(modelContext: ModelContext) {
         self.modelContext = modelContext
