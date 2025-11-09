@@ -5,7 +5,7 @@ import SwiftData
 
 extension CSVImporter {
     /// 金融機関を解決（存在すればキャッシュから、なければデータベースから、最後に新規作成）
-    internal func resolveFinancialInstitution(
+    func resolveFinancialInstitution(
         named name: String?,
         cache: inout [String: FinancialInstitution],
     ) throws -> (FinancialInstitution?, Bool) {
@@ -37,7 +37,7 @@ extension CSVImporter {
     }
 
     /// カテゴリを解決（大項目と中項目）
-    internal func resolveCategories(
+    func resolveCategories(
         majorName: String?,
         minorName: String?,
         majorCache: inout [String: Category],
@@ -66,7 +66,7 @@ extension CSVImporter {
     }
 
     /// 大項目カテゴリを解決
-    internal func resolveMajorCategory(
+    func resolveMajorCategory(
         name: String?,
         cache: inout [String: Category],
         createdCount: inout Int,
@@ -100,7 +100,7 @@ extension CSVImporter {
     }
 
     /// 中項目カテゴリを解決
-    internal func resolveMinorCategory(
+    func resolveMinorCategory(
         name: String?,
         majorCategory: Category?,
         cache: inout [String: Category],
@@ -138,7 +138,7 @@ extension CSVImporter {
     }
 
     /// IDでトランザクションを検索
-    internal func fetchTransaction(id: UUID) throws -> Transaction? {
+    func fetchTransaction(id: UUID) throws -> Transaction? {
         var descriptor = FetchDescriptor<Transaction>(
             predicate: #Predicate { transaction in
                 transaction.id == id
@@ -149,7 +149,7 @@ extension CSVImporter {
     }
 
     /// インポート識別子でトランザクションを検索
-    internal func fetchTransaction(importIdentifier: String) throws -> Transaction? {
+    func fetchTransaction(importIdentifier: String) throws -> Transaction? {
         var descriptor = FetchDescriptor<Transaction>(
             predicate: #Predicate { transaction in
                 transaction.importIdentifier == importIdentifier

@@ -4,7 +4,7 @@ import Foundation
 
 extension CSVImporter {
     /// 日付文字列をパース
-    internal func parseDate(_ value: String) -> Date? {
+    func parseDate(_ value: String) -> Date? {
         for formatter in dateFormatters {
             if let date = formatter.date(from: value) {
                 return date
@@ -14,7 +14,7 @@ extension CSVImporter {
     }
 
     /// 金額文字列をパース（カンマ、円記号などを除去）
-    internal func parseDecimal(_ value: String) -> Decimal? {
+    func parseDecimal(_ value: String) -> Decimal? {
         var sanitized = value
             .replacingOccurrences(of: ",", with: "")
             .replacingOccurrences(of: "¥", with: "")
@@ -31,7 +31,7 @@ extension CSVImporter {
     }
 
     /// ブール値文字列をパース
-    internal func parseBoolean(_ value: String) -> Bool? {
+    func parseBoolean(_ value: String) -> Bool? {
         let lowered = value.lowercased()
         switch lowered {
         case "1", "true", "yes", "y", "on", "はい", "有", "true.":
@@ -44,7 +44,7 @@ extension CSVImporter {
     }
 
     /// オプショナル文字列を正規化（空白のみの場合はnil）
-    internal func normalizedOptional(_ value: String?) -> String? {
+    func normalizedOptional(_ value: String?) -> String? {
         guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines),
               !trimmed.isEmpty else {
             return nil
