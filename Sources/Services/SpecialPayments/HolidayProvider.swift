@@ -15,7 +15,13 @@ internal protocol HolidayProvider {
     func holidays(from startDate: Date, to endDate: Date) -> Set<Date>
 }
 
+/// HolidayProviderの期間指定祝日取得メソッドのデフォルト実装
 public extension HolidayProvider {
+    /// 指定された期間の祝日を取得（デフォルト実装）
+    /// - Parameters:
+    ///   - startDate: 開始日
+    ///   - endDate: 終了日
+    /// - Returns: 期間内の祝日のSet
     func holidays(from startDate: Date, to endDate: Date) -> Set<Date> {
         let calendar = Calendar(identifier: .gregorian)
         let startYear = calendar.component(.year, from: startDate)

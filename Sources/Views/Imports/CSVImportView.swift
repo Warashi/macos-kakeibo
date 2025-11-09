@@ -338,11 +338,11 @@ private struct CSVPreviewSummaryView: View {
                     .font(.callout)
 
                     if summary.createdFinancialInstitutions > 0 || summary.createdCategories > 0 {
-                        Text(
-                            "新規作成: 金融機関 \(summary.createdFinancialInstitutions) 件 / カテゴリ \(summary.createdCategories) 件",
-                        )
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        let message = "新規作成: 金融機関 \(summary.createdFinancialInstitutions) 件"
+                            + " / カテゴリ \(summary.createdCategories) 件"
+                        Text(message)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .padding()
