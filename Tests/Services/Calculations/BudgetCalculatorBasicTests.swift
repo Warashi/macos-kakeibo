@@ -143,6 +143,42 @@ internal struct BudgetCalculatorBasicTests {
         #expect(willExceed2)
     }
 
+    @Test("大項目予算は子カテゴリ（中項目）の取引も集計する")
+    internal func majorCategoryBudget_includesMinorCategoryTransactions() throws {
+        // Given: 大項目「食費」と中項目「外食」を作成
+        let majorCategory = Category(name: "食費")
+        let minorCategory = Category(name: "外食", parent: majorCategory)
+        majorCategory.addChild(minorCategory)
+
+        // 取引：大項目のみの取引と中項目を持つ取引を混在
+        let transactions: [Transaction] = [
+            // 大項目のみの取引（食費）
+            createTransaction(amount: -10000, majorCategory: majorCategory, minorCategory: nil),
+            // 中項目を持つ取引（食費＞外食）
+            createTransaction(amount: -20000, majorCategory: majorCategory, minorCategory: minorCategory),
+            createTransaction(amount: -15000, majorCategory: majorCategory, minorCategory: minorCategory),
+        ]
+
+        // 予算：大項目「食費」に対して50,000円
+        let budgets = [
+            Budget(amount: 50000, category: majorCategory, year: 2025, month: 11),
+        ]
+
+        // When: 月次予算計算を実行
+        let result = calculator.calculateMonthlyBudget(
+            transactions: transactions,
+            budgets: budgets,
+            year: 2025,
+            month: 11,
+        )
+
+        // Then: 大項目の予算には、大項目のみの取引と中項目を持つ取引の両方が含まれるべき
+        let categoryCalc = try #require(result.categoryCalculations.first { $0.categoryId == majorCategory.id })
+        #expect(categoryCalc.calculation.actualAmount == 45000) // 10,000 + 20,000 + 15,000
+        #expect(categoryCalc.calculation.budgetAmount == 50000)
+        #expect(categoryCalc.calculation.remainingAmount == 5000)
+    }
+
     // MARK: - Helper Methods
 
     private func createSampleTransactions(category: Kakeibo.Category) -> [Transaction] {
@@ -162,6 +198,20 @@ internal struct BudgetCalculatorBasicTests {
             title: "テスト取引",
             amount: amount,
             majorCategory: category,
+        )
+    }
+
+    private func createTransaction(
+        amount: Decimal,
+        majorCategory: Kakeibo.Category,
+        minorCategory: Kakeibo.Category?,
+    ) -> Transaction {
+        Transaction(
+            date: Date.from(year: 2025, month: 11) ?? Date(),
+            title: "テスト取引",
+            amount: amount,
+            majorCategory: majorCategory,
+            minorCategory: minorCategory,
         )
     }
 }
