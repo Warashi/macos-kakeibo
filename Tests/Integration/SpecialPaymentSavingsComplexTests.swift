@@ -3,107 +3,13 @@ import Foundation
 import SwiftData
 import Testing
 
-/// 特別支払い積立・充当ロジックの統合テスト（複雑なシナリオ）
+/// 特別支払い積立・充当ロジックの統合テスト（月次予算統合シナリオ）
 ///
-/// 複数回支払いや月次予算統合など、複雑なエンドツーエンドシナリオを検証します。
-@Suite("SpecialPaymentSavings Complex Integration Tests")
+/// 月次予算への組み込みや複雑なエンドツーエンドシナリオを検証します。
+@Suite("SpecialPaymentSavings Budget Integration Tests")
 internal struct SpecialPaymentSavingsComplexTests {
     private let balanceService: SpecialPaymentBalanceService = SpecialPaymentBalanceService()
     private let calculator: BudgetCalculator = BudgetCalculator()
-
-    // MARK: - 複数回支払いケース
-
-    @Test("複数回支払い：2回目、3回目の支払い")
-    internal func multiplePaymentsScenario() throws {
-        let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
-
-        // Given: 年次支払い
-        let definition = SpecialPaymentDefinition(
-            name: "固定資産税",
-            amount: 150_000,
-            recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: Date.from(year: 2025, month: 4) ?? Date(),
-            savingStrategy: .evenlyDistributed,
-        )
-        context.insert(definition)
-
-        var balance: SpecialPaymentSavingBalance?
-
-        // 1回目のサイクル: 12ヶ月積立 + 支払い
-        balance = performSavingCycle(
-            definition: definition,
-            balance: balance,
-            startMonth: 1,
-            endMonth: 12,
-            context: context,
-        )
-
-        let occurrence1 = createOccurrence(
-            definition: definition,
-            year: 2025,
-            month: 4,
-            expectedAmount: 150_000,
-            actualAmount: 150_000,
-            context: context,
-        )
-
-        let finalBalance = try #require(balance)
-        balanceService.processPayment(occurrence: occurrence1, balance: finalBalance, context: context)
-
-        #expect(finalBalance.totalSavedAmount == 150_000)
-        #expect(finalBalance.totalPaidAmount == 150_000)
-        #expect(finalBalance.balance == 0)
-
-        // 2回目のサイクル: 12ヶ月積立 + 支払い
-        balance = performSavingCycle(
-            definition: definition,
-            balance: balance,
-            startMonth: 13,
-            endMonth: 24,
-            context: context,
-        )
-
-        let occurrence2 = createOccurrence(
-            definition: definition,
-            year: 2026,
-            month: 4,
-            expectedAmount: 150_000,
-            actualAmount: 155_000, // 少し超過
-            context: context,
-        )
-
-        balanceService.processPayment(occurrence: occurrence2, balance: finalBalance, context: context)
-
-        #expect(finalBalance.totalSavedAmount == 300_000)
-        #expect(finalBalance.totalPaidAmount == 305_000)
-        #expect(finalBalance.balance == -5000)
-
-        // 3回目のサイクル: 12ヶ月積立 + 支払い
-        balance = performSavingCycle(
-            definition: definition,
-            balance: balance,
-            startMonth: 25,
-            endMonth: 36,
-            context: context,
-        )
-
-        let occurrence3 = createOccurrence(
-            definition: definition,
-            year: 2027,
-            month: 4,
-            expectedAmount: 150_000,
-            actualAmount: 145_000, // 安く済んだ
-            context: context,
-        )
-
-        balanceService.processPayment(occurrence: occurrence3, balance: finalBalance, context: context)
-
-        // Then: 累計が正しく計算されている
-        #expect(finalBalance.totalSavedAmount == 450_000) // 150000 × 3
-        #expect(finalBalance.totalPaidAmount == 450_000) // 150000 + 155000 + 145000
-        #expect(finalBalance.balance == 0) // ちょうどゼロ
-    }
 
     // MARK: - 月次予算への組み込み
 
@@ -183,46 +89,25 @@ internal struct SpecialPaymentSavingsComplexTests {
 
     // MARK: - Private Helpers
 
-    /// 指定範囲の月次積立を実行するヘルパー関数
-    private func performSavingCycle(
-        definition: SpecialPaymentDefinition,
-        balance: SpecialPaymentSavingBalance?,
-        startMonth: Int,
-        endMonth: Int,
-        context: ModelContext,
-    ) -> SpecialPaymentSavingBalance? {
-        var currentBalance = balance
-        for month in startMonth ... endMonth {
-            currentBalance = balanceService.recordMonthlySavings(
-                for: definition,
-                balance: currentBalance,
-                year: 2024 + (month - 1) / 12,
-                month: ((month - 1) % 12) + 1,
-                context: context,
-            )
-        }
-        return currentBalance
-    }
-
-    /// 支払い実績を作成するヘルパー関数
-    private func createOccurrence(
-        definition: SpecialPaymentDefinition,
+    /// 特別支払い定義を作成するヘルパー
+    private func makeDefinition(
+        name: String,
+        amount: Decimal,
         year: Int,
         month: Int,
-        expectedAmount: Decimal,
-        actualAmount: Decimal,
-        context: ModelContext,
-    ) -> SpecialPaymentOccurrence {
-        let occurrence = SpecialPaymentOccurrence(
-            definition: definition,
-            scheduledDate: Date.from(year: year, month: month) ?? Date(),
-            expectedAmount: expectedAmount,
-            status: .completed,
-            actualDate: Date(),
-            actualAmount: actualAmount,
+        category: Category? = nil,
+        strategy: SpecialPaymentSavingStrategy,
+        customAmount: Decimal? = nil,
+    ) -> SpecialPaymentDefinition {
+        SpecialPaymentDefinition(
+            name: name,
+            amount: amount,
+            recurrenceIntervalMonths: 12,
+            firstOccurrenceDate: Date.from(year: year, month: month) ?? Date(),
+            category: category,
+            savingStrategy: strategy,
+            customMonthlySavingAmount: customAmount,
         )
-        context.insert(occurrence)
-        return occurrence
     }
 
     /// 複数の特別支払い定義を作成するヘルパー関数
@@ -231,48 +116,43 @@ internal struct SpecialPaymentSavingsComplexTests {
         categoryEducation: Category,
         context: ModelContext,
     ) -> [SpecialPaymentDefinition] {
-        let definition1 = SpecialPaymentDefinition(
-            name: "自動車税",
-            amount: 45000,
-            recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: Date.from(year: 2026, month: 5) ?? Date(),
-            category: categoryTax,
-            savingStrategy: .evenlyDistributed,
-        )
+        let definitions = [
+            makeDefinition(
+                name: "自動車税",
+                amount: 45000,
+                year: 2026,
+                month: 5,
+                category: categoryTax,
+                strategy: .evenlyDistributed,
+            ),
+            makeDefinition(
+                name: "固定資産税",
+                amount: 150_000,
+                year: 2026,
+                month: 4,
+                category: categoryTax,
+                strategy: .evenlyDistributed,
+            ),
+            makeDefinition(
+                name: "学資保険",
+                amount: 120_000,
+                year: 2026,
+                month: 3,
+                category: categoryEducation,
+                strategy: .customMonthly,
+                customAmount: 12000,
+            ),
+            makeDefinition(
+                name: "積立なし",
+                amount: 50000,
+                year: 2026,
+                month: 6,
+                strategy: .disabled,
+            ),
+        ]
 
-        let definition2 = SpecialPaymentDefinition(
-            name: "固定資産税",
-            amount: 150_000,
-            recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: Date.from(year: 2026, month: 4) ?? Date(),
-            category: categoryTax,
-            savingStrategy: .evenlyDistributed,
-        )
-
-        let definition3 = SpecialPaymentDefinition(
-            name: "学資保険",
-            amount: 120_000,
-            recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: Date.from(year: 2026, month: 3) ?? Date(),
-            category: categoryEducation,
-            savingStrategy: .customMonthly,
-            customMonthlySavingAmount: 12000,
-        )
-
-        let definition4 = SpecialPaymentDefinition(
-            name: "積立なし",
-            amount: 50000,
-            recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: Date.from(year: 2026, month: 6) ?? Date(),
-            savingStrategy: .disabled,
-        )
-
-        context.insert(definition1)
-        context.insert(definition2)
-        context.insert(definition3)
-        context.insert(definition4)
-
-        return [definition1, definition2, definition3, definition4]
+        definitions.forEach(context.insert)
+        return definitions
     }
 
     /// 複数定義の積立残高を作成するヘルパー関数
