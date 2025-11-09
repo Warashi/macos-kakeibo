@@ -3,7 +3,7 @@ import Testing
 
 @Suite("CSVParser Tests")
 internal struct CSVParserTests {
-    private let parser = CSVParser()
+    private let parser: CSVParser = CSVParser()
 
     @Test("基本的なCSVを解析できる")
     internal func parseSimpleCSV() throws {
