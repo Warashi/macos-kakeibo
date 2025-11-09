@@ -204,8 +204,8 @@ internal struct AnnualBudgetProgressCalculatorTests {
     private struct MultipleCategoryTestData {
         let budgets: [Budget]
         let transactions: [Transaction]
-        let foodCategory: Category
-        let transportCategory: Category
+        let foodCategory: Kakeibo.Category
+        let transportCategory: Kakeibo.Category
     }
 
     private func createMultipleCategoryTestData() -> MultipleCategoryTestData {
