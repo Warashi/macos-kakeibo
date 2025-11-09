@@ -3,10 +3,10 @@ import Foundation
 /// ユーザーが選択したセキュリティスコープ付きURLへのアクセスを管理する
 internal enum SecurityScopedResourceAccess {
     @MainActor @discardableResult
-    static func perform<T>(
+    internal static func perform<T>(
         with url: URL,
-        controller: SecurityScopedResourceAccessControlling = SystemSecurityScopedResourceAccessController(),
-        _ work: () throws -> T
+        controller: SecurityScopedResourceAccessControlling = SystemResourceAccessController(),
+        _ work: () throws -> T,
     ) rethrows -> T {
         let isAccessing = controller.startAccessing(url)
         defer {
@@ -18,10 +18,10 @@ internal enum SecurityScopedResourceAccess {
     }
 
     @MainActor @discardableResult
-    static func performAsync<T>(
+    internal static func performAsync<T>(
         with url: URL,
-        controller: SecurityScopedResourceAccessControlling = SystemSecurityScopedResourceAccessController(),
-        _ work: () async throws -> T
+        controller: SecurityScopedResourceAccessControlling = SystemResourceAccessController(),
+        _ work: () async throws -> T,
     ) async rethrows -> T {
         let isAccessing = controller.startAccessing(url)
         defer {
@@ -38,12 +38,12 @@ internal protocol SecurityScopedResourceAccessControlling {
     func stopAccessing(_ url: URL)
 }
 
-internal struct SystemSecurityScopedResourceAccessController: SecurityScopedResourceAccessControlling {
-    func startAccessing(_ url: URL) -> Bool {
+internal struct SystemResourceAccessController: SecurityScopedResourceAccessControlling {
+    internal func startAccessing(_ url: URL) -> Bool {
         url.startAccessingSecurityScopedResource()
     }
 
-    func stopAccessing(_ url: URL) {
+    internal func stopAccessing(_ url: URL) {
         url.stopAccessingSecurityScopedResource()
     }
 }

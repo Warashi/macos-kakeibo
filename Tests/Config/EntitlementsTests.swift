@@ -1,8 +1,8 @@
 import Foundation
 import XCTest
 
-final class EntitlementsTests: XCTestCase {
-    func testUserSelectedFileAccessEntitlementsAreEnabled() throws {
+internal final class EntitlementsTests: XCTestCase {
+    internal func testUserSelectedFileAccessEntitlementsAreEnabled() throws {
         let repoRoot = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
@@ -23,19 +23,19 @@ final class EntitlementsTests: XCTestCase {
         XCTAssertEqual(
             entitlements["com.apple.security.app-sandbox"] as? Bool,
             true,
-            "App Sandbox を有効にしてください"
+            "App Sandbox を有効にしてください",
         )
 
         XCTAssertEqual(
             entitlements["com.apple.security.files.user-selected.read-only"] as? Bool,
             true,
-            "ユーザー選択ファイルの読み取り権限がありません"
+            "ユーザー選択ファイルの読み取り権限がありません",
         )
 
         XCTAssertEqual(
             entitlements["com.apple.security.files.user-selected.read-write"] as? Bool,
             true,
-            "ユーザー選択ファイルの読み書き権限がありません"
+            "ユーザー選択ファイルの読み書き権限がありません",
         )
     }
 }
