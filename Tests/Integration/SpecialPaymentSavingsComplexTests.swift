@@ -188,11 +188,13 @@ internal struct SpecialPaymentSavingsComplexTests {
             var balance: SpecialPaymentSavingBalance?
             for month in 1 ... months {
                 balance = balanceService.recordMonthlySavings(
-                    for: definition,
-                    balance: balance,
-                    year: year,
-                    month: month,
-                    context: context,
+                    params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                        definition: definition,
+                        balance: balance,
+                        year: year,
+                        month: month,
+                        context: context,
+                    ),
                 )
             }
             if let balance {

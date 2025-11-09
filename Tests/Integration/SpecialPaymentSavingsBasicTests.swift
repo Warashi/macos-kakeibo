@@ -41,11 +41,13 @@ internal struct SpecialPaymentSavingsBasicTests {
         var balance: SpecialPaymentSavingBalance?
         for month in 1 ... 36 {
             balance = balanceService.recordMonthlySavings(
-                for: definition,
-                balance: balance,
-                year: 2025 + (month - 1) / 12,
-                month: ((month - 1) % 12) + 1,
-                context: context,
+                params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                    definition: definition,
+                    balance: balance,
+                    year: 2025 + (month - 1) / 12,
+                    month: ((month - 1) % 12) + 1,
+                    context: context,
+                ),
             )
         }
 
@@ -104,11 +106,13 @@ internal struct SpecialPaymentSavingsBasicTests {
         var balance: SpecialPaymentSavingBalance?
         for month in 1 ... 12 {
             balance = balanceService.recordMonthlySavings(
-                for: definition,
-                balance: balance,
-                year: 2025,
-                month: month,
-                context: context,
+                params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                    definition: definition,
+                    balance: balance,
+                    year: 2025,
+                    month: month,
+                    context: context,
+                ),
             )
         }
 
@@ -161,11 +165,13 @@ internal struct SpecialPaymentSavingsBasicTests {
         var balance: SpecialPaymentSavingBalance?
         for month in 1 ... 24 {
             balance = balanceService.recordMonthlySavings(
-                for: definition,
-                balance: balance,
-                year: 2024 + (month - 1) / 12,
-                month: ((month - 1) % 12) + 1,
-                context: context,
+                params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                    definition: definition,
+                    balance: balance,
+                    year: 2024 + (month - 1) / 12,
+                    month: ((month - 1) % 12) + 1,
+                    context: context,
+                ),
             )
         }
 

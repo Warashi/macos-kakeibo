@@ -148,11 +148,13 @@ internal struct SpecialPaymentMultiplePaymentsTests {
         var currentBalance: SpecialPaymentSavingBalance? = balance
         for month in params.startMonth ... params.endMonth {
             currentBalance = balanceService.recordMonthlySavings(
-                for: definition,
-                balance: currentBalance,
-                year: 2024 + (month - 1) / 12,
-                month: ((month - 1) % 12) + 1,
-                context: context,
+                params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                    definition: definition,
+                    balance: currentBalance,
+                    year: 2024 + (month - 1) / 12,
+                    month: ((month - 1) % 12) + 1,
+                    context: context,
+                ),
             )
         }
         return currentBalance
