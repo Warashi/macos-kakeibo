@@ -167,41 +167,43 @@ internal final class TransactionStore {
         self.formState = .empty(defaultDate: Date())
         refresh()
     }
+}
 
-    // MARK: - Public API
+// MARK: - Public API
 
+internal extension TransactionStore {
     /// 参照データと取引を再取得
-    internal func refresh() {
+    func refresh() {
         loadReferenceData()
         loadTransactions()
     }
 
     /// 現在の月ラベル
-    internal var currentMonthLabel: String {
+    var currentMonthLabel: String {
         currentMonth.yearMonthFormatted
     }
 
     /// 収入合計
-    internal var totalIncome: Decimal {
+    var totalIncome: Decimal {
         transactions
             .filter(\.isIncome)
             .reduce(into: Decimal.zero) { $0 += $1.amount }
     }
 
     /// 支出合計（正の値）
-    internal var totalExpense: Decimal {
+    var totalExpense: Decimal {
         transactions
             .filter(\.isExpense)
             .reduce(into: Decimal.zero) { $0 += abs($1.amount) }
     }
 
     /// 差引（収入 - 支出）
-    internal var netAmount: Decimal {
+    var netAmount: Decimal {
         totalIncome - totalExpense
     }
 
     /// セクション化された取引
-    internal var sections: [TransactionSection] {
+    var sections: [TransactionSection] {
         var order: [Date] = []
         var grouped: [Date: [Transaction]] = [:]
         for transaction in transactions {
@@ -219,7 +221,7 @@ internal final class TransactionStore {
     }
 
     /// 大項目一覧
-    internal var majorCategories: [Category] {
+    var majorCategories: [Category] {
         availableCategories
             .filter(\.isMajor)
             .sorted { lhs, rhs in
@@ -231,7 +233,7 @@ internal final class TransactionStore {
     }
 
     /// 指定した大項目に紐づく中項目一覧
-    internal func minorCategories(for majorCategoryId: UUID?) -> [Category] {
+    func minorCategories(for majorCategoryId: UUID?) -> [Category] {
         guard let majorCategoryId else { return [] }
         return availableCategories
             .filter { $0.parent?.id == majorCategoryId }
@@ -244,24 +246,24 @@ internal final class TransactionStore {
     }
 
     /// 月を前に移動
-    internal func moveToPreviousMonth() {
+    func moveToPreviousMonth() {
         guard let previous = Calendar.current.date(byAdding: .month, value: -1, to: currentMonth) else { return }
         currentMonth = previous
     }
 
     /// 月を次に移動
-    internal func moveToNextMonth() {
+    func moveToNextMonth() {
         guard let next = Calendar.current.date(byAdding: .month, value: 1, to: currentMonth) else { return }
         currentMonth = next
     }
 
     /// 今月に戻る
-    internal func moveToCurrentMonth() {
+    func moveToCurrentMonth() {
         currentMonth = Date().startOfMonth
     }
 
     /// フィルタを初期状態に戻す
-    internal func resetFilters() {
+    func resetFilters() {
         searchText = ""
         selectedFilterKind = .all
         selectedInstitutionId = nil
@@ -272,7 +274,7 @@ internal final class TransactionStore {
     }
 
     /// 新規作成モードに切り替え
-    internal func prepareForNewTransaction() {
+    func prepareForNewTransaction() {
         editingTransaction = nil
         let today = Date()
         let defaultDate = today.isSameMonth(as: currentMonth) ? today : currentMonth
@@ -282,7 +284,7 @@ internal final class TransactionStore {
     }
 
     /// 既存取引の編集を開始
-    internal func startEditing(transaction: Transaction) {
+    func startEditing(transaction: Transaction) {
         editingTransaction = transaction
         formState = .from(transaction: transaction)
         formErrors = []
@@ -290,14 +292,14 @@ internal final class TransactionStore {
     }
 
     /// 編集をキャンセル
-    internal func cancelEditing() {
+    func cancelEditing() {
         editingTransaction = nil
         isEditorPresented = false
         formErrors = []
     }
 
     /// 中項目選択の整合性を確保
-    internal func ensureMinorCategoryConsistency() {
+    func ensureMinorCategoryConsistency() {
         guard let majorId = formState.majorCategoryId else {
             formState.minorCategoryId = nil
             return
@@ -311,7 +313,7 @@ internal final class TransactionStore {
 
     /// フォーム内容を保存
     @discardableResult
-    internal func saveCurrentForm() -> Bool {
+    func saveCurrentForm() -> Bool {
         formErrors = validateForm()
         guard formErrors.isEmpty else { return false }
 
@@ -352,7 +354,7 @@ internal final class TransactionStore {
 
     /// 取引を削除
     @discardableResult
-    internal func deleteTransaction(_ transaction: Transaction) -> Bool {
+    func deleteTransaction(_ transaction: Transaction) -> Bool {
         modelContext.delete(transaction)
         do {
             try modelContext.save()
@@ -364,10 +366,12 @@ internal final class TransactionStore {
             return false
         }
     }
+}
 
-    // MARK: - Private Helpers
+// MARK: - Private Helpers
 
-    private func loadReferenceData() {
+private extension TransactionStore {
+    func loadReferenceData() {
         let institutionDescriptor = FetchDescriptor<FinancialInstitution>(
             sortBy: [SortDescriptor(\.displayOrder), SortDescriptor(\.name)],
         )
