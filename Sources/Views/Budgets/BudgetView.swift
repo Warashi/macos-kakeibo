@@ -294,10 +294,26 @@ private extension BudgetView {
             return
         }
 
-        let allocationSum = drafts.reduce(0) { $0 + $1.amount }
-        guard allocationSum == amount else {
-            annualFormError = "カテゴリ合計（\(allocationSum.currencyFormatted)）と総額（\(amount.currencyFormatted)）が一致していません"
-            return
+        let manualAllocationSum = drafts.reduce(into: Decimal.zero) { partialResult, draft in
+            let effectivePolicy = draft.policyOverride ?? annualFormState.policy
+            if effectivePolicy == .manual {
+                partialResult += draft.amount
+            }
+        }
+
+        let hasAutomaticPolicy = annualFormState.policy == .automatic
+            || drafts.contains { ($0.policyOverride ?? annualFormState.policy) == .automatic }
+
+        if hasAutomaticPolicy {
+            guard manualAllocationSum <= amount else {
+                annualFormError = "手動配分の合計（\(manualAllocationSum.currencyFormatted)）が総額を超えています"
+                return
+            }
+        } else {
+            guard manualAllocationSum == amount else {
+                annualFormError = "カテゴリ合計（\(manualAllocationSum.currencyFormatted)）と総額（\(amount.currencyFormatted)）が一致していません"
+                return
+            }
         }
 
         do {

@@ -85,9 +85,16 @@ internal struct AnnualBudgetFormState {
         totalAmountText = config.totalAmount.plainString
         policy = config.policy
         allocationRows = config.allocations.map { allocation in
+            let effectivePolicy = allocation.policyOverride ?? config.policy
+            let amountText: String = if effectivePolicy == .automatic,
+                                        allocation.amount == 0 {
+                ""
+            } else {
+                allocation.amount.plainString
+            }
             var row = AnnualBudgetAllocationRowState(
                 id: allocation.id,
-                amountText: allocation.amount.plainString,
+                amountText: amountText,
                 selectedPolicyOverride: allocation.policyOverride,
             )
             if allocation.category.isMajor {
@@ -142,19 +149,34 @@ internal struct AnnualBudgetFormState {
         var drafts: [AnnualAllocationDraft] = []
         for row in allocationRows {
             guard let categoryId = row.selectedCategoryId,
-                  let amount = row.decimalAmount,
-                  amount > 0 else {
+                  let draft = makeDraft(for: row, categoryId: categoryId) else {
                 return nil
             }
-            drafts.append(
-                AnnualAllocationDraft(
-                    categoryId: categoryId,
-                    amount: amount,
-                    policyOverride: row.selectedPolicyOverride,
-                ),
-            )
+            drafts.append(draft)
         }
         return drafts
+    }
+
+    private func makeDraft(
+        for row: AnnualBudgetAllocationRowState,
+        categoryId: UUID,
+    ) -> AnnualAllocationDraft? {
+        let effectivePolicy = row.effectivePolicy(globalPolicy: policy)
+
+        let amount: Decimal
+        if let value = row.decimalAmount, value > 0 {
+            amount = value
+        } else if effectivePolicy == .automatic {
+            amount = 0
+        } else {
+            return nil
+        }
+
+        return AnnualAllocationDraft(
+            categoryId: categoryId,
+            amount: amount,
+            policyOverride: row.selectedPolicyOverride,
+        )
     }
 }
 
@@ -192,6 +214,10 @@ internal struct AnnualBudgetAllocationRowState: Identifiable {
     internal var decimalAmount: Decimal? {
         Decimal(string: normalizedAmountText, locale: Locale(identifier: "ja_JP"))
             ?? Decimal(string: normalizedAmountText)
+    }
+
+    internal func effectivePolicy(globalPolicy: AnnualBudgetPolicy) -> AnnualBudgetPolicy {
+        selectedPolicyOverride ?? globalPolicy
     }
 }
 
