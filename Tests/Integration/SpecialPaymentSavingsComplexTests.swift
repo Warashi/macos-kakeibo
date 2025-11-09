@@ -95,7 +95,7 @@ internal struct SpecialPaymentSavingsComplexTests {
         internal let amount: Decimal
         internal let year: Int
         internal let month: Int
-        internal let category: Category?
+        internal let category: Kakeibo.Category?
         internal let strategy: SpecialPaymentSavingStrategy
         internal let customAmount: Decimal?
 
@@ -104,7 +104,7 @@ internal struct SpecialPaymentSavingsComplexTests {
             amount: Decimal,
             year: Int,
             month: Int,
-            category: Category? = nil,
+            category: Kakeibo.Category? = nil,
             strategy: SpecialPaymentSavingStrategy,
             customAmount: Decimal? = nil,
         ) {
@@ -133,8 +133,8 @@ internal struct SpecialPaymentSavingsComplexTests {
 
     /// 複数の特別支払い定義を作成するヘルパー関数
     private func createMultipleDefinitions(
-        categoryTax: Category,
-        categoryEducation: Category,
+        categoryTax: Kakeibo.Category,
+        categoryEducation: Kakeibo.Category,
         context: ModelContext,
     ) -> [SpecialPaymentDefinition] {
         let definitions: [SpecialPaymentDefinition] = [
