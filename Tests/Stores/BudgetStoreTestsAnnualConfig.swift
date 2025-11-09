@@ -6,7 +6,7 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct BudgetStoreTests_AnnualConfig {
+internal struct BudgetStoreTestsAnnualConfig {
     @Test("年次特別枠：登録と更新")
     internal func upsertAnnualBudgetConfig_createsAndUpdates() throws {
         let (store, context) = try makeStore()

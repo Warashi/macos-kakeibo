@@ -6,7 +6,7 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct BudgetStoreTests_Basic {
+internal struct BudgetStoreTestsBasic {
     @Test("初期化：現在の年月で開始する")
     internal func initialization_setsCurrentDate() throws {
         let container = try createInMemoryContainer()

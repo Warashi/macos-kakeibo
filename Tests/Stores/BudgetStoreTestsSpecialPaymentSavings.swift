@@ -6,7 +6,7 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct BudgetStoreTests_SpecialPaymentSavings {
+internal struct BudgetStoreTestsSpecialPaymentSavings {
     @Test("特別支払い積立：月次積立金額の合計を取得")
     internal func specialPaymentSavings_monthlyTotal() throws {
         let (store, context) = try makeStore()

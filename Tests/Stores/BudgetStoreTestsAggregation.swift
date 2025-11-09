@@ -6,7 +6,7 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct BudgetStoreTests_Aggregation {
+internal struct BudgetStoreTestsAggregation {
     @Test("予算追加：カテゴリ別予算を集計できる")
     internal func categoryBudgetEntries_calculatesActuals() throws {
         let (store, context) = try makeStore()
