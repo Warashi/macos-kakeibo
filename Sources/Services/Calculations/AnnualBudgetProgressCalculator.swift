@@ -155,7 +155,10 @@ internal struct AnnualBudgetProgressCalculator {
             guard let category = pairedItems.first?.0 else { return nil }
 
             let totalAmount = pairedItems.reduce(Decimal.zero) { $0 + $1.1.annualBudgetAmount(for: year) }
-            let actualAmount = actualMap[categoryId] ?? 0
+
+            // 実績額を計算：カテゴリ自身の実績 + 子カテゴリの実績
+            let actualAmount = calculateActualAmount(for: category, from: actualMap)
+
             let calculation = budgetCalculator.calculate(
                 budgetAmount: totalAmount,
                 actualAmount: actualAmount,
@@ -175,6 +178,23 @@ internal struct AnnualBudgetProgressCalculator {
         .sorted { lhs, rhs in
             lhs.displayOrder < rhs.displayOrder
         }
+    }
+
+    /// カテゴリの実績額を計算（子カテゴリの実績も含む）
+    private func calculateActualAmount(
+        for category: Category,
+        from actualMap: [UUID: Decimal],
+    ) -> Decimal {
+        var total = actualMap[category.id] ?? 0
+
+        // 大項目の場合、子カテゴリ（中項目）の実績も合算
+        if category.isMajor {
+            for child in category.children {
+                total += actualMap[child.id] ?? 0
+            }
+        }
+
+        return total
     }
 
     private func createDisplayOrder(for category: Category) -> DisplayOrder {
