@@ -168,7 +168,9 @@ private func seedTransaction(in context: ModelContext) throws {
 
 private func makeUserDefaults(suffix: String) -> UserDefaults {
     let suiteName = "SettingsStoreTests.\(suffix)"
-    let defaults = UserDefaults(suiteName: suiteName)!
+    guard let defaults = UserDefaults(suiteName: suiteName) else {
+        fatalError("Failed to create UserDefaults for test suite: \(suiteName)")
+    }
     defaults.removePersistentDomain(forName: suiteName)
     return defaults
 }
