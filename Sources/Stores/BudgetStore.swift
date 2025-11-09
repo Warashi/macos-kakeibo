@@ -498,22 +498,6 @@ internal struct BudgetInput {
     internal let startMonth: Int
     internal let endYear: Int
     internal let endMonth: Int
-
-    internal init(
-        amount: Decimal,
-        categoryId: UUID?,
-        startYear: Int,
-        startMonth: Int,
-        endYear: Int,
-        endMonth: Int,
-    ) {
-        self.amount = amount
-        self.categoryId = categoryId
-        self.startYear = startYear
-        self.startMonth = startMonth
-        self.endYear = endYear
-        self.endMonth = endMonth
-    }
 }
 
 // MARK: - Category Display Order Key
