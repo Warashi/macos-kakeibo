@@ -6,7 +6,7 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct SpecialPaymentStoreCRUDTests {
+internal struct SpecialPaymentStoreCreateDefinitionTests {
     @Test("定義作成：正常系で定義とOccurrenceが作成される")
     internal func createDefinition_success() throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
@@ -132,135 +132,6 @@ internal struct SpecialPaymentStoreCRUDTests {
                 categoryId: nonExistentCategoryId,
             )
         }
-    }
-
-    @Test("定義更新：正常系で定義が更新される")
-    internal func updateDefinition_success() throws {
-        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
-
-        let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let definition = SpecialPaymentDefinition(
-            name: "自動車税",
-            amount: 50000,
-            recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: firstOccurrence,
-        )
-        context.insert(definition)
-        try context.save()
-
-        try store.updateDefinition(
-            definition,
-            name: "自動車税（更新）",
-            notes: "メモを追加",
-            amount: 55000,
-            recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: firstOccurrence,
-            leadTimeMonths: 3,
-            categoryId: nil,
-            savingStrategy: .customMonthly,
-            customMonthlySavingAmount: 5000,
-            dateAdjustmentPolicy: .none,
-            recurrenceDayPattern: nil,
-        )
-
-        #expect(definition.name == "自動車税（更新）")
-        #expect(definition.notes == "メモを追加")
-        #expect(definition.amount == 55000)
-        #expect(definition.leadTimeMonths == 3)
-        #expect(definition.savingStrategy == .customMonthly)
-        #expect(definition.customMonthlySavingAmount == 5000)
-    }
-
-    @Test("定義更新：バリデーションエラー")
-    internal func updateDefinition_validationError() throws {
-        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
-
-        let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let definition = SpecialPaymentDefinition(
-            name: "テスト",
-            amount: 50000,
-            recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: firstOccurrence,
-        )
-        context.insert(definition)
-        try context.save()
-
-        #expect(throws: SpecialPaymentStoreError.self) {
-            try store.updateDefinition(
-                definition,
-                name: "",
-                notes: "",
-                amount: -1000,
-                recurrenceIntervalMonths: 12,
-                firstOccurrenceDate: firstOccurrence,
-                leadTimeMonths: 0,
-                categoryId: nil,
-                savingStrategy: .evenlyDistributed,
-                customMonthlySavingAmount: nil,
-                dateAdjustmentPolicy: .none,
-                recurrenceDayPattern: nil,
-            )
-        }
-    }
-
-    @Test("定義削除：正常系で定義が削除される")
-    internal func deleteDefinition_success() throws {
-        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
-
-        let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let definition = SpecialPaymentDefinition(
-            name: "自動車税",
-            amount: 50000,
-            recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: firstOccurrence,
-        )
-        context.insert(definition)
-        try context.save()
-
-        // 削除前の確認
-        var descriptor = FetchDescriptor<SpecialPaymentDefinition>()
-        var definitions = try context.fetch(descriptor)
-        #expect(definitions.count == 1)
-
-        try store.deleteDefinition(definition)
-
-        // 削除後の確認
-        descriptor = FetchDescriptor<SpecialPaymentDefinition>()
-        definitions = try context.fetch(descriptor)
-        #expect(definitions.isEmpty)
-    }
-
-    @Test("定義削除：Occurrenceもカスケード削除される")
-    internal func deleteDefinition_cascadeDeletesOccurrences() throws {
-        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
-
-        let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let definition = SpecialPaymentDefinition(
-            name: "自動車税",
-            amount: 50000,
-            recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: firstOccurrence,
-        )
-        context.insert(definition)
-        try context.save()
-
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 24)
-        #expect(!definition.occurrences.isEmpty)
-
-        // Occurrence数を記録
-        let occurrenceCountBefore = definition.occurrences.count
-
-        try store.deleteDefinition(definition)
-
-        // Occurrenceも削除されていることを確認
-        let descriptor = FetchDescriptor<SpecialPaymentOccurrence>()
-        let occurrences = try context.fetch(descriptor)
-        #expect(occurrences.isEmpty)
-        #expect(occurrenceCountBefore > 0) // 削除前には存在していたことを確認
     }
 
     // MARK: - Helpers
