@@ -468,7 +468,6 @@ private extension TransactionStore {
         return transaction.financialInstitution?.id == institutionId
     }
 
-
     private func matchesSearchText(_ transaction: Transaction, trimmedSearch: String) -> Bool {
         guard !trimmedSearch.isEmpty else { return true }
 
