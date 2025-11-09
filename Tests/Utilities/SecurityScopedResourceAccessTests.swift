@@ -1,6 +1,7 @@
 @testable import Kakeibo
 import XCTest
 
+@MainActor
 final class SecurityScopedResourceAccessTests: XCTestCase {
     func testPerformExecutesWorkAndStopsAccessWhenStarted() throws {
         let url = URL(fileURLWithPath: "/tmp/test.csv")
