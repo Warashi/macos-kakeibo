@@ -121,9 +121,9 @@ internal struct TransactionStoreTests {
         store.formState.transactionKind = .income
         store.formState.isIncludedInCalculation = false
         store.formState.isTransfer = true
-        store.formState.financialInstitutionId = institution.id
-        store.formState.majorCategoryId = major.id
-        store.formState.minorCategoryId = minor.id
+        store.formState.financialInstitutionId = refData.institution.id
+        store.formState.majorCategoryId = refData.majorCategory.id
+        store.formState.minorCategoryId = refData.minorCategory.id
 
         let result = store.saveCurrentForm()
 
@@ -132,9 +132,9 @@ internal struct TransactionStoreTests {
         #expect(transaction.amount == 12000)
         #expect(transaction.isIncludedInCalculation == false)
         #expect(transaction.isTransfer == true)
-        #expect(transaction.financialInstitution?.id == institution.id)
-        #expect(transaction.majorCategory?.id == major.id)
-        #expect(transaction.minorCategory?.id == minor.id)
+        #expect(transaction.financialInstitution?.id == refData.institution.id)
+        #expect(transaction.majorCategory?.id == refData.majorCategory.id)
+        #expect(transaction.minorCategory?.id == refData.minorCategory.id)
     }
 
     // MARK: - Helpers
