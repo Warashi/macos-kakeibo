@@ -93,6 +93,40 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         #expect(result.usedAmount == 40_000)
     }
 
+    @Test("親子カテゴリの配分が重複計上されない")
+    internal func annualBudgetUsage_parentChildNoDoubleCount() throws {
+        let major = Category(name: "特別費", allowsAnnualBudget: true)
+        let minor = Category(name: "旅行", parent: major, allowsAnnualBudget: true)
+        major.addChild(minor)
+
+        let transactions = [
+            createTransaction(amount: -25_000, category: major, minorCategory: minor),
+        ]
+        let config = makeConfig(
+            allocations: [
+                (major, 150_000, nil),
+                (minor, 50_000, nil),
+            ],
+        )
+
+        let params = AllocationCalculationParams(
+            transactions: transactions,
+            budgets: [],
+            annualBudgetConfig: config,
+        )
+
+        let result = allocator.calculateAnnualBudgetUsage(
+            params: params,
+            upToMonth: 11,
+        )
+
+        #expect(result.usedAmount == 25_000)
+        let majorAllocation = try #require(result.categoryAllocations.first { $0.categoryId == major.id })
+        let minorAllocation = try #require(result.categoryAllocations.first { $0.categoryId == minor.id })
+        #expect(majorAllocation.allocatableAmount == 0)
+        #expect(minorAllocation.allocatableAmount == 25_000)
+    }
+
     // MARK: - Helper Functions
 
     private func createTransaction(
