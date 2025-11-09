@@ -4,12 +4,15 @@ import Foundation
 
 /// 通貨フォーマットの拡張
 public extension Decimal {
-    /// 通貨形式でフォーマット（例: "¥1,234"）
+    /// 通貨形式でフォーマット（例: "¥1,234"、マイナスの場合: "-¥1,234"）
     var currencyFormatted: String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.locale = Locale(identifier: "ja_JP")
         formatter.maximumFractionDigits = 0
+        // マイナス記号を明示的に設定（予算超過時の残額表示用）
+        formatter.negativePrefix = "-"
+        formatter.negativeSuffix = ""
         return formatter.string(from: self as NSDecimalNumber) ?? "¥0"
     }
 
