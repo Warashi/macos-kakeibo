@@ -210,27 +210,67 @@ internal struct AnnualBudgetAllocator: Sendable {
 
         let actualExpenseMap = makeActualExpenseMap(from: filteredTransactions)
         let monthlyBudgets = params.budgets.filter { $0.contains(year: year, month: month) }
-        let policyOverrides = policyOverrideMap(from: params.annualBudgetConfig)
+        let policyContext = PolicyContext(
+            overrides: policyOverrideMap(from: params.annualBudgetConfig),
+            defaultPolicy: policy,
+        )
 
-        if policy == .disabled, policyOverrides.isEmpty {
+        if policy == .disabled, policyContext.overrides.isEmpty {
             return []
         }
 
         var allocations: [CategoryAllocation] = []
         var processedCategoryIds: Set<UUID> = []
 
-        for budget in monthlyBudgets {
+        allocations.append(
+            contentsOf: calculateAllocationsForMonthlyBudgets(
+                budgets: monthlyBudgets,
+                actualExpenseMap: actualExpenseMap,
+                policyContext: policyContext,
+                processedCategoryIds: &processedCategoryIds,
+            ),
+        )
+
+        allocations.append(
+            contentsOf: calculateAllocationsForFullCoverage(
+                config: params.annualBudgetConfig,
+                actualExpenseMap: actualExpenseMap,
+                processedCategoryIds: &processedCategoryIds,
+            ),
+        )
+
+        return allocations
+    }
+
+    private struct PolicyContext {
+        let overrides: [UUID: AnnualBudgetPolicy]
+        let defaultPolicy: AnnualBudgetPolicy
+    }
+
+    private func calculateAllocationsForMonthlyBudgets(
+        budgets: [Budget],
+        actualExpenseMap: [UUID: Decimal],
+        policyContext: PolicyContext,
+        processedCategoryIds: inout Set<UUID>,
+    ) -> [CategoryAllocation] {
+        var allocations: [CategoryAllocation] = []
+
+        for budget in budgets {
             guard let category = budget.category else { continue }
             guard category.allowsAnnualBudget else { continue }
 
             let categoryId = category.id
-            let effectivePolicy = policyOverrides[categoryId] ?? policy
+            let effectivePolicy = policyContext.overrides[categoryId] ?? policyContext.defaultPolicy
             guard effectivePolicy != .disabled else { continue }
 
-                let actualAmount = actualExpenseMap[categoryId] ?? 0
-                let amounts = calculateAllocationAmounts(
-                    actualAmount: actualAmount,
-                    budgetAmount: budget.amount,
+            let actualAmount = calculateActualAmount(
+                for: category,
+                from: actualExpenseMap,
+            )
+
+            let amounts = calculateAllocationAmounts(
+                actualAmount: actualAmount,
+                budgetAmount: budget.amount,
                 policy: effectivePolicy,
             )
 
@@ -243,16 +283,25 @@ internal struct AnnualBudgetAllocator: Sendable {
                     excessAmount: amounts.excess,
                     allocatableAmount: amounts.allocatable,
                     remainingAfterAllocation: amounts.remainingAfterAllocation,
-                )
+                ),
             )
 
             processedCategoryIds.insert(categoryId)
         }
 
-        // 追加予算がなくても全額年次枠扱いのカテゴリは実績分を充当する
-        let fullCoverageAllocations = params.annualBudgetConfig.allocations
+        return allocations
+    }
+
+    private func calculateAllocationsForFullCoverage(
+        config: AnnualBudgetConfig,
+        actualExpenseMap: [UUID: Decimal],
+        processedCategoryIds: inout Set<UUID>,
+    ) -> [CategoryAllocation] {
+        let fullCoverageAllocations = config.allocations
             .filter { $0.policyOverride == .fullCoverage }
             .sorted { lhs, rhs in lhs.category.fullName < rhs.category.fullName }
+
+        var allocations: [CategoryAllocation] = []
 
         for allocation in fullCoverageAllocations {
             let category = allocation.category
@@ -260,7 +309,10 @@ internal struct AnnualBudgetAllocator: Sendable {
             guard category.allowsAnnualBudget else { continue }
             guard !processedCategoryIds.contains(categoryId) else { continue }
 
-            let actualAmount = actualExpenseMap[categoryId] ?? 0
+            let actualAmount = calculateActualAmount(
+                for: category,
+                from: actualExpenseMap,
+            )
             guard actualAmount > 0 else { continue }
 
             let amounts = calculateAllocationAmounts(
@@ -278,13 +330,32 @@ internal struct AnnualBudgetAllocator: Sendable {
                     excessAmount: amounts.excess,
                     allocatableAmount: amounts.allocatable,
                     remainingAfterAllocation: amounts.remainingAfterAllocation,
-                )
+                ),
             )
 
             processedCategoryIds.insert(categoryId)
         }
 
         return allocations
+    }
+
+    private func calculateActualAmount(
+        for category: Category,
+        from actualExpenseMap: [UUID: Decimal],
+    ) -> Decimal {
+        let categoryId = category.id
+        if category.isMajor {
+            // 大項目の場合：大項目自身と全ての子カテゴリの実績を合計
+            let childCategoryIds = Set(category.children.map(\.id))
+            return actualExpenseMap
+                .filter { id, _ in
+                    id == categoryId || childCategoryIds.contains(id)
+                }
+                .reduce(Decimal.zero) { $0 + $1.value }
+        } else {
+            // 中項目の場合：そのカテゴリIDと完全一致するもののみ
+            return actualExpenseMap[categoryId] ?? 0
+        }
     }
 
     private func policyOverrideMap(from config: AnnualBudgetConfig) -> [UUID: AnnualBudgetPolicy] {
@@ -333,7 +404,7 @@ internal struct AnnualBudgetAllocator: Sendable {
         transactions: [Transaction],
         year: Int,
         month: Int,
-        filter: AggregationFilter
+        filter: AggregationFilter,
     ) -> [Transaction] {
         transactions.filter { transaction in
             guard transaction.date.year == year,
@@ -346,7 +417,7 @@ internal struct AnnualBudgetAllocator: Sendable {
 
     private func matchesFilter(
         transaction: Transaction,
-        filter: AggregationFilter
+        filter: AggregationFilter,
     ) -> Bool {
         if filter.includeOnlyCalculationTarget, !transaction.isIncludedInCalculation {
             return false
