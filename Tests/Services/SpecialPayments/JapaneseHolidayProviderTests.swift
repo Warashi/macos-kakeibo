@@ -16,7 +16,7 @@ internal struct JapaneseHolidayProviderTests {
     // MARK: - 固定祝日のテスト
 
     @Test("元日が祝日として認識される")
-    internal func testNewYearsDayIsRecognizedAsHoliday() throws {
+    internal func newYearsDayIsRecognizedAsHoliday() throws {
         let holidays2025 = provider.holidays(for: 2025)
 
         let newYearsDay = makeDate(year: 2025, month: 1, day: 1)
@@ -24,7 +24,7 @@ internal struct JapaneseHolidayProviderTests {
     }
 
     @Test("建国記念の日が祝日として認識される")
-    internal func testFoundationDayIsRecognizedAsHoliday() throws {
+    internal func foundationDayIsRecognizedAsHoliday() throws {
         let holidays2025 = provider.holidays(for: 2025)
 
         let foundationDay = makeDate(year: 2025, month: 2, day: 11)
@@ -32,7 +32,7 @@ internal struct JapaneseHolidayProviderTests {
     }
 
     @Test("天皇誕生日_2020年以降は2月23日")
-    internal func testEmperorsBirthdayIsFeb23After2020() throws {
+    internal func emperorsBirthdayIsFeb23After2020() throws {
         let holidays2025 = provider.holidays(for: 2025)
 
         let emperorBirthday = makeDate(year: 2025, month: 2, day: 23)
@@ -40,7 +40,7 @@ internal struct JapaneseHolidayProviderTests {
     }
 
     @Test("天皇誕生日_2019年以前は12月23日")
-    internal func testEmperorsBirthdayIsDec23Before2019() throws {
+    internal func emperorsBirthdayIsDec23Before2019() throws {
         let holidays2018 = provider.holidays(for: 2018)
 
         let emperorBirthday = makeDate(year: 2018, month: 12, day: 23)
@@ -48,7 +48,7 @@ internal struct JapaneseHolidayProviderTests {
     }
 
     @Test("ゴールデンウィークの祝日_憲法記念日_みどりの日_こどもの日")
-    internal func testGoldenWeekHolidays() throws {
+    internal func goldenWeekHolidays() throws {
         let holidays2025 = provider.holidays(for: 2025)
 
         let constitutionDay = makeDate(year: 2025, month: 5, day: 3)
@@ -63,7 +63,7 @@ internal struct JapaneseHolidayProviderTests {
     // MARK: - 移動祝日のテスト
 
     @Test("成人の日_2000年以降は1月第2月曜日")
-    internal func testComingOfAgeDayIsSecondMondayAfter2000() throws {
+    internal func comingOfAgeDayIsSecondMondayAfter2000() throws {
         let holidays2025 = provider.holidays(for: 2025)
 
         // 2025年1月第2月曜日は13日
@@ -76,7 +76,7 @@ internal struct JapaneseHolidayProviderTests {
     }
 
     @Test("成人の日_1999年以前は1月15日")
-    internal func testComingOfAgeDayIsJan15Before1999() throws {
+    internal func comingOfAgeDayIsJan15Before1999() throws {
         let holidays1999 = provider.holidays(for: 1999)
 
         let comingOfAgeDay = makeDate(year: 1999, month: 1, day: 15)
@@ -84,7 +84,7 @@ internal struct JapaneseHolidayProviderTests {
     }
 
     @Test("海の日_2003年以降は7月第3月曜日")
-    internal func testMarineDayIsThirdMondayAfter2003() throws {
+    internal func marineDayIsThirdMondayAfter2003() throws {
         let holidays2025 = provider.holidays(for: 2025)
 
         // 2025年7月第3月曜日は21日
@@ -97,7 +97,7 @@ internal struct JapaneseHolidayProviderTests {
     }
 
     @Test("敬老の日_2003年以降は9月第3月曜日")
-    internal func testRespectForAgedDayIsThirdMondayAfter2003() throws {
+    internal func respectForAgedDayIsThirdMondayAfter2003() throws {
         let holidays2025 = provider.holidays(for: 2025)
 
         // 2025年9月第3月曜日は15日
@@ -110,7 +110,7 @@ internal struct JapaneseHolidayProviderTests {
     }
 
     @Test("スポーツの日_2000年以降は10月第2月曜日")
-    internal func testSportsDayIsSecondMondayAfter2000() throws {
+    internal func sportsDayIsSecondMondayAfter2000() throws {
         let holidays2025 = provider.holidays(for: 2025)
 
         // 2025年10月第2月曜日は13日
@@ -125,7 +125,7 @@ internal struct JapaneseHolidayProviderTests {
     // MARK: - 振替休日のテスト
 
     @Test("日曜日の祝日は翌日が振替休日になる")
-    internal func testSundayHolidayCreatesSubstituteHoliday() throws {
+    internal func sundayHolidayCreatesSubstituteHoliday() throws {
         // 2024年2月11日(建国記念の日)は日曜日
         let holidays2024 = provider.holidays(for: 2024)
 
@@ -144,7 +144,7 @@ internal struct JapaneseHolidayProviderTests {
     // MARK: - 期間指定テスト
 
     @Test("期間を指定して祝日を取得できる")
-    internal func testCanGetHolidaysWithinDateRange() throws {
+    internal func canGetHolidaysWithinDateRange() throws {
         let startDate = makeDate(year: 2025, month: 5, day: 1)
         let endDate = makeDate(year: 2025, month: 5, day: 31)
 
@@ -166,7 +166,7 @@ internal struct JapaneseHolidayProviderTests {
     }
 
     @Test("複数年にまたがる期間の祝日を取得できる")
-    internal func testCanGetHolidaysAcrossMultipleYears() throws {
+    internal func canGetHolidaysAcrossMultipleYears() throws {
         let startDate = makeDate(year: 2024, month: 12, day: 1)
         let endDate = makeDate(year: 2025, month: 1, day: 31)
 

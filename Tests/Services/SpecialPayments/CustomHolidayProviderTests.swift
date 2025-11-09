@@ -13,7 +13,7 @@ internal struct CustomHolidayProviderTests {
     }
 
     @Test("ユーザー定義の祝日を取得できる")
-    internal func testCanGetUserDefinedHolidays() throws {
+    internal func canGetUserDefinedHolidays() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -34,7 +34,7 @@ internal struct CustomHolidayProviderTests {
     }
 
     @Test("繰り返し祝日が毎年適用される")
-    internal func testRecurringHolidaysApplyEveryYear() throws {
+    internal func recurringHolidaysApplyEveryYear() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -60,7 +60,7 @@ internal struct CustomHolidayProviderTests {
     }
 
     @Test("繰り返しでない祝日は指定年のみ適用される")
-    internal func testNonRecurringHolidaysApplyOnlyToSpecifiedYear() throws {
+    internal func nonRecurringHolidaysApplyOnlyToSpecifiedYear() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -85,7 +85,7 @@ internal struct CustomHolidayProviderTests {
     }
 
     @Test("複数のカスタム祝日を管理できる")
-    internal func testCanManageMultipleCustomHolidays() throws {
+    internal func canManageMultipleCustomHolidays() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -117,7 +117,7 @@ internal struct CustomHolidayProviderTests {
     }
 
     @Test("カスタム祝日が存在しない場合は空のSetを返す")
-    internal func testReturnsEmptySetWhenNoCustomHolidays() throws {
+    internal func returnsEmptySetWhenNoCustomHolidays() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -128,7 +128,7 @@ internal struct CustomHolidayProviderTests {
     }
 
     @Test("期間を指定してカスタム祝日を取得できる")
-    internal func testCanGetCustomHolidaysWithinDateRange() throws {
+    internal func canGetCustomHolidaysWithinDateRange() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 

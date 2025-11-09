@@ -13,7 +13,7 @@ internal struct CompositeHolidayProviderTests {
     }
 
     @Test("複数のプロバイダーを統合して祝日を取得できる")
-    internal func testCanIntegrateMultipleProviders() throws {
+    internal func canIntegrateMultipleProviders() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -42,7 +42,7 @@ internal struct CompositeHolidayProviderTests {
     }
 
     @Test("空のプロバイダーリストでも動作する")
-    internal func testWorksWithEmptyProviderList() throws {
+    internal func worksWithEmptyProviderList() throws {
         let compositeProvider = CompositeHolidayProvider(providers: [])
         let holidays = compositeProvider.holidays(for: 2025)
 
@@ -50,7 +50,7 @@ internal struct CompositeHolidayProviderTests {
     }
 
     @Test("重複する祝日は1つにまとめられる")
-    internal func testDuplicateHolidaysAreMerged() throws {
+    internal func duplicateHolidaysAreMerged() throws {
         // 同じ祝日を返す2つのプロバイダーを作成
         let japaneseProvider1 = JapaneseHolidayProvider(calendar: calendar)
         let japaneseProvider2 = JapaneseHolidayProvider(calendar: calendar)
@@ -64,7 +64,7 @@ internal struct CompositeHolidayProviderTests {
     }
 
     @Test("期間指定で複数のプロバイダーから祝日を取得できる")
-    internal func testCanGetHolidaysFromMultipleProvidersWithDateRange() throws {
+    internal func canGetHolidaysFromMultipleProvidersWithDateRange() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
