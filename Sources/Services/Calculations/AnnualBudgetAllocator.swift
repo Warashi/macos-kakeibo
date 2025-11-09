@@ -340,7 +340,9 @@ internal struct AnnualBudgetAllocator: Sendable {
             filter: params.filter,
         )
 
-        let actualExpenseMap = makeActualExpenseMap(from: filteredTransactions)
+        let expenseMaps = makeActualExpenseMaps(from: filteredTransactions)
+        let actualExpenseMap = expenseMaps.categoryExpenses
+        let childExpenseMap = expenseMaps.childExpenseByParent
         let monthlyBudgets = params.budgets.filter { $0.contains(year: year, month: month) }
         let allocationAmounts = allocationAmountMap(from: params.annualBudgetConfig)
         let policyContext = PolicyContext(
@@ -361,6 +363,7 @@ internal struct AnnualBudgetAllocator: Sendable {
             contentsOf: calculateAllocationsForMonthlyBudgets(
                 budgets: monthlyBudgets,
                 actualExpenseMap: actualExpenseMap,
+                childExpenseMap: childExpenseMap,
                 policyContext: policyContext,
                 processedCategoryIds: &processedCategoryIds,
             ),
@@ -370,6 +373,7 @@ internal struct AnnualBudgetAllocator: Sendable {
             contentsOf: calculateAllocationsForFullCoverage(
                 config: params.annualBudgetConfig,
                 actualExpenseMap: actualExpenseMap,
+                childExpenseMap: childExpenseMap,
                 policyContext: policyContext,
                 processedCategoryIds: &processedCategoryIds,
             ),
@@ -379,6 +383,7 @@ internal struct AnnualBudgetAllocator: Sendable {
             contentsOf: calculateAllocationsForUnbudgetedCategories(
                 config: params.annualBudgetConfig,
                 actualExpenseMap: actualExpenseMap,
+                childExpenseMap: childExpenseMap,
                 policyContext: policyContext,
                 processedCategoryIds: &processedCategoryIds,
             ),
@@ -397,6 +402,7 @@ internal struct AnnualBudgetAllocator: Sendable {
     private func calculateAllocationsForMonthlyBudgets(
         budgets: [Budget],
         actualExpenseMap: [UUID: Decimal],
+        childExpenseMap: [UUID: Decimal],
         policyContext: PolicyContext,
         processedCategoryIds: inout Set<UUID>,
     ) -> [CategoryAllocation] {
@@ -415,6 +421,7 @@ internal struct AnnualBudgetAllocator: Sendable {
             let actualAmount = calculateActualAmount(
                 for: category,
                 from: actualExpenseMap,
+                childExpenseMap: childExpenseMap,
                 allocatedCategoryIds: policyContext.allocatedCategoryIds,
             )
 
@@ -446,6 +453,7 @@ internal struct AnnualBudgetAllocator: Sendable {
     private func calculateAllocationsForUnbudgetedCategories(
         config: AnnualBudgetConfig,
         actualExpenseMap: [UUID: Decimal],
+        childExpenseMap: [UUID: Decimal],
         policyContext: PolicyContext,
         processedCategoryIds: inout Set<UUID>,
     ) -> [CategoryAllocation] {
@@ -462,6 +470,7 @@ internal struct AnnualBudgetAllocator: Sendable {
             let actualAmount = calculateActualAmount(
                 for: category,
                 from: actualExpenseMap,
+                childExpenseMap: childExpenseMap,
                 allocatedCategoryIds: policyContext.allocatedCategoryIds,
             )
             guard actualAmount > 0 else { continue }
@@ -494,6 +503,7 @@ internal struct AnnualBudgetAllocator: Sendable {
     private func calculateAllocationsForFullCoverage(
         config: AnnualBudgetConfig,
         actualExpenseMap: [UUID: Decimal],
+        childExpenseMap: [UUID: Decimal],
         policyContext: PolicyContext,
         processedCategoryIds: inout Set<UUID>,
     ) -> [CategoryAllocation] {
@@ -511,6 +521,7 @@ internal struct AnnualBudgetAllocator: Sendable {
             let actualAmount = calculateActualAmount(
                 for: category,
                 from: actualExpenseMap,
+                childExpenseMap: childExpenseMap,
                 allocatedCategoryIds: policyContext.allocatedCategoryIds,
             )
             guard actualAmount > 0 else { continue }
@@ -543,6 +554,7 @@ internal struct AnnualBudgetAllocator: Sendable {
     private func calculateActualAmount(
         for category: Category,
         from actualExpenseMap: [UUID: Decimal],
+        childExpenseMap: [UUID: Decimal],
         allocatedCategoryIds: Set<UUID>,
     ) -> Decimal {
         let categoryId = category.id
@@ -553,6 +565,10 @@ internal struct AnnualBudgetAllocator: Sendable {
 
             for childId in childCategoryIds where !allocatedCategoryIds.contains(childId) {
                 total += actualExpenseMap[childId] ?? 0
+            }
+
+            if childCategoryIds.isEmpty {
+                total += childExpenseMap[categoryId] ?? 0
             }
 
             return total
@@ -657,18 +673,31 @@ private func matchesFilter(
     return true
 }
 
-private func makeActualExpenseMap(from transactions: [Transaction]) -> [UUID: Decimal] {
-    transactions.reduce(into: [:]) { partialResult, transaction in
-        guard transaction.isExpense else { return }
+private struct ActualExpenseMaps {
+    let categoryExpenses: [UUID: Decimal]
+    let childExpenseByParent: [UUID: Decimal]
+}
+
+private func makeActualExpenseMaps(from transactions: [Transaction]) -> ActualExpenseMaps {
+    var categoryExpenses: [UUID: Decimal] = [:]
+    var childExpenseByParent: [UUID: Decimal] = [:]
+
+    for transaction in transactions where transaction.isExpense {
         let amount = abs(transaction.amount)
 
-        if let minorId = transaction.minorCategory?.id {
-            partialResult[minorId, default: 0] += amount
-        }
-
-        if transaction.minorCategory == nil,
-           let majorId = transaction.majorCategory?.id ?? transaction.minorCategory?.parent?.id {
-            partialResult[majorId, default: 0] += amount
+        if let minor = transaction.minorCategory {
+            categoryExpenses[minor.id, default: 0] += amount
+            let parentId = transaction.majorCategory?.id ?? minor.parent?.id
+            if let parentId {
+                childExpenseByParent[parentId, default: 0] += amount
+            }
+        } else if let majorId = transaction.majorCategory?.id {
+            categoryExpenses[majorId, default: 0] += amount
         }
     }
+
+    return ActualExpenseMaps(
+        categoryExpenses: categoryExpenses,
+        childExpenseByParent: childExpenseByParent,
+    )
 }
