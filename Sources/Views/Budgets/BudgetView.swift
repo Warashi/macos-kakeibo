@@ -291,8 +291,6 @@ private extension BudgetView {
             switch error {
             case .noAllocations:
                 annualFormError = "カテゴリと金額を入力してください"
-            case .manualExceedsTotal:
-                annualFormError = "手動配分の合計が総額を超えています"
             case .manualDoesNotMatchTotal:
                 annualFormError = "カテゴリ合計が総額と一致していません"
             }

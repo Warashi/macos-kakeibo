@@ -5,8 +5,8 @@ import Testing
 
 @Suite("AnnualBudgetFormState Tests")
 internal struct AnnualBudgetFormStateTests {
-    @Test("ロード時、自動充当かつ金額0なら表示を空欄にする")
-    internal func loadLeavesAmountBlankForAutomaticZero() throws {
+    @Test("ロード時、0円でも文字列として保持する")
+    internal func loadKeepsZeroAmountText() throws {
         let category = Category(name: "特別", allowsAnnualBudget: true)
         let config = AnnualBudgetConfig(year: 2025, totalAmount: 100_000, policy: .automatic)
         let allocation = AnnualBudgetAllocation(amount: 0, category: category)
@@ -16,32 +16,13 @@ internal struct AnnualBudgetFormStateTests {
         state.load(from: config)
 
         let row = try #require(state.allocationRows.first)
-        #expect(row.amountText.isEmpty)
+        #expect(row.amountText == "0")
     }
 
-    @Test("自動充当では金額未入力でもドラフト生成できる")
-    internal func automaticPolicyAllowsEmptyAmount() throws {
+    @Test("金額未入力の行は常にドラフト生成に失敗する")
+    internal func makeAllocationDraftsRequireAmount() {
         var state = AnnualBudgetFormState()
         state.policy = .automatic
-        let categoryId = UUID()
-        state.allocationRows = [
-            AnnualBudgetAllocationRowState(
-                selectedMajorCategoryId: categoryId,
-                amountText: "",
-                selectedPolicyOverride: nil,
-            ),
-        ]
-
-        let drafts = try #require(state.makeAllocationDrafts())
-        #expect(drafts.count == 1)
-        #expect(drafts.first?.categoryId == categoryId)
-        #expect(drafts.first?.amount == 0)
-    }
-
-    @Test("手動充当では金額必須")
-    internal func manualPolicyRequiresAmount() {
-        var state = AnnualBudgetFormState()
-        state.policy = .manual
         state.allocationRows = [
             AnnualBudgetAllocationRowState(
                 selectedMajorCategoryId: UUID(),
@@ -53,48 +34,39 @@ internal struct AnnualBudgetFormStateTests {
         #expect(state.makeAllocationDrafts() == nil)
     }
 
-    @Test("カテゴリ個別で自動充当指定した場合も金額は任意")
-    internal func overrideAutomaticAllowsEmptyAmount() throws {
+    @Test("金額を入力すればドラフトを生成できる")
+    internal func makeAllocationDraftsSucceedWithAmount() throws {
         var state = AnnualBudgetFormState()
-        state.policy = .manual
         let categoryId = UUID()
         state.allocationRows = [
             AnnualBudgetAllocationRowState(
                 selectedMajorCategoryId: categoryId,
-                amountText: "",
-                selectedPolicyOverride: .automatic,
+                amountText: "50000",
+                selectedPolicyOverride: .manual,
             ),
         ]
 
         let drafts = try #require(state.makeAllocationDrafts())
+        #expect(drafts.count == 1)
         #expect(drafts.first?.categoryId == categoryId)
-        #expect(drafts.first?.amount == 0)
-        #expect(drafts.first?.policyOverride == .automatic)
+        #expect(drafts.first?.amount == 50_000)
     }
 
-    @Test("自動充当行には残額が均等に割り当てられる")
-    internal func finalizeDistributesRemainingAcrossAutomaticRows() throws {
+    @Test("カテゴリ合計が総額と一致すれば確定できる")
+    internal func finalizeSucceedsWhenSumMatches() throws {
         var state = AnnualBudgetFormState()
-        state.policy = .automatic
-        let manualCategory = UUID()
-        let automaticCategory1 = UUID()
-        let automaticCategory2 = UUID()
-
+        let category1 = UUID()
+        let category2 = UUID()
         state.allocationRows = [
             AnnualBudgetAllocationRowState(
-                selectedMajorCategoryId: manualCategory,
-                amountText: "40000",
+                selectedMajorCategoryId: category1,
+                amountText: "30000",
                 selectedPolicyOverride: .manual,
             ),
             AnnualBudgetAllocationRowState(
-                selectedMajorCategoryId: automaticCategory1,
-                amountText: "",
-                selectedPolicyOverride: nil,
-            ),
-            AnnualBudgetAllocationRowState(
-                selectedMajorCategoryId: automaticCategory2,
-                amountText: "",
-                selectedPolicyOverride: nil,
+                selectedMajorCategoryId: category2,
+                amountText: "70000",
+                selectedPolicyOverride: .manual,
             ),
         ]
 
@@ -103,80 +75,15 @@ internal struct AnnualBudgetFormStateTests {
             Issue.record()
             return
         }
+
         let amounts = Dictionary(uniqueKeysWithValues: drafts.map { ($0.categoryId, $0.amount) })
-
-        #expect(amounts[manualCategory] == 40000)
-        #expect(amounts[automaticCategory1] == 30000)
-        #expect(amounts[automaticCategory2] == 30000)
+        #expect(amounts[category1] == 30_000)
+        #expect(amounts[category2] == 70_000)
     }
 
-    @Test("残額が自動行の数で割り切れない場合でも切り捨てで配分される")
-    internal func finalizeTruncatesRemainder() throws {
+    @Test("カテゴリ合計が総額と一致しない場合はエラー")
+    internal func finalizeFailsWhenSumDoesNotMatch() {
         var state = AnnualBudgetFormState()
-        state.policy = .automatic
-        let manualCategory = UUID()
-        let automaticCategory1 = UUID()
-        let automaticCategory2 = UUID()
-
-        state.allocationRows = [
-            AnnualBudgetAllocationRowState(
-                selectedMajorCategoryId: manualCategory,
-                amountText: "51000",
-                selectedPolicyOverride: .manual,
-            ),
-            AnnualBudgetAllocationRowState(
-                selectedMajorCategoryId: automaticCategory1,
-                amountText: "",
-                selectedPolicyOverride: nil,
-            ),
-            AnnualBudgetAllocationRowState(
-                selectedMajorCategoryId: automaticCategory2,
-                amountText: "",
-                selectedPolicyOverride: nil,
-            ),
-        ]
-
-        let result = state.finalizeAllocations(totalAmount: 100_000)
-        guard case let .success(drafts) = result else {
-            Issue.record()
-            return
-        }
-        let amounts = Dictionary(uniqueKeysWithValues: drafts.map { ($0.categoryId, $0.amount) })
-
-        #expect(amounts[automaticCategory1] == 24000)
-        #expect(amounts[automaticCategory2] == 24000)
-        #expect(amounts[manualCategory] == 51000)
-    }
-
-    @Test("自動配分でも手動合計が総額を超えたらエラー")
-    internal func finalizeFailsWhenManualExceedsTotal() {
-        var state = AnnualBudgetFormState()
-        state.policy = .automatic
-        state.allocationRows = [
-            AnnualBudgetAllocationRowState(
-                selectedMajorCategoryId: UUID(),
-                amountText: "120000",
-                selectedPolicyOverride: .manual,
-            ),
-            AnnualBudgetAllocationRowState(
-                selectedMajorCategoryId: UUID(),
-                amountText: "",
-                selectedPolicyOverride: nil,
-            ),
-        ]
-
-        let result = state.finalizeAllocations(totalAmount: 100_000)
-        if case let .failure(error) = result {
-            #expect(error == .manualExceedsTotal)
-        } else {
-            Issue.record()
-        }
-    }
-
-    @Test("自動行が無いときは合計が一致しないとエラー")
-    internal func finalizeRequiresExactSumWithoutAutomatic() {
-        var state = AnnualBudgetFormState()
-        state.policy = .manual
         state.allocationRows = [
             AnnualBudgetAllocationRowState(
                 selectedMajorCategoryId: UUID(),
@@ -190,7 +97,7 @@ internal struct AnnualBudgetFormStateTests {
             ),
         ]
 
-        let result = state.finalizeAllocations(totalAmount: 60000)
+        let result = state.finalizeAllocations(totalAmount: 80_000)
         if case let .failure(error) = result {
             #expect(error == .manualDoesNotMatchTotal)
         } else {

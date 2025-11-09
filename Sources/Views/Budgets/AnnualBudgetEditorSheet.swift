@@ -78,7 +78,6 @@ internal struct AnnualBudgetEditorSheet: View {
             } else {
                 let disableRemove: Bool = formState.allocationRows.count <= 1
                 ForEach($formState.allocationRows) { $row in
-                    let effectivePolicy = row.selectedPolicyOverride ?? formState.policy
                     HStack(spacing: 12) {
                         CategoryHierarchyPicker(
                             categories: categories,
@@ -91,16 +90,9 @@ internal struct AnnualBudgetEditorSheet: View {
                         )
                         .frame(width: 220, alignment: .leading)
 
-                        if effectivePolicy == .automatic {
-                            Text("自動計算")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .frame(width: 140, alignment: .leading)
-                        } else {
-                            TextField("金額", text: $row.amountText)
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 140)
-                        }
+                        TextField("金額", text: $row.amountText)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 140)
 
                         Picker(
                             "カテゴリポリシー",

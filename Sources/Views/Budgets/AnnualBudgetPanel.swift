@@ -136,6 +136,8 @@ internal extension AnnualBudgetPolicy {
             "自動充当"
         case .manual:
             "手動充当"
+        case .fullCoverage:
+            "全額年次特別枠"
         case .disabled:
             "使用しない"
         }

@@ -78,7 +78,6 @@ internal struct BudgetEditorFormState {
 
 internal enum AnnualAllocationFinalizationError: Error, Equatable {
     case noAllocations
-    case manualExceedsTotal
     case manualDoesNotMatchTotal
 }
 
@@ -91,16 +90,9 @@ internal struct AnnualBudgetFormState {
         totalAmountText = config.totalAmount.plainString
         policy = config.policy
         allocationRows = config.allocations.map { allocation in
-            let effectivePolicy = allocation.policyOverride ?? config.policy
-            let amountText: String = if effectivePolicy == .automatic,
-                                        allocation.amount == 0 {
-                ""
-            } else {
-                allocation.amount.plainString
-            }
             var row = AnnualBudgetAllocationRowState(
                 id: allocation.id,
-                amountText: amountText,
+                amountText: allocation.amount.plainString,
                 selectedPolicyOverride: allocation.policyOverride,
             )
             if allocation.category.isMajor {
@@ -167,20 +159,13 @@ internal struct AnnualBudgetFormState {
         for row: AnnualBudgetAllocationRowState,
         categoryId: UUID,
     ) -> AnnualAllocationDraft? {
-        let effectivePolicy = row.effectivePolicy(globalPolicy: policy)
-
-        let amount: Decimal
-        if let value = row.decimalAmount, value > 0 {
-            amount = value
-        } else if effectivePolicy == .automatic {
-            amount = 0
-        } else {
+        guard let value = row.decimalAmount, value > 0 else {
             return nil
         }
 
         return AnnualAllocationDraft(
             categoryId: categoryId,
-            amount: amount,
+            amount: value,
             policyOverride: row.selectedPolicyOverride,
         )
     }
@@ -191,50 +176,15 @@ internal struct AnnualBudgetFormState {
             return .failure(.noAllocations)
         }
 
-        var manualSum: Decimal = 0
-        var automaticIndices: [Int] = []
-
-        for (index, draft) in drafts.enumerated() {
-            let policy = draft.effectivePolicy(globalPolicy: policy)
-            if policy == .automatic {
-                automaticIndices.append(index)
-            } else {
-                manualSum = manualSum.safeAdd(draft.amount)
-            }
+        let totalAllocation = drafts.reduce(Decimal.zero) { partialResult, draft in
+            partialResult.safeAdd(draft.amount)
         }
 
-        let hasAutomaticRows = !automaticIndices.isEmpty
-        if manualSum > totalAmount {
-            return hasAutomaticRows ? .failure(.manualExceedsTotal) : .failure(.manualDoesNotMatchTotal)
-        }
-
-        var finalDrafts: [AnnualAllocationDraft] = drafts
-        if !automaticIndices.isEmpty {
-            let remaining = totalAmount.safeSubtract(manualSum)
-            let perCategory = roundDownToThousand(
-                remaining.safeDivide(Decimal(automaticIndices.count)),
-            )
-            let automaticIndexSet = Set(automaticIndices)
-
-            finalDrafts = finalDrafts.enumerated().map { index, draft in
-                if automaticIndexSet.contains(index) {
-                    return AnnualAllocationDraft(
-                        categoryId: draft.categoryId,
-                        amount: perCategory,
-                        policyOverride: draft.policyOverride,
-                    )
-                }
-                return draft
-            }
-        } else if manualSum != totalAmount {
+        guard totalAllocation == totalAmount else {
             return .failure(.manualDoesNotMatchTotal)
         }
 
-        return .success(finalDrafts)
-    }
-
-    private func roundDownToThousand(_ value: Decimal) -> Decimal {
-        value.roundedDown(scale: -3)
+        return .success(drafts)
     }
 }
 
@@ -274,9 +224,6 @@ internal struct AnnualBudgetAllocationRowState: Identifiable {
             ?? Decimal(string: normalizedAmountText)
     }
 
-    internal func effectivePolicy(globalPolicy: AnnualBudgetPolicy) -> AnnualBudgetPolicy {
-        selectedPolicyOverride ?? globalPolicy
-    }
 }
 
 // MARK: - Budget Editor Mode
