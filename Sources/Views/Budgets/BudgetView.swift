@@ -927,10 +927,10 @@ private struct SpecialPaymentEditorSheet: View {
         let remainingMonths = months % 12
 
         switch (years, remainingMonths) {
-        case let (0, m):
-            return "\(m)か月"
-        case let (y, 0):
-            return "\(y)年"
+        case let (0, monthsOnly):
+            return "\(monthsOnly)か月"
+        case let (yearsOnly, 0):
+            return "\(yearsOnly)年"
         default:
             return "\(years)年\(remainingMonths)か月"
         }

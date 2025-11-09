@@ -120,10 +120,10 @@ internal extension SpecialPaymentDefinition {
         let months = recurrenceIntervalMonths % 12
 
         switch (years, months) {
-        case let (0, m):
-            return "\(m)か月"
-        case let (y, 0):
-            return "\(y)年"
+        case let (0, monthsOnly):
+            return "\(monthsOnly)か月"
+        case let (yearsOnly, 0):
+            return "\(yearsOnly)年"
         default:
             return "\(years)年\(months)か月"
         }
@@ -318,7 +318,7 @@ internal extension SpecialPaymentOccurrence {
 
 extension DayOfMonthPattern {
     /// 指定された年月でこのパターンに該当する日付を計算
-    func date(
+    internal func date(
         in year: Int,
         month: Int,
         calendar: Calendar,

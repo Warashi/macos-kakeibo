@@ -16,7 +16,7 @@ internal protocol HolidayProvider {
 }
 
 extension HolidayProvider {
-    func holidays(from startDate: Date, to endDate: Date) -> Set<Date> {
+    internal func holidays(from startDate: Date, to endDate: Date) -> Set<Date> {
         let calendar = Calendar(identifier: .gregorian)
         let startYear = calendar.component(.year, from: startDate)
         let endYear = calendar.component(.year, from: endDate)
