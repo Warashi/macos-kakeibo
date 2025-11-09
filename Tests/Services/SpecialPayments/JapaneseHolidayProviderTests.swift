@@ -150,17 +150,19 @@ internal struct JapaneseHolidayProviderTests {
 
         let holidays = provider.holidays(from: startDate, to: endDate)
 
-        // 5月の祝日（憲法記念日、みどりの日、こどもの日）が含まれる
+        // 5月の祝日（憲法記念日、みどりの日、こどもの日、振替休日）が含まれる
         let constitutionDay = makeDate(year: 2025, month: 5, day: 3)
         let greeneryDay = makeDate(year: 2025, month: 5, day: 4)
         let childrensDay = makeDate(year: 2025, month: 5, day: 5)
+        let substituteHoliday = makeDate(year: 2025, month: 5, day: 6)
 
         #expect(holidays.contains(constitutionDay))
         #expect(holidays.contains(greeneryDay))
         #expect(holidays.contains(childrensDay))
+        #expect(holidays.contains(substituteHoliday))
 
-        // 6月の祝日は含まれない
-        #expect(holidays.count == 3)
+        // 5月は4つの祝日（振替休日含む）
+        #expect(holidays.count == 4)
     }
 
     @Test("複数年にまたがる期間の祝日を取得できる")

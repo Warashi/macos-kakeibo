@@ -5,6 +5,11 @@ options:
     macOS: "26.0"
   createIntermediateGroups: true
 
+packages:
+  HolidayJp:
+    url: https://github.com/holiday-jp/holiday_jp-swift.git
+    from: 1.0.0
+
 schemes:
   Kakeibo:
     build:
@@ -26,6 +31,8 @@ targets:
       - path: Config/Assets.xcassets
     entitlements:
       path: Config/Kakeibo.entitlements
+    dependencies:
+      - package: HolidayJp
     info:
       path: Info.plist
       properties:
