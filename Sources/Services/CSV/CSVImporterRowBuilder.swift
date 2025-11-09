@@ -5,7 +5,7 @@ import SwiftData
 
 extension CSVImporter {
     /// CSVRowからCSVImportRecordを構築
-    internal func buildRecord(
+    func buildRecord(
         for row: CSVRow,
         mapping: CSVColumnMapping,
     ) -> CSVImportRecord {
@@ -48,7 +48,7 @@ extension CSVImporter {
     }
 
     /// 識別子を抽出
-    internal func extractIdentifier(from row: CSVRow, mapping: CSVColumnMapping) -> CSVTransactionIdentifier? {
+    func extractIdentifier(from row: CSVRow, mapping: CSVColumnMapping) -> CSVTransactionIdentifier? {
         guard let rawId = normalizedOptional(mapping.value(for: .identifier, in: row)) else {
             return nil
         }
@@ -56,7 +56,7 @@ extension CSVImporter {
     }
 
     /// 必須フィールドをバリデーション
-    internal func validateRequiredFields(
+    func validateRequiredFields(
         row: CSVRow,
         mapping: CSVColumnMapping,
     ) -> RequiredFieldsResult? {
@@ -78,7 +78,7 @@ extension CSVImporter {
     }
 
     /// エラーレコードを作成（必須フィールドのバリデーションに失敗した場合）
-    internal func createErrorRecord(
+    func createErrorRecord(
         row: CSVRow,
         mapping: CSVColumnMapping,
         issues: inout [CSVImportIssue],
@@ -91,7 +91,7 @@ extension CSVImporter {
             issues.append(.init(severity: .error, message: "日付が設定されていません"))
         }
 
-        if mapping.value(for: .title, in: row)?.trimmed?.isEmpty ?? true {
+        if mapping.value(for: .title, in: row)?.trimmed.isEmpty ?? true {
             issues.append(.init(severity: .error, message: "内容が設定されていません"))
         }
 
@@ -107,7 +107,7 @@ extension CSVImporter {
     }
 
     /// オプションフィールドを抽出
-    internal func extractOptionalFields(
+    func extractOptionalFields(
         from row: CSVRow,
         mapping: CSVColumnMapping,
         issues: inout [CSVImportIssue],
@@ -126,7 +126,7 @@ extension CSVImporter {
     }
 
     /// フラグ（ブール値）フィールドを抽出
-    internal func extractFlags(
+    func extractFlags(
         from row: CSVRow,
         mapping: CSVColumnMapping,
         issues: inout [CSVImportIssue],
