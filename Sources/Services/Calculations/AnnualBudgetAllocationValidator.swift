@@ -34,7 +34,7 @@ internal struct AnnualBudgetAllocationValidator: Sendable {
 }
 
 /// Validatorが構築した計算文脈
-internal struct ValidatedAllocationContext: Sendable {
+internal struct ValidatedAllocationContext {
     internal let accumulationParams: AccumulationParams
     internal let policyOverrides: [UUID: AnnualBudgetPolicy]
 
@@ -52,7 +52,7 @@ internal struct ValidatedAllocationContext: Sendable {
 }
 
 /// 累積計算パラメータ
-internal struct AccumulationParams: Sendable {
+internal struct AccumulationParams {
     internal let params: AllocationCalculationParams
     internal let year: Int
     internal let endMonth: Int
