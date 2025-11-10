@@ -52,9 +52,10 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
             sortBy: Self.sortDescriptors(for: query.sortOption),
         )
         let initialSnapshot = try modelContext.fetch(descriptor)
-        let copiedSnapshot = initialSnapshot.map { $0 }
-        Task { @MainActor in
-            onChange(copiedSnapshot)
+        Task.detached(priority: nil) {
+            await MainActor.run {
+                onChange(initialSnapshot)
+            }
         }
         return modelContext.observe(descriptor: descriptor, onChange: onChange)
     }
