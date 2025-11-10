@@ -51,9 +51,9 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
             predicate: Self.predicate(from: query),
             sortBy: Self.sortDescriptors(for: query.sortOption),
         )
-        let initial = try modelContext.fetch(descriptor)
-        Task { @MainActor in
-            onChange(initial)
+        let initialSnapshot = try modelContext.fetch(descriptor)
+        Task { @MainActor [initialSnapshot] in
+            onChange(initialSnapshot)
         }
         return modelContext.observe(descriptor: descriptor, onChange: onChange)
     }
