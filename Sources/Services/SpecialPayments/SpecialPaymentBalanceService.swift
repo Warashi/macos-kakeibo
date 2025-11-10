@@ -263,7 +263,7 @@ internal struct SpecialPaymentBalanceCacheMetrics: Sendable {
     internal let invalidations: Int
 }
 
-fileprivate struct BalanceCacheKey: Hashable {
+internal struct BalanceCacheKey: Hashable {
     let definitionId: UUID
     let balanceId: UUID
     let year: Int
@@ -274,7 +274,7 @@ fileprivate struct BalanceCacheKey: Hashable {
     let balanceVersion: Int
 }
 
-fileprivate struct BalanceSnapshot: Sendable {
+internal struct BalanceSnapshot: Sendable {
     let totalSavedAmount: Decimal
     let totalPaidAmount: Decimal
     let lastUpdatedYear: Int
