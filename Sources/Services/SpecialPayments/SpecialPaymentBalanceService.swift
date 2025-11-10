@@ -302,7 +302,7 @@ final class SpecialPaymentBalanceCache: @unchecked Sendable {
         }
     }
 
-    internal func snapshot(for key: BalanceCacheKey) -> BalanceSnapshot? {
+    private func snapshot(for key: BalanceCacheKey) -> BalanceSnapshot? {
         lock.withLock {
             if let value = snapshots[key] {
                 metrics.hits += 1
@@ -313,7 +313,7 @@ final class SpecialPaymentBalanceCache: @unchecked Sendable {
         }
     }
 
-    internal func store(snapshot: BalanceSnapshot, for key: BalanceCacheKey) {
+    private func store(snapshot: BalanceSnapshot, for key: BalanceCacheKey) {
         lock.withLock {
             snapshots[key] = snapshot
         }
