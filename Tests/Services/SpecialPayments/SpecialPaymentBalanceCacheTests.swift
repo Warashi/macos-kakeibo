@@ -111,7 +111,7 @@ internal struct SpecialPaymentBalanceCacheTests {
                 definition: definition,
                 balance: balance,
                 year: 2025,
-                month: 6,
+                month: 7,
                 context: context
             )
         )
