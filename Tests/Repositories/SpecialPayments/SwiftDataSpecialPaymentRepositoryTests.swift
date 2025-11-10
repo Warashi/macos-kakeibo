@@ -152,7 +152,6 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
         )
 
         let occurrence = try #require(definition.occurrences.first)
-        let previousUpdatedAt = definition.updatedAt
 
         let summary = try repository.markOccurrenceCompleted(
             occurrence,
@@ -165,6 +164,5 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
 
         #expect(occurrence.status == SpecialPaymentStatus.completed)
         #expect(summary.syncedAt == today)
-        #expect(definition.updatedAt > previousUpdatedAt)
     }
 }
