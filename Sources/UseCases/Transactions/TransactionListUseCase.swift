@@ -29,6 +29,11 @@ internal struct TransactionListFilter {
 internal protocol TransactionListUseCaseProtocol {
     func loadReferenceData() throws -> TransactionReferenceData
     func loadTransactions(filter: TransactionListFilter) throws -> [Transaction]
+    @discardableResult
+    func observeTransactions(
+        filter: TransactionListFilter,
+        onChange: @escaping @MainActor ([Transaction]) -> Void
+    ) throws -> ObservationToken
 }
 
 internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtocol {
@@ -45,18 +50,51 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
     }
 
     internal func loadTransactions(filter: TransactionListFilter) throws -> [Transaction] {
-        let keyword = filter.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        var transactions = try repository.fetchTransactions(query: filter.asQuery)
+        let transactions = try repository.fetchTransactions(query: filter.asQuery)
+        return filterTransactions(transactions, filter: filter)
+    }
 
-        transactions = transactions.filter { transaction in
-            matchesFilter(transaction: transaction, filter: filter, keyword: keyword)
+    @discardableResult
+    internal func observeTransactions(
+        filter: TransactionListFilter,
+        onChange: @escaping @MainActor ([Transaction]) -> Void
+    ) throws -> ObservationToken {
+        let token = try repository.observeTransactions(query: filter.asQuery) { [weak self] transactions in
+            guard let self else { return }
+            let filtered = self.filterTransactions(transactions, filter: filter)
+            MainActor.assumeIsolated {
+                onChange(filtered)
+            }
         }
 
-        return Self.sort(transactions: transactions, option: filter.sortOption)
+        do {
+            let initial = try loadTransactions(filter: filter)
+            MainActor.assumeIsolated {
+                onChange(initial)
+            }
+        } catch {
+            token.cancel()
+            throw error
+        }
+
+        return token
     }
 }
 
 private extension DefaultTransactionListUseCase {
+    func filterTransactions(
+        _ transactions: [Transaction],
+        filter: TransactionListFilter
+    ) -> [Transaction] {
+        let keyword = filter.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return Self.sort(
+            transactions: transactions.filter { transaction in
+                matchesFilter(transaction: transaction, filter: filter, keyword: keyword)
+            },
+            option: filter.sortOption
+        )
+    }
+
     func matchesFilter(transaction: Transaction, filter: TransactionListFilter, keyword: String) -> Bool {
         guard matchesCalculationTarget(transaction: transaction, includeOnly: filter.includeOnlyCalculationTarget) else {
             return false

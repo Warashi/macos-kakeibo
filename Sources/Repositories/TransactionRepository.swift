@@ -18,6 +18,11 @@ internal protocol TransactionRepository {
     func fetchAllTransactions() throws -> [Transaction]
     func fetchInstitutions() throws -> [FinancialInstitution]
     func fetchCategories() throws -> [Category]
+    @discardableResult
+    func observeTransactions(
+        query: TransactionQuery,
+        onChange: @escaping @MainActor ([Transaction]) -> Void
+    ) throws -> ObservationToken
     func insert(_ transaction: Transaction)
     func delete(_ transaction: Transaction)
     func saveChanges() throws

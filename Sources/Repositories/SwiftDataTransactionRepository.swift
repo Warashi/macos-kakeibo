@@ -42,6 +42,18 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
         return try modelContext.fetch(descriptor)
     }
 
+    @discardableResult
+    internal func observeTransactions(
+        query: TransactionQuery,
+        onChange: @escaping @MainActor ([Transaction]) -> Void
+    ) throws -> ObservationToken {
+        let descriptor = FetchDescriptor<Transaction>(
+            predicate: Self.predicate(from: query),
+            sortBy: Self.sortDescriptors(for: query.sortOption),
+        )
+        return modelContext.observe(descriptor: descriptor, onChange: onChange)
+    }
+
     internal func insert(_ transaction: Transaction) {
         modelContext.insert(transaction)
     }

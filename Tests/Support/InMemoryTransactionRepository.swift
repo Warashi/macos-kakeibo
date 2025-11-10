@@ -35,6 +35,18 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         categories
     }
 
+    @discardableResult
+    internal func observeTransactions(
+        query: TransactionQuery,
+        onChange: @escaping @MainActor ([Transaction]) -> Void
+    ) throws -> ObservationToken {
+        let snapshot = try fetchTransactions(query: query)
+        MainActor.assumeIsolated {
+            onChange(snapshot)
+        }
+        return ObservationToken {}
+    }
+
     internal func insert(_ transaction: Transaction) {
         transactions.append(transaction)
     }

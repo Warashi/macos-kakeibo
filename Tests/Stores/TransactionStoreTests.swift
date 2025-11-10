@@ -15,8 +15,8 @@ internal struct TransactionStoreTests {
         #expect(store.transactions.count == 1)
         #expect(store.availableInstitutions.count == 1)
         #expect(store.availableCategories.count == 2)
-        #expect(listUseCase.receivedFilters.count == 1)
-        #expect(listUseCase.receivedFilters.first?.month == store.currentMonth)
+        #expect(listUseCase.observedFilters.count == 1)
+        #expect(listUseCase.observedFilters.first?.month == store.currentMonth)
     }
 
     @Test("フィルタ変更でUseCaseが再実行される")
@@ -27,8 +27,8 @@ internal struct TransactionStoreTests {
 
         store.selectedFilterKind = .income
 
-        #expect(listUseCase.receivedFilters.count == 2)
-        #expect(listUseCase.receivedFilters.last?.filterKind == .income)
+        #expect(listUseCase.observedFilters.count == 2)
+        #expect(listUseCase.observedFilters.last?.filterKind == .income)
     }
 
     @Test("新規作成準備でフォームが初期化される")
@@ -69,7 +69,7 @@ internal struct TransactionStoreTests {
 
         #expect(result)
         #expect(formUseCase.deletedTransactions.contains { $0.id == transaction.id })
-        #expect(listUseCase.receivedFilters.count == 2)
+        #expect(listUseCase.observedFilters.count == 2)
     }
 }
 
@@ -87,6 +87,7 @@ private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol {
     internal var transactions: [Transaction]
     internal var referenceData: TransactionReferenceData
     internal private(set) var receivedFilters: [TransactionListFilter] = []
+    internal private(set) var observedFilters: [TransactionListFilter] = []
 
     internal init(transactions: [Transaction]) {
         self.transactions = transactions
@@ -103,6 +104,16 @@ private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol {
     internal func loadTransactions(filter: TransactionListFilter) throws -> [Transaction] {
         receivedFilters.append(filter)
         return transactions
+    }
+
+    @discardableResult
+    internal func observeTransactions(
+        filter: TransactionListFilter,
+        onChange: @escaping @MainActor ([Transaction]) -> Void
+    ) throws -> ObservationToken {
+        observedFilters.append(filter)
+        onChange(transactions)
+        return ObservationToken {}
     }
 }
 

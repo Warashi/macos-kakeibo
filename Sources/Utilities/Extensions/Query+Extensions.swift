@@ -1,3 +1,4 @@
+import CoreData
 import Foundation
 import SwiftData
 
@@ -37,6 +38,42 @@ public extension ModelContext {
         let items = try fetchAll(type)
         for item in items {
             delete(item)
+        }
+    }
+}
+
+// MARK: - Observation Helpers
+
+internal extension ModelContext {
+    /// Observes changes for a given fetch descriptor and invokes the handler with the latest snapshot.
+    /// - Parameters:
+    ///   - descriptor: Descriptor describing the target model set.
+    ///   - onChange: Handler invoked on the main actor whenever the result set changes.
+    /// - Returns: A token that must be retained while observation is needed.
+    @discardableResult
+    func observe<T: PersistentModel>(
+        descriptor: FetchDescriptor<T>,
+        onChange: @escaping @MainActor ([T]) -> Void
+    ) -> ObservationToken {
+        let center = NotificationCenter.default
+        let observer = center.addObserver(
+            forName: .NSManagedObjectContextDidSave,
+            object: self,
+            queue: nil
+        ) { [weak self] _ in
+            guard let self else { return }
+            Task { @MainActor in
+                do {
+                    let updated = try self.fetch(descriptor)
+                    onChange(updated)
+                } catch {
+                    assertionFailure("Failed to fetch observed descriptor: \(error)")
+                }
+            }
+        }
+
+        return ObservationToken {
+            center.removeObserver(observer)
         }
     }
 }

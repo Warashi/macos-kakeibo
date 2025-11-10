@@ -26,6 +26,8 @@ internal final class TransactionStore {
     private let listUseCase: TransactionListUseCaseProtocol
     private let formUseCase: TransactionFormUseCaseProtocol
     private let clock: () -> Date
+    @ObservationIgnored
+    private var transactionsToken: ObservationToken?
 
     internal var transactions: [Transaction] = []
     internal var searchText: String = "" {
@@ -117,6 +119,10 @@ internal final class TransactionStore {
         self.currentMonth = now.startOfMonth
         self.formState = .empty(defaultDate: now)
         refresh()
+    }
+
+    deinit {
+        transactionsToken?.cancel()
     }
 }
 
@@ -320,10 +326,15 @@ private extension TransactionStore {
     }
 
     func reloadTransactions() {
+        transactionsToken?.cancel()
         do {
-            transactions = try listUseCase.loadTransactions(filter: makeFilter())
-            listErrorMessage = nil
+            transactionsToken = try listUseCase.observeTransactions(filter: makeFilter()) { [weak self] result in
+                guard let self else { return }
+                self.transactions = result
+                self.listErrorMessage = nil
+            }
         } catch {
+            transactionsToken = nil
             transactions = []
             listErrorMessage = "取引の読み込みに失敗しました: \(error.localizedDescription)"
         }
