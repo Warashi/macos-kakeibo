@@ -410,7 +410,7 @@ internal struct SavingsAllocationCacheKey: Hashable {
     let definitionsVersion: Int
 }
 
-private struct FilterSignature: Hashable {
+internal struct FilterSignature: Hashable {
     let includeOnlyCalculationTarget: Bool
     let excludeTransfers: Bool
     let financialInstitutionId: UUID?
