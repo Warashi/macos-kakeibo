@@ -107,6 +107,7 @@ private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol {
     }
 
     @discardableResult
+    @MainActor
     internal func observeTransactions(
         filter: TransactionListFilter,
         onChange: @escaping @MainActor ([Transaction]) -> Void

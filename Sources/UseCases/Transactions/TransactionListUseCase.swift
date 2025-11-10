@@ -30,6 +30,7 @@ internal protocol TransactionListUseCaseProtocol {
     func loadReferenceData() throws -> TransactionReferenceData
     func loadTransactions(filter: TransactionListFilter) throws -> [Transaction]
     @discardableResult
+    @MainActor
     func observeTransactions(
         filter: TransactionListFilter,
         onChange: @escaping @MainActor ([Transaction]) -> Void
@@ -55,23 +56,19 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
     }
 
     @discardableResult
+    @MainActor
     internal func observeTransactions(
         filter: TransactionListFilter,
         onChange: @escaping @MainActor ([Transaction]) -> Void
     ) throws -> ObservationToken {
-        let token = try repository.observeTransactions(query: filter.asQuery) { [weak self] transactions in
-            guard let self else { return }
-            let filtered = self.filterTransactions(transactions, filter: filter)
-            MainActor.assumeIsolated {
-                onChange(filtered)
-            }
+        let token = try repository.observeTransactions(query: filter.asQuery) { transactions in
+            let filtered = Self.filterTransactions(transactions, filter: filter)
+            onChange(filtered)
         }
 
         do {
             let initial = try loadTransactions(filter: filter)
-            MainActor.assumeIsolated {
-                onChange(initial)
-            }
+            onChange(initial)
         } catch {
             token.cancel()
             throw error
@@ -82,25 +79,25 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
 }
 
 private extension DefaultTransactionListUseCase {
-    func filterTransactions(
+    static func filterTransactions(
         _ transactions: [Transaction],
         filter: TransactionListFilter
     ) -> [Transaction] {
         let keyword = filter.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         return Self.sort(
             transactions: transactions.filter { transaction in
-                matchesFilter(transaction: transaction, filter: filter, keyword: keyword)
+                Self.matchesFilter(transaction: transaction, filter: filter, keyword: keyword)
             },
             option: filter.sortOption
         )
     }
 
-    func matchesFilter(transaction: Transaction, filter: TransactionListFilter, keyword: String) -> Bool {
-        guard matchesCalculationTarget(transaction: transaction, includeOnly: filter.includeOnlyCalculationTarget) else {
+    static func matchesFilter(transaction: Transaction, filter: TransactionListFilter, keyword: String) -> Bool {
+        guard Self.matchesCalculationTarget(transaction: transaction, includeOnly: filter.includeOnlyCalculationTarget) else {
             return false
         }
 
-        guard matchesTransfer(transaction: transaction, excludeTransfers: filter.excludeTransfers) else {
+        guard Self.matchesTransfer(transaction: transaction, excludeTransfers: filter.excludeTransfers) else {
             return false
         }
 
@@ -127,11 +124,11 @@ private extension DefaultTransactionListUseCase {
         return true
     }
 
-    func matchesCalculationTarget(transaction: Transaction, includeOnly: Bool) -> Bool {
+    static func matchesCalculationTarget(transaction: Transaction, includeOnly: Bool) -> Bool {
         !includeOnly || transaction.isIncludedInCalculation
     }
 
-    func matchesTransfer(transaction: Transaction, excludeTransfers: Bool) -> Bool {
+    static func matchesTransfer(transaction: Transaction, excludeTransfers: Bool) -> Bool {
         !excludeTransfers || !transaction.isTransfer
     }
 
