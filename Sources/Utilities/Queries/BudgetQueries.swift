@@ -1,3 +1,4 @@
+import Foundation
 import SwiftData
 
 /// 予算関連のフェッチビルダー
