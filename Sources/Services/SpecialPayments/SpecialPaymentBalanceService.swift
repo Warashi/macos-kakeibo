@@ -353,7 +353,8 @@ private func definitionVersion(for definition: SpecialPaymentDefinition) -> Int 
 private func balanceVersion(for balance: SpecialPaymentSavingBalance) -> Int {
     var hasher = Hasher()
     hasher.combine(balance.id)
-    hasher.combine(balance.updatedAt.timeIntervalSinceReferenceDate)
+    hasher.combine(balance.lastUpdatedYear)
+    hasher.combine(balance.lastUpdatedMonth)
     hasher.combine(balance.totalSavedAmount)
     hasher.combine(balance.totalPaidAmount)
     return hasher.finalize()
