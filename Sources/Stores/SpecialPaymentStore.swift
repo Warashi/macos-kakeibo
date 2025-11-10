@@ -84,15 +84,18 @@ internal struct OccurrenceUpdateInput {
 @MainActor
 internal final class SpecialPaymentStore {
     private let repository: SpecialPaymentRepository
+    private let occurrencesService: SpecialPaymentOccurrencesService
     private let currentDateProvider: () -> Date
 
     internal private(set) var lastSyncedAt: Date?
 
     internal init(
         repository: SpecialPaymentRepository,
+        occurrencesService: SpecialPaymentOccurrencesService? = nil,
         currentDateProvider: @escaping () -> Date = { Date() }
     ) {
         self.repository = repository
+        self.occurrencesService = occurrencesService ?? DefaultSpecialPaymentOccurrencesService(repository: repository)
         self.currentDateProvider = currentDateProvider
     }
 
@@ -103,7 +106,7 @@ internal final class SpecialPaymentStore {
         holidayProvider: HolidayProvider? = nil,
         currentDateProvider: @escaping () -> Date = { Date() }
     ) {
-        let repository = SpecialPaymentRepositoryFactory.make(
+        let resolvedRepository = SpecialPaymentRepositoryFactory.make(
             modelContext: modelContext,
             calendar: calendar,
             businessDayService: businessDayService,
@@ -111,7 +114,7 @@ internal final class SpecialPaymentStore {
             currentDateProvider: currentDateProvider
         )
         self.init(
-            repository: repository,
+            repository: resolvedRepository,
             currentDateProvider: currentDateProvider
         )
     }
@@ -123,16 +126,8 @@ internal final class SpecialPaymentStore {
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
         referenceDate: Date? = nil,
     ) throws {
-        guard definition.recurrenceIntervalMonths > 0 else {
-            throw SpecialPaymentDomainError.invalidRecurrence
-        }
-
-        guard horizonMonths >= 0 else {
-            throw SpecialPaymentDomainError.invalidHorizon
-        }
-
-        let summary = try repository.synchronize(
-            definition: definition,
+        let summary = try occurrencesService.synchronizeOccurrences(
+            for: definition,
             horizonMonths: horizonMonths,
             referenceDate: referenceDate
         )
@@ -145,7 +140,7 @@ internal final class SpecialPaymentStore {
         input: OccurrenceCompletionInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) throws {
-        let summary = try repository.markOccurrenceCompleted(
+        let summary = try occurrencesService.markOccurrenceCompleted(
             occurrence,
             input: input,
             horizonMonths: horizonMonths
@@ -163,7 +158,7 @@ internal final class SpecialPaymentStore {
         input: OccurrenceUpdateInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) throws {
-        let summary = try repository.updateOccurrence(
+        let summary = try occurrencesService.updateOccurrence(
             occurrence,
             input: input,
             horizonMonths: horizonMonths
