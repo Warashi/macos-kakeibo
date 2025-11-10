@@ -1,6 +1,7 @@
-@testable import Kakeibo
+import Foundation
 import SwiftData
 import Testing
+@testable import Kakeibo
 
 @Suite("SwiftDataTransactionRepositoryObservation", .serialized)
 @MainActor
