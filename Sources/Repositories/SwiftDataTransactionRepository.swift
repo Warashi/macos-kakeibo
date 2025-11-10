@@ -51,6 +51,10 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
             predicate: Self.predicate(from: query),
             sortBy: Self.sortDescriptors(for: query.sortOption),
         )
+        let initial = try modelContext.fetch(descriptor)
+        Task { @MainActor in
+            onChange(initial)
+        }
         return modelContext.observe(descriptor: descriptor, onChange: onChange)
     }
 

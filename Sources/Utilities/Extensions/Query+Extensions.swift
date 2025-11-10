@@ -69,7 +69,7 @@ internal extension ModelContext {
         let contextBox = ModelContextObservationBox(context: self)
         let observer = center.addObserver(
             forName: .NSManagedObjectContextDidSave,
-            object: self,
+            object: nil,
             queue: nil
         ) { [descriptor] _ in
             Task { @MainActor in
