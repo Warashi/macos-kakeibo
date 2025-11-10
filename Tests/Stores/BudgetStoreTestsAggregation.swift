@@ -23,6 +23,8 @@ internal struct BudgetStoreTestsAggregation {
         context.insert(transaction)
         try context.save()
 
+        store.refresh()
+
         let input = BudgetInput(
             amount: 5000,
             categoryId: food.id,
@@ -82,6 +84,8 @@ internal struct BudgetStoreTestsAggregation {
         ]
         transactions.forEach(context.insert)
         try context.save()
+
+        store.refresh()
 
         let overallEntry = try #require(store.annualOverallBudgetEntry)
         #expect(overallEntry.calculation.budgetAmount == 220_000)

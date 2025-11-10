@@ -48,7 +48,7 @@ internal struct TransactionFilterBar: View {
                     .textFieldStyle(.roundedBorder)
 
                 Picker("表示順", selection: $store.sortOption) {
-                    ForEach(TransactionStore.SortOption.allCases) { option in
+                    ForEach(TransactionSortOption.allCases) { option in
                         Text(option.label).tag(option)
                     }
                 }
@@ -59,7 +59,7 @@ internal struct TransactionFilterBar: View {
             HStack(spacing: 12) {
                 SegmentedControl(
                     selection: $store.selectedFilterKind,
-                    items: TransactionStore.TransactionFilterKind.allCases.map { ($0, $0.label) },
+                    items: TransactionFilterKind.allCases.map { ($0, $0.label) },
                 )
                 .frame(maxWidth: 340)
 

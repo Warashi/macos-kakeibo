@@ -35,6 +35,8 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         context.insert(definition2)
         try context.save()
 
+        store.refresh()
+
         // When
         let total = store.monthlySpecialPaymentSavingsTotal
 
@@ -71,6 +73,8 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         context.insert(definition1)
         context.insert(definition2)
         try context.save()
+
+        store.refresh()
 
         // When
         let allocations = store.categorySpecialPaymentSavings
@@ -111,6 +115,8 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         }
         try context.save()
 
+        store.refresh()
+
         // When
         let entries = store.specialPaymentSavingsEntries
 
@@ -148,6 +154,8 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         context.insert(definition)
         context.insert(balance)
         try context.save()
+
+        store.refresh()
 
         // When
         let entries = store.specialPaymentSavingsEntries

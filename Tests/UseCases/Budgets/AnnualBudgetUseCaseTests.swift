@@ -1,0 +1,101 @@
+import Foundation
+import Testing
+@testable import Kakeibo
+
+@Suite
+internal struct AnnualBudgetUseCaseTests {
+    @Test("年次全体エントリを計算する")
+    internal func calculatesAnnualOverallEntry() {
+        let year = 2025
+        let budgets = [
+            Budget(amount: 100_000, year: year, month: 1),
+            Budget(amount: 120_000, year: year, month: 2),
+        ]
+        let transactions = [
+            Transaction(
+                date: Date.from(year: year, month: 1, day: 10) ?? Date(),
+                title: "家賃",
+                amount: -80_000
+            ),
+        ]
+        let snapshot = BudgetSnapshot(
+            budgets: budgets,
+            transactions: transactions,
+            categories: [],
+            annualBudgetConfig: nil,
+            specialPaymentDefinitions: [],
+            specialPaymentBalances: []
+        )
+        let useCase = DefaultAnnualBudgetUseCase()
+
+        let entry = useCase.annualOverallEntry(snapshot: snapshot, year: year)
+
+        #expect(entry?.calculation.budgetAmount == 220_000)
+        #expect(entry?.calculation.actualAmount == 80_000)
+    }
+
+    @Test("年次カテゴリ別エントリを算出する")
+    internal func calculatesCategoryEntries() {
+        let year = 2025
+        let food = Category(name: "食費", displayOrder: 1)
+        let budgets = [
+            Budget(amount: 50_000, category: food, year: year, month: 1),
+            Budget(amount: 60_000, category: food, year: year, month: 2),
+        ]
+        let transactions = [
+            Transaction(
+                date: Date.from(year: year, month: 1, day: 5) ?? Date(),
+                title: "スーパー",
+                amount: -20_000,
+                majorCategory: food
+            ),
+        ]
+        let snapshot = BudgetSnapshot(
+            budgets: budgets,
+            transactions: transactions,
+            categories: [food],
+            annualBudgetConfig: nil,
+            specialPaymentDefinitions: [],
+            specialPaymentBalances: []
+        )
+        let useCase = DefaultAnnualBudgetUseCase()
+
+        let entries = useCase.annualCategoryEntries(snapshot: snapshot, year: year)
+
+        let entry = try! #require(entries.first)
+        #expect(entry.calculation.budgetAmount == 110_000)
+        #expect(entry.calculation.actualAmount == 20_000)
+    }
+
+    @Test("年次特別枠の使用状況を算出する")
+    internal func calculatesAnnualUsage() {
+        let year = 2025
+        let food = Category(name: "食費", displayOrder: 1)
+        let config = AnnualBudgetConfig(year: year, totalAmount: 200_000, policy: .automatic)
+        config.allocations = [
+            AnnualBudgetAllocation(amount: 200_000, category: food, policyOverride: .automatic),
+        ]
+        let transactions = [
+            Transaction(
+                date: Date.from(year: year, month: 1, day: 1) ?? Date(),
+                title: "家電",
+                amount: -50_000,
+                majorCategory: food
+            ),
+        ]
+        let snapshot = BudgetSnapshot(
+            budgets: [],
+            transactions: transactions,
+            categories: [food],
+            annualBudgetConfig: config,
+            specialPaymentDefinitions: [],
+            specialPaymentBalances: []
+        )
+        let useCase = DefaultAnnualBudgetUseCase()
+
+        let usage = useCase.annualBudgetUsage(snapshot: snapshot, year: year, month: 6)
+
+        #expect(usage?.usedAmount == 50_000)
+        #expect(usage?.remainingAmount == 150_000)
+    }
+}

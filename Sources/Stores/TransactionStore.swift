@@ -12,36 +12,6 @@ import SwiftData
 internal final class TransactionStore {
     // MARK: - Nested Types
 
-    /// 取引リストの表示種別フィルタ
-    internal enum TransactionFilterKind: String, CaseIterable, Identifiable, Hashable {
-        case all = "すべて"
-        case income = "収入"
-        case expense = "支出"
-
-        internal var id: Self { self }
-        internal var label: String { rawValue }
-    }
-
-    /// 取引フォームで使用する入出金種別
-    internal enum TransactionKind: String, CaseIterable, Identifiable {
-        case income = "収入"
-        case expense = "支出"
-
-        internal var id: Self { self }
-        internal var label: String { rawValue }
-    }
-
-    /// 並び替えオプション
-    internal enum SortOption: String, CaseIterable, Identifiable {
-        case dateDescending = "日付（新しい順）"
-        case dateAscending = "日付（古い順）"
-        case amountDescending = "金額（大きい順）"
-        case amountAscending = "金額（小さい順）"
-
-        internal var id: Self { self }
-        internal var label: String { rawValue }
-    }
-
     /// 日毎の取引セクション
     internal struct TransactionSection: Identifiable {
         internal let date: Date
@@ -51,77 +21,23 @@ internal final class TransactionStore {
         internal var title: String { date.longDateFormatted }
     }
 
-    /// 取引フォーム状態
-    internal struct TransactionFormState: Equatable {
-        internal var date: Date
-        internal var title: String
-        internal var memo: String
-        internal var amountText: String
-        internal var transactionKind: TransactionKind
-        internal var isIncludedInCalculation: Bool
-        internal var isTransfer: Bool
-        internal var financialInstitutionId: UUID?
-        internal var majorCategoryId: UUID?
-        internal var minorCategoryId: UUID?
-
-        internal static func empty(defaultDate: Date) -> TransactionFormState {
-            TransactionFormState(
-                date: defaultDate,
-                title: "",
-                memo: "",
-                amountText: "",
-                transactionKind: .expense,
-                isIncludedInCalculation: true,
-                isTransfer: false,
-                financialInstitutionId: nil,
-                majorCategoryId: nil,
-                minorCategoryId: nil,
-            )
-        }
-
-        internal static func from(transaction: Transaction) -> TransactionFormState {
-            TransactionFormState(
-                date: transaction.date,
-                title: transaction.title,
-                memo: transaction.memo,
-                amountText: TransactionStore.amountString(from: transaction.absoluteAmount),
-                transactionKind: transaction.isExpense ? .expense : .income,
-                isIncludedInCalculation: transaction.isIncludedInCalculation,
-                isTransfer: transaction.isTransfer,
-                financialInstitutionId: transaction.financialInstitution?.id,
-                majorCategoryId: transaction.majorCategory?.id,
-                minorCategoryId: transaction.minorCategory?.id,
-            )
-        }
-    }
-
-    /// 取引作成・更新時のデータ
-    internal struct TransactionData {
-        internal let amount: Decimal
-        internal let institution: FinancialInstitution?
-        internal let majorCategory: Category?
-        internal let minorCategory: Category?
-    }
-
     // MARK: - Properties
 
-    private let modelContext: ModelContext
-
-    private var cachedTransactions: [Transaction] = [] {
-        didSet { applyFilters() }
-    }
+    private let listUseCase: TransactionListUseCaseProtocol
+    private let formUseCase: TransactionFormUseCaseProtocol
+    private let clock: () -> Date
 
     internal var transactions: [Transaction] = []
     internal var searchText: String = "" {
-        didSet { applyFilters() }
+        didSet { reloadTransactions() }
     }
 
     internal var selectedFilterKind: TransactionFilterKind = .all {
-        didSet { applyFilters() }
+        didSet { reloadTransactions() }
     }
 
     internal var selectedInstitutionId: UUID? {
-        didSet { applyFilters() }
+        didSet { reloadTransactions() }
     }
 
     internal var selectedMajorCategoryId: UUID? {
@@ -130,30 +46,30 @@ internal final class TransactionStore {
             if selectedMajorCategoryId == nil {
                 selectedMinorCategoryId = nil
             } else if let minorId = selectedMinorCategoryId,
-                      lookupCategory(id: minorId)?.parent?.id != selectedMajorCategoryId {
+                      referenceData.category(id: minorId)?.parent?.id != selectedMajorCategoryId {
                 selectedMinorCategoryId = nil
             }
-            applyFilters()
+            reloadTransactions()
         }
     }
 
     internal var selectedMinorCategoryId: UUID? {
         didSet {
             guard oldValue != selectedMinorCategoryId else { return }
-            applyFilters()
+            reloadTransactions()
         }
     }
 
     internal var includeOnlyCalculationTarget: Bool = true {
-        didSet { applyFilters() }
+        didSet { reloadTransactions() }
     }
 
     internal var excludeTransfers: Bool = true {
-        didSet { applyFilters() }
+        didSet { reloadTransactions() }
     }
 
-    internal var sortOption: SortOption = .dateDescending {
-        didSet { applyFilters() }
+    internal var sortOption: TransactionSortOption = .dateDescending {
+        didSet { reloadTransactions() }
     }
 
     internal var currentMonth: Date {
@@ -163,24 +79,43 @@ internal final class TransactionStore {
                 currentMonth = normalized
                 return
             }
-            applyFilters()
+            reloadTransactions()
         }
     }
 
     internal private(set) var availableInstitutions: [FinancialInstitution] = []
     internal private(set) var availableCategories: [Category] = []
+    internal var listErrorMessage: String?
 
     internal var isEditorPresented: Bool = false
     internal private(set) var editingTransaction: Transaction?
     internal var formState: TransactionFormState
     internal var formErrors: [String] = []
 
+    private var referenceData: TransactionReferenceData {
+        TransactionReferenceData(institutions: availableInstitutions, categories: availableCategories)
+    }
+
     // MARK: - Initialization
 
-    internal init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-        self.currentMonth = Date().startOfMonth
-        self.formState = .empty(defaultDate: Date())
+    internal convenience init(modelContext: ModelContext) {
+        let repository = SwiftDataTransactionRepository(modelContext: modelContext)
+        let listUseCase = DefaultTransactionListUseCase(repository: repository)
+        let formUseCase = DefaultTransactionFormUseCase(repository: repository)
+        self.init(listUseCase: listUseCase, formUseCase: formUseCase)
+    }
+
+    internal init(
+        listUseCase: TransactionListUseCaseProtocol,
+        formUseCase: TransactionFormUseCaseProtocol,
+        clock: @escaping () -> Date = Date.init
+    ) {
+        self.listUseCase = listUseCase
+        self.formUseCase = formUseCase
+        self.clock = clock
+        let now = clock()
+        self.currentMonth = now.startOfMonth
+        self.formState = .empty(defaultDate: now)
         refresh()
     }
 }
@@ -191,7 +126,7 @@ internal extension TransactionStore {
     /// 参照データと取引を再取得
     func refresh() {
         loadReferenceData()
-        loadTransactions()
+        reloadTransactions()
     }
 
     /// 現在の月ラベル
@@ -275,7 +210,7 @@ internal extension TransactionStore {
 
     /// 今月に戻る
     func moveToCurrentMonth() {
-        currentMonth = Date().startOfMonth
+        currentMonth = clock().startOfMonth
     }
 
     /// フィルタを初期状態に戻す
@@ -293,7 +228,7 @@ internal extension TransactionStore {
     /// 新規作成モードに切り替え
     func prepareForNewTransaction() {
         editingTransaction = nil
-        let today = Date()
+        let today = clock()
         let defaultDate = today.isSameMonth(as: currentMonth) ? today : currentMonth
         formState = .empty(defaultDate: defaultDate)
         formErrors = []
@@ -323,7 +258,7 @@ internal extension TransactionStore {
         }
 
         if let minorId = formState.minorCategoryId,
-           lookupCategory(id: minorId)?.parent?.id != majorId {
+           referenceData.category(id: minorId)?.parent?.id != majorId {
             formState.minorCategoryId = nil
         }
     }
@@ -331,38 +266,19 @@ internal extension TransactionStore {
     /// フォーム内容を保存
     @discardableResult
     func saveCurrentForm() -> Bool {
-        formErrors = validateForm()
-        guard formErrors.isEmpty else { return false }
-
-        guard let amountMagnitude = parsedAmountMagnitude() else {
-            formErrors = ["金額を正しく入力してください"]
-            return false
-        }
-
-        let signedAmount = signedAmount(from: amountMagnitude)
-        let institution = lookupInstitution(id: formState.financialInstitutionId)
-        let majorCategory = lookupCategory(id: formState.majorCategoryId)
-        let minorCategory = lookupCategory(id: formState.minorCategoryId)
-
-        let data = TransactionData(
-            amount: signedAmount,
-            institution: institution,
-            majorCategory: majorCategory,
-            minorCategory: minorCategory,
-        )
-
-        if let editingTransaction {
-            update(transaction: editingTransaction, data: data)
-        } else {
-            createTransaction(data: data)
-        }
-
         do {
-            try modelContext.save()
+            try formUseCase.save(
+                state: formState,
+                editingTransaction: editingTransaction,
+                referenceData: referenceData
+            )
             formErrors = []
             isEditorPresented = false
             refresh()
             return true
+        } catch let error as TransactionFormError {
+            formErrors = error.messages
+            return false
         } catch {
             formErrors = ["保存に失敗しました: \(error.localizedDescription)"]
             return false
@@ -372,12 +288,14 @@ internal extension TransactionStore {
     /// 取引を削除
     @discardableResult
     func deleteTransaction(_ transaction: Transaction) -> Bool {
-        modelContext.delete(transaction)
         do {
-            try modelContext.save()
+            try formUseCase.delete(transaction: transaction)
             formErrors = []
             refresh()
             return true
+        } catch let error as TransactionFormError {
+            formErrors = error.messages
+            return false
         } catch {
             formErrors = ["削除に失敗しました: \(error.localizedDescription)"]
             return false
@@ -389,205 +307,39 @@ internal extension TransactionStore {
 
 private extension TransactionStore {
     func loadReferenceData() {
-        let institutionDescriptor = FetchDescriptor<FinancialInstitution>(
-            sortBy: [SortDescriptor(\.displayOrder), SortDescriptor(\.name)],
-        )
-        let categoryDescriptor = FetchDescriptor<Category>(
-            sortBy: [SortDescriptor(\.displayOrder), SortDescriptor(\.name)],
-        )
-
-        availableInstitutions = (try? modelContext.fetch(institutionDescriptor)) ?? []
-        availableCategories = (try? modelContext.fetch(categoryDescriptor)) ?? []
+        do {
+            let reference = try listUseCase.loadReferenceData()
+            availableInstitutions = reference.institutions
+            availableCategories = reference.categories
+            listErrorMessage = nil
+        } catch {
+            availableInstitutions = []
+            availableCategories = []
+            listErrorMessage = "参照データの読み込みに失敗しました: \(error.localizedDescription)"
+        }
     }
 
-    private func loadTransactions() {
-        let descriptor = FetchDescriptor<Transaction>(
-            sortBy: [
-                SortDescriptor(\.date, order: .reverse),
-                SortDescriptor(\.createdAt, order: .reverse),
-            ],
-        )
-        cachedTransactions = (try? modelContext.fetch(descriptor)) ?? []
-    }
-
-    private func applyFilters() {
-        guard !cachedTransactions.isEmpty else {
+    func reloadTransactions() {
+        do {
+            transactions = try listUseCase.loadTransactions(filter: makeFilter())
+            listErrorMessage = nil
+        } catch {
             transactions = []
-            return
-        }
-
-        let trimmedSearch = searchText
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
-
-        let filtered = cachedTransactions.filter { transaction in
-            shouldIncludeTransaction(transaction, trimmedSearch: trimmedSearch)
-        }
-
-        transactions = sort(transactions: filtered)
-    }
-
-    private func shouldIncludeTransaction(_ transaction: Transaction, trimmedSearch: String) -> Bool {
-        guard matchesDateRange(transaction) else { return false }
-        guard matchesCalculationTarget(transaction) else { return false }
-        guard matchesTransferFilter(transaction) else { return false }
-        guard matchesTransactionKind(transaction) else { return false }
-        guard matchesInstitution(transaction) else { return false }
-        guard matchesCategory(transaction) else { return false }
-        guard matchesSearchText(transaction, trimmedSearch: trimmedSearch) else { return false }
-
-        return true
-    }
-
-    private func matchesDateRange(_ transaction: Transaction) -> Bool {
-        transaction.date.year == currentMonth.year &&
-            transaction.date.month == currentMonth.month
-    }
-
-    private func matchesCalculationTarget(_ transaction: Transaction) -> Bool {
-        !includeOnlyCalculationTarget || transaction.isIncludedInCalculation
-    }
-
-    private func matchesTransferFilter(_ transaction: Transaction) -> Bool {
-        !excludeTransfers || !transaction.isTransfer
-    }
-
-    private func matchesTransactionKind(_ transaction: Transaction) -> Bool {
-        switch selectedFilterKind {
-        case .income:
-            transaction.isIncome
-        case .expense:
-            transaction.isExpense
-        case .all:
-            true
+            listErrorMessage = "取引の読み込みに失敗しました: \(error.localizedDescription)"
         }
     }
 
-    private func matchesInstitution(_ transaction: Transaction) -> Bool {
-        guard let institutionId = selectedInstitutionId else { return true }
-        return transaction.financialInstitution?.id == institutionId
-    }
-
-    private func matchesSearchText(_ transaction: Transaction, trimmedSearch: String) -> Bool {
-        guard !trimmedSearch.isEmpty else { return true }
-
-        let haystacks = [
-            transaction.title.lowercased(),
-            transaction.memo.lowercased(),
-            transaction.categoryFullName.lowercased(),
-            transaction.financialInstitution?.name.lowercased() ?? "",
-        ]
-        return haystacks.contains { $0.contains(trimmedSearch) }
-    }
-
-    private func sort(transactions: [Transaction]) -> [Transaction] {
-        transactions.sorted { lhs, rhs in
-            switch sortOption {
-            case .dateDescending:
-                if lhs.date == rhs.date {
-                    return lhs.createdAt > rhs.createdAt
-                }
-                return lhs.date > rhs.date
-            case .dateAscending:
-                if lhs.date == rhs.date {
-                    return lhs.createdAt < rhs.createdAt
-                }
-                return lhs.date < rhs.date
-            case .amountDescending:
-                let lhsAmount = lhs.absoluteAmount
-                let rhsAmount = rhs.absoluteAmount
-                if lhsAmount == rhsAmount {
-                    return lhs.date > rhs.date
-                }
-                return lhsAmount > rhsAmount
-            case .amountAscending:
-                let lhsAmount = lhs.absoluteAmount
-                let rhsAmount = rhs.absoluteAmount
-                if lhsAmount == rhsAmount {
-                    return lhs.date < rhs.date
-                }
-                return lhsAmount < rhsAmount
-            }
-        }
-    }
-
-    private func validateForm() -> [String] {
-        var errors: [String] = []
-
-        if formState.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            errors.append("内容を入力してください")
-        }
-
-        if parsedAmountMagnitude() == nil {
-            errors.append("金額を入力してください")
-        }
-
-        if let minorId = formState.minorCategoryId {
-            guard let majorId = formState.majorCategoryId else {
-                errors.append("中項目を選択した場合は大項目も選択してください")
-                return errors
-            }
-
-            if lookupCategory(id: minorId)?.parent?.id != majorId {
-                errors.append("中項目の親カテゴリが一致していません")
-            }
-        }
-
-        return errors
-    }
-
-    private func parsedAmountMagnitude() -> Decimal? {
-        let sanitized = formState.amountText
-            .replacingOccurrences(of: ",", with: "")
-            .replacingOccurrences(of: "¥", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !sanitized.isEmpty else { return nil }
-        return Decimal(string: sanitized)?.magnitude
-    }
-
-    private func signedAmount(from magnitude: Decimal) -> Decimal {
-        formState.transactionKind == .expense ? -magnitude : magnitude
-    }
-
-    private func lookupInstitution(id: UUID?) -> FinancialInstitution? {
-        guard let id else { return nil }
-        return availableInstitutions.first { $0.id == id }
-    }
-
-    private func lookupCategory(id: UUID?) -> Category? {
-        guard let id else { return nil }
-        return availableCategories.first { $0.id == id }
-    }
-
-    private func update(transaction: Transaction, data: TransactionData) {
-        transaction.title = formState.title
-        transaction.memo = formState.memo
-        transaction.date = formState.date
-        transaction.amount = data.amount
-        transaction.isIncludedInCalculation = formState.isIncludedInCalculation
-        transaction.isTransfer = formState.isTransfer
-        transaction.financialInstitution = data.institution
-        transaction.majorCategory = data.majorCategory
-        transaction.minorCategory = data.minorCategory
-        transaction.updatedAt = Date()
-    }
-
-    private func createTransaction(data: TransactionData) {
-        let transaction = Transaction(
-            date: formState.date,
-            title: formState.title,
-            amount: data.amount,
-            memo: formState.memo,
-            isIncludedInCalculation: formState.isIncludedInCalculation,
-            isTransfer: formState.isTransfer,
-            financialInstitution: data.institution,
-            majorCategory: data.majorCategory,
-            minorCategory: data.minorCategory,
+    func makeFilter() -> TransactionListFilter {
+        TransactionListFilter(
+            month: currentMonth,
+            searchText: searchText,
+            filterKind: selectedFilterKind,
+            institutionId: selectedInstitutionId,
+            majorCategoryId: selectedMajorCategoryId,
+            minorCategoryId: selectedMinorCategoryId,
+            includeOnlyCalculationTarget: includeOnlyCalculationTarget,
+            excludeTransfers: excludeTransfers,
+            sortOption: sortOption
         )
-        modelContext.insert(transaction)
-    }
-
-    private nonisolated static func amountString(from decimal: Decimal) -> String {
-        NSDecimalNumber(decimal: decimal).stringValue
     }
 }

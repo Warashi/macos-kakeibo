@@ -28,7 +28,7 @@ internal struct TransactionEditorView: View {
                     TextField("内容", text: $store.formState.title)
 
                     Picker("種別", selection: $store.formState.transactionKind) {
-                        ForEach(TransactionStore.TransactionKind.allCases) { kind in
+                        ForEach(TransactionKind.allCases) { kind in
                             Text(kind.label).tag(kind)
                         }
                     }
