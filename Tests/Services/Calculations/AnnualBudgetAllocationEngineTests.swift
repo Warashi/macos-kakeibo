@@ -9,9 +9,9 @@ internal struct AnnualBudgetAllocationEngineTests {
 
     @Test("累積計算で複数月の充当額を合算できる")
     internal func accumulateMultipleMonths() throws {
-        let category = Category(name: "食費", allowsAnnualBudget: true)
+        let category = Kakeibo.Category(name: "食費", allowsAnnualBudget: true)
         let config = makeConfig(
-            policy: .automatic,
+            policy: AnnualBudgetPolicy.automatic,
             allocations: [
                 (category, 500_000, nil),
             ]
@@ -50,12 +50,12 @@ internal struct AnnualBudgetAllocationEngineTests {
 
     @Test("カテゴリごとのポリシー上書きを尊重する")
     internal func respectsPolicyOverrides() throws {
-        let major = Category(name: "特別支出", allowsAnnualBudget: false)
-        let minor = Category(name: "冠婚葬祭", parent: major, allowsAnnualBudget: false)
+        let major = Kakeibo.Category(name: "特別支出", allowsAnnualBudget: false)
+        let minor = Kakeibo.Category(name: "冠婚葬祭", parent: major, allowsAnnualBudget: false)
         major.addChild(minor)
 
         let config = makeConfig(
-            policy: .disabled,
+            policy: AnnualBudgetPolicy.disabled,
             allocations: [
                 (minor, 200_000, .fullCoverage),
             ]
@@ -73,8 +73,8 @@ internal struct AnnualBudgetAllocationEngineTests {
             params: params,
             year: 2025,
             month: 3,
-            policy: .disabled,
-            policyOverrides: [minor.id: .fullCoverage]
+            policy: AnnualBudgetPolicy.disabled,
+            policyOverrides: [minor.id: AnnualBudgetPolicy.fullCoverage]
         )
 
         let allocation = try #require(allocations.first)
@@ -84,7 +84,7 @@ internal struct AnnualBudgetAllocationEngineTests {
 
     private func makeConfig(
         policy: AnnualBudgetPolicy,
-        allocations: [(Category, Decimal, AnnualBudgetPolicy?)]
+        allocations: [(Kakeibo.Category, Decimal, AnnualBudgetPolicy?)]
     ) -> AnnualBudgetConfig {
         let config = AnnualBudgetConfig(
             year: 2025,
@@ -107,8 +107,8 @@ internal struct AnnualBudgetAllocationEngineTests {
         amount: Decimal,
         year: Int,
         month: Int,
-        category: Category?,
-        minorCategory: Category? = nil
+        category: Kakeibo.Category?,
+        minorCategory: Kakeibo.Category? = nil
     ) -> Transaction {
         Transaction(
             date: Date.from(year: year, month: month) ?? Date(),
