@@ -536,7 +536,7 @@ final class BudgetCalculationCache: @unchecked Sendable {
         }
     }
 
-    internal func cachedMonthlyBudget(for key: MonthlyBudgetCacheKey) -> MonthlyBudgetCalculation? {
+    private func cachedMonthlyBudget(for key: MonthlyBudgetCacheKey) -> MonthlyBudgetCalculation? {
         lock.withLock {
             if let value = monthlyBudgetCache[key] {
                 metrics.monthlyBudgetHits += 1
@@ -547,13 +547,13 @@ final class BudgetCalculationCache: @unchecked Sendable {
         }
     }
 
-    internal func storeMonthlyBudget(_ value: MonthlyBudgetCalculation, for key: MonthlyBudgetCacheKey) {
+    private func storeMonthlyBudget(_ value: MonthlyBudgetCalculation, for key: MonthlyBudgetCacheKey) {
         lock.withLock {
             monthlyBudgetCache[key] = value
         }
     }
 
-    internal func cachedSpecialPaymentSavings(
+    private func cachedSpecialPaymentSavings(
         for key: SpecialPaymentSavingsCacheKey
     ) -> [SpecialPaymentSavingsCalculation]? {
         lock.withLock {
@@ -566,7 +566,7 @@ final class BudgetCalculationCache: @unchecked Sendable {
         }
     }
 
-    internal func storeSpecialPaymentSavings(
+    private func storeSpecialPaymentSavings(
         _ value: [SpecialPaymentSavingsCalculation],
         for key: SpecialPaymentSavingsCacheKey
     ) {
@@ -575,7 +575,7 @@ final class BudgetCalculationCache: @unchecked Sendable {
         }
     }
 
-    internal func cachedMonthlySavingsAllocation(for key: SavingsAllocationCacheKey) -> Decimal? {
+    private func cachedMonthlySavingsAllocation(for key: SavingsAllocationCacheKey) -> Decimal? {
         lock.withLock {
             if let value = monthlySavingsCache[key] {
                 metrics.monthlySavingsHits += 1
@@ -586,13 +586,13 @@ final class BudgetCalculationCache: @unchecked Sendable {
         }
     }
 
-    internal func storeMonthlySavingsAllocation(_ value: Decimal, for key: SavingsAllocationCacheKey) {
+    private func storeMonthlySavingsAllocation(_ value: Decimal, for key: SavingsAllocationCacheKey) {
         lock.withLock {
             monthlySavingsCache[key] = value
         }
     }
 
-    internal func cachedCategorySavingsAllocation(
+    private func cachedCategorySavingsAllocation(
         for key: SavingsAllocationCacheKey
     ) -> [UUID: Decimal]? {
         lock.withLock {
@@ -605,7 +605,7 @@ final class BudgetCalculationCache: @unchecked Sendable {
         }
     }
 
-    internal func storeCategorySavingsAllocation(
+    private func storeCategorySavingsAllocation(
         _ value: [UUID: Decimal],
         for key: SavingsAllocationCacheKey
     ) {
