@@ -263,7 +263,7 @@ internal struct SpecialPaymentBalanceCacheMetrics: Sendable {
     internal let invalidations: Int
 }
 
-private struct BalanceCacheKey: Hashable {
+fileprivate struct BalanceCacheKey: Hashable {
     let definitionId: UUID
     let balanceId: UUID
     let year: Int
@@ -274,7 +274,7 @@ private struct BalanceCacheKey: Hashable {
     let balanceVersion: Int
 }
 
-private struct BalanceSnapshot: Sendable {
+fileprivate struct BalanceSnapshot: Sendable {
     let totalSavedAmount: Decimal
     let totalPaidAmount: Decimal
     let lastUpdatedYear: Int
@@ -302,7 +302,7 @@ final class SpecialPaymentBalanceCache: @unchecked Sendable {
         }
     }
 
-    private func snapshot(for key: BalanceCacheKey) -> BalanceSnapshot? {
+    internal func snapshot(for key: BalanceCacheKey) -> BalanceSnapshot? {
         lock.withLock {
             if let value = snapshots[key] {
                 metrics.hits += 1
@@ -313,7 +313,7 @@ final class SpecialPaymentBalanceCache: @unchecked Sendable {
         }
     }
 
-    private func store(snapshot: BalanceSnapshot, for key: BalanceCacheKey) {
+    internal func store(snapshot: BalanceSnapshot, for key: BalanceCacheKey) {
         lock.withLock {
             snapshots[key] = snapshot
         }
