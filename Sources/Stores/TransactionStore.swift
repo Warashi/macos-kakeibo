@@ -26,6 +26,7 @@ internal final class TransactionStore {
     private let listUseCase: TransactionListUseCaseProtocol
     private let formUseCase: TransactionFormUseCaseProtocol
     private let clock: () -> Date
+    private let monthAdapter: MonthNavigatorDateAdapter
     @ObservationIgnored
     private var transactionsToken: ObservationToken?
 
@@ -97,11 +98,13 @@ internal final class TransactionStore {
     internal init(
         listUseCase: TransactionListUseCaseProtocol,
         formUseCase: TransactionFormUseCaseProtocol,
-        clock: @escaping () -> Date = Date.init
+        clock: @escaping () -> Date = Date.init,
+        monthAdapter: MonthNavigatorDateAdapter = MonthNavigatorDateAdapter()
     ) {
         self.listUseCase = listUseCase
         self.formUseCase = formUseCase
         self.clock = clock
+        self.monthAdapter = monthAdapter
         let now = clock()
         self.currentMonth = now.startOfMonth
         self.formState = .empty(defaultDate: now)
@@ -191,19 +194,17 @@ internal extension TransactionStore {
 
     /// 月を前に移動
     func moveToPreviousMonth() {
-        guard let previous = Calendar.current.date(byAdding: .month, value: -1, to: currentMonth) else { return }
-        currentMonth = previous
+        updateCurrentMonthNavigator { $0.moveToPreviousMonth() }
     }
 
     /// 月を次に移動
     func moveToNextMonth() {
-        guard let next = Calendar.current.date(byAdding: .month, value: 1, to: currentMonth) else { return }
-        currentMonth = next
+        updateCurrentMonthNavigator { $0.moveToNextMonth() }
     }
 
     /// 今月に戻る
     func moveToCurrentMonth() {
-        currentMonth = clock().startOfMonth
+        updateCurrentMonthNavigator { $0.moveToCurrentMonth() }
     }
 
     /// フィルタを初期状態に戻す
@@ -298,6 +299,16 @@ internal extension TransactionStore {
 // MARK: - Private Helpers
 
 private extension TransactionStore {
+    private func updateCurrentMonthNavigator(_ update: (inout MonthNavigator) -> Void) {
+        var navigator = monthAdapter.makeNavigator(
+            from: currentMonth,
+            currentDateProvider: clock
+        )
+        update(&navigator)
+        guard let newDate = monthAdapter.date(from: navigator) else { return }
+        currentMonth = newDate
+    }
+
     func loadReferenceData() {
         do {
             let reference = try listUseCase.loadReferenceData()

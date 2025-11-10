@@ -227,39 +227,27 @@ internal extension BudgetStore {
 
 internal extension BudgetStore {
     func moveToPreviousMonth() {
-        if currentMonth == 1 {
-            currentMonth = 12
-            currentYear -= 1
-        } else {
-            currentMonth -= 1
-        }
+        updateMonthNavigator { $0.moveToPreviousMonth() }
     }
 
     func moveToNextMonth() {
-        if currentMonth == 12 {
-            currentMonth = 1
-            currentYear += 1
-        } else {
-            currentMonth += 1
-        }
+        updateMonthNavigator { $0.moveToNextMonth() }
     }
 
     func moveToCurrentMonth() {
-        let now = currentDateProvider()
-        currentYear = now.year
-        currentMonth = now.month
+        updateMonthNavigator { $0.moveToCurrentMonth() }
     }
 
     func moveToPreviousYear() {
-        currentYear -= 1
+        updateMonthNavigator { $0.moveToPreviousYear() }
     }
 
     func moveToNextYear() {
-        currentYear += 1
+        updateMonthNavigator { $0.moveToNextYear() }
     }
 
     func moveToCurrentYear() {
-        currentYear = currentDateProvider().year
+        updateMonthNavigator { $0.moveToCurrentYear() }
     }
 }
 
@@ -302,6 +290,17 @@ internal extension BudgetStore {
 private extension BudgetStore {
     func reloadSnapshot() {
         snapshot = try? repository.fetchSnapshot(for: currentYear)
+    }
+
+    private func updateMonthNavigator(_ update: (inout MonthNavigator) -> Void) {
+        var navigator = MonthNavigator(
+            year: currentYear,
+            month: currentMonth,
+            currentDateProvider: currentDateProvider
+        )
+        update(&navigator)
+        currentYear = navigator.year
+        currentMonth = navigator.month
     }
 }
 

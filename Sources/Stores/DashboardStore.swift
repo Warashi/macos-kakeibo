@@ -261,49 +261,44 @@ internal final class DashboardStore {
 
     /// 前月に移動
     internal func moveToPreviousMonth() {
-        if currentMonth == 1 {
-            currentYear -= 1
-            currentMonth = 12
-        } else {
-            currentMonth -= 1
-        }
+        updateMonthNavigator { $0.moveToPreviousMonth() }
     }
 
     /// 次月に移動
     internal func moveToNextMonth() {
-        if currentMonth == 12 {
-            currentYear += 1
-            currentMonth = 1
-        } else {
-            currentMonth += 1
-        }
+        updateMonthNavigator { $0.moveToNextMonth() }
     }
 
     /// 今月に戻る
     internal func moveToCurrentMonth() {
-        let now = Date()
-        currentYear = now.year
-        currentMonth = now.month
+        updateMonthNavigator { $0.moveToCurrentMonth() }
     }
 
     /// 前年に移動
     internal func moveToPreviousYear() {
-        currentYear -= 1
+        updateMonthNavigator { $0.moveToPreviousYear() }
     }
 
     /// 次年に移動
     internal func moveToNextYear() {
-        currentYear += 1
+        updateMonthNavigator { $0.moveToNextYear() }
     }
 
     /// 今年に戻る
     internal func moveToCurrentYear() {
-        currentYear = Date().year
+        updateMonthNavigator { $0.moveToCurrentYear() }
     }
 
     /// データを再読み込み
     internal func refresh() {
         // @Observableなので、computed propertyは自動的に再計算される
         // 必要に応じて明示的な処理をここに追加
+    }
+
+    private func updateMonthNavigator(_ update: (inout MonthNavigator) -> Void) {
+        var navigator = MonthNavigator(year: currentYear, month: currentMonth)
+        update(&navigator)
+        currentYear = navigator.year
+        currentMonth = navigator.month
     }
 }
