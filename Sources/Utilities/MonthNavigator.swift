@@ -1,7 +1,7 @@
 import Foundation
 
 /// 年月のナビゲーションを共通化するユーティリティ
-internal struct MonthNavigator: Equatable {
+internal struct MonthNavigator {
     private let calendar: Calendar
     private let currentDateProvider: () -> Date
 
