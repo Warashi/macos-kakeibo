@@ -2,6 +2,16 @@ import CoreData
 import Foundation
 import SwiftData
 
+// MARK: - Internal Helpers
+
+private final class ModelContextObservationBox: @unchecked Sendable {
+    weak var context: ModelContext?
+
+    init(context: ModelContext) {
+        self.context = context
+    }
+}
+
 // MARK: - ModelContext Extensions
 
 /// ModelContext の拡張
@@ -56,15 +66,16 @@ internal extension ModelContext {
         onChange: @escaping @MainActor ([T]) -> Void
     ) -> ObservationToken {
         let center = NotificationCenter.default
+        let contextBox = ModelContextObservationBox(context: self)
         let observer = center.addObserver(
             forName: .NSManagedObjectContextDidSave,
             object: self,
             queue: nil
-        ) { [weak self] _ in
-            guard let self else { return }
+        ) { [descriptor] _ in
             Task { @MainActor in
+                guard let context = contextBox.context else { return }
                 do {
-                    let updated = try self.fetch(descriptor)
+                    let updated = try context.fetch(descriptor)
                     onChange(updated)
                 } catch {
                     assertionFailure("Failed to fetch observed descriptor: \(error)")
