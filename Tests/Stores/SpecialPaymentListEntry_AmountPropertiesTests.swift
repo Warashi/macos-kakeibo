@@ -24,7 +24,8 @@ internal struct EntryAmountPropertiesTests {
             actualAmount: 100_000,
         )
 
-        let entry = SpecialPaymentListEntry.from(occurrence: occurrence, balance: nil)
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(occurrence: occurrence, balance: nil, now: Date())
 
         #expect(entry.discrepancyAmount == nil)
     }
@@ -47,7 +48,8 @@ internal struct EntryAmountPropertiesTests {
             actualAmount: 110_000,
         )
 
-        let entry = SpecialPaymentListEntry.from(occurrence: occurrence, balance: nil)
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(occurrence: occurrence, balance: nil, now: Date())
 
         #expect(entry.discrepancyAmount == 10000)
     }
@@ -70,7 +72,8 @@ internal struct EntryAmountPropertiesTests {
             actualAmount: 90000,
         )
 
-        let entry = SpecialPaymentListEntry.from(occurrence: occurrence, balance: nil)
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(occurrence: occurrence, balance: nil, now: Date())
 
         #expect(entry.discrepancyAmount == -10000)
     }
@@ -91,7 +94,8 @@ internal struct EntryAmountPropertiesTests {
             status: .saving,
         )
 
-        let entry = SpecialPaymentListEntry.from(occurrence: occurrence, balance: nil)
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(occurrence: occurrence, balance: nil, now: Date())
 
         #expect(entry.discrepancyAmount == nil)
     }
@@ -120,7 +124,8 @@ internal struct EntryAmountPropertiesTests {
             lastUpdatedMonth: 1,
         )
 
-        let entry = SpecialPaymentListEntry.from(occurrence: occurrence, balance: balance)
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(occurrence: occurrence, balance: balance, now: Date())
 
         #expect(entry.savingsProgress == 0.0)
     }
@@ -149,7 +154,8 @@ internal struct EntryAmountPropertiesTests {
             lastUpdatedMonth: 6,
         )
 
-        let entry = SpecialPaymentListEntry.from(occurrence: occurrence, balance: balance)
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(occurrence: occurrence, balance: balance, now: Date())
 
         #expect(entry.savingsProgress == 0.5)
     }
@@ -178,7 +184,8 @@ internal struct EntryAmountPropertiesTests {
             lastUpdatedMonth: 12,
         )
 
-        let entry = SpecialPaymentListEntry.from(occurrence: occurrence, balance: balance)
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(occurrence: occurrence, balance: balance, now: Date())
 
         #expect(entry.savingsProgress == 1.0)
     }
@@ -207,7 +214,8 @@ internal struct EntryAmountPropertiesTests {
             lastUpdatedMonth: 12,
         )
 
-        let entry = SpecialPaymentListEntry.from(occurrence: occurrence, balance: balance)
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(occurrence: occurrence, balance: balance, now: Date())
 
         #expect(entry.savingsProgress == 1.0)
     }

@@ -39,10 +39,11 @@ internal struct SpecialPaymentListEntryFactoryTests {
 
         // When
         let now = Date.from(year: 2025, month: 11, day: 15) ?? Date()
-        let entry = SpecialPaymentListEntry.from(
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(
             occurrence: occurrence,
             balance: balance,
-            now: now,
+            now: now
         )
 
         // Then
@@ -83,9 +84,11 @@ internal struct SpecialPaymentListEntryFactoryTests {
         context.insert(occurrence)
 
         // When
-        let entry = SpecialPaymentListEntry.from(
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(
             occurrence: occurrence,
             balance: nil,
+            now: Date()
         )
 
         // Then
@@ -118,9 +121,11 @@ internal struct SpecialPaymentListEntryFactoryTests {
         context.insert(occurrence)
 
         // When
-        let entry = SpecialPaymentListEntry.from(
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(
             occurrence: occurrence,
             balance: nil,
+            now: Date()
         )
 
         // Then

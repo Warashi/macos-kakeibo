@@ -23,7 +23,8 @@ internal struct EntryBooleanPropertiesTests {
         )
 
         let now = Date.from(year: 2025, month: 11, day: 15) ?? Date()
-        let entry = SpecialPaymentListEntry.from(occurrence: occurrence, balance: nil, now: now)
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(occurrence: occurrence, balance: nil, now: now)
 
         #expect(entry.isOverdue == true)
     }
@@ -47,7 +48,8 @@ internal struct EntryBooleanPropertiesTests {
         )
 
         let now = Date.from(year: 2025, month: 11, day: 15) ?? Date()
-        let entry = SpecialPaymentListEntry.from(occurrence: occurrence, balance: nil, now: now)
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(occurrence: occurrence, balance: nil, now: now)
 
         #expect(entry.isOverdue == false)
     }
@@ -76,7 +78,8 @@ internal struct EntryBooleanPropertiesTests {
             lastUpdatedMonth: 12,
         )
 
-        let entry = SpecialPaymentListEntry.from(occurrence: occurrence, balance: balance)
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(occurrence: occurrence, balance: balance, now: Date())
 
         #expect(entry.isFullySaved == true)
     }
@@ -105,7 +108,8 @@ internal struct EntryBooleanPropertiesTests {
             lastUpdatedMonth: 6,
         )
 
-        let entry = SpecialPaymentListEntry.from(occurrence: occurrence, balance: balance)
+        let presenter = SpecialPaymentListPresenter()
+        let entry = presenter.entry(occurrence: occurrence, balance: balance, now: Date())
 
         #expect(entry.isFullySaved == false)
     }

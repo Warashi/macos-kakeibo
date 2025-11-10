@@ -81,3 +81,53 @@ let summary = try repository.synchronize(
 - Store層の初期化時に Repository を注入し、UIイベントからの命令は Repository 経由で完了/同期処理を行う。
 - `SpecialPaymentScheduleService` は BusinessDayService/holiday provider を差し替え可能になったため、祝日計算のニーズに応じて DI する。
 - 既存の `SpecialPaymentStore`, `SpecialPaymentListStore`, `SpecialPaymentReconciliationStore`, `BudgetStore` では `SpecialPaymentRepository` を受け取るイニシャライザを用意し、段階的に ModelContext 依存を除去していく。
+
+## Presenter / DTO 層
+
+一覧・調整ビューの整形ロジックは Presenter へ集約しました。
+
+### SpecialPaymentListPresenter
+
+```swift
+let presenter = SpecialPaymentListPresenter()
+let filter = SpecialPaymentListFilter(
+    startDate: startDate,
+    endDate: endDate,
+    searchText: searchText,
+    selectedMajorCategoryId: selectedMajor,
+    selectedMinorCategoryId: selectedMinor,
+    sortOrder: .dateAscending
+)
+
+let entries = presenter.entries(
+    occurrences: occurrences,
+    balances: balanceLookup,
+    filter: filter,
+    now: Date()
+)
+```
+
+- `SpecialPaymentListEntry` はDTOとしてPresenterファイルに移動し、進捗率・残日数・差異判定を内部で計算。
+- Store側はリポジトリからデータを引き、フィルタ情報を渡すだけで `[SpecialPaymentListEntry]` を取得する。
+
+### SpecialPaymentReconciliationPresenter
+
+```swift
+let presenter = SpecialPaymentReconciliationPresenter()
+let presentation = presenter.makePresentation(
+    definitions: definitions,
+    referenceDate: Date()
+)
+
+let candidates = presenter.transactionCandidates(
+    for: occurrence,
+    transactions: allTransactions,
+    linkedTransactionLookup: presentation.linkedTransactionLookup,
+    windowDays: 60,
+    limit: 12
+)
+```
+
+- `OccurrenceRow`・`TransactionCandidate` などのDTOをPresenterが提供し、needsAttention/スコアリング/ソート条件を単一箇所に集約。
+- Storeはpresentation結果（rows/lookup）を保持し、検索やフォーム状態のみを管理。
+- 候補スコアのロジックを共通化したことで、別画面での再利用やテストが容易になった。
