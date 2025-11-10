@@ -23,6 +23,10 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         }
     }
 
+    internal func fetchAllTransactions() throws -> [Transaction] {
+        transactions
+    }
+
     internal func fetchInstitutions() throws -> [FinancialInstitution] {
         institutions
     }

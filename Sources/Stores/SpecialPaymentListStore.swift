@@ -10,7 +10,8 @@ import SwiftData
 internal final class SpecialPaymentListStore {
     // MARK: - Dependencies
 
-    private let modelContext: ModelContext
+    private let repository: SpecialPaymentRepository
+    private let currentDateProvider: () -> Date
 
     // MARK: - Filter State
 
@@ -37,16 +38,39 @@ internal final class SpecialPaymentListStore {
 
     // MARK: - Initialization
 
-    internal init(modelContext: ModelContext) {
-        self.modelContext = modelContext
+    internal init(
+        repository: SpecialPaymentRepository,
+        currentDateProvider: @escaping () -> Date = { Date() }
+    ) {
+        self.repository = repository
+        self.currentDateProvider = currentDateProvider
 
-        // デフォルト期間：当月〜6ヶ月後
-        let now = Date()
+        let now = currentDateProvider()
         let start = Calendar.current.startOfMonth(for: now) ?? now
         let end = Calendar.current.date(byAdding: .month, value: 6, to: start) ?? now
 
         self.startDate = start
         self.endDate = end
+    }
+
+    internal convenience init(
+        modelContext: ModelContext,
+        calendar: Calendar = Calendar(identifier: .gregorian),
+        businessDayService: BusinessDayService? = nil,
+        holidayProvider: HolidayProvider? = nil,
+        currentDateProvider: @escaping () -> Date = { Date() }
+    ) {
+        let repository = SpecialPaymentRepositoryFactory.make(
+            modelContext: modelContext,
+            calendar: calendar,
+            businessDayService: businessDayService,
+            holidayProvider: holidayProvider,
+            currentDateProvider: currentDateProvider
+        )
+        self.init(
+            repository: repository,
+            currentDateProvider: currentDateProvider
+        )
     }
 
     // MARK: - Sort Order
@@ -62,25 +86,15 @@ internal final class SpecialPaymentListStore {
 
     // MARK: - Data Access
 
-    private var allOccurrences: [SpecialPaymentOccurrence] {
-        let descriptor = FetchDescriptor<SpecialPaymentOccurrence>()
-        return (try? modelContext.fetch(descriptor)) ?? []
-    }
-
-    private var allBalances: [SpecialPaymentSavingBalance] {
-        let descriptor = FetchDescriptor<SpecialPaymentSavingBalance>()
-        return (try? modelContext.fetch(descriptor)) ?? []
-    }
-
     // MARK: - Computed Properties
 
     /// フィルタリング・ソート済みのエントリ一覧
     internal var entries: [SpecialPaymentListEntry] {
-        let balanceMap = Dictionary(
-            uniqueKeysWithValues: allBalances.map { ($0.definition.id, $0) },
-        )
+        let occurrences = fetchOccurrences()
+        let balanceMap = balanceLookup(for: occurrences)
+        let now = currentDateProvider()
 
-        let filtered = allOccurrences
+        let filtered = occurrences
             .filter { occurrence in
                 // 期間フィルタ
                 guard occurrence.scheduledDate >= startDate,
@@ -113,7 +127,11 @@ internal final class SpecialPaymentListStore {
             }
             .map { occurrence in
                 let balance = balanceMap[occurrence.definition.id]
-                return SpecialPaymentListEntry.from(occurrence: occurrence, balance: balance)
+                return SpecialPaymentListEntry.from(
+                    occurrence: occurrence,
+                    balance: balance,
+                    now: now
+                )
             }
 
         return sortEntries(filtered)
@@ -128,7 +146,7 @@ internal final class SpecialPaymentListStore {
         selectedMinorCategoryId = nil
         selectedStatus = nil
 
-        let now = Date()
+        let now = currentDateProvider()
         let start = Calendar.current.startOfMonth(for: now) ?? now
         let end = Calendar.current.date(byAdding: .month, value: 6, to: start) ?? now
 
@@ -174,6 +192,25 @@ internal final class SpecialPaymentListStore {
         }
 
         return true
+    }
+
+    private func fetchOccurrences() -> [SpecialPaymentOccurrence] {
+        let range = SpecialPaymentOccurrenceRange(startDate: startDate, endDate: endDate)
+        let statusFilter = selectedStatus.map { Set([$0]) }
+        let query = SpecialPaymentOccurrenceQuery(
+            range: range,
+            statusFilter: statusFilter
+        )
+
+        return (try? repository.occurrences(query: query)) ?? []
+    }
+
+    private func balanceLookup(for occurrences: [SpecialPaymentOccurrence]) -> [UUID: SpecialPaymentSavingBalance] {
+        let definitionIds = Set(occurrences.map { $0.definition.id })
+        guard !definitionIds.isEmpty else { return [:] }
+        let query = SpecialPaymentBalanceQuery(definitionIds: definitionIds)
+        let balances = (try? repository.balances(query: query)) ?? []
+        return Dictionary(uniqueKeysWithValues: balances.map { ($0.definition.id, $0) })
     }
 }
 

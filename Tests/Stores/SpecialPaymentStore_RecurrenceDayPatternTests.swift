@@ -155,7 +155,6 @@ internal struct SpecialPaymentStoreDayPatternTests {
         let context = ModelContext(container)
         let store = SpecialPaymentStore(
             modelContext: context,
-            scheduleService: SpecialPaymentScheduleService(),
             currentDateProvider: { referenceDate },
         )
         return (store, context)

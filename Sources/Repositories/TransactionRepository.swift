@@ -15,6 +15,7 @@ internal struct TransactionQuery {
 
 internal protocol TransactionRepository {
     func fetchTransactions(query: TransactionQuery) throws -> [Transaction]
+    func fetchAllTransactions() throws -> [Transaction]
     func fetchInstitutions() throws -> [FinancialInstitution]
     func fetchCategories() throws -> [Category]
     func insert(_ transaction: Transaction)

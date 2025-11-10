@@ -83,6 +83,63 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
     }
 
     @discardableResult
+    internal func createDefinition(_ input: SpecialPaymentDefinitionInput) throws -> SpecialPaymentDefinition {
+        let category = try resolvedCategory(id: input.categoryId)
+
+        let definition = SpecialPaymentDefinition(
+            name: input.name,
+            notes: input.notes,
+            amount: input.amount,
+            recurrenceIntervalMonths: input.recurrenceIntervalMonths,
+            firstOccurrenceDate: input.firstOccurrenceDate,
+            leadTimeMonths: input.leadTimeMonths,
+            category: category,
+            savingStrategy: input.savingStrategy,
+            customMonthlySavingAmount: input.customMonthlySavingAmount,
+            dateAdjustmentPolicy: input.dateAdjustmentPolicy,
+            recurrenceDayPattern: input.recurrenceDayPattern
+        )
+
+        let errors = definition.validate()
+        guard errors.isEmpty else {
+            throw SpecialPaymentDomainError.validationFailed(errors)
+        }
+
+        modelContext.insert(definition)
+        try modelContext.save()
+        return definition
+    }
+
+    internal func updateDefinition(_ definition: SpecialPaymentDefinition, input: SpecialPaymentDefinitionInput) throws {
+        let category = try resolvedCategory(id: input.categoryId)
+
+        definition.name = input.name
+        definition.notes = input.notes
+        definition.amount = input.amount
+        definition.recurrenceIntervalMonths = input.recurrenceIntervalMonths
+        definition.firstOccurrenceDate = input.firstOccurrenceDate
+        definition.leadTimeMonths = input.leadTimeMonths
+        definition.category = category
+        definition.savingStrategy = input.savingStrategy
+        definition.customMonthlySavingAmount = input.customMonthlySavingAmount
+        definition.dateAdjustmentPolicy = input.dateAdjustmentPolicy
+        definition.recurrenceDayPattern = input.recurrenceDayPattern
+        definition.updatedAt = currentDateProvider()
+
+        let errors = definition.validate()
+        guard errors.isEmpty else {
+            throw SpecialPaymentDomainError.validationFailed(errors)
+        }
+
+        try modelContext.save()
+    }
+
+    internal func deleteDefinition(_ definition: SpecialPaymentDefinition) throws {
+        modelContext.delete(definition)
+        try modelContext.save()
+    }
+
+    @discardableResult
     internal func synchronize(
         definition: SpecialPaymentDefinition,
         horizonMonths: Int,
@@ -230,5 +287,17 @@ private extension SwiftDataSpecialPaymentRepository {
         return #Predicate<SpecialPaymentSavingBalance> { balance in
             identifiers.contains(balance.definition.id)
         }
+    }
+
+    func resolvedCategory(id: UUID?) throws -> Category? {
+        guard let id else { return nil }
+        var descriptor = FetchDescriptor<Category>(
+            predicate: #Predicate { $0.id == id }
+        )
+        descriptor.fetchLimit = 1
+        guard let category = try modelContext.fetch(descriptor).first else {
+            throw SpecialPaymentDomainError.categoryNotFound
+        }
+        return category
     }
 }

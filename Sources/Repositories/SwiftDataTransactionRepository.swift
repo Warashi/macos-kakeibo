@@ -18,6 +18,16 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
         return try modelContext.fetch(descriptor)
     }
 
+    internal func fetchAllTransactions() throws -> [Transaction] {
+        let descriptor = FetchDescriptor<Transaction>(
+            sortBy: [
+                SortDescriptor(\Transaction.date, order: .reverse),
+                SortDescriptor(\Transaction.createdAt, order: .reverse),
+            ]
+        )
+        return try modelContext.fetch(descriptor)
+    }
+
     internal func fetchInstitutions() throws -> [FinancialInstitution] {
         let descriptor = FetchDescriptor<FinancialInstitution>(
             sortBy: [SortDescriptor(\.displayOrder), SortDescriptor(\.name)],

@@ -83,20 +83,37 @@ internal struct OccurrenceUpdateInput {
 @Observable
 @MainActor
 internal final class SpecialPaymentStore {
-    private let modelContext: ModelContext
-    private let scheduleService: SpecialPaymentScheduleService
+    private let repository: SpecialPaymentRepository
     private let currentDateProvider: () -> Date
 
     internal private(set) var lastSyncedAt: Date?
 
     internal init(
-        modelContext: ModelContext,
-        scheduleService: SpecialPaymentScheduleService = SpecialPaymentScheduleService(),
-        currentDateProvider: @escaping () -> Date = { Date() },
+        repository: SpecialPaymentRepository,
+        currentDateProvider: @escaping () -> Date = { Date() }
     ) {
-        self.modelContext = modelContext
-        self.scheduleService = scheduleService
+        self.repository = repository
         self.currentDateProvider = currentDateProvider
+    }
+
+    internal convenience init(
+        modelContext: ModelContext,
+        calendar: Calendar = Calendar(identifier: .gregorian),
+        businessDayService: BusinessDayService? = nil,
+        holidayProvider: HolidayProvider? = nil,
+        currentDateProvider: @escaping () -> Date = { Date() }
+    ) {
+        let repository = SpecialPaymentRepositoryFactory.make(
+            modelContext: modelContext,
+            calendar: calendar,
+            businessDayService: businessDayService,
+            holidayProvider: holidayProvider,
+            currentDateProvider: currentDateProvider
+        )
+        self.init(
+            repository: repository,
+            currentDateProvider: currentDateProvider
+        )
     }
 
     // MARK: - Public API
@@ -114,26 +131,13 @@ internal final class SpecialPaymentStore {
             throw SpecialPaymentDomainError.invalidHorizon
         }
 
-        let now = referenceDate ?? currentDateProvider()
-        let plan = scheduleService.synchronizationPlan(
-            for: definition,
-            referenceDate: now,
-            horizonMonths: horizonMonths
+        let summary = try repository.synchronize(
+            definition: definition,
+            horizonMonths: horizonMonths,
+            referenceDate: referenceDate
         )
 
-        guard !plan.occurrences.isEmpty else {
-            return
-        }
-
-        plan.created.forEach { modelContext.insert($0) }
-        plan.removed.forEach { modelContext.delete($0) }
-
-        definition.occurrences = plan.occurrences
-
-        definition.updatedAt = now
-        lastSyncedAt = now
-
-        try modelContext.save()
+        lastSyncedAt = summary.syncedAt
     }
 
     internal func markOccurrenceCompleted(
@@ -141,21 +145,12 @@ internal final class SpecialPaymentStore {
         input: OccurrenceCompletionInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) throws {
-        occurrence.actualDate = input.actualDate
-        occurrence.actualAmount = input.actualAmount
-        occurrence.transaction = input.transaction
-        occurrence.status = .completed
-        occurrence.updatedAt = currentDateProvider()
-
-        let errors = occurrence.validate()
-        guard errors.isEmpty else {
-            throw SpecialPaymentDomainError.validationFailed(errors)
-        }
-
-        try synchronizeOccurrences(
-            for: occurrence.definition,
-            horizonMonths: horizonMonths,
+        let summary = try repository.markOccurrenceCompleted(
+            occurrence,
+            input: input,
+            horizonMonths: horizonMonths
         )
+        lastSyncedAt = summary.syncedAt
     }
 
     /// Occurrenceの実績データとステータスを更新
@@ -168,30 +163,14 @@ internal final class SpecialPaymentStore {
         input: OccurrenceUpdateInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) throws {
-        let now = currentDateProvider()
-        let wasCompleted = occurrence.status == .completed
-        let willBeCompleted = input.status == .completed
+        let summary = try repository.updateOccurrence(
+            occurrence,
+            input: input,
+            horizonMonths: horizonMonths
+        )
 
-        occurrence.status = input.status
-        occurrence.actualDate = input.actualDate
-        occurrence.actualAmount = input.actualAmount
-        occurrence.transaction = input.transaction
-        occurrence.updatedAt = now
-
-        let errors = occurrence.validate()
-        guard errors.isEmpty else {
-            throw SpecialPaymentDomainError.validationFailed(errors)
-        }
-
-        try modelContext.save()
-
-        let shouldResync = wasCompleted != willBeCompleted
-        if shouldResync {
-            try synchronizeOccurrences(
-                for: occurrence.definition,
-                horizonMonths: horizonMonths,
-                referenceDate: now,
-            )
+        if let summary {
+            lastSyncedAt = summary.syncedAt
         }
     }
 }
@@ -204,31 +183,13 @@ extension SpecialPaymentStore {
         _ input: SpecialPaymentDefinitionInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) throws {
-        let category = try resolvedCategory(categoryId: input.categoryId)
-
-        let definition = SpecialPaymentDefinition(
-            name: input.name,
-            notes: input.notes,
-            amount: input.amount,
-            recurrenceIntervalMonths: input.recurrenceIntervalMonths,
-            firstOccurrenceDate: input.firstOccurrenceDate,
-            leadTimeMonths: input.leadTimeMonths,
-            category: category,
-            savingStrategy: input.savingStrategy,
-            customMonthlySavingAmount: input.customMonthlySavingAmount,
-            dateAdjustmentPolicy: input.dateAdjustmentPolicy,
-            recurrenceDayPattern: input.recurrenceDayPattern,
+        let definition = try repository.createDefinition(input)
+        let summary = try repository.synchronize(
+            definition: definition,
+            horizonMonths: horizonMonths,
+            referenceDate: currentDateProvider()
         )
-
-        let errors = definition.validate()
-        guard errors.isEmpty else {
-            throw SpecialPaymentDomainError.validationFailed(errors)
-        }
-
-        modelContext.insert(definition)
-        try modelContext.save()
-
-        try synchronizeOccurrences(for: definition, horizonMonths: horizonMonths)
+        lastSyncedAt = summary.syncedAt
     }
 
     /// 特別支払い定義を更新
@@ -237,52 +198,17 @@ extension SpecialPaymentStore {
         input: SpecialPaymentDefinitionInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) throws {
-        let category = try resolvedCategory(categoryId: input.categoryId)
-
-        definition.name = input.name
-        definition.notes = input.notes
-        definition.amount = input.amount
-        definition.recurrenceIntervalMonths = input.recurrenceIntervalMonths
-        definition.firstOccurrenceDate = input.firstOccurrenceDate
-        definition.leadTimeMonths = input.leadTimeMonths
-        definition.category = category
-        definition.savingStrategy = input.savingStrategy
-        definition.customMonthlySavingAmount = input.customMonthlySavingAmount
-        definition.dateAdjustmentPolicy = input.dateAdjustmentPolicy
-        definition.recurrenceDayPattern = input.recurrenceDayPattern
-        definition.updatedAt = currentDateProvider()
-
-        let errors = definition.validate()
-        guard errors.isEmpty else {
-            throw SpecialPaymentDomainError.validationFailed(errors)
-        }
-
-        try modelContext.save()
-
-        try synchronizeOccurrences(for: definition, horizonMonths: horizonMonths)
+        try repository.updateDefinition(definition, input: input)
+        let summary = try repository.synchronize(
+            definition: definition,
+            horizonMonths: horizonMonths,
+            referenceDate: currentDateProvider()
+        )
+        lastSyncedAt = summary.syncedAt
     }
 
     /// 特別支払い定義を削除
     internal func deleteDefinition(_ definition: SpecialPaymentDefinition) throws {
-        modelContext.delete(definition)
-        try modelContext.save()
+        try repository.deleteDefinition(definition)
     }
-}
-
-// MARK: - Helpers
-
-private extension SpecialPaymentStore {
-    func resolvedCategory(categoryId: UUID?) throws -> Category? {
-        guard let id = categoryId else { return nil }
-        var descriptor = FetchDescriptor<Category>(
-            predicate: #Predicate { $0.id == id },
-        )
-        descriptor.fetchLimit = 1
-        guard let category = try? modelContext.fetch(descriptor).first else {
-            throw SpecialPaymentDomainError.categoryNotFound
-        }
-        return category
-    }
-
-    // Helpers moved to SpecialPaymentScheduleService
 }

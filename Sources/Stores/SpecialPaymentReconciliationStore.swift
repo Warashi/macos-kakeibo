@@ -225,7 +225,8 @@ internal final class SpecialPaymentReconciliationStore {
 
     // MARK: - Dependencies
 
-    private let modelContext: ModelContext
+    private let repository: SpecialPaymentRepository
+    private let transactionRepository: TransactionRepository
     private let specialPaymentStore: SpecialPaymentStore
     private let currentDateProvider: () -> Date
     private let candidateSearchWindowDays: Int
@@ -271,16 +272,42 @@ internal final class SpecialPaymentReconciliationStore {
     // MARK: - Initialization
 
     internal init(
-        modelContext: ModelContext,
+        repository: SpecialPaymentRepository,
+        transactionRepository: TransactionRepository,
         candidateSearchWindowDays: Int = 60,
         candidateLimit: Int = 12,
-        currentDateProvider: @escaping () -> Date = { Date() },
+        currentDateProvider: @escaping () -> Date = { Date() }
     ) {
-        self.modelContext = modelContext
-        self.specialPaymentStore = SpecialPaymentStore(modelContext: modelContext)
+        self.repository = repository
+        self.transactionRepository = transactionRepository
+        self.specialPaymentStore = SpecialPaymentStore(
+            repository: repository,
+            currentDateProvider: currentDateProvider
+        )
         self.candidateSearchWindowDays = candidateSearchWindowDays
         self.candidateLimit = candidateLimit
         self.currentDateProvider = currentDateProvider
+    }
+
+    internal convenience init(
+        modelContext: ModelContext,
+        transactionRepository: TransactionRepository? = nil,
+        candidateSearchWindowDays: Int = 60,
+        candidateLimit: Int = 12,
+        currentDateProvider: @escaping () -> Date = { Date() }
+    ) {
+        let repository = SpecialPaymentRepositoryFactory.make(
+            modelContext: modelContext,
+            currentDateProvider: currentDateProvider
+        )
+        let resolvedTransactionRepository = transactionRepository ?? SwiftDataTransactionRepository(modelContext: modelContext)
+        self.init(
+            repository: repository,
+            transactionRepository: resolvedTransactionRepository,
+            candidateSearchWindowDays: candidateSearchWindowDays,
+            candidateLimit: candidateLimit,
+            currentDateProvider: currentDateProvider
+        )
     }
 
     // MARK: - Accessors
@@ -301,14 +328,10 @@ internal extension SpecialPaymentReconciliationStore {
         defer { isLoading = false }
 
         do {
-            transactions = try modelContext.fetch(FetchDescriptor<Transaction>())
+            transactions = try transactionRepository.fetchAllTransactions()
 
-            let descriptor = FetchDescriptor<SpecialPaymentDefinition>(
-                sortBy: [
-                    SortDescriptor(\.name, order: .forward),
-                ],
-            )
-            let definitions = try modelContext.fetch(descriptor)
+            let definitions = try repository.definitions(filter: nil)
+                .sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
             let referenceDate = currentDateProvider()
 
             var newRows: [OccurrenceRow] = []
@@ -428,15 +451,16 @@ internal extension SpecialPaymentReconciliationStore {
         statusMessage = nil
         defer { isSaving = false }
 
-        occurrence.transaction = nil
-        occurrence.actualAmount = nil
-        occurrence.actualDate = nil
-        occurrence.status = .planned
-        occurrence.updatedAt = currentDateProvider()
-
         do {
-            try modelContext.save()
-            try specialPaymentStore.synchronizeOccurrences(for: occurrence.definition)
+            try specialPaymentStore.updateOccurrence(
+                occurrence,
+                input: OccurrenceUpdateInput(
+                    status: .planned,
+                    actualDate: nil,
+                    actualAmount: nil,
+                    transaction: nil
+                )
+            )
             statusMessage = "取引リンクを解除しました。"
             refresh()
             selectedOccurrenceId = occurrence.id

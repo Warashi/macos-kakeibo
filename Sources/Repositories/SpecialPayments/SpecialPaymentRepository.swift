@@ -79,6 +79,11 @@ internal protocol SpecialPaymentRepository {
     func balances(query: SpecialPaymentBalanceQuery?) throws -> [SpecialPaymentSavingBalance]
 
     @discardableResult
+    func createDefinition(_ input: SpecialPaymentDefinitionInput) throws -> SpecialPaymentDefinition
+    func updateDefinition(_ definition: SpecialPaymentDefinition, input: SpecialPaymentDefinitionInput) throws
+    func deleteDefinition(_ definition: SpecialPaymentDefinition) throws
+
+    @discardableResult
     func synchronize(
         definition: SpecialPaymentDefinition,
         horizonMonths: Int,

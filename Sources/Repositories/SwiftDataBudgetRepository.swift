@@ -3,9 +3,15 @@ import SwiftData
 
 internal final class SwiftDataBudgetRepository: BudgetRepository {
     private let modelContext: ModelContext
+    private let specialPaymentRepository: SpecialPaymentRepository
 
-    internal init(modelContext: ModelContext) {
+    internal init(
+        modelContext: ModelContext,
+        specialPaymentRepository: SpecialPaymentRepository? = nil
+    ) {
         self.modelContext = modelContext
+        self.specialPaymentRepository = specialPaymentRepository
+            ?? SpecialPaymentRepositoryFactory.make(modelContext: modelContext)
     }
 
     internal func fetchSnapshot(for year: Int) throws -> BudgetSnapshot {
@@ -19,8 +25,8 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
                 ]
             )
         )
-        let definitions = try modelContext.fetch(FetchDescriptor<SpecialPaymentDefinition>())
-        let balances = try modelContext.fetch(FetchDescriptor<SpecialPaymentSavingBalance>())
+        let definitions = try specialPaymentRepository.definitions(filter: nil)
+        let balances = try specialPaymentRepository.balances(query: nil)
         var configDescriptor = FetchDescriptor<AnnualBudgetConfig>(
             predicate: #Predicate { $0.year == year }
         )

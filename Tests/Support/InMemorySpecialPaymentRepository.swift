@@ -4,17 +4,26 @@ import Foundation
 internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository {
     private var definitionsStorage: [UUID: SpecialPaymentDefinition]
     private var balancesStorage: [UUID: SpecialPaymentSavingBalance]
+    private var categoryLookup: [UUID: Category]
     private let scheduleService: SpecialPaymentScheduleService
     private let currentDateProvider: () -> Date
 
     internal init(
         definitions: [SpecialPaymentDefinition] = [],
         balances: [SpecialPaymentSavingBalance] = [],
+        categories: [Category] = [],
         scheduleService: SpecialPaymentScheduleService = SpecialPaymentScheduleService(),
         currentDateProvider: @escaping () -> Date = { Date() }
     ) {
         self.definitionsStorage = Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
         self.balancesStorage = Dictionary(uniqueKeysWithValues: balances.map { ($0.definition.id, $0) })
+        var lookup = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
+        for definition in definitions {
+            if let category = definition.category {
+                lookup[category.id] = category
+            }
+        }
+        self.categoryLookup = lookup
         self.scheduleService = scheduleService
         self.currentDateProvider = currentDateProvider
     }
@@ -58,6 +67,68 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
             results = results.filter { ids.contains($0.definition.id) }
         }
         return results
+    }
+
+    @discardableResult
+    internal func createDefinition(_ input: SpecialPaymentDefinitionInput) throws -> SpecialPaymentDefinition {
+        let category = try resolvedCategory(id: input.categoryId)
+
+        let definition = SpecialPaymentDefinition(
+            name: input.name,
+            notes: input.notes,
+            amount: input.amount,
+            recurrenceIntervalMonths: input.recurrenceIntervalMonths,
+            firstOccurrenceDate: input.firstOccurrenceDate,
+            leadTimeMonths: input.leadTimeMonths,
+            category: category,
+            savingStrategy: input.savingStrategy,
+            customMonthlySavingAmount: input.customMonthlySavingAmount,
+            dateAdjustmentPolicy: input.dateAdjustmentPolicy,
+            recurrenceDayPattern: input.recurrenceDayPattern
+        )
+
+        let errors = definition.validate()
+        guard errors.isEmpty else {
+            throw SpecialPaymentDomainError.validationFailed(errors)
+        }
+
+        definitionsStorage[definition.id] = definition
+        if let category {
+            categoryLookup[category.id] = category
+        }
+        return definition
+    }
+
+    internal func updateDefinition(_ definition: SpecialPaymentDefinition, input: SpecialPaymentDefinitionInput) throws {
+        let category = try resolvedCategory(id: input.categoryId)
+
+        definition.name = input.name
+        definition.notes = input.notes
+        definition.amount = input.amount
+        definition.recurrenceIntervalMonths = input.recurrenceIntervalMonths
+        definition.firstOccurrenceDate = input.firstOccurrenceDate
+        definition.leadTimeMonths = input.leadTimeMonths
+        definition.category = category
+        definition.savingStrategy = input.savingStrategy
+        definition.customMonthlySavingAmount = input.customMonthlySavingAmount
+        definition.dateAdjustmentPolicy = input.dateAdjustmentPolicy
+        definition.recurrenceDayPattern = input.recurrenceDayPattern
+        definition.updatedAt = currentDateProvider()
+
+        let errors = definition.validate()
+        guard errors.isEmpty else {
+            throw SpecialPaymentDomainError.validationFailed(errors)
+        }
+
+        definitionsStorage[definition.id] = definition
+        if let category {
+            categoryLookup[category.id] = category
+        }
+    }
+
+    internal func deleteDefinition(_ definition: SpecialPaymentDefinition) throws {
+        definitionsStorage.removeValue(forKey: definition.id)
+        balancesStorage.removeValue(forKey: definition.id)
     }
 
     @discardableResult
@@ -159,5 +230,13 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
 
     internal func saveChanges() throws {
         // No-op for in-memory implementation
+    }
+
+    private func resolvedCategory(id: UUID?) throws -> Category? {
+        guard let id else { return nil }
+        guard let category = categoryLookup[id] else {
+            throw SpecialPaymentDomainError.categoryNotFound
+        }
+        return category
     }
 }
