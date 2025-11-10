@@ -1,3 +1,4 @@
+import Foundation
 import SwiftData
 import Testing
 
@@ -162,6 +163,6 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
         )
 
         #expect(summary.createdCount >= 1)
-        #expect(occurrence.status == .completed)
+        #expect(occurrence.status == SpecialPaymentStatus.completed)
     }
 }
