@@ -18,11 +18,11 @@ internal struct SpecialPaymentListStoreInitTests {
         let expectedStart = Calendar.current.startOfMonth(for: now)
         let expectedEnd = Calendar.current.date(byAdding: .month, value: 6, to: expectedStart ?? now)
 
-        #expect(store.startDate.timeIntervalSince(expectedStart ?? now) < 60) // 1分以内
-        #expect(store.endDate.timeIntervalSince(expectedEnd ?? now) < 60)
+        #expect(store.dateRange.startDate.timeIntervalSince(expectedStart ?? now) < 60) // 1分以内
+        #expect(store.dateRange.endDate.timeIntervalSince(expectedEnd ?? now) < 60)
         #expect(store.searchText == "")
-        #expect(store.selectedMajorCategoryId == nil)
-        #expect(store.selectedMinorCategoryId == nil)
+        #expect(store.categoryFilter.selectedMajorCategoryId == nil)
+        #expect(store.categoryFilter.selectedMinorCategoryId == nil)
         #expect(store.selectedStatus == nil)
         #expect(store.sortOrder == .dateAscending)
     }

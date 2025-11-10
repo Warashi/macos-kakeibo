@@ -276,11 +276,10 @@ private extension SpecialPaymentReconciliationStore {
     }
 
     private func applyFilters() {
-        let normalizedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        let loweredSearch = normalizedSearch.lowercased()
+        let normalizedSearch = SearchText(searchText)
         filteredRows = rows.filter { row in
             filter.matches(row: row)
-                && row.matches(searchText: loweredSearch)
+                && row.matches(searchText: normalizedSearch)
         }
 
         let containsSelected = selectedOccurrenceId.flatMap { id in

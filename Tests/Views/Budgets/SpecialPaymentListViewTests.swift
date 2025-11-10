@@ -58,8 +58,8 @@ internal struct SpecialPaymentListViewTests {
 
         // ストアを作成
         let store = SpecialPaymentListStore(modelContext: context)
-        store.startDate = Date.from(year: 2026, month: 1) ?? Date()
-        store.endDate = Date.from(year: 2026, month: 12) ?? Date()
+        store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
+        store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
 
         // エントリが取得できることを確認
         #expect(store.entries.count == 1)
@@ -129,8 +129,8 @@ internal struct SpecialPaymentListViewTests {
         // フィルタを設定
         store.searchText = "テスト"
         store.selectedStatus = .completed
-        store.startDate = Date.from(year: 2025, month: 1) ?? Date()
-        store.endDate = Date.from(year: 2025, month: 12) ?? Date()
+        store.dateRange.startDate = Date.from(year: 2025, month: 1) ?? Date()
+        store.dateRange.endDate = Date.from(year: 2025, month: 12) ?? Date()
 
         // リセット
         store.resetFilters()
@@ -138,13 +138,13 @@ internal struct SpecialPaymentListViewTests {
         // フィルタがリセットされたことを確認
         #expect(store.searchText == "")
         #expect(store.selectedStatus == nil)
-        #expect(store.selectedMajorCategoryId == nil)
-        #expect(store.selectedMinorCategoryId == nil)
+        #expect(store.categoryFilter.selectedMajorCategoryId == nil)
+        #expect(store.categoryFilter.selectedMinorCategoryId == nil)
 
         // 期間が当月〜6ヶ月後にリセットされることを確認
         let now = Date()
         let expectedStart = Calendar.current.startOfMonth(for: now)
-        #expect(store.startDate.timeIntervalSince(expectedStart ?? now) < 60)
+        #expect(store.dateRange.startDate.timeIntervalSince(expectedStart ?? now) < 60)
     }
 
     // MARK: - Helpers
@@ -207,8 +207,8 @@ internal struct SpecialPaymentListViewTests {
         try context.save()
 
         let store = SpecialPaymentListStore(modelContext: context)
-        store.startDate = Date.from(year: 2026, month: 1) ?? Date()
-        store.endDate = Date.from(year: 2026, month: 12) ?? Date()
+        store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
+        store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
 
         return (store, context)
     }

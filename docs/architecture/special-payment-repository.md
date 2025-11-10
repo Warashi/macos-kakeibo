@@ -91,11 +91,12 @@ let summary = try repository.synchronize(
 ```swift
 let presenter = SpecialPaymentListPresenter()
 let filter = SpecialPaymentListFilter(
-    startDate: startDate,
-    endDate: endDate,
-    searchText: searchText,
-    selectedMajorCategoryId: selectedMajor,
-    selectedMinorCategoryId: selectedMinor,
+    dateRange: DateRange(startDate: startDate, endDate: endDate),
+    searchText: SearchText(searchText),
+    categoryFilter: .init(
+        majorCategoryId: selectedMajor,
+        minorCategoryId: selectedMinor
+    ),
     sortOrder: .dateAscending
 )
 

@@ -82,9 +82,9 @@ internal struct TransactionFilterBar: View {
                 .frame(width: 220)
 
                 CategoryHierarchyPicker(
-                    categories: store.availableCategories,
-                    selectedMajorCategoryId: $store.selectedMajorCategoryId,
-                    selectedMinorCategoryId: $store.selectedMinorCategoryId,
+                    categories: store.categoryFilter.availableCategories,
+                    selectedMajorCategoryId: $store.categoryFilter.selectedMajorCategoryId,
+                    selectedMinorCategoryId: $store.categoryFilter.selectedMinorCategoryId,
                     majorPlaceholder: "すべて",
                     minorPlaceholder: "中項目を選択",
                     inactiveMinorMessage: "大項目を選択すると中項目でも絞り込めます",

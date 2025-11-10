@@ -49,8 +49,8 @@ internal struct SpecialPaymentListStoreFilterTests {
         try context.save()
 
         // When: 2026/1〜2026/6の期間
-        store.startDate = Date.from(year: 2026, month: 1) ?? Date()
-        store.endDate = Date.from(year: 2026, month: 6) ?? Date()
+        store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
+        store.dateRange.endDate = Date.from(year: 2026, month: 6) ?? Date()
 
         // Then
         #expect(store.entries.count == 1)
@@ -95,8 +95,8 @@ internal struct SpecialPaymentListStoreFilterTests {
         context.insert(occurrence2)
         try context.save()
 
-        store.startDate = Date.from(year: 2026, month: 1) ?? Date()
-        store.endDate = Date.from(year: 2026, month: 12) ?? Date()
+        store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
+        store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
 
         // When
         store.searchText = "自動車"
@@ -138,8 +138,8 @@ internal struct SpecialPaymentListStoreFilterTests {
         context.insert(occurrence2)
         try context.save()
 
-        store.startDate = Date.from(year: 2026, month: 1) ?? Date()
-        store.endDate = Date.from(year: 2026, month: 12) ?? Date()
+        store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
+        store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
 
         // When
         store.selectedStatus = .completed
@@ -214,10 +214,10 @@ internal struct SpecialPaymentListStoreFilterTests {
         context.insert(occurrence3)
         try context.save()
 
-        store.startDate = Date.from(year: 2026, month: 1) ?? Date()
-        store.endDate = Date.from(year: 2026, month: 12) ?? Date()
-
-        store.selectedMajorCategoryId = major.id
+        store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
+        store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
+        store.categoryFilter.updateCategories([major, minor, otherMajor])
+        store.categoryFilter.selectedMajorCategoryId = major.id
 
         let filteredDefinitions = Set(store.entries.map(\.definitionId))
         #expect(filteredDefinitions.contains(definitionMajor.id))
@@ -273,10 +273,11 @@ internal struct SpecialPaymentListStoreFilterTests {
         context.insert(occurrence2)
         try context.save()
 
-        store.startDate = Date.from(year: 2026, month: 1) ?? Date()
-        store.endDate = Date.from(year: 2026, month: 12) ?? Date()
-        store.selectedMajorCategoryId = major.id
-        store.selectedMinorCategoryId = minor.id
+        store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
+        store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
+        store.categoryFilter.updateCategories([major, minor, anotherMinor])
+        store.categoryFilter.selectedMajorCategoryId = major.id
+        store.categoryFilter.selectedMinorCategoryId = minor.id
 
         let filteredDefinitions = Set(store.entries.map(\.definitionId))
         #expect(filteredDefinitions == Set([definitionMinor.id]))
@@ -288,24 +289,24 @@ internal struct SpecialPaymentListStoreFilterTests {
 
         // Given
         store.searchText = "テスト"
-        store.selectedMajorCategoryId = UUID()
-        store.selectedMinorCategoryId = UUID()
+        store.categoryFilter.selectedMajorCategoryId = UUID()
+        store.categoryFilter.selectedMinorCategoryId = UUID()
         store.selectedStatus = .completed
-        store.startDate = Date.from(year: 2025, month: 1) ?? Date()
-        store.endDate = Date.from(year: 2025, month: 12) ?? Date()
+        store.dateRange.startDate = Date.from(year: 2025, month: 1) ?? Date()
+        store.dateRange.endDate = Date.from(year: 2025, month: 12) ?? Date()
 
         // When
         store.resetFilters()
 
         // Then
         #expect(store.searchText == "")
-        #expect(store.selectedMajorCategoryId == nil)
-        #expect(store.selectedMinorCategoryId == nil)
+        #expect(store.categoryFilter.selectedMajorCategoryId == nil)
+        #expect(store.categoryFilter.selectedMinorCategoryId == nil)
         #expect(store.selectedStatus == nil)
         // 期間は当月〜6ヶ月後にリセットされる
         let now = Date()
         let expectedStart = Calendar.current.startOfMonth(for: now)
-        #expect(store.startDate.timeIntervalSince(expectedStart ?? now) < 60)
+        #expect(store.dateRange.startDate.timeIntervalSince(expectedStart ?? now) < 60)
     }
 
     // MARK: - Helpers

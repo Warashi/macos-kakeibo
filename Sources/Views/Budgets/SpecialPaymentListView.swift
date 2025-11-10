@@ -32,7 +32,7 @@ internal struct SpecialPaymentListContentView: View {
 
     internal var body: some View {
         VStack(spacing: 16) {
-            SpecialPaymentFilterToolbarView(store: store, allCategories: allCategories)
+            SpecialPaymentFilterToolbarView(store: store)
             SpecialPaymentEntriesTableView(store: store)
         }
         .padding()
@@ -73,6 +73,12 @@ internal struct SpecialPaymentListContentView: View {
                 Text(exportError ?? "")
             },
         )
+        .onAppear {
+            store.categoryFilter.updateCategories(allCategories)
+        }
+        .onChange(of: allCategories) { _, newValue in
+            store.categoryFilter.updateCategories(newValue)
+        }
     }
 
     // MARK: - Export Helpers
@@ -111,7 +117,6 @@ internal struct SpecialPaymentListContentView: View {
 
 private struct SpecialPaymentFilterToolbarView: View {
     @Bindable internal var store: SpecialPaymentListStore
-    internal let allCategories: [Category]
 
     internal var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -123,7 +128,7 @@ private struct SpecialPaymentFilterToolbarView: View {
                         .foregroundStyle(.secondary)
                     DatePicker(
                         "",
-                        selection: $store.startDate,
+                        selection: $store.dateRange.startDate,
                         displayedComponents: [.date],
                     )
                     .datePickerStyle(.compact)
@@ -136,7 +141,7 @@ private struct SpecialPaymentFilterToolbarView: View {
                         .foregroundStyle(.secondary)
                     DatePicker(
                         "",
-                        selection: $store.endDate,
+                        selection: $store.dateRange.endDate,
                         displayedComponents: [.date],
                     )
                     .datePickerStyle(.compact)
@@ -151,9 +156,9 @@ private struct SpecialPaymentFilterToolbarView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     CategoryHierarchyPicker(
-                        categories: allCategories,
-                        selectedMajorCategoryId: $store.selectedMajorCategoryId,
-                        selectedMinorCategoryId: $store.selectedMinorCategoryId,
+                        categories: store.categoryFilter.availableCategories,
+                        selectedMajorCategoryId: $store.categoryFilter.selectedMajorCategoryId,
+                        selectedMinorCategoryId: $store.categoryFilter.selectedMinorCategoryId,
                         majorPlaceholder: "すべて",
                         minorPlaceholder: "中項目を選択",
                         inactiveMinorMessage: "大項目を選択すると中項目で絞り込めます",

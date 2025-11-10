@@ -18,20 +18,14 @@ internal final class SpecialPaymentListStore {
 
     // MARK: - Filter State
 
-    /// 期間フィルタ開始日
-    internal var startDate: Date
-
-    /// 期間フィルタ終了日
-    internal var endDate: Date
+    /// 期間フィルタ
+    internal var dateRange: DateRange
 
     /// 検索テキスト（名目での部分一致）
     internal var searchText: String = ""
 
-    /// カテゴリフィルタ（大項目）
-    internal var selectedMajorCategoryId: UUID?
-
-    /// カテゴリフィルタ（中項目）
-    internal var selectedMinorCategoryId: UUID?
+    /// カテゴリフィルタ
+    internal var categoryFilter: CategoryFilterState = .init()
 
     /// ステータスフィルタ
     internal var selectedStatus: SpecialPaymentStatus?
@@ -51,11 +45,10 @@ internal final class SpecialPaymentListStore {
         self.currentDateProvider = currentDateProvider
 
         let now = currentDateProvider()
-        let start = Calendar.current.startOfMonth(for: now) ?? now
-        let end = Calendar.current.date(byAdding: .month, value: 6, to: start) ?? now
-
-        self.startDate = start
-        self.endDate = end
+        self.dateRange = DateRange.currentMonthThroughFutureMonths(
+            referenceDate: now,
+            monthsAhead: 6
+        )
     }
 
     internal convenience init(
@@ -90,13 +83,12 @@ internal final class SpecialPaymentListStore {
         let occurrences = fetchOccurrences()
         let balances = balanceLookup(for: occurrences)
         let filter = SpecialPaymentListFilter(
-            startDate: startDate,
-            endDate: endDate,
-            searchText: searchText,
-            selectedMajorCategoryId: selectedMajorCategoryId,
-            selectedMinorCategoryId: selectedMinorCategoryId,
+            dateRange: dateRange,
+            searchText: SearchText(searchText),
+            categoryFilter: categoryFilter.selection,
             sortOrder: sortOrder
         )
+        updateCategoryOptionsIfNeeded(from: occurrences)
 
         return presenter.entries(
             occurrences: occurrences,
@@ -111,16 +103,14 @@ internal final class SpecialPaymentListStore {
     /// フィルタをリセット
     internal func resetFilters() {
         searchText = ""
-        selectedMajorCategoryId = nil
-        selectedMinorCategoryId = nil
+        categoryFilter.reset()
         selectedStatus = nil
 
         let now = currentDateProvider()
-        let start = Calendar.current.startOfMonth(for: now) ?? now
-        let end = Calendar.current.date(byAdding: .month, value: 6, to: start) ?? now
-
-        startDate = start
-        endDate = end
+        dateRange = DateRange.currentMonthThroughFutureMonths(
+            referenceDate: now,
+            monthsAhead: 6
+        )
     }
 
     /// ソート順を切り替え
@@ -131,7 +121,10 @@ internal final class SpecialPaymentListStore {
     // MARK: - Helper Methods
 
     private func fetchOccurrences() -> [SpecialPaymentOccurrence] {
-        let range = SpecialPaymentOccurrenceRange(startDate: startDate, endDate: endDate)
+        let range = SpecialPaymentOccurrenceRange(
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate
+        )
         let statusFilter = selectedStatus.map { Set([$0]) }
         let query = SpecialPaymentOccurrenceQuery(
             range: range,
@@ -148,13 +141,27 @@ internal final class SpecialPaymentListStore {
         let balances = (try? repository.balances(query: query)) ?? []
         return Dictionary(uniqueKeysWithValues: balances.map { ($0.definition.id, $0) })
     }
-}
 
-// MARK: - Calendar Extension
+    private func updateCategoryOptionsIfNeeded(from occurrences: [SpecialPaymentOccurrence]) {
+        guard categoryFilter.availableCategories.isEmpty else { return }
 
-private extension Calendar {
-    func startOfMonth(for date: Date) -> Date? {
-        let components = dateComponents([.year, .month], from: date)
-        return self.date(from: components)
+        var categoriesById: [UUID: Category] = [:]
+        for occurrence in occurrences {
+            guard let category = occurrence.definition.category else {
+                continue
+            }
+
+            categoriesById[category.id] = category
+            if let parent = category.parent {
+                categoriesById[parent.id] = parent
+            }
+        }
+        let sorted = Array(categoriesById.values).sorted { lhs, rhs in
+            if lhs.displayOrder == rhs.displayOrder {
+                return lhs.name < rhs.name
+            }
+            return lhs.displayOrder < rhs.displayOrder
+        }
+        categoryFilter.updateCategories(sorted)
     }
 }

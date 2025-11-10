@@ -54,7 +54,7 @@ internal struct TransactionListUseCaseTests {
         let useCase = DefaultTransactionListUseCase(repository: repository)
 
         var filter = makeFilter(month: targetMonth)
-        filter.searchText = "カフェ"
+        filter.searchText = SearchText("カフェ")
 
         let result = try useCase.loadTransactions(filter: filter)
 
@@ -85,11 +85,10 @@ private extension TransactionListUseCaseTests {
     func makeFilter(month: Date) -> TransactionListFilter {
         TransactionListFilter(
             month: month,
-            searchText: "",
+            searchText: SearchText(),
             filterKind: .all,
             institutionId: nil,
-            majorCategoryId: nil,
-            minorCategoryId: nil,
+            categoryFilter: .init(majorCategoryId: nil, minorCategoryId: nil),
             includeOnlyCalculationTarget: true,
             excludeTransfers: true,
             sortOption: .dateDescending

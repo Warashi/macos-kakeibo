@@ -37,8 +37,8 @@ internal struct SpecialPaymentListStoreSortTests {
         context.insert(occurrence2)
         try context.save()
 
-        store.startDate = Date.from(year: 2026, month: 1) ?? Date()
-        store.endDate = Date.from(year: 2026, month: 12) ?? Date()
+        store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
+        store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
 
         // When
         store.sortOrder = .dateAscending
@@ -87,8 +87,8 @@ internal struct SpecialPaymentListStoreSortTests {
         context.insert(occurrence2)
         try context.save()
 
-        store.startDate = Date.from(year: 2026, month: 1) ?? Date()
-        store.endDate = Date.from(year: 2026, month: 12) ?? Date()
+        store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
+        store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
 
         // When
         store.sortOrder = .nameAscending

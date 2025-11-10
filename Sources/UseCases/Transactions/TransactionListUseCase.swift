@@ -2,11 +2,10 @@ import Foundation
 
 internal struct TransactionListFilter {
     internal var month: Date
-    internal var searchText: String
+    internal var searchText: SearchText
     internal var filterKind: TransactionFilterKind
     internal var institutionId: UUID?
-    internal var majorCategoryId: UUID?
-    internal var minorCategoryId: UUID?
+    internal var categoryFilter: CategoryFilterState.Selection
     internal var includeOnlyCalculationTarget: Bool
     internal var excludeTransfers: Bool
     internal var sortOption: TransactionSortOption
@@ -18,9 +17,9 @@ internal struct TransactionListFilter {
             includeOnlyCalculationTarget: includeOnlyCalculationTarget,
             excludeTransfers: excludeTransfers,
             institutionId: institutionId,
-            majorCategoryId: majorCategoryId,
-            minorCategoryId: minorCategoryId,
-            searchText: searchText,
+            majorCategoryId: categoryFilter.majorCategoryId,
+            minorCategoryId: categoryFilter.minorCategoryId,
+            searchText: searchText.normalizedValue ?? "",
             sortOption: sortOption,
         )
     }
@@ -81,7 +80,7 @@ private extension DefaultTransactionListUseCase {
         _ transactions: [Transaction],
         filter: TransactionListFilter
     ) -> [Transaction] {
-        let keyword = filter.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let keyword = filter.searchText.comparisonValue
         return Self.sort(
             transactions: transactions.filter { transaction in
                 Self.matchesFilter(transaction: transaction, filter: filter, keyword: keyword)
@@ -90,7 +89,11 @@ private extension DefaultTransactionListUseCase {
         )
     }
 
-    static func matchesFilter(transaction: Transaction, filter: TransactionListFilter, keyword: String) -> Bool {
+    static func matchesFilter(
+        transaction: Transaction,
+        filter: TransactionListFilter,
+        keyword: String?
+    ) -> Bool {
         guard Self.matchesCalculationTarget(transaction: transaction, includeOnly: filter.includeOnlyCalculationTarget) else {
             return false
         }
@@ -107,15 +110,15 @@ private extension DefaultTransactionListUseCase {
             return false
         }
 
-        guard Self.matchesCategory(
-            transaction: transaction,
-            majorCategoryId: filter.majorCategoryId,
-            minorCategoryId: filter.minorCategoryId
+        guard filter.categoryFilter.matches(
+            majorCategory: transaction.majorCategory,
+            minorCategory: transaction.minorCategory
         ) else {
             return false
         }
 
-        guard keyword.isEmpty || Self.matchesSearch(transaction: transaction, keyword: keyword) else {
+        if let keyword,
+           !Self.matchesSearch(transaction: transaction, keyword: keyword) {
             return false
         }
 
@@ -146,32 +149,15 @@ private extension DefaultTransactionListUseCase {
         return transaction.financialInstitution?.id == institutionId
     }
 
-    static func matchesCategory(
-        transaction: Transaction,
-        majorCategoryId: UUID?,
-        minorCategoryId: UUID?
-    ) -> Bool {
-        if let minorCategoryId {
-            return transaction.minorCategory?.id == minorCategoryId
-        }
-
-        guard let majorCategoryId else { return true }
-        if transaction.majorCategory?.id == majorCategoryId {
-            return true
-        }
-        return transaction.minorCategory?.parent?.id == majorCategoryId
-    }
-
     static func matchesSearch(transaction: Transaction, keyword: String) -> Bool {
-        let lowercased = keyword.lowercased()
-
         let haystacks = [
-            transaction.title.lowercased(),
-            transaction.memo.lowercased(),
-            transaction.categoryFullName.lowercased(),
-            transaction.financialInstitution?.name.lowercased() ?? "",
+            transaction.title,
+            transaction.memo,
+            transaction.categoryFullName,
+            transaction.financialInstitution?.name ?? "",
         ]
-        return haystacks.contains { $0.contains(lowercased) }
+        let loweredKeyword = keyword.lowercased()
+        return haystacks.contains { $0.lowercased().contains(loweredKeyword) }
     }
 
     static func sort(transactions: [Transaction], option: TransactionSortOption) -> [Transaction] {

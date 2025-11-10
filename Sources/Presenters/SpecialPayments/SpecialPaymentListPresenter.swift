@@ -10,28 +10,10 @@ internal enum SpecialPaymentListSortOrder {
 }
 
 internal struct SpecialPaymentListFilter {
-    internal let startDate: Date
-    internal let endDate: Date
-    internal let searchText: String
-    internal let selectedMajorCategoryId: UUID?
-    internal let selectedMinorCategoryId: UUID?
+    internal let dateRange: DateRange
+    internal let searchText: SearchText
+    internal let categoryFilter: CategoryFilterState.Selection
     internal let sortOrder: SpecialPaymentListSortOrder
-
-    internal init(
-        startDate: Date,
-        endDate: Date,
-        searchText: String,
-        selectedMajorCategoryId: UUID?,
-        selectedMinorCategoryId: UUID?,
-        sortOrder: SpecialPaymentListSortOrder
-    ) {
-        self.startDate = startDate
-        self.endDate = endDate
-        self.searchText = searchText
-        self.selectedMajorCategoryId = selectedMajorCategoryId
-        self.selectedMinorCategoryId = selectedMinorCategoryId
-        self.sortOrder = sortOrder
-    }
 }
 
 internal struct SpecialPaymentListPresenter {
@@ -47,13 +29,10 @@ internal struct SpecialPaymentListPresenter {
         filter: SpecialPaymentListFilter,
         now: Date
     ) -> [SpecialPaymentListEntry] {
-        let normalizedSearch = filter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-
         let entries = occurrences.compactMap { occurrence -> SpecialPaymentListEntry? in
             guard matches(
                 occurrence: occurrence,
-                filter: filter,
-                normalizedSearch: normalizedSearch
+                filter: filter
             ) else {
                 return nil
             }
@@ -70,50 +49,17 @@ internal struct SpecialPaymentListPresenter {
 
     private func matches(
         occurrence: SpecialPaymentOccurrence,
-        filter: SpecialPaymentListFilter,
-        normalizedSearch: String
+        filter: SpecialPaymentListFilter
     ) -> Bool {
-        guard occurrence.scheduledDate >= filter.startDate,
-              occurrence.scheduledDate <= filter.endDate else {
+        guard filter.dateRange.contains(occurrence.scheduledDate) else {
             return false
         }
 
-        if !normalizedSearch.isEmpty {
-            let normalizedName = occurrence.definition.name.lowercased()
-            guard normalizedName.contains(normalizedSearch) else {
-                return false
-            }
-        }
-
-        if !matchesCategoryFilter(
-            category: occurrence.definition.category,
-            majorId: filter.selectedMajorCategoryId,
-            minorId: filter.selectedMinorCategoryId
-        ) {
+        if !filter.searchText.matches(haystack: occurrence.definition.name) {
             return false
         }
 
-        return true
-    }
-
-    private func matchesCategoryFilter(
-        category: Category?,
-        majorId: UUID?,
-        minorId: UUID?
-    ) -> Bool {
-        if let minorId {
-            return category?.id == minorId
-        }
-
-        if let majorId {
-            guard let category else { return false }
-            if category.isMajor {
-                return category.id == majorId
-            }
-            return category.parent?.id == majorId
-        }
-
-        return true
+        return filter.categoryFilter.matches(category: occurrence.definition.category)
     }
 
     private func sortEntries(

@@ -42,22 +42,9 @@ internal final class TransactionStore {
         didSet { reloadTransactions() }
     }
 
-    internal var selectedMajorCategoryId: UUID? {
+    internal var categoryFilter: CategoryFilterState = .init() {
         didSet {
-            guard oldValue != selectedMajorCategoryId else { return }
-            if selectedMajorCategoryId == nil {
-                selectedMinorCategoryId = nil
-            } else if let minorId = selectedMinorCategoryId,
-                      referenceData.category(id: minorId)?.parent?.id != selectedMajorCategoryId {
-                selectedMinorCategoryId = nil
-            }
-            reloadTransactions()
-        }
-    }
-
-    internal var selectedMinorCategoryId: UUID? {
-        didSet {
-            guard oldValue != selectedMinorCategoryId else { return }
+            guard oldValue != categoryFilter else { return }
             reloadTransactions()
         }
     }
@@ -224,8 +211,7 @@ internal extension TransactionStore {
         searchText = ""
         selectedFilterKind = .all
         selectedInstitutionId = nil
-        selectedMajorCategoryId = nil
-        selectedMinorCategoryId = nil
+        categoryFilter.reset()
         includeOnlyCalculationTarget = true
         excludeTransfers = true
         sortOption = .dateDescending
@@ -317,10 +303,12 @@ private extension TransactionStore {
             let reference = try listUseCase.loadReferenceData()
             availableInstitutions = reference.institutions
             availableCategories = reference.categories
+            categoryFilter.updateCategories(reference.categories)
             listErrorMessage = nil
         } catch {
             availableInstitutions = []
             availableCategories = []
+            categoryFilter.updateCategories([])
             listErrorMessage = "参照データの読み込みに失敗しました: \(error.localizedDescription)"
         }
     }
@@ -343,11 +331,10 @@ private extension TransactionStore {
     func makeFilter() -> TransactionListFilter {
         TransactionListFilter(
             month: currentMonth,
-            searchText: searchText,
+            searchText: SearchText(searchText),
             filterKind: selectedFilterKind,
             institutionId: selectedInstitutionId,
-            majorCategoryId: selectedMajorCategoryId,
-            minorCategoryId: selectedMinorCategoryId,
+            categoryFilter: categoryFilter.selection,
             includeOnlyCalculationTarget: includeOnlyCalculationTarget,
             excludeTransfers: excludeTransfers,
             sortOption: sortOption

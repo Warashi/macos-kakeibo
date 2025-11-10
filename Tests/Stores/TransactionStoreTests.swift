@@ -15,7 +15,7 @@ internal struct TransactionStoreTests {
         #expect(store.transactions.count == 1)
         #expect(store.availableInstitutions.count == 1)
         #expect(store.availableCategories.count == 2)
-        #expect(listUseCase.observedFilters.count == 1)
+        #expect(listUseCase.observedFilters.count == 2)
         #expect(listUseCase.observedFilters.first?.month == store.currentMonth)
     }
 
@@ -27,7 +27,7 @@ internal struct TransactionStoreTests {
 
         store.selectedFilterKind = .income
 
-        #expect(listUseCase.observedFilters.count == 2)
+        #expect(listUseCase.observedFilters.count == 3)
         #expect(listUseCase.observedFilters.last?.filterKind == .income)
     }
 
@@ -69,7 +69,7 @@ internal struct TransactionStoreTests {
 
         #expect(result)
         #expect(formUseCase.deletedTransactions.contains { $0.id == transaction.id })
-        #expect(listUseCase.observedFilters.count == 2)
+        #expect(listUseCase.observedFilters.count == 4)
     }
 }
 

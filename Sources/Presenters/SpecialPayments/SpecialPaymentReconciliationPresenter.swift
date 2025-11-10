@@ -71,17 +71,16 @@ internal struct SpecialPaymentReconciliationPresenter {
             return actualAmount.safeSubtract(expectedAmount)
         }
 
-        internal func matches(searchText: String) -> Bool {
-            guard !searchText.isEmpty else { return true }
-            let lowered = searchText.lowercased()
-            let haystacks: [String] = [
-                definitionName,
-                categoryName ?? "",
-                recurrenceDescription,
-                transactionTitle ?? "",
-                scheduledDate.longDateFormatted,
-            ]
-            return haystacks.contains { $0.lowercased().contains(lowered) }
+        internal func matches(searchText: SearchText) -> Bool {
+            searchText.matchesAny(
+                haystacks: [
+                    definitionName,
+                    categoryName ?? "",
+                    recurrenceDescription,
+                    transactionTitle ?? "",
+                    scheduledDate.longDateFormatted,
+                ]
+            )
         }
     }
 
