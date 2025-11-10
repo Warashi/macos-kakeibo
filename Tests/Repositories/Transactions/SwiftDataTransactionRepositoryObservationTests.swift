@@ -27,9 +27,7 @@ internal struct SwiftDataTransactionRepositoryObservationTests {
         }
         defer { token.cancel() }
 
-        try await Task.sleep(nanoseconds: 10_000_000)
-        #expect(snapshots.count == 1)
-        #expect(snapshots.last?.isEmpty == true)
+        #expect(snapshots.isEmpty)
 
         let transaction = Transaction(date: month, title: "ランチ", amount: -1200)
         repository.insert(transaction)

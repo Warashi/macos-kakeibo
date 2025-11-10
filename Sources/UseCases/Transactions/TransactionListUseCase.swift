@@ -65,6 +65,13 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
             let filtered = Self.filterTransactions(transactions, filter: filter)
             onChange(filtered)
         }
+        do {
+            let initial = try loadTransactions(filter: filter)
+            onChange(initial)
+        } catch {
+            token.cancel()
+            throw error
+        }
         return token
     }
 }
