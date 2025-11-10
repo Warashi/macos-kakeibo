@@ -42,6 +42,7 @@ internal final class SpecialPaymentReconciliationStore {
     private let currentDateProvider: () -> Date
     private let candidateSearchWindowDays: Int
     private let candidateLimit: Int
+    private let horizonMonths: Int
 
     // MARK: - State
 
@@ -87,6 +88,7 @@ internal final class SpecialPaymentReconciliationStore {
         occurrencesService: SpecialPaymentOccurrencesService? = nil,
         candidateSearchWindowDays: Int = 60,
         candidateLimit: Int = 12,
+        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
         currentDateProvider: @escaping () -> Date = { Date() }
     ) {
         self.repository = repository
@@ -96,6 +98,7 @@ internal final class SpecialPaymentReconciliationStore {
         self.candidateSearchWindowDays = candidateSearchWindowDays
         self.candidateLimit = candidateLimit
         self.currentDateProvider = currentDateProvider
+        self.horizonMonths = horizonMonths
     }
 
     internal convenience init(
@@ -103,6 +106,7 @@ internal final class SpecialPaymentReconciliationStore {
         transactionRepository: TransactionRepository? = nil,
         candidateSearchWindowDays: Int = 60,
         candidateLimit: Int = 12,
+        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
         currentDateProvider: @escaping () -> Date = { Date() }
     ) {
         let repository = SpecialPaymentRepositoryFactory.make(
@@ -116,6 +120,7 @@ internal final class SpecialPaymentReconciliationStore {
             occurrencesService: nil,
             candidateSearchWindowDays: candidateSearchWindowDays,
             candidateLimit: candidateLimit,
+            horizonMonths: horizonMonths,
             currentDateProvider: currentDateProvider
         )
     }
@@ -209,6 +214,7 @@ internal extension SpecialPaymentReconciliationStore {
             try occurrencesService.markOccurrenceCompleted(
                 occurrence,
                 input: input,
+                horizonMonths: horizonMonths
             )
             statusMessage = "実績を保存しました。"
             refresh()
@@ -244,7 +250,8 @@ internal extension SpecialPaymentReconciliationStore {
                     actualDate: nil,
                     actualAmount: nil,
                     transaction: nil
-                )
+                ),
+                horizonMonths: horizonMonths
             )
             statusMessage = "取引リンクを解除しました。"
             refresh()

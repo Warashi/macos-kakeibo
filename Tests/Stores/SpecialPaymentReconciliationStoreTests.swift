@@ -201,6 +201,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
             repository: repository,
             transactionRepository: SwiftDataTransactionRepository(modelContext: context),
             occurrencesService: spyService,
+            horizonMonths: SpecialPaymentScheduleService.defaultHorizonMonths,
             currentDateProvider: { referenceDate },
         )
         return (store, context, spyService)
