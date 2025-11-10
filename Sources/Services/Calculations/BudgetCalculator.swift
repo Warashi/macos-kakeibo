@@ -388,7 +388,7 @@ internal struct BudgetCalculator: Sendable {
 
 // MARK: - Cache Infrastructure
 
-fileprivate struct MonthlyBudgetCacheKey: Hashable {
+internal struct MonthlyBudgetCacheKey: Hashable {
     let year: Int
     let month: Int
     let filter: FilterSignature
@@ -397,14 +397,14 @@ fileprivate struct MonthlyBudgetCacheKey: Hashable {
     let budgetsVersion: Int
 }
 
-fileprivate struct SpecialPaymentSavingsCacheKey: Hashable {
+internal struct SpecialPaymentSavingsCacheKey: Hashable {
     let year: Int
     let month: Int
     let definitionsVersion: Int
     let balancesVersion: Int
 }
 
-fileprivate struct SavingsAllocationCacheKey: Hashable {
+internal struct SavingsAllocationCacheKey: Hashable {
     let year: Int
     let month: Int
     let definitionsVersion: Int
