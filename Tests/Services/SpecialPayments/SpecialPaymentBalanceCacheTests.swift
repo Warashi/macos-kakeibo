@@ -31,6 +31,10 @@ internal struct SpecialPaymentBalanceCacheTests {
         context.insert(balance)
         let service = SpecialPaymentBalanceService()
 
+        var metrics = service.cacheMetrics()
+        #expect(metrics.hits == 0)
+        #expect(metrics.misses == 0)
+
         service.recalculateBalance(
             params: .init(
                 definition: definition,
@@ -54,7 +58,7 @@ internal struct SpecialPaymentBalanceCacheTests {
             )
         )
 
-        let metrics = service.cacheMetrics()
+        metrics = service.cacheMetrics()
         #expect(metrics.hits == 1)
         #expect(metrics.misses == 1)
     }
@@ -74,6 +78,10 @@ internal struct SpecialPaymentBalanceCacheTests {
         context.insert(definition)
         context.insert(balance)
         let service = SpecialPaymentBalanceService()
+
+        var metrics = service.cacheMetrics()
+        #expect(metrics.hits == 0)
+        #expect(metrics.misses == 0)
 
         service.recalculateBalance(
             params: .init(
@@ -120,9 +128,9 @@ internal struct SpecialPaymentBalanceCacheTests {
             )
         )
 
-        let metrics = service.cacheMetrics()
+        metrics = service.cacheMetrics()
         #expect(metrics.misses == 2)
         #expect(metrics.hits == 1)
-        #expect(metrics.invalidations >= 1)
+        #expect(metrics.invalidations == 1)
     }
 }
