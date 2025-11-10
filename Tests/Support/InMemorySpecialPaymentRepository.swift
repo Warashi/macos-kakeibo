@@ -4,20 +4,20 @@ import Foundation
 internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository {
     private var definitionsStorage: [UUID: SpecialPaymentDefinition]
     private var balancesStorage: [UUID: SpecialPaymentSavingBalance]
-    private var categoryLookup: [UUID: Category]
+    private var categoryLookup: [UUID: Kakeibo.Category]
     private let scheduleService: SpecialPaymentScheduleService
     private let currentDateProvider: () -> Date
 
     internal init(
         definitions: [SpecialPaymentDefinition] = [],
         balances: [SpecialPaymentSavingBalance] = [],
-        categories: [Category] = [],
+        categories: [Kakeibo.Category] = [],
         scheduleService: SpecialPaymentScheduleService = SpecialPaymentScheduleService(),
         currentDateProvider: @escaping () -> Date = { Date() }
     ) {
         self.definitionsStorage = Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
         self.balancesStorage = Dictionary(uniqueKeysWithValues: balances.map { ($0.definition.id, $0) })
-        var lookup = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
+        var lookup: [UUID: Kakeibo.Category] = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
         for definition in definitions {
             if let category = definition.category {
                 lookup[category.id] = category
@@ -232,7 +232,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
         // No-op for in-memory implementation
     }
 
-    private func resolvedCategory(id: UUID?) throws -> Category? {
+    private func resolvedCategory(id: UUID?) throws -> Kakeibo.Category? {
         guard let id else { return nil }
         guard let category = categoryLookup[id] else {
             throw SpecialPaymentDomainError.categoryNotFound
