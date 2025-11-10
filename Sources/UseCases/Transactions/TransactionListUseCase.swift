@@ -52,7 +52,7 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
 
     internal func loadTransactions(filter: TransactionListFilter) throws -> [Transaction] {
         let transactions = try repository.fetchTransactions(query: filter.asQuery)
-        return filterTransactions(transactions, filter: filter)
+        return Self.filterTransactions(transactions, filter: filter)
     }
 
     @discardableResult
