@@ -97,7 +97,7 @@ internal enum SeedHelper {
     /// SwiftDataのバッチ削除では親子リンクのnullifyが許容されないため個別に削除する
     /// - Parameter context: 対象のModelContext
     private static func deleteCategoriesSafely(in context: ModelContext) throws {
-        let descriptor = FetchDescriptor<Category>()
+        let descriptor: ModelFetchRequest<Category> = ModelFetchFactory.make()
         let categories = try context.fetch(descriptor)
 
         let minors = categories.filter(\.isMinor)
@@ -115,7 +115,7 @@ internal enum SeedHelper {
     /// - Returns: データ件数
     internal static func count<T: PersistentModel>(_ modelType: T.Type, in container: ModelContainer) -> Int {
         let context = ModelContext(container)
-        let descriptor = FetchDescriptor<T>()
+        let descriptor: ModelFetchRequest<T> = ModelFetchFactory.make()
 
         do {
             return try context.fetchCount(descriptor)

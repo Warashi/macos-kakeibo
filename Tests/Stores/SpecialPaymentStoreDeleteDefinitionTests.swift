@@ -23,14 +23,14 @@ internal struct SpecialPaymentStoreDeleteDefinitionTests {
         try context.save()
 
         // 削除前の確認
-        var descriptor = FetchDescriptor<SpecialPaymentDefinition>()
+        var descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make()
         var definitions = try context.fetch(descriptor)
         #expect(definitions.count == 1)
 
         try store.deleteDefinition(definition)
 
         // 削除後の確認
-        descriptor = FetchDescriptor<SpecialPaymentDefinition>()
+        descriptor = ModelFetchFactory.make()
         definitions = try context.fetch(descriptor)
         #expect(definitions.isEmpty)
     }
@@ -59,7 +59,7 @@ internal struct SpecialPaymentStoreDeleteDefinitionTests {
         try store.deleteDefinition(definition)
 
         // Occurrenceも削除されていることを確認
-        let descriptor = FetchDescriptor<SpecialPaymentOccurrence>()
+        let descriptor: ModelFetchRequest<SpecialPaymentOccurrence> = ModelFetchFactory.make()
         let occurrences = try context.fetch(descriptor)
         #expect(occurrences.isEmpty)
         #expect(occurrenceCountBefore > 0) // 削除前には存在していたことを確認

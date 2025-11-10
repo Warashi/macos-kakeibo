@@ -90,7 +90,7 @@ internal struct SeedHelperTests {
         let context = ModelContext(container)
 
         // すべての取引を取得
-        let transactions = try context.fetch(FetchDescriptor<Transaction>())
+        let transactions = try context.fetchAll(Transaction.self)
 
         // すべての取引がバリデーションを通過することを確認
         for transaction in transactions {
@@ -112,7 +112,7 @@ internal struct SeedHelperTests {
         let context = ModelContext(container)
 
         // すべてのカテゴリを取得
-        let categories = try context.fetch(FetchDescriptor<Kakeibo.Category>())
+        let categories = try context.fetchAll(Kakeibo.Category.self)
 
         // 中項目（子カテゴリ）は親を持つことを確認
         let minorCategories = categories.filter(\Kakeibo.Category.isMinor)

@@ -137,7 +137,7 @@ internal final class BackupManager {
     }
 
     private func deleteAll<T: PersistentModel>(_ type: T.Type, in context: ModelContext) throws {
-        let descriptor = FetchDescriptor<T>()
+        let descriptor: ModelFetchRequest<T> = ModelFetchFactory.make()
         let items = try context.fetch(descriptor)
         for item in items {
             context.delete(item)
@@ -146,7 +146,7 @@ internal final class BackupManager {
 
     /// 親子関係を維持しながらカテゴリを削除
     private func deleteCategoriesSafely(in context: ModelContext) throws {
-        let descriptor = FetchDescriptor<Category>()
+        let descriptor: ModelFetchRequest<Category> = ModelFetchFactory.make()
         let categories = try context.fetch(descriptor)
         let minors = categories.filter(\.isMinor)
         let majors = categories.filter(\.isMajor)

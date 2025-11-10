@@ -68,12 +68,12 @@ internal struct CSVImporterTests {
         #expect(summary.updatedCount == 0)
         #expect(summary.skippedCount == 0)
 
-        let transactions = try context.fetch(FetchDescriptor<Transaction>())
+        let transactions = try context.fetchAll(Transaction.self)
         #expect(transactions.count == 1)
         #expect(transactions.first?.title == "ランチ")
         #expect(transactions.first?.importIdentifier == sampleIdentifier)
 
-        let categories = try context.fetch(FetchDescriptor<Kakeibo.Category>())
+        let categories = try context.fetchAll(Kakeibo.Category.self)
         #expect(!categories.isEmpty)
     }
 
@@ -116,7 +116,7 @@ internal struct CSVImporterTests {
         #expect(summary.importedCount == 0)
         #expect(summary.updatedCount == 1)
 
-        let descriptor = FetchDescriptor<Transaction>()
+        let descriptor: ModelFetchRequest<Transaction> = ModelFetchFactory.make()
         let transactions = try context.fetch(descriptor)
         #expect(transactions.count == 1)
         #expect(transactions.first?.title == "ディナー")

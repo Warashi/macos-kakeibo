@@ -15,23 +15,12 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func fetchSnapshot(for year: Int) throws -> BudgetSnapshot {
-        let budgets = try modelContext.fetch(FetchDescriptor<Budget>())
-        let transactions = try modelContext.fetch(FetchDescriptor<Transaction>())
-        let categories = try modelContext.fetch(
-            FetchDescriptor<Category>(
-                sortBy: [
-                    SortDescriptor(\.displayOrder),
-                    SortDescriptor(\.name, order: .forward),
-                ]
-            )
-        )
+        let budgets = try modelContext.fetch(BudgetQueries.allBudgets())
+        let transactions = try modelContext.fetch(TransactionQueries.all())
+        let categories = try modelContext.fetch(CategoryQueries.sortedForDisplay())
         let definitions = try specialPaymentRepository.definitions(filter: nil)
         let balances = try specialPaymentRepository.balances(query: nil)
-        var configDescriptor = FetchDescriptor<AnnualBudgetConfig>(
-            predicate: #Predicate { $0.year == year }
-        )
-        configDescriptor.fetchLimit = 1
-        let config = try modelContext.fetch(configDescriptor).first
+        let config = try modelContext.fetch(BudgetQueries.annualConfig(for: year)).first
         return BudgetSnapshot(
             budgets: budgets,
             transactions: transactions,
@@ -43,11 +32,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func category(id: UUID) throws -> Category? {
-        var descriptor = FetchDescriptor<Category>(
-            predicate: #Predicate { $0.id == id }
-        )
-        descriptor.fetchLimit = 1
-        return try modelContext.fetch(descriptor).first
+        try modelContext.fetch(CategoryQueries.byId(id)).first
     }
 
     internal func insertBudget(_ budget: Budget) {

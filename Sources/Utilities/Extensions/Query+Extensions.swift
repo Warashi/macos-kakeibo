@@ -20,7 +20,7 @@ public extension ModelContext {
     /// - Parameter type: モデルの型
     /// - Returns: 取得したデータの配列
     func fetchAll<T: PersistentModel>(_ type: T.Type) throws -> [T] {
-        let descriptor = FetchDescriptor<T>()
+        let descriptor: ModelFetchRequest<T> = ModelFetchFactory.make()
         return try fetch(descriptor)
     }
 
@@ -28,7 +28,7 @@ public extension ModelContext {
     /// - Parameter type: モデルの型
     /// - Returns: データ数
     func count<T: PersistentModel>(_ type: T.Type) throws -> Int {
-        let descriptor = FetchDescriptor<T>()
+        let descriptor: ModelFetchRequest<T> = ModelFetchFactory.make()
         return try fetchCount(descriptor)
     }
 
@@ -38,7 +38,7 @@ public extension ModelContext {
     ///   - predicate: フィルタ条件
     /// - Returns: データ数
     func count<T: PersistentModel>(_ type: T.Type, predicate: Predicate<T>) throws -> Int {
-        let descriptor = FetchDescriptor<T>(predicate: predicate)
+        let descriptor: ModelFetchRequest<T> = ModelFetchFactory.make(predicate: predicate)
         return try fetchCount(descriptor)
     }
 
@@ -62,7 +62,7 @@ internal extension ModelContext {
     /// - Returns: A token that must be retained while observation is needed.
     @discardableResult
     func observe<T: PersistentModel>(
-        descriptor: FetchDescriptor<T>,
+        descriptor: ModelFetchRequest<T>,
         onChange: @escaping @MainActor ([T]) -> Void
     ) -> ObservationToken {
         let center = NotificationCenter.default

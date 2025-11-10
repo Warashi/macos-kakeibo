@@ -68,66 +68,40 @@ internal final class DashboardStore {
             return []
         }
 
-        let endDate: Date
-        if let month {
-            let nextMonth = month == 12 ? 1 : month + 1
-            let nextYear = month == 12 ? year + 1 : year
-            endDate = Date.from(year: nextYear, month: nextMonth) ?? startDate
-        } else {
-            endDate = Date.from(year: year + 1, month: 1) ?? startDate
-        }
+        let endDate: Date = {
+            if let month {
+                let nextMonth = month == 12 ? 1 : month + 1
+                let nextYear = month == 12 ? year + 1 : year
+                return Date.from(year: nextYear, month: nextMonth) ?? startDate
+            } else {
+                return Date.from(year: year + 1, month: 1) ?? startDate
+            }
+        }()
 
-        let descriptor = FetchDescriptor<Transaction>(
-            predicate: #Predicate {
-                $0.date >= startDate && $0.date < endDate
-            },
-            sortBy: [SortDescriptor(\.date, order: .reverse)],
-        )
+        let descriptor = TransactionQueries.between(startDate: startDate, endDate: endDate)
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     /// 指定年に関係する予算を取得
     private func fetchBudgets(overlapping year: Int) -> [Budget] {
-        let descriptor = FetchDescriptor<Budget>(
-            predicate: #Predicate {
-                $0.startYear <= year && $0.endYear >= year
-            },
-            sortBy: [
-                SortDescriptor(\.startYear),
-                SortDescriptor(\.startMonth),
-                SortDescriptor(\.createdAt),
-            ],
-        )
+        let descriptor = BudgetQueries.budgets(overlapping: year)
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     /// カテゴリを取得
     private func fetchCategories() -> [Category] {
-        let descriptor = FetchDescriptor<Category>(
-            sortBy: [
-                SortDescriptor(\.displayOrder),
-                SortDescriptor(\.name),
-            ],
-        )
+        let descriptor = CategoryQueries.sortedForDisplay()
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     /// 年次特別枠設定を取得
     private func getAnnualBudgetConfig(year: Int) -> AnnualBudgetConfig? {
-        var descriptor = FetchDescriptor<AnnualBudgetConfig>(
-            predicate: #Predicate { $0.year == year },
-        )
-        descriptor.fetchLimit = 1
-        return try? modelContext.fetch(descriptor).first
+        try? modelContext.fetch(BudgetQueries.annualConfig(for: year)).first
     }
 
     /// 最新の年次特別枠設定の年を取得
     private func latestAnnualBudgetConfigYear() -> Int? {
-        var descriptor = FetchDescriptor<AnnualBudgetConfig>(
-            sortBy: [SortDescriptor(\.year, order: .reverse)],
-        )
-        descriptor.fetchLimit = 1
-        return try? modelContext.fetch(descriptor).first?.year
+        try? modelContext.fetch(BudgetQueries.latestAnnualConfig()).first?.year
     }
 
     // MARK: - Computed Properties

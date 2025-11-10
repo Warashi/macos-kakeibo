@@ -28,7 +28,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         )
         try store.createDefinition(input, horizonMonths: 6)
 
-        let descriptor = FetchDescriptor<SpecialPaymentDefinition>()
+        let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
 
         #expect(definitions.count == 1)
@@ -61,7 +61,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         )
         try store.createDefinition(input, horizonMonths: 6)
 
-        let descriptor = FetchDescriptor<SpecialPaymentDefinition>()
+        let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
 
         #expect(definitions.count == 1)

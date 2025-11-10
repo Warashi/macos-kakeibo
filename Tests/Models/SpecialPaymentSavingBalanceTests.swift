@@ -185,7 +185,7 @@ internal struct SpecialPaymentSavingBalanceTests {
 
         try context.save()
 
-        let descriptor = FetchDescriptor<SpecialPaymentSavingBalance>()
+        let descriptor: ModelFetchRequest<SpecialPaymentSavingBalance> = ModelFetchFactory.make()
         let storedBalances = try context.fetch(descriptor)
 
         #expect(storedBalances.count == 1)

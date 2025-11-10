@@ -46,11 +46,11 @@ internal struct BudgetSpecialPaymentSection: View {
     }
 
     private var specialPaymentDefinitions: [SpecialPaymentDefinition] {
-        let descriptor = FetchDescriptor<SpecialPaymentDefinition>(
+        let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make(
             sortBy: [
-                SortDescriptor(\.firstOccurrenceDate),
-                SortDescriptor(\.name),
-            ],
+                SortDescriptor(\SpecialPaymentDefinition.firstOccurrenceDate),
+                SortDescriptor(\SpecialPaymentDefinition.name),
+            ]
         )
         return (try? modelContext.fetch(descriptor)) ?? []
     }

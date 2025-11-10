@@ -9,37 +9,19 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
     }
 
     internal func fetchTransactions(query: TransactionQuery) throws -> [Transaction] {
-        let predicate = Self.predicate(from: query)
-
-        let descriptor = FetchDescriptor<Transaction>(
-            predicate: predicate,
-            sortBy: Self.sortDescriptors(for: query.sortOption),
-        )
-        return try modelContext.fetch(descriptor)
+        try modelContext.fetch(TransactionQueries.list(query: query))
     }
 
     internal func fetchAllTransactions() throws -> [Transaction] {
-        let descriptor = FetchDescriptor<Transaction>(
-            sortBy: [
-                SortDescriptor(\Transaction.date, order: .reverse),
-                SortDescriptor(\Transaction.createdAt, order: .reverse),
-            ]
-        )
-        return try modelContext.fetch(descriptor)
+        try modelContext.fetch(TransactionQueries.allSorted())
     }
 
     internal func fetchInstitutions() throws -> [FinancialInstitution] {
-        let descriptor = FetchDescriptor<FinancialInstitution>(
-            sortBy: [SortDescriptor(\.displayOrder), SortDescriptor(\.name)],
-        )
-        return try modelContext.fetch(descriptor)
+        try modelContext.fetch(FinancialInstitutionQueries.sortedByDisplayOrder())
     }
 
     internal func fetchCategories() throws -> [Category] {
-        let descriptor = FetchDescriptor<Category>(
-            sortBy: [SortDescriptor(\.displayOrder), SortDescriptor(\.name)],
-        )
-        return try modelContext.fetch(descriptor)
+        try modelContext.fetch(CategoryQueries.sortedForDisplay())
     }
 
     @discardableResult
@@ -47,10 +29,7 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
         query: TransactionQuery,
         onChange: @escaping @MainActor ([Transaction]) -> Void
     ) throws -> ObservationToken {
-        let descriptor = FetchDescriptor<Transaction>(
-            predicate: Self.predicate(from: query),
-            sortBy: Self.sortDescriptors(for: query.sortOption),
-        )
+        let descriptor = TransactionQueries.observation(query: query)
         return modelContext.observe(descriptor: descriptor, onChange: onChange)
     }
 
@@ -64,31 +43,5 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
 
     internal func saveChanges() throws {
         try modelContext.save()
-    }
-}
-
-private extension SwiftDataTransactionRepository {
-    static func predicate(from query: TransactionQuery) -> Predicate<Transaction> {
-        let start = query.month.startOfMonth
-        let end = Calendar.current.date(byAdding: .month, value: 1, to: start) ?? start
-
-        return #Predicate<Transaction> { transaction in
-            transaction.date >= start && transaction.date < end
-        }
-    }
-
-    static func sortDescriptors(for option: TransactionSortOption) -> [SortDescriptor<Transaction>] {
-        switch option {
-        case .dateDescending, .amountDescending:
-            return [
-                SortDescriptor(\Transaction.date, order: .reverse),
-                SortDescriptor(\Transaction.createdAt, order: .reverse),
-            ]
-        case .dateAscending, .amountAscending:
-            return [
-                SortDescriptor(\Transaction.date, order: .forward),
-                SortDescriptor(\Transaction.createdAt, order: .forward),
-            ]
-        }
     }
 }

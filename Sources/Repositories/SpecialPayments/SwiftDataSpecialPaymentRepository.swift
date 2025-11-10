@@ -17,14 +17,9 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
     }
 
     internal func definitions(filter: SpecialPaymentDefinitionFilter?) throws -> [SpecialPaymentDefinition] {
-        var descriptor = FetchDescriptor<SpecialPaymentDefinition>(
-            sortBy: [
-                SortDescriptor(\SpecialPaymentDefinition.createdAt, order: .reverse),
-            ]
+        let descriptor = SpecialPaymentQueries.definitions(
+            predicate: definitionPredicate(for: filter)
         )
-        if let predicate = definitionPredicate(for: filter) {
-            descriptor.predicate = predicate
-        }
 
         var results = try modelContext.fetch(descriptor)
         if let searchText = filter?.searchText?.lowercased(), !searchText.isEmpty {
@@ -44,16 +39,9 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
     }
 
     internal func occurrences(query: SpecialPaymentOccurrenceQuery?) throws -> [SpecialPaymentOccurrence] {
-        var descriptor = FetchDescriptor<SpecialPaymentOccurrence>(
-            sortBy: [
-                SortDescriptor(\SpecialPaymentOccurrence.scheduledDate),
-                SortDescriptor(\SpecialPaymentOccurrence.createdAt),
-            ]
+        let descriptor = SpecialPaymentQueries.occurrences(
+            predicate: occurrencePredicate(for: query)
         )
-
-        if let predicate = occurrencePredicate(for: query) {
-            descriptor.predicate = predicate
-        }
 
         var results = try modelContext.fetch(descriptor)
 
@@ -69,15 +57,9 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
     }
 
     internal func balances(query: SpecialPaymentBalanceQuery?) throws -> [SpecialPaymentSavingBalance] {
-        var descriptor = FetchDescriptor<SpecialPaymentSavingBalance>(
-            sortBy: [
-                SortDescriptor(\SpecialPaymentSavingBalance.updatedAt, order: .reverse),
-            ]
+        let descriptor = SpecialPaymentQueries.balances(
+            predicate: balancePredicate(for: query)
         )
-
-        if let predicate = balancePredicate(for: query) {
-            descriptor.predicate = predicate
-        }
 
         return try modelContext.fetch(descriptor)
     }
@@ -291,11 +273,7 @@ private extension SwiftDataSpecialPaymentRepository {
 
     func resolvedCategory(id: UUID?) throws -> Category? {
         guard let id else { return nil }
-        var descriptor = FetchDescriptor<Category>(
-            predicate: #Predicate { $0.id == id }
-        )
-        descriptor.fetchLimit = 1
-        guard let category = try modelContext.fetch(descriptor).first else {
+        guard let category = try modelContext.fetch(CategoryQueries.byId(id)).first else {
             throw SpecialPaymentDomainError.categoryNotFound
         }
         return category

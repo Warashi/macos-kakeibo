@@ -188,7 +188,7 @@ internal struct SpecialPaymentOccurrenceTests {
 
         try context.save()
 
-        let descriptor = FetchDescriptor<SpecialPaymentDefinition>()
+        let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make()
         let storedDefinitions = try context.fetch(descriptor)
 
         #expect(storedDefinitions.count == 1)

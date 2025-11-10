@@ -57,7 +57,7 @@ internal struct ImportStoreTests {
         #expect(summary.importedCount == 1)
         #expect(summary.updatedCount == 0)
 
-        let transactions = try context.fetch(FetchDescriptor<Transaction>())
+        let transactions = try context.fetchAll(Transaction.self)
         #expect(transactions.count == 1)
     }
 

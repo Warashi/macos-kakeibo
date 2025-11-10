@@ -18,12 +18,7 @@ extension CSVImporter {
             return (cached, false)
         }
 
-        var descriptor = FetchDescriptor<FinancialInstitution>(
-            predicate: #Predicate { institution in
-                institution.name == name
-            },
-        )
-        descriptor.fetchLimit = 1
+        let descriptor = FinancialInstitutionQueries.byName(name)
 
         if let existing = try modelContext.fetch(descriptor).first {
             cache[key] = existing
@@ -80,12 +75,11 @@ extension CSVImporter {
             return cached
         }
 
-        var descriptor = FetchDescriptor<Category>(
+        let descriptor = CategoryQueries.firstMatching(
             predicate: #Predicate { category in
                 category.name == name && category.parent == nil
-            },
+            }
         )
-        descriptor.fetchLimit = 1
 
         if let existing = try modelContext.fetch(descriptor).first {
             cache[key] = existing
@@ -115,10 +109,10 @@ extension CSVImporter {
             return cached
         }
 
-        let descriptor = FetchDescriptor<Category>(
+        let descriptor = ModelFetchFactory.make(
             predicate: #Predicate { category in
                 category.name == name
-            },
+            }
         )
 
         let existing = try modelContext
@@ -139,23 +133,14 @@ extension CSVImporter {
 
     /// IDでトランザクションを検索
     internal func fetchTransaction(id: UUID) throws -> Transaction? {
-        var descriptor = FetchDescriptor<Transaction>(
-            predicate: #Predicate { transaction in
-                transaction.id == id
-            },
-        )
-        descriptor.fetchLimit = 1
-        return try modelContext.fetch(descriptor).first
+        try modelContext.fetch(TransactionQueries.byId(id)).first
     }
 
     /// インポート識別子でトランザクションを検索
     internal func fetchTransaction(importIdentifier: String) throws -> Transaction? {
-        var descriptor = FetchDescriptor<Transaction>(
-            predicate: #Predicate { transaction in
-                transaction.importIdentifier == importIdentifier
-            },
+        try modelContext.fetch(
+            TransactionQueries.byImportIdentifier(importIdentifier)
         )
-        descriptor.fetchLimit = 1
-        return try modelContext.fetch(descriptor).first
+        .first
     }
 }
