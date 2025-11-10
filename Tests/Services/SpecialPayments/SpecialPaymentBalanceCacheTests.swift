@@ -1,0 +1,128 @@
+import Foundation
+import SwiftData
+import Testing
+
+@testable import Kakeibo
+
+@Suite("SpecialPaymentBalanceService - キャッシュ")
+internal struct SpecialPaymentBalanceCacheTests {
+    private func makeDefinition() -> SpecialPaymentDefinition {
+        SpecialPaymentDefinition(
+            name: "自動車税",
+            amount: 60_000,
+            recurrenceIntervalMonths: 12,
+            firstOccurrenceDate: Date.from(year: 2025, month: 5) ?? Date()
+        )
+    }
+
+    @Test("同一パラメータで残高再計算を繰り返すとキャッシュがヒットする")
+    internal func recalculateBalanceUsesCache() throws {
+        let container = try ModelContainer.createInMemoryContainer()
+        let context = ModelContext(container)
+        let definition = makeDefinition()
+        let balance = SpecialPaymentSavingBalance(
+            definition: definition,
+            totalSavedAmount: 0,
+            totalPaidAmount: 0,
+            lastUpdatedYear: 2025,
+            lastUpdatedMonth: 1
+        )
+        context.insert(definition)
+        context.insert(balance)
+        let service = SpecialPaymentBalanceService()
+
+        service.recalculateBalance(
+            params: .init(
+                definition: definition,
+                balance: balance,
+                year: 2025,
+                month: 6,
+                startYear: 2025,
+                startMonth: 1,
+                context: context
+            )
+        )
+        service.recalculateBalance(
+            params: .init(
+                definition: definition,
+                balance: balance,
+                year: 2025,
+                month: 6,
+                startYear: 2025,
+                startMonth: 1,
+                context: context
+            )
+        )
+
+        let metrics = service.cacheMetrics()
+        #expect(metrics.hits == 1)
+        #expect(metrics.misses == 1)
+    }
+
+    @Test("積立記録後はキャッシュが無効化され再計算が再実行される")
+    internal func invalidateCacheAfterSavings() throws {
+        let container = try ModelContainer.createInMemoryContainer()
+        let context = ModelContext(container)
+        let definition = makeDefinition()
+        let balance = SpecialPaymentSavingBalance(
+            definition: definition,
+            totalSavedAmount: 0,
+            totalPaidAmount: 0,
+            lastUpdatedYear: 2025,
+            lastUpdatedMonth: 1
+        )
+        context.insert(definition)
+        context.insert(balance)
+        let service = SpecialPaymentBalanceService()
+
+        service.recalculateBalance(
+            params: .init(
+                definition: definition,
+                balance: balance,
+                year: 2025,
+                month: 6,
+                startYear: 2025,
+                startMonth: 1,
+                context: context
+            )
+        )
+        service.recalculateBalance(
+            params: .init(
+                definition: definition,
+                balance: balance,
+                year: 2025,
+                month: 6,
+                startYear: 2025,
+                startMonth: 1,
+                context: context
+            )
+        )
+
+        service.recordMonthlySavings(
+            params: .init(
+                definition: definition,
+                balance: balance,
+                year: 2025,
+                month: 6,
+                context: context
+            )
+        )
+
+        service.recalculateBalance(
+            params: .init(
+                definition: definition,
+                balance: balance,
+                year: 2025,
+                month: 6,
+                startYear: 2025,
+                startMonth: 1,
+                context: context
+            )
+        )
+
+        let metrics = service.cacheMetrics()
+        #expect(metrics.misses == 2)
+        #expect(metrics.hits == 1)
+        #expect(metrics.invalidations >= 1)
+    }
+}

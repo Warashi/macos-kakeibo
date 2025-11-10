@@ -84,9 +84,22 @@ internal struct SpecialPaymentSavingsCalculation: Sendable {
 /// - 特別支払い積立計算
 internal struct BudgetCalculator: Sendable {
     private let aggregator: TransactionAggregator
+    private let cache: BudgetCalculationCache
 
-    internal init() {
-        self.aggregator = TransactionAggregator()
+    internal init(
+        aggregator: TransactionAggregator = TransactionAggregator(),
+        cache: BudgetCalculationCache = BudgetCalculationCache()
+    ) {
+        self.aggregator = aggregator
+        self.cache = cache
+    }
+
+    internal func invalidateCaches(targets: BudgetCalculationCache.Target = .all) {
+        cache.invalidate(targets: targets)
+    }
+
+    internal func cacheMetrics() -> BudgetCalculationCacheMetrics {
+        cache.metricsSnapshot
     }
 
     /// 単一の予算計算を実行
@@ -136,6 +149,18 @@ internal struct BudgetCalculator: Sendable {
         filter: AggregationFilter = .default,
         excludedCategoryIds: Set<UUID> = [],
     ) -> MonthlyBudgetCalculation {
+        let cacheKey = MonthlyBudgetCacheKey(
+            year: year,
+            month: month,
+            filter: FilterSignature(filter: filter),
+            excludedCategoriesSignature: signature(for: excludedCategoryIds),
+            transactionsVersion: version(for: transactions),
+            budgetsVersion: version(for: budgets)
+        )
+        if let cached = cache.cachedMonthlyBudget(for: cacheKey) {
+            return cached
+        }
+
         // 月次集計を取得
         let monthlySummary = aggregator.aggregateMonthly(
             transactions: transactions,
@@ -204,12 +229,14 @@ internal struct BudgetCalculator: Sendable {
             )
         }
 
-        return MonthlyBudgetCalculation(
+        let result = MonthlyBudgetCalculation(
             year: year,
             month: month,
             overallCalculation: overallCalculation,
             categoryCalculations: categoryCalculations,
         )
+        cache.storeMonthlyBudget(result, for: cacheKey)
+        return result
     }
 
     /// カテゴリ別の予算チェック
@@ -244,12 +271,22 @@ internal struct BudgetCalculator: Sendable {
         year: Int,
         month: Int,
     ) -> [SpecialPaymentSavingsCalculation] {
+        let cacheKey = SpecialPaymentSavingsCacheKey(
+            year: year,
+            month: month,
+            definitionsVersion: definitionsVersion(definitions),
+            balancesVersion: version(for: balances)
+        )
+        if let cached = cache.cachedSpecialPaymentSavings(for: cacheKey) {
+            return cached
+        }
+
         // 残高をdefinitionIdでマップ化
         let balanceMap = Dictionary(
             uniqueKeysWithValues: balances.map { ($0.definition.id, $0) },
         )
 
-        return definitions.map { definition in
+        let calculations = definitions.map { definition in
             let balance = balanceMap[definition.id]
             let monthlySaving = definition.monthlySavingAmount
             let totalSaved = balance?.totalSavedAmount ?? 0
@@ -272,6 +309,8 @@ internal struct BudgetCalculator: Sendable {
                 nextOccurrence: nextOccurrence,
             )
         }
+        cache.storeSpecialPaymentSavings(calculations, for: cacheKey)
+        return calculations
     }
 
     /// 月次に組み込むべき積立金額の合計を計算
@@ -285,15 +324,26 @@ internal struct BudgetCalculator: Sendable {
         year: Int,
         month: Int,
     ) -> Decimal {
+        let cacheKey = SavingsAllocationCacheKey(
+            year: year,
+            month: month,
+            definitionsVersion: definitionsVersion(definitions)
+        )
+        if let cached = cache.cachedMonthlySavingsAllocation(for: cacheKey) {
+            return cached
+        }
+
         // 積立が有効な定義のみをフィルタリング
         let activeDefinitions = definitions.filter { definition in
             definition.savingStrategy != .disabled
         }
 
         // 各定義の月次積立額を合計
-        return activeDefinitions.reduce(Decimal(0)) { sum, definition in
+        let total = activeDefinitions.reduce(Decimal(0)) { sum, definition in
             sum.safeAdd(definition.monthlySavingAmount)
         }
+        cache.storeMonthlySavingsAllocation(total, for: cacheKey)
+        return total
     }
 
     /// カテゴリ別の積立金額を計算
@@ -307,6 +357,15 @@ internal struct BudgetCalculator: Sendable {
         year: Int,
         month: Int,
     ) -> [UUID: Decimal] {
+        let cacheKey = SavingsAllocationCacheKey(
+            year: year,
+            month: month,
+            definitionsVersion: definitionsVersion(definitions)
+        )
+        if let cached = cache.cachedCategorySavingsAllocation(for: cacheKey) {
+            return cached
+        }
+
         // カテゴリが設定されていて、積立が有効な定義のみをフィルタリング
         let categorizedDefinitions = definitions.filter { definition in
             definition.category != nil && definition.savingStrategy != .disabled
@@ -322,6 +381,261 @@ internal struct BudgetCalculator: Sendable {
             categoryAllocations[categoryId] = newAmount
         }
 
+        cache.storeCategorySavingsAllocation(categoryAllocations, for: cacheKey)
         return categoryAllocations
+    }
+}
+
+// MARK: - Cache Infrastructure
+
+private struct MonthlyBudgetCacheKey: Hashable {
+    let year: Int
+    let month: Int
+    let filter: FilterSignature
+    let excludedCategoriesSignature: Int
+    let transactionsVersion: Int
+    let budgetsVersion: Int
+}
+
+private struct SpecialPaymentSavingsCacheKey: Hashable {
+    let year: Int
+    let month: Int
+    let definitionsVersion: Int
+    let balancesVersion: Int
+}
+
+private struct SavingsAllocationCacheKey: Hashable {
+    let year: Int
+    let month: Int
+    let definitionsVersion: Int
+}
+
+private struct FilterSignature: Hashable {
+    let includeOnlyCalculationTarget: Bool
+    let excludeTransfers: Bool
+    let financialInstitutionId: UUID?
+    let categoryId: UUID?
+
+    init(filter: AggregationFilter) {
+        self.includeOnlyCalculationTarget = filter.includeOnlyCalculationTarget
+        self.excludeTransfers = filter.excludeTransfers
+        self.financialInstitutionId = filter.financialInstitutionId
+        self.categoryId = filter.categoryId
+    }
+}
+
+internal struct BudgetCalculationCacheMetrics: Sendable {
+    internal let monthlyBudgetHits: Int
+    internal let monthlyBudgetMisses: Int
+    internal let specialPaymentHits: Int
+    internal let specialPaymentMisses: Int
+    internal let monthlySavingsHits: Int
+    internal let monthlySavingsMisses: Int
+    internal let categorySavingsHits: Int
+    internal let categorySavingsMisses: Int
+}
+
+private func signature(for categories: Set<UUID>) -> Int {
+    var hasher = Hasher()
+    hasher.combine(categories.count)
+    for id in categories.sorted(by: { $0.uuidString < $1.uuidString }) {
+        hasher.combine(id)
+    }
+    return hasher.finalize()
+}
+
+private func version(for transactions: [Transaction]) -> Int {
+    versionHash(for: transactions, id: { $0.id }, updatedAt: { $0.updatedAt })
+}
+
+private func version(for budgets: [Budget]) -> Int {
+    versionHash(for: budgets, id: { $0.id }, updatedAt: { $0.updatedAt })
+}
+
+private func version(for balances: [SpecialPaymentSavingBalance]) -> Int {
+    versionHash(for: balances, id: { $0.id }, updatedAt: { $0.updatedAt })
+}
+
+private func definitionsVersion(_ definitions: [SpecialPaymentDefinition]) -> Int {
+    var hasher = Hasher()
+    hasher.combine(definitions.count)
+
+    let sortedDefinitions = definitions.sorted { $0.id.uuidString < $1.id.uuidString }
+    for definition in sortedDefinitions {
+        hasher.combine(definition.id)
+        hasher.combine(definition.updatedAt.timeIntervalSinceReferenceDate)
+        hasher.combine(definition.occurrences.count)
+        if let latestOccurrence = definition.occurrences.map(\.updatedAt).max() {
+            hasher.combine(latestOccurrence.timeIntervalSinceReferenceDate)
+        }
+    }
+
+    return hasher.finalize()
+}
+
+private func versionHash<T>(
+    for items: [T],
+    id: (T) -> UUID,
+    updatedAt: (T) -> Date
+) -> Int {
+    var hasher = Hasher()
+    hasher.combine(items.count)
+    let sortedItems = items.sorted { id($0).uuidString < id($1).uuidString }
+    for item in sortedItems {
+        hasher.combine(id(item))
+        hasher.combine(updatedAt(item).timeIntervalSinceReferenceDate)
+    }
+    return hasher.finalize()
+}
+
+final class BudgetCalculationCache: @unchecked Sendable {
+    private struct StorageMetrics {
+        var monthlyBudgetHits: Int = 0
+        var monthlyBudgetMisses: Int = 0
+        var specialPaymentHits: Int = 0
+        var specialPaymentMisses: Int = 0
+        var monthlySavingsHits: Int = 0
+        var monthlySavingsMisses: Int = 0
+        var categorySavingsHits: Int = 0
+        var categorySavingsMisses: Int = 0
+    }
+
+    internal struct Target: OptionSet {
+        internal let rawValue: Int
+
+        internal static let monthlyBudget = Target(rawValue: 1 << 0)
+        internal static let specialPaymentSavings = Target(rawValue: 1 << 1)
+        internal static let monthlySavings = Target(rawValue: 1 << 2)
+        internal static let categorySavings = Target(rawValue: 1 << 3)
+        internal static let all: Target = [.monthlyBudget, .specialPaymentSavings, .monthlySavings, .categorySavings]
+
+        internal init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+    }
+
+    private let lock = NSLock()
+    private var monthlyBudgetCache: [MonthlyBudgetCacheKey: MonthlyBudgetCalculation] = [:]
+    private var specialPaymentSavingsCache: [SpecialPaymentSavingsCacheKey: [SpecialPaymentSavingsCalculation]] = [:]
+    private var monthlySavingsCache: [SavingsAllocationCacheKey: Decimal] = [:]
+    private var categorySavingsCache: [SavingsAllocationCacheKey: [UUID: Decimal]] = [:]
+    private var metrics = StorageMetrics()
+
+    internal var metricsSnapshot: BudgetCalculationCacheMetrics {
+        lock.withLock {
+            BudgetCalculationCacheMetrics(
+                monthlyBudgetHits: metrics.monthlyBudgetHits,
+                monthlyBudgetMisses: metrics.monthlyBudgetMisses,
+                specialPaymentHits: metrics.specialPaymentHits,
+                specialPaymentMisses: metrics.specialPaymentMisses,
+                monthlySavingsHits: metrics.monthlySavingsHits,
+                monthlySavingsMisses: metrics.monthlySavingsMisses,
+                categorySavingsHits: metrics.categorySavingsHits,
+                categorySavingsMisses: metrics.categorySavingsMisses
+            )
+        }
+    }
+
+    internal func cachedMonthlyBudget(for key: MonthlyBudgetCacheKey) -> MonthlyBudgetCalculation? {
+        lock.withLock {
+            if let value = monthlyBudgetCache[key] {
+                metrics.monthlyBudgetHits += 1
+                return value
+            }
+            metrics.monthlyBudgetMisses += 1
+            return nil
+        }
+    }
+
+    internal func storeMonthlyBudget(_ value: MonthlyBudgetCalculation, for key: MonthlyBudgetCacheKey) {
+        lock.withLock {
+            monthlyBudgetCache[key] = value
+        }
+    }
+
+    internal func cachedSpecialPaymentSavings(
+        for key: SpecialPaymentSavingsCacheKey
+    ) -> [SpecialPaymentSavingsCalculation]? {
+        lock.withLock {
+            if let value = specialPaymentSavingsCache[key] {
+                metrics.specialPaymentHits += 1
+                return value
+            }
+            metrics.specialPaymentMisses += 1
+            return nil
+        }
+    }
+
+    internal func storeSpecialPaymentSavings(
+        _ value: [SpecialPaymentSavingsCalculation],
+        for key: SpecialPaymentSavingsCacheKey
+    ) {
+        lock.withLock {
+            specialPaymentSavingsCache[key] = value
+        }
+    }
+
+    internal func cachedMonthlySavingsAllocation(for key: SavingsAllocationCacheKey) -> Decimal? {
+        lock.withLock {
+            if let value = monthlySavingsCache[key] {
+                metrics.monthlySavingsHits += 1
+                return value
+            }
+            metrics.monthlySavingsMisses += 1
+            return nil
+        }
+    }
+
+    internal func storeMonthlySavingsAllocation(_ value: Decimal, for key: SavingsAllocationCacheKey) {
+        lock.withLock {
+            monthlySavingsCache[key] = value
+        }
+    }
+
+    internal func cachedCategorySavingsAllocation(
+        for key: SavingsAllocationCacheKey
+    ) -> [UUID: Decimal]? {
+        lock.withLock {
+            if let value = categorySavingsCache[key] {
+                metrics.categorySavingsHits += 1
+                return value
+            }
+            metrics.categorySavingsMisses += 1
+            return nil
+        }
+    }
+
+    internal func storeCategorySavingsAllocation(
+        _ value: [UUID: Decimal],
+        for key: SavingsAllocationCacheKey
+    ) {
+        lock.withLock {
+            categorySavingsCache[key] = value
+        }
+    }
+
+    internal func invalidate(targets: Target) {
+        lock.withLock {
+            if targets.contains(.monthlyBudget) {
+                monthlyBudgetCache.removeAll()
+            }
+            if targets.contains(.specialPaymentSavings) {
+                specialPaymentSavingsCache.removeAll()
+            }
+            if targets.contains(.monthlySavings) {
+                monthlySavingsCache.removeAll()
+            }
+            if targets.contains(.categorySavings) {
+                categorySavingsCache.removeAll()
+            }
+        }
+    }
+}
+
+private extension NSLock {
+    func withLock<T>(_ execute: () -> T) -> T {
+        lock()
+        defer { unlock() }
+        return execute()
     }
 }

@@ -44,6 +44,20 @@ internal struct PaymentDifference: Sendable {
 ///
 /// 月次積立の記録、実績支払いの反映、残高の再計算を行います。
 internal struct SpecialPaymentBalanceService: Sendable {
+    private let cache: SpecialPaymentBalanceCache
+
+    internal init(cache: SpecialPaymentBalanceCache = SpecialPaymentBalanceCache()) {
+        self.cache = cache
+    }
+
+    internal func cacheMetrics() -> SpecialPaymentBalanceCacheMetrics {
+        cache.metricsSnapshot
+    }
+
+    internal func invalidateCache(for balanceId: UUID? = nil) {
+        cache.invalidate(balanceId: balanceId)
+    }
+
     /// 月次積立記録パラメータ
     internal struct MonthlySavingsParameters {
         internal let definition: SpecialPaymentDefinition
@@ -77,6 +91,7 @@ internal struct SpecialPaymentBalanceService: Sendable {
             existingBalance.lastUpdatedMonth = month
             existingBalance.updatedAt = Date()
 
+            cache.invalidate(balanceId: existingBalance.id)
             return existingBalance
         } else {
             // 新規作成
@@ -88,6 +103,7 @@ internal struct SpecialPaymentBalanceService: Sendable {
                 lastUpdatedMonth: month,
             )
             context.insert(newBalance)
+            cache.invalidate(balanceId: newBalance.id)
             return newBalance
         }
     }
@@ -118,6 +134,7 @@ internal struct SpecialPaymentBalanceService: Sendable {
         // 残高から実績金額を差し引く
         balance.totalPaidAmount = balance.totalPaidAmount.safeAdd(actualAmount)
         balance.updatedAt = Date()
+        cache.invalidate(balanceId: balance.id)
 
         return difference
     }
@@ -163,6 +180,20 @@ internal struct SpecialPaymentBalanceService: Sendable {
         let month = params.month
         let startYear = params.startYear
         let startMonth = params.startMonth
+        let cacheKey = BalanceCacheKey(
+            definitionId: definition.id,
+            balanceId: balance.id,
+            year: year,
+            month: month,
+            startYear: startYear,
+            startMonth: startMonth,
+            definitionVersion: definitionVersion(for: definition),
+            balanceVersion: balanceVersion(for: balance)
+        )
+        if let snapshot = cache.snapshot(for: cacheKey) {
+            apply(snapshot: snapshot, to: balance)
+            return
+        }
         // 完了済みのoccurrenceから累計支払額を計算
         let completedOccurrences = definition.occurrences.filter { $0.status == .completed }
         let totalPaid = completedOccurrences.reduce(Decimal(0)) { sum, occurrence in
@@ -201,6 +232,13 @@ internal struct SpecialPaymentBalanceService: Sendable {
         balance.lastUpdatedYear = year
         balance.lastUpdatedMonth = month
         balance.updatedAt = Date()
+        let snapshot = BalanceSnapshot(
+            totalSavedAmount: totalSaved,
+            totalPaidAmount: totalPaid,
+            lastUpdatedYear: year,
+            lastUpdatedMonth: month
+        )
+        cache.store(snapshot: snapshot, for: cacheKey)
     }
 
     // MARK: - Helper Methods
@@ -214,5 +252,117 @@ internal struct SpecialPaymentBalanceService: Sendable {
         let fromIndex = (fromYear * 12) + (fromMonth - 1)
         let toIndex = (toYear * 12) + (toMonth - 1)
         return max(0, toIndex - fromIndex + 1)
+    }
+}
+
+// MARK: - Cache Support
+
+internal struct SpecialPaymentBalanceCacheMetrics: Sendable {
+    internal let hits: Int
+    internal let misses: Int
+    internal let invalidations: Int
+}
+
+private struct BalanceCacheKey: Hashable {
+    let definitionId: UUID
+    let balanceId: UUID
+    let year: Int
+    let month: Int
+    let startYear: Int?
+    let startMonth: Int?
+    let definitionVersion: Int
+    let balanceVersion: Int
+}
+
+private struct BalanceSnapshot: Sendable {
+    let totalSavedAmount: Decimal
+    let totalPaidAmount: Decimal
+    let lastUpdatedYear: Int
+    let lastUpdatedMonth: Int
+}
+
+final class SpecialPaymentBalanceCache: @unchecked Sendable {
+    private struct Metrics {
+        var hits: Int = 0
+        var misses: Int = 0
+        var invalidations: Int = 0
+    }
+
+    private let lock = NSLock()
+    private var snapshots: [BalanceCacheKey: BalanceSnapshot] = [:]
+    private var metrics = Metrics()
+
+    internal var metricsSnapshot: SpecialPaymentBalanceCacheMetrics {
+        lock.withLock {
+            SpecialPaymentBalanceCacheMetrics(
+                hits: metrics.hits,
+                misses: metrics.misses,
+                invalidations: metrics.invalidations
+            )
+        }
+    }
+
+    internal func snapshot(for key: BalanceCacheKey) -> BalanceSnapshot? {
+        lock.withLock {
+            if let value = snapshots[key] {
+                metrics.hits += 1
+                return value
+            }
+            metrics.misses += 1
+            return nil
+        }
+    }
+
+    internal func store(snapshot: BalanceSnapshot, for key: BalanceCacheKey) {
+        lock.withLock {
+            snapshots[key] = snapshot
+        }
+    }
+
+    internal func invalidate(balanceId: UUID?) {
+        lock.withLock {
+            if let balanceId {
+                snapshots = snapshots.filter { $0.key.balanceId != balanceId }
+            } else {
+                snapshots.removeAll()
+            }
+            metrics.invalidations += 1
+        }
+    }
+}
+
+private func apply(snapshot: BalanceSnapshot, to balance: SpecialPaymentSavingBalance) {
+    balance.totalSavedAmount = snapshot.totalSavedAmount
+    balance.totalPaidAmount = snapshot.totalPaidAmount
+    balance.lastUpdatedYear = snapshot.lastUpdatedYear
+    balance.lastUpdatedMonth = snapshot.lastUpdatedMonth
+    balance.updatedAt = Date()
+}
+
+private func definitionVersion(for definition: SpecialPaymentDefinition) -> Int {
+    var hasher = Hasher()
+    hasher.combine(definition.id)
+    hasher.combine(definition.updatedAt.timeIntervalSinceReferenceDate)
+    hasher.combine(definition.occurrences.count)
+    if let latest = definition.occurrences.map(\.updatedAt).max() {
+        hasher.combine(latest.timeIntervalSinceReferenceDate)
+    }
+    return hasher.finalize()
+}
+
+private func balanceVersion(for balance: SpecialPaymentSavingBalance) -> Int {
+    var hasher = Hasher()
+    hasher.combine(balance.id)
+    hasher.combine(balance.updatedAt.timeIntervalSinceReferenceDate)
+    hasher.combine(balance.totalSavedAmount)
+    hasher.combine(balance.totalPaidAmount)
+    return hasher.finalize()
+}
+
+private extension NSLock {
+    func withLock<T>(_ execute: () -> T) -> T {
+        lock()
+        defer { unlock() }
+        return execute()
     }
 }
