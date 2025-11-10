@@ -1,7 +1,7 @@
 import Foundation
 
 /// A cancellable token that keeps an observation alive until explicitly cancelled or deinitialized.
-internal final class ObservationToken {
+internal final class ObservationToken: @unchecked Sendable {
     private var cancellationHandler: (() -> Void)?
 
     internal init(cancellationHandler: @escaping () -> Void) {
