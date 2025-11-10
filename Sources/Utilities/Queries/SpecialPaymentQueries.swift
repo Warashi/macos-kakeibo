@@ -1,3 +1,4 @@
+import Foundation
 import SwiftData
 
 /// 特別支払い関連のフェッチビルダー
