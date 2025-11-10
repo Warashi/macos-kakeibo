@@ -60,7 +60,7 @@ internal struct SpecialPaymentStoreUpdateDefinitionTests {
         context.insert(definition)
         try context.save()
 
-        #expect(throws: SpecialPaymentStoreError.self) {
+        #expect(throws: SpecialPaymentDomainError.self) {
             let input = SpecialPaymentDefinitionInput(
                 name: "",
                 notes: "",

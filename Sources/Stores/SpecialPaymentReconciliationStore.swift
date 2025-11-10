@@ -405,7 +405,7 @@ internal extension SpecialPaymentReconciliationStore {
             statusMessage = "実績を保存しました。"
             refresh()
             selectedOccurrenceId = occurrence.id
-        } catch let storeError as SpecialPaymentStoreError {
+        } catch let storeError as SpecialPaymentDomainError {
             switch storeError {
             case let .validationFailed(messages):
                 errorMessage = messages.joined(separator: "\n")

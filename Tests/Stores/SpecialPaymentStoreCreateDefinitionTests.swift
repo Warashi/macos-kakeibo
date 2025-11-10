@@ -76,7 +76,7 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         let (store, _) = try makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        #expect(throws: SpecialPaymentStoreError.self) {
+        #expect(throws: SpecialPaymentDomainError.self) {
             let input = SpecialPaymentDefinitionInput(
                 name: "",
                 amount: 50000,
@@ -93,7 +93,7 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         let (store, _) = try makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        #expect(throws: SpecialPaymentStoreError.self) {
+        #expect(throws: SpecialPaymentDomainError.self) {
             let input = SpecialPaymentDefinitionInput(
                 name: "テスト",
                 amount: 0,
@@ -110,7 +110,7 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         let (store, _) = try makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        #expect(throws: SpecialPaymentStoreError.self) {
+        #expect(throws: SpecialPaymentDomainError.self) {
             let input = SpecialPaymentDefinitionInput(
                 name: "テスト",
                 amount: 50000,
@@ -129,7 +129,7 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         let nonExistentCategoryId = UUID()
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
 
-        #expect(throws: SpecialPaymentStoreError.categoryNotFound) {
+        #expect(throws: SpecialPaymentDomainError.categoryNotFound) {
             let input = SpecialPaymentDefinitionInput(
                 name: "テスト",
                 amount: 50000,

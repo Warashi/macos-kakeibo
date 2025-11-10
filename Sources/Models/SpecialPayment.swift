@@ -258,6 +258,10 @@ internal extension SpecialPaymentOccurrence {
         status == .completed
     }
 
+    var isSchedulingLocked: Bool {
+        status == .completed || status == .cancelled
+    }
+
     var isOverdue: Bool {
         !isCompleted && scheduledDate < Date()
     }

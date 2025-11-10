@@ -10,16 +10,51 @@ internal struct SpecialPaymentScheduleService {
         internal let expectedAmount: Decimal
     }
 
+    /// スケジュール同期結果
+    internal struct SynchronizationResult {
+        internal let created: [SpecialPaymentOccurrence]
+        internal let updated: [SpecialPaymentOccurrence]
+        internal let removed: [SpecialPaymentOccurrence]
+        internal let locked: [SpecialPaymentOccurrence]
+        internal let occurrences: [SpecialPaymentOccurrence]
+        internal let referenceDate: Date
+
+        internal init(
+            created: [SpecialPaymentOccurrence],
+            updated: [SpecialPaymentOccurrence],
+            removed: [SpecialPaymentOccurrence],
+            locked: [SpecialPaymentOccurrence],
+            occurrences: [SpecialPaymentOccurrence],
+            referenceDate: Date
+        ) {
+            self.created = created
+            self.updated = updated
+            self.removed = removed
+            self.locked = locked
+            self.occurrences = occurrences
+            self.referenceDate = referenceDate
+        }
+    }
+
     private let calendar: Calendar
     private let businessDayService: BusinessDayService
     private let maxIterations: Int = 600
 
     internal init(
         calendar: Calendar = Calendar(identifier: .gregorian),
-        businessDayService: BusinessDayService = BusinessDayService(),
+        businessDayService: BusinessDayService? = nil,
+        holidayProvider: HolidayProvider? = nil
     ) {
         self.calendar = calendar
-        self.businessDayService = businessDayService
+        if let businessDayService {
+            self.businessDayService = businessDayService
+        } else {
+            self.businessDayService = BusinessDayService(
+                calendar: calendar,
+                holidays: [],
+                holidayProvider: holidayProvider
+            )
+        }
     }
 
     /// 営業日への日付調整を行う
@@ -44,6 +79,87 @@ internal struct SpecialPaymentScheduleService {
             }
             return businessDayService.nextBusinessDay(from: date) ?? date
         }
+    }
+
+    /// 差分適用用の同期計画を生成
+    /// - Parameters:
+    ///   - definition: 対象の特別支払い定義
+    ///   - referenceDate: 判定基準日
+    ///   - horizonMonths: 生成対象期間
+    /// - Returns: 同期結果
+    internal func synchronizationPlan(
+        for definition: SpecialPaymentDefinition,
+        referenceDate: Date,
+        horizonMonths: Int
+    ) -> SynchronizationResult {
+        let seedDate = nextSeedDate(for: definition)
+        let targets = scheduleTargets(
+            for: definition,
+            seedDate: seedDate,
+            referenceDate: referenceDate,
+            horizonMonths: horizonMonths
+        )
+
+        let locked = definition.occurrences.filter(\.isSchedulingLocked)
+
+        guard !targets.isEmpty else {
+            return SynchronizationResult(
+                created: [],
+                updated: [],
+                removed: [],
+                locked: locked,
+                occurrences: definition.occurrences,
+                referenceDate: referenceDate
+            )
+        }
+
+        var editableOccurrences = definition.occurrences.filter { !$0.isSchedulingLocked }
+        var created: [SpecialPaymentOccurrence] = []
+        var updated: [SpecialPaymentOccurrence] = []
+        var matched: [SpecialPaymentOccurrence] = []
+
+        for target in targets {
+            if let existingIndex = editableOccurrences.firstIndex(
+                where: { isSameDay($0.scheduledDate, target.scheduledDate) }
+            ) {
+                let occurrence = editableOccurrences.remove(at: existingIndex)
+                let changed = apply(
+                    target: target,
+                    to: occurrence,
+                    referenceDate: referenceDate,
+                    leadTimeMonths: definition.leadTimeMonths
+                )
+                if changed {
+                    updated.append(occurrence)
+                }
+                matched.append(occurrence)
+            } else {
+                let occurrence = SpecialPaymentOccurrence(
+                    definition: definition,
+                    scheduledDate: target.scheduledDate,
+                    expectedAmount: target.expectedAmount,
+                    status: defaultStatus(
+                        for: target.scheduledDate,
+                        referenceDate: referenceDate,
+                        leadTimeMonths: definition.leadTimeMonths
+                    )
+                )
+                occurrence.updatedAt = referenceDate
+                created.append(occurrence)
+                matched.append(occurrence)
+            }
+        }
+
+        let occurrences = (matched + locked).sorted(by: { $0.scheduledDate < $1.scheduledDate })
+
+        return SynchronizationResult(
+            created: created,
+            updated: updated,
+            removed: editableOccurrences,
+            locked: locked,
+            occurrences: occurrences,
+            referenceDate: referenceDate
+        )
     }
 
     /// 定義に基づき、指定した開始日から将来のOccurrence候補を生成する
@@ -185,7 +301,79 @@ internal struct SpecialPaymentScheduleService {
         }
     }
 
-    private func advance(date: Date, months: Int) -> Date? {
-        calendar.date(byAdding: .month, value: months, to: date)
+    private func nextSeedDate(for definition: SpecialPaymentDefinition) -> Date {
+        let latestCompleted = definition.occurrences
+            .filter { $0.status == .completed }
+            .map(\.scheduledDate)
+            .max()
+
+        guard let latestCompleted else {
+            return definition.firstOccurrenceDate
+        }
+
+        return calendar.date(
+            byAdding: .month,
+            value: definition.recurrenceIntervalMonths,
+            to: latestCompleted
+        ) ?? definition.firstOccurrenceDate
+    }
+
+    @discardableResult
+    private func apply(
+        target: ScheduleTarget,
+        to occurrence: SpecialPaymentOccurrence,
+        referenceDate: Date,
+        leadTimeMonths: Int
+    ) -> Bool {
+        var didMutate = false
+
+        if occurrence.expectedAmount != target.expectedAmount {
+            occurrence.expectedAmount = target.expectedAmount
+            didMutate = true
+        }
+
+        if !isSameDay(occurrence.scheduledDate, target.scheduledDate) {
+            occurrence.scheduledDate = target.scheduledDate
+            didMutate = true
+        }
+
+        let statusChanged = updateStatusIfNeeded(
+            for: occurrence,
+            referenceDate: referenceDate,
+            leadTimeMonths: leadTimeMonths
+        )
+        if statusChanged {
+            didMutate = true
+        }
+
+        occurrence.updatedAt = referenceDate
+        return didMutate
+    }
+
+    private func updateStatusIfNeeded(
+        for occurrence: SpecialPaymentOccurrence,
+        referenceDate: Date,
+        leadTimeMonths: Int
+    ) -> Bool {
+        guard !occurrence.isSchedulingLocked else {
+            return false
+        }
+
+        let status = defaultStatus(
+            for: occurrence.scheduledDate,
+            referenceDate: referenceDate,
+            leadTimeMonths: leadTimeMonths
+        )
+
+        if occurrence.status != status {
+            occurrence.status = status
+            return true
+        }
+
+        return false
+    }
+
+    private func isSameDay(_ lhs: Date, _ rhs: Date) -> Bool {
+        calendar.isDate(lhs, inSameDayAs: rhs)
     }
 }

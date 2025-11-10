@@ -195,7 +195,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         try store.synchronizeOccurrences(for: definition, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
 
-        #expect(throws: SpecialPaymentStoreError.self) {
+        #expect(throws: SpecialPaymentDomainError.self) {
             let input = OccurrenceUpdateInput(
                 status: .completed,
                 actualDate: nil,
@@ -229,7 +229,7 @@ internal struct SpecialPaymentStoreUpdateTests {
 
         let farActualDate = try #require(Date.from(year: 2025, month: 7, day: 1))
 
-        #expect(throws: SpecialPaymentStoreError.self) {
+        #expect(throws: SpecialPaymentDomainError.self) {
             let input = OccurrenceUpdateInput(
                 status: .completed,
                 actualDate: farActualDate,

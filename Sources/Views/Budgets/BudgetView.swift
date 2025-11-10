@@ -374,9 +374,9 @@ private extension BudgetView {
                 try specialPaymentStore.updateDefinition(definition, input: input)
             }
             isPresentingSpecialPaymentEditor = false
-        } catch SpecialPaymentStoreError.categoryNotFound {
+        } catch SpecialPaymentDomainError.categoryNotFound {
             specialPaymentFormError = "選択したカテゴリが見つかりませんでした"
-        } catch let SpecialPaymentStoreError.validationFailed(errors) {
+        } catch let SpecialPaymentDomainError.validationFailed(errors) {
             specialPaymentFormError = errors.joined(separator: "\n")
         } catch {
             showError(message: "特別支払いの保存に失敗しました: \(error.localizedDescription)")

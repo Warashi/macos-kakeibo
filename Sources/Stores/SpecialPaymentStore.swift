@@ -2,13 +2,6 @@ import Foundation
 import Observation
 import SwiftData
 
-internal enum SpecialPaymentStoreError: Error, Equatable {
-    case invalidRecurrence
-    case invalidHorizon
-    case validationFailed([String])
-    case categoryNotFound
-}
-
 /// 特別支払い定義の入力パラメータ
 internal struct SpecialPaymentDefinitionInput {
     internal let name: String
@@ -114,72 +107,28 @@ internal final class SpecialPaymentStore {
         referenceDate: Date? = nil,
     ) throws {
         guard definition.recurrenceIntervalMonths > 0 else {
-            throw SpecialPaymentStoreError.invalidRecurrence
+            throw SpecialPaymentDomainError.invalidRecurrence
         }
 
         guard horizonMonths >= 0 else {
-            throw SpecialPaymentStoreError.invalidHorizon
+            throw SpecialPaymentDomainError.invalidHorizon
         }
 
         let now = referenceDate ?? currentDateProvider()
-        let seedDate = nextSeedDate(for: definition)
-
-        let targets = scheduleService.scheduleTargets(
+        let plan = scheduleService.synchronizationPlan(
             for: definition,
-            seedDate: seedDate,
             referenceDate: now,
-            horizonMonths: horizonMonths,
+            horizonMonths: horizonMonths
         )
 
-        guard !targets.isEmpty else {
+        guard !plan.occurrences.isEmpty else {
             return
         }
 
-        let lockedOccurrences = definition.occurrences.filter(\.isSchedulingLocked)
-        var editableOccurrences = definition.occurrences.filter { !$0.isSchedulingLocked }
+        plan.created.forEach { modelContext.insert($0) }
+        plan.removed.forEach { modelContext.delete($0) }
 
-        var matchedOccurrences: [SpecialPaymentOccurrence] = []
-
-        for target in targets {
-            if let existingIndex = editableOccurrences.firstIndex(
-                where: { calendar.isDate($0.scheduledDate, inSameDayAs: target.scheduledDate) },
-            ) {
-                let occurrence = editableOccurrences.remove(at: existingIndex)
-                apply(
-                    target: target,
-                    to: occurrence,
-                    referenceDate: now,
-                    leadTimeMonths: definition.leadTimeMonths,
-                )
-                matchedOccurrences.append(occurrence)
-            } else {
-                let occurrence = SpecialPaymentOccurrence(
-                    definition: definition,
-                    scheduledDate: target.scheduledDate,
-                    expectedAmount: target.expectedAmount,
-                    status: scheduleService.defaultStatus(
-                        for: target.scheduledDate,
-                        referenceDate: now,
-                        leadTimeMonths: definition.leadTimeMonths,
-                    ),
-                )
-                occurrence.updatedAt = now
-                modelContext.insert(occurrence)
-                matchedOccurrences.append(occurrence)
-            }
-        }
-
-        if !editableOccurrences.isEmpty {
-            for occurrence in editableOccurrences {
-                if let index = definition.occurrences.firstIndex(where: { $0.id == occurrence.id }) {
-                    definition.occurrences.remove(at: index)
-                }
-                modelContext.delete(occurrence)
-            }
-        }
-
-        definition.occurrences = (matchedOccurrences + lockedOccurrences)
-            .sorted(by: { $0.scheduledDate < $1.scheduledDate })
+        definition.occurrences = plan.occurrences
 
         definition.updatedAt = now
         lastSyncedAt = now
@@ -200,7 +149,7 @@ internal final class SpecialPaymentStore {
 
         let errors = occurrence.validate()
         guard errors.isEmpty else {
-            throw SpecialPaymentStoreError.validationFailed(errors)
+            throw SpecialPaymentDomainError.validationFailed(errors)
         }
 
         try synchronizeOccurrences(
@@ -231,7 +180,7 @@ internal final class SpecialPaymentStore {
 
         let errors = occurrence.validate()
         guard errors.isEmpty else {
-            throw SpecialPaymentStoreError.validationFailed(errors)
+            throw SpecialPaymentDomainError.validationFailed(errors)
         }
 
         try modelContext.save()
@@ -273,7 +222,7 @@ extension SpecialPaymentStore {
 
         let errors = definition.validate()
         guard errors.isEmpty else {
-            throw SpecialPaymentStoreError.validationFailed(errors)
+            throw SpecialPaymentDomainError.validationFailed(errors)
         }
 
         modelContext.insert(definition)
@@ -305,7 +254,7 @@ extension SpecialPaymentStore {
 
         let errors = definition.validate()
         guard errors.isEmpty else {
-            throw SpecialPaymentStoreError.validationFailed(errors)
+            throw SpecialPaymentDomainError.validationFailed(errors)
         }
 
         try modelContext.save()
@@ -323,10 +272,6 @@ extension SpecialPaymentStore {
 // MARK: - Helpers
 
 private extension SpecialPaymentStore {
-    var calendar: Calendar {
-        Calendar(identifier: .gregorian)
-    }
-
     func resolvedCategory(categoryId: UUID?) throws -> Category? {
         guard let id = categoryId else { return nil }
         var descriptor = FetchDescriptor<Category>(
@@ -334,73 +279,10 @@ private extension SpecialPaymentStore {
         )
         descriptor.fetchLimit = 1
         guard let category = try? modelContext.fetch(descriptor).first else {
-            throw SpecialPaymentStoreError.categoryNotFound
+            throw SpecialPaymentDomainError.categoryNotFound
         }
         return category
     }
 
-    func nextSeedDate(for definition: SpecialPaymentDefinition) -> Date {
-        let latestCompleted = definition.occurrences
-            .filter { $0.status == .completed }
-            .map(\.scheduledDate)
-            .max()
-
-        guard let latestCompleted else {
-            return definition.firstOccurrenceDate
-        }
-
-        return calendar.date(
-            byAdding: .month,
-            value: definition.recurrenceIntervalMonths,
-            to: latestCompleted,
-        ) ?? definition.firstOccurrenceDate
-    }
-
-    func apply(
-        target: SpecialPaymentScheduleService.ScheduleTarget,
-        to occurrence: SpecialPaymentOccurrence,
-        referenceDate: Date,
-        leadTimeMonths: Int,
-    ) {
-        if occurrence.expectedAmount != target.expectedAmount {
-            occurrence.expectedAmount = target.expectedAmount
-        }
-
-        if !calendar.isDate(occurrence.scheduledDate, inSameDayAs: target.scheduledDate) {
-            occurrence.scheduledDate = target.scheduledDate
-        }
-
-        updateStatusIfNeeded(
-            for: occurrence,
-            referenceDate: referenceDate,
-            leadTimeMonths: leadTimeMonths,
-        )
-        occurrence.updatedAt = referenceDate
-    }
-
-    func updateStatusIfNeeded(
-        for occurrence: SpecialPaymentOccurrence,
-        referenceDate: Date,
-        leadTimeMonths: Int,
-    ) {
-        guard !occurrence.isSchedulingLocked else {
-            return
-        }
-
-        let status = scheduleService.defaultStatus(
-            for: occurrence.scheduledDate,
-            referenceDate: referenceDate,
-            leadTimeMonths: leadTimeMonths,
-        )
-
-        if occurrence.status != status {
-            occurrence.status = status
-        }
-    }
-}
-
-private extension SpecialPaymentOccurrence {
-    var isSchedulingLocked: Bool {
-        status == .completed || status == .cancelled
-    }
+    // Helpers moved to SpecialPaymentScheduleService
 }
