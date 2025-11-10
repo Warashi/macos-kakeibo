@@ -110,14 +110,16 @@ extension CSVImporter {
         }
 
         let descriptor = ModelFetchFactory.make(
-            predicate: #Predicate { category in
+            predicate: #Predicate { (category: Category) in
                 category.name == name
             }
         )
 
         let existing = try modelContext
             .fetch(descriptor)
-            .first { $0.parent?.id == majorCategory.id }
+            .first { (category: Category) in
+                category.parent?.id == majorCategory.id
+            }
 
         if let existing {
             cache[key] = existing
