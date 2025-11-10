@@ -1,10 +1,11 @@
+import Foundation
 import SwiftData
 
 /// 共通のモデルフェッチ生成ユーティリティ
 internal enum ModelFetchFactory {
     internal static func make<T: PersistentModel>(
-        predicate: SwiftData.Predicate<T>? = nil,
-        sortBy: [SwiftData.SortDescriptor<T>] = [],
+        predicate: Predicate<T>? = nil,
+        sortBy: [SortDescriptor<T>] = [],
         fetchLimit: Int? = nil
     ) -> ModelFetchRequest<T> {
         var descriptor = ModelFetchRequest<T>(
