@@ -1,0 +1,5 @@
+Running SwiftFormat...
+(lint mode - no files will be changed.)
+Reading config file at /Users/warashi/ghq/github.com/Warashi/macos-kakeibo/.swiftformat
+SwiftFormat completed in 0.03s.
+0/162 files require formatting, 4 files skipped.
