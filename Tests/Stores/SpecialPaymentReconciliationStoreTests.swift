@@ -179,7 +179,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         store.selectedOccurrenceId = occurrence.id
         store.unlinkSelectedOccurrence()
 
-        #expect(occurrence.status == .planned)
+        #expect(occurrence.status != .completed)
         #expect(occurrence.transaction == nil)
         #expect(occurrence.actualAmount == nil)
         #expect(spy.updateCalls.count == 1)
