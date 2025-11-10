@@ -3,7 +3,7 @@
 ## ハイライト
 - すべてのStoreが`ModelContext`を直接保持しており、Persistenceへの生接続が集約ポイントになっている。
 - 取引/予算系のStore（Dashboard・Budget）は`TransactionAggregator → BudgetCalculator → AnnualBudgetAllocator/ProgressCalculator`という同じ計算チェーンを個別に生成している。
-- 特別支払い系は`SpecialPaymentStore`を中心に`SpecialPaymentReconciliationStore`・`BudgetStore`・`SpecialPaymentListStore`が読取/更新しており、スケジューリングは`SpecialPaymentScheduleService → BusinessDayService → HolidayProvider`に依存する。
+- 特別支払い系は`SpecialPaymentStore`と`SpecialPaymentOccurrencesService`を経由して`SpecialPaymentReconciliationStore`・`BudgetStore`・`SpecialPaymentListStore`が読取/更新しており、スケジューリングは`SpecialPaymentScheduleService → BusinessDayService → HolidayProvider`に依存する。
 - インポート/設定系のStoreは外部I/Oサービス（CSVImporter/BackupManagerなど）を直接newしているため、UIフローから永続化/ファイル操作層まで一直線になっている。
 
 ## Mermaid図
@@ -27,6 +27,7 @@ flowchart LR
         AnnualBudgetProgressCalculator
         SpecialPaymentScheduleService
         SpecialPaymentBalanceService
+        SpecialPaymentOccurrencesService
         CSVParser
         CSVImporter
         BackupManager
@@ -56,9 +57,11 @@ flowchart LR
 
     SpecialPaymentStore --> ModelContext
     SpecialPaymentStore --> SpecialPaymentScheduleService
+    SpecialPaymentStore --> SpecialPaymentOccurrencesService
 
     SpecialPaymentReconciliationStore --> ModelContext
-    SpecialPaymentReconciliationStore --> SpecialPaymentStore
+    SpecialPaymentReconciliationStore --> SpecialPaymentOccurrencesService
+    SpecialPaymentOccurrencesService --> ModelContext
 
     ImportStore --> ModelContext
     ImportStore --> CSVParser
@@ -90,7 +93,7 @@ flowchart LR
 | BudgetStore | SpecialPaymentBalanceService | Service | Phase1で分離 | 未使用だがストアが残高サービスを生成しており、積立照会専用の`SpecialPaymentBalanceProviding`をStore間共有する。|
 | BudgetStore | TransactionAggregator / BudgetCalculator / 年次計算器 | Calculator | 残す(インジェクション化) | DashboardStoreと同じチェーンを共有サービスへ寄せて重複ロジックを解消。|
 | SpecialPaymentStore | SpecialPaymentScheduleService | Service | 残す | 日付調整ポリシーを差し替え可能にすることで拡張性を担保。|
-| SpecialPaymentReconciliationStore | SpecialPaymentStore | Store | Phase1で分離 | 完了/同期処理だけを提供する`SpecialPaymentOccurrencesService`プロトコルを介し、直接Store生成を避ける。|
+| SpecialPaymentReconciliationStore | SpecialPaymentOccurrencesService | Service | 完了 | `SpecialPaymentOccurrencesService`プロトコル経由で副作用APIを呼び出し、UIストアが別Storeをnewしないようにした。|
 | SpecialPaymentReconciliationStore | ModelContext | Persistence | Phase2で分離 | Occurrence/Transactionフェッチを`SpecialPaymentReadRepository`へ集約し、副作用をサービスに押し出す。|
 | ImportStore | CSVImporter / CSVParser | Service | 残す(インジェクション化) | 現行のままでも良いが、テスト用にプロトコル化してスタブを差し替えられるようにする。|
 | SettingsStore | BackupManager | Service | Phase2で分離 | UIから直接ModelContext全削除するのは危険。`BackupService`をActor化して非同期実行に切り出す。|
@@ -98,7 +101,7 @@ flowchart LR
 
 ## Phase別アクション
 ### Phase 1 (結合リスクが高い箇所)
-1. `SpecialPaymentReconciliationStore`と`SpecialPaymentStore`の間に`SpecialPaymentOccurrencesService`(完了/同期/解除API)を挟み、UIストアから他ストアをnewしないようにする。
+1. ✅ `SpecialPaymentReconciliationStore`と`SpecialPaymentStore`の間に`SpecialPaymentOccurrencesService`(完了/同期/解除API)を挟み、UIストアから他ストアをnewしないようにする。（済）
 2. `BudgetStore`専用の積立参照処理を`SpecialPaymentBalanceProviding`（定義ごとの積立状況取得）に切り出し、計算だけをUIストアから呼ぶ。
 3. Storeが直接サービスをnewしている箇所（Calculator/Importerなど）を引数インジェクション化し、DIしやすい形に揃える。
 

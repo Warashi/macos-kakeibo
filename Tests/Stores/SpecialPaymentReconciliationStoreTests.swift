@@ -10,7 +10,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
     @Test("読み込み時に未完了のOccurrenceが優先される")
     internal func refreshPrioritizesPendingOccurrences() throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context, _) = try makeStore(referenceDate: referenceDate)
 
         let definition = SpecialPaymentDefinition(
             name: "車検",
@@ -51,7 +51,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
     @Test("候補スコアリングは金額と日付が近い取引を優先する")
     internal func candidateScoringPrefersCloseMatches() throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 4, day: 10))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context, _) = try makeStore(referenceDate: referenceDate)
 
         let definition = SpecialPaymentDefinition(
             name: "固定資産税",
@@ -99,7 +99,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
     @Test("実績保存で取引が紐付けられ完了状態になる")
     internal func saveSelectedOccurrenceLinksTransaction() throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 2, day: 15))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context, spy) = try makeStore(referenceDate: referenceDate)
 
         let definition = SpecialPaymentDefinition(
             name: "旅行積立",
@@ -138,17 +138,71 @@ internal struct SpecialPaymentReconciliationStoreTests {
         #expect(occurrence.transaction?.id == transaction.id)
         #expect(occurrence.actualAmount == transaction.absoluteAmount)
         #expect(store.errorMessage == nil)
+        #expect(spy.markCompletionCalls.count == 1)
+    }
+
+    @Test("リンク解除で未完了に戻りサービス経由で更新される")
+    internal func unlinkSelectedOccurrenceResetsActuals() throws {
+        let referenceDate = try #require(Date.from(year: 2025, month: 6, day: 1))
+        let (store, context, spy) = try makeStore(referenceDate: referenceDate)
+
+        let definition = SpecialPaymentDefinition(
+            name: "大型備品",
+            amount: 100_000,
+            recurrenceIntervalMonths: 12,
+            firstOccurrenceDate: referenceDate,
+            leadTimeMonths: 0
+        )
+        context.insert(definition)
+
+        let occurrence = SpecialPaymentOccurrence(
+            definition: definition,
+            scheduledDate: referenceDate,
+            expectedAmount: 100_000,
+            status: .completed,
+            actualDate: referenceDate,
+            actualAmount: 100_000
+        )
+        definition.occurrences = [occurrence]
+
+        let transaction = Transaction(
+            date: referenceDate,
+            title: "大型備品支払い",
+            amount: -100_000,
+            memo: ""
+        )
+        occurrence.transaction = transaction
+        context.insert(transaction)
+        try context.save()
+
+        store.refresh()
+        store.selectedOccurrenceId = occurrence.id
+        store.unlinkSelectedOccurrence()
+
+        #expect(occurrence.status == .planned)
+        #expect(occurrence.transaction == nil)
+        #expect(occurrence.actualAmount == nil)
+        #expect(spy.updateCalls.count == 1)
+        #expect(store.errorMessage == nil)
     }
 
     // MARK: - Helpers
 
-    private func makeStore(referenceDate: Date) throws -> (SpecialPaymentReconciliationStore, ModelContext) {
+    private func makeStore(referenceDate: Date) throws -> (SpecialPaymentReconciliationStore, ModelContext, SpySpecialPaymentOccurrencesService) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let store = SpecialPaymentReconciliationStore(
+        let repository = SpecialPaymentRepositoryFactory.make(
             modelContext: context,
+            currentDateProvider: { referenceDate }
+        )
+        let baseService = DefaultSpecialPaymentOccurrencesService(repository: repository)
+        let spyService = SpySpecialPaymentOccurrencesService(wrapping: baseService)
+        let store = SpecialPaymentReconciliationStore(
+            repository: repository,
+            transactionRepository: SwiftDataTransactionRepository(modelContext: context),
+            occurrencesService: spyService,
             currentDateProvider: { referenceDate },
         )
-        return (store, context)
+        return (store, context, spyService)
     }
 }

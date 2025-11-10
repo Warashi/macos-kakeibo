@@ -37,7 +37,7 @@ internal final class SpecialPaymentReconciliationStore {
 
     private let repository: SpecialPaymentRepository
     private let transactionRepository: TransactionRepository
-    private let specialPaymentStore: SpecialPaymentStore
+    private let occurrencesService: SpecialPaymentOccurrencesService
     private let presenter: SpecialPaymentReconciliationPresenter
     private let currentDateProvider: () -> Date
     private let candidateSearchWindowDays: Int
@@ -84,16 +84,14 @@ internal final class SpecialPaymentReconciliationStore {
     internal init(
         repository: SpecialPaymentRepository,
         transactionRepository: TransactionRepository,
+        occurrencesService: SpecialPaymentOccurrencesService? = nil,
         candidateSearchWindowDays: Int = 60,
         candidateLimit: Int = 12,
         currentDateProvider: @escaping () -> Date = { Date() }
     ) {
         self.repository = repository
         self.transactionRepository = transactionRepository
-        self.specialPaymentStore = SpecialPaymentStore(
-            repository: repository,
-            currentDateProvider: currentDateProvider
-        )
+        self.occurrencesService = occurrencesService ?? DefaultSpecialPaymentOccurrencesService(repository: repository)
         self.presenter = SpecialPaymentReconciliationPresenter()
         self.candidateSearchWindowDays = candidateSearchWindowDays
         self.candidateLimit = candidateLimit
@@ -115,6 +113,7 @@ internal final class SpecialPaymentReconciliationStore {
         self.init(
             repository: repository,
             transactionRepository: resolvedTransactionRepository,
+            occurrencesService: nil,
             candidateSearchWindowDays: candidateSearchWindowDays,
             candidateLimit: candidateLimit,
             currentDateProvider: currentDateProvider
@@ -207,7 +206,7 @@ internal extension SpecialPaymentReconciliationStore {
                 actualAmount: amount,
                 transaction: transaction,
             )
-            try specialPaymentStore.markOccurrenceCompleted(
+            try occurrencesService.markOccurrenceCompleted(
                 occurrence,
                 input: input,
             )
@@ -238,7 +237,7 @@ internal extension SpecialPaymentReconciliationStore {
         defer { isSaving = false }
 
         do {
-            try specialPaymentStore.updateOccurrence(
+            try occurrencesService.updateOccurrence(
                 occurrence,
                 input: OccurrenceUpdateInput(
                     status: .planned,
