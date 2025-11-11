@@ -27,7 +27,7 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
     @discardableResult
     internal func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @MainActor ([Transaction]) -> Void
+        onChange: @escaping @MainActor ([Transaction]) -> Void,
     ) throws -> ObservationToken {
         let descriptor = TransactionQueries.observation(query: query)
         return modelContext.observe(descriptor: descriptor, onChange: onChange)

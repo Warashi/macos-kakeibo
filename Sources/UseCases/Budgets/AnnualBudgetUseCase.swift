@@ -4,17 +4,17 @@ internal protocol AnnualBudgetUseCaseProtocol {
     func annualBudgetUsage(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> AnnualBudgetUsage?
 
     func annualOverallEntry(
         snapshot: BudgetSnapshot,
-        year: Int
+        year: Int,
     ) -> AnnualBudgetEntry?
 
     func annualCategoryEntries(
         snapshot: BudgetSnapshot,
-        year: Int
+        year: Int,
     ) -> [AnnualBudgetEntry]
 }
 
@@ -24,7 +24,7 @@ internal final class DefaultAnnualBudgetUseCase: AnnualBudgetUseCaseProtocol {
 
     internal init(
         allocator: AnnualBudgetAllocator = AnnualBudgetAllocator(),
-        progressCalculator: AnnualBudgetProgressCalculator = AnnualBudgetProgressCalculator()
+        progressCalculator: AnnualBudgetProgressCalculator = AnnualBudgetProgressCalculator(),
     ) {
         self.allocator = allocator
         self.progressCalculator = progressCalculator
@@ -33,28 +33,28 @@ internal final class DefaultAnnualBudgetUseCase: AnnualBudgetUseCaseProtocol {
     internal func annualBudgetUsage(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> AnnualBudgetUsage? {
         guard let config = snapshot.annualBudgetConfig else { return nil }
         let params = AllocationCalculationParams(
             transactions: snapshot.transactions,
             budgets: snapshot.budgets,
             annualBudgetConfig: config,
-            filter: .default
+            filter: .default,
         )
         return allocator.calculateAnnualBudgetUsage(params: params, upToMonth: month)
     }
 
     internal func annualOverallEntry(
         snapshot: BudgetSnapshot,
-        year: Int
+        year: Int,
     ) -> AnnualBudgetEntry? {
         annualProgressResult(snapshot: snapshot, year: year).overallEntry
     }
 
     internal func annualCategoryEntries(
         snapshot: BudgetSnapshot,
-        year: Int
+        year: Int,
     ) -> [AnnualBudgetEntry] {
         annualProgressResult(snapshot: snapshot, year: year).categoryEntries
     }
@@ -68,8 +68,8 @@ private extension DefaultAnnualBudgetUseCase {
             year: year,
             filter: .default,
             excludedCategoryIds: snapshot.annualBudgetConfig?.fullCoverageCategoryIDs(
-                includingChildrenFrom: snapshot.categories
-            ) ?? []
+                includingChildrenFrom: snapshot.categories,
+            ) ?? [],
         )
     }
 }

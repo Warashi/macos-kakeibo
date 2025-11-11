@@ -19,7 +19,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         let config = makeConfig(
             allocations: [
                 AllocationSeed(category: category1, amount: 100_000, override: .fullCoverage),
-                AllocationSeed(category: category2, amount: 50_000, override: .fullCoverage),
+                AllocationSeed(category: category2, amount: 50000, override: .fullCoverage),
             ],
         )
 
@@ -105,7 +105,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         let config = makeConfig(
             allocations: [
                 AllocationSeed(category: major, amount: 150_000, override: nil),
-                AllocationSeed(category: minor, amount: 50_000, override: nil),
+                AllocationSeed(category: minor, amount: 50000, override: nil),
             ],
         )
 
@@ -148,7 +148,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
 
     private func makeConfig(
         policy: AnnualBudgetPolicy = .automatic,
-        allocations: [AllocationSeed] = []
+        allocations: [AllocationSeed] = [],
     ) -> AnnualBudgetConfig {
         let config = AnnualBudgetConfig(
             year: 2025,

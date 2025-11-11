@@ -13,7 +13,7 @@ internal struct AnnualBudgetAllocator: Sendable {
         budgetCalculator: BudgetCalculator = BudgetCalculator(),
         validator: AnnualBudgetAllocationValidator = AnnualBudgetAllocationValidator(),
         engine: AnnualBudgetAllocationEngine = AnnualBudgetAllocationEngine(),
-        resultFormatter: AnnualBudgetResultFormatter = AnnualBudgetResultFormatter()
+        resultFormatter: AnnualBudgetResultFormatter = AnnualBudgetResultFormatter(),
     ) {
         self.budgetCalculator = budgetCalculator
         self.validator = validator
@@ -66,8 +66,8 @@ internal struct AnnualBudgetAllocator: Sendable {
                 year: year,
                 month: month,
                 policy: context.policy,
-                policyOverrides: context.policyOverrides
-            )
+                policyOverrides: context.policyOverrides,
+            ),
         )
 
         let accumulationResult = engine.accumulateCategoryAllocations(

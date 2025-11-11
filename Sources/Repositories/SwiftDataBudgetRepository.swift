@@ -7,7 +7,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
 
     internal init(
         modelContext: ModelContext,
-        specialPaymentRepository: SpecialPaymentRepository? = nil
+        specialPaymentRepository: SpecialPaymentRepository? = nil,
     ) {
         self.modelContext = modelContext
         self.specialPaymentRepository = specialPaymentRepository
@@ -27,7 +27,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
             categories: categories,
             annualBudgetConfig: config,
             specialPaymentDefinitions: definitions,
-            specialPaymentBalances: balances
+            specialPaymentBalances: balances,
         )
     }
 

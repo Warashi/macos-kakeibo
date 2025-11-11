@@ -1,5 +1,5 @@
-@testable import Kakeibo
 import Foundation
+@testable import Kakeibo
 
 internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository {
     private var definitionsStorage: [UUID: SpecialPaymentDefinition]
@@ -13,7 +13,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
         balances: [SpecialPaymentSavingBalance] = [],
         categories: [Kakeibo.Category] = [],
         scheduleService: SpecialPaymentScheduleService = SpecialPaymentScheduleService(),
-        currentDateProvider: @escaping () -> Date = { Date() }
+        currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         self.definitionsStorage = Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
         self.balancesStorage = Dictionary(uniqueKeysWithValues: balances.map { ($0.definition.id, $0) })
@@ -84,7 +84,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
             savingStrategy: input.savingStrategy,
             customMonthlySavingAmount: input.customMonthlySavingAmount,
             dateAdjustmentPolicy: input.dateAdjustmentPolicy,
-            recurrenceDayPattern: input.recurrenceDayPattern
+            recurrenceDayPattern: input.recurrenceDayPattern,
         )
 
         let errors = definition.validate()
@@ -101,7 +101,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
 
     internal func updateDefinition(
         _ definition: SpecialPaymentDefinition,
-        input: SpecialPaymentDefinitionInput
+        input: SpecialPaymentDefinitionInput,
     ) throws {
         let category = try resolvedCategory(id: input.categoryId)
 
@@ -138,7 +138,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
     internal func synchronize(
         definition: SpecialPaymentDefinition,
         horizonMonths: Int,
-        referenceDate: Date?
+        referenceDate: Date?,
     ) throws -> SpecialPaymentSynchronizationSummary {
         guard definition.recurrenceIntervalMonths > 0 else {
             throw SpecialPaymentDomainError.invalidRecurrence
@@ -151,7 +151,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
         let plan = scheduleService.synchronizationPlan(
             for: definition,
             referenceDate: now,
-            horizonMonths: horizonMonths
+            horizonMonths: horizonMonths,
         )
 
         guard !plan.occurrences.isEmpty else {
@@ -159,7 +159,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
                 syncedAt: now,
                 createdCount: 0,
                 updatedCount: 0,
-                removedCount: 0
+                removedCount: 0,
             )
         }
 
@@ -171,7 +171,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
             syncedAt: now,
             createdCount: plan.created.count,
             updatedCount: plan.updated.count,
-            removedCount: plan.removed.count
+            removedCount: plan.removed.count,
         )
     }
 
@@ -179,7 +179,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
     internal func markOccurrenceCompleted(
         _ occurrence: SpecialPaymentOccurrence,
         input: OccurrenceCompletionInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary {
         occurrence.actualDate = input.actualDate
         occurrence.actualAmount = input.actualAmount
@@ -195,7 +195,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
         return try synchronize(
             definition: occurrence.definition,
             horizonMonths: horizonMonths,
-            referenceDate: currentDateProvider()
+            referenceDate: currentDateProvider(),
         )
     }
 
@@ -203,7 +203,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
     internal func updateOccurrence(
         _ occurrence: SpecialPaymentOccurrence,
         input: OccurrenceUpdateInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary? {
         let now = currentDateProvider()
         let wasCompleted = occurrence.status == .completed
@@ -227,7 +227,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
         return try synchronize(
             definition: occurrence.definition,
             horizonMonths: horizonMonths,
-            referenceDate: now
+            referenceDate: now,
         )
     }
 

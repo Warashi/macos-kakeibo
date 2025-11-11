@@ -15,7 +15,7 @@ internal struct BudgetCalculator: Sendable {
 
     internal init(
         aggregator: TransactionAggregator = TransactionAggregator(),
-        cache: BudgetCalculationCache = BudgetCalculationCache()
+        cache: BudgetCalculationCache = BudgetCalculationCache(),
     ) {
         self.aggregator = aggregator
         self.cache = cache
@@ -82,7 +82,7 @@ internal struct BudgetCalculator: Sendable {
             year: year,
             month: month,
             filter: filter,
-            excludedCategoryIds: excludedCategoryIds
+            excludedCategoryIds: excludedCategoryIds,
         )
         let cacheKey = makeMonthlyBudgetCacheKey(context: context)
         if let cached = cache.cachedMonthlyBudget(for: cacheKey) {
@@ -94,11 +94,11 @@ internal struct BudgetCalculator: Sendable {
         let overallCalculation = overallMonthlyCalculation(
             monthlyBudgets: monthlyBudgets,
             summary: monthlySummary,
-            excludedCategoryIds: context.excludedCategoryIds
+            excludedCategoryIds: context.excludedCategoryIds,
         )
         let categoryCalculations = categoryBudgetCalculations(
             monthlyBudgets: monthlyBudgets,
-            summary: monthlySummary
+            summary: monthlySummary,
         )
 
         let result = MonthlyBudgetCalculation(
@@ -112,7 +112,7 @@ internal struct BudgetCalculator: Sendable {
     }
 
     private func makeMonthlyBudgetCacheKey(
-        context: MonthlyBudgetComputationContext
+        context: MonthlyBudgetComputationContext,
     ) -> MonthlyBudgetCacheKey {
         MonthlyBudgetCacheKey(
             year: context.year,
@@ -121,23 +121,23 @@ internal struct BudgetCalculator: Sendable {
             excludedCategoriesSignature: BudgetCalculationCacheHasher
                 .excludedCategoriesSignature(for: context.excludedCategoryIds),
             transactionsVersion: BudgetCalculationCacheHasher.transactionsVersion(for: context.transactions),
-            budgetsVersion: BudgetCalculationCacheHasher.budgetsVersion(for: context.budgets)
+            budgetsVersion: BudgetCalculationCacheHasher.budgetsVersion(for: context.budgets),
         )
     }
 
     private func aggregateMonthlySummary(
-        context: MonthlyBudgetComputationContext
+        context: MonthlyBudgetComputationContext,
     ) -> MonthlySummary {
         aggregator.aggregateMonthly(
             transactions: context.transactions,
             year: context.year,
             month: context.month,
-            filter: context.filter
+            filter: context.filter,
         )
     }
 
     private func budgetsForMonth(
-        context: MonthlyBudgetComputationContext
+        context: MonthlyBudgetComputationContext,
     ) -> [Budget] {
         context.budgets.filter { $0.contains(year: context.year, month: context.month) }
     }
@@ -145,25 +145,25 @@ internal struct BudgetCalculator: Sendable {
     private func overallMonthlyCalculation(
         monthlyBudgets: [Budget],
         summary: MonthlySummary,
-        excludedCategoryIds: Set<UUID>
+        excludedCategoryIds: Set<UUID>,
     ) -> BudgetCalculation? {
         guard let budget = monthlyBudgets.first(where: { $0.category == nil }) else {
             return nil
         }
         let excludedExpense = excludedExpense(
             from: summary,
-            excludedCategoryIds: excludedCategoryIds
+            excludedCategoryIds: excludedCategoryIds,
         )
         let adjustedTotalExpense = summary.totalExpense - excludedExpense
         return calculate(
             budgetAmount: budget.amount,
-            actualAmount: max(0, adjustedTotalExpense)
+            actualAmount: max(0, adjustedTotalExpense),
         )
     }
 
     private func excludedExpense(
         from summary: MonthlySummary,
-        excludedCategoryIds: Set<UUID>
+        excludedCategoryIds: Set<UUID>,
     ) -> Decimal {
         summary.categorySummaries.reduce(into: Decimal.zero) { partial, summary in
             guard let categoryId = summary.categoryId,
@@ -176,29 +176,29 @@ internal struct BudgetCalculator: Sendable {
 
     private func categoryBudgetCalculations(
         monthlyBudgets: [Budget],
-        summary: MonthlySummary
+        summary: MonthlySummary,
     ) -> [CategoryBudgetCalculation] {
         monthlyBudgets.compactMap { budget -> CategoryBudgetCalculation? in
             guard let category = budget.category else { return nil }
             let categoryActual = categoryActualAmount(
                 for: category,
-                summary: summary
+                summary: summary,
             )
             let calculation = calculate(
                 budgetAmount: budget.amount,
-                actualAmount: categoryActual
+                actualAmount: categoryActual,
             )
             return CategoryBudgetCalculation(
                 categoryId: category.id,
                 categoryName: category.fullName,
-                calculation: calculation
+                calculation: calculation,
             )
         }
     }
 
     private func categoryActualAmount(
         for category: Category,
-        summary: MonthlySummary
+        summary: MonthlySummary,
     ) -> Decimal {
         if category.isMajor {
             let childCategoryIds = Set(category.children.map(\.id))
@@ -259,7 +259,7 @@ internal struct BudgetCalculator: Sendable {
             year: year,
             month: month,
             definitionsVersion: BudgetCalculationCacheHasher.definitionsVersion(definitions),
-            balancesVersion: BudgetCalculationCacheHasher.balancesVersion(for: balances)
+            balancesVersion: BudgetCalculationCacheHasher.balancesVersion(for: balances),
         )
         if let cached = cache.cachedSpecialPaymentSavings(for: cacheKey) {
             return cached
@@ -311,7 +311,7 @@ internal struct BudgetCalculator: Sendable {
         let cacheKey = SavingsAllocationCacheKey(
             year: year,
             month: month,
-            definitionsVersion: BudgetCalculationCacheHasher.definitionsVersion(definitions)
+            definitionsVersion: BudgetCalculationCacheHasher.definitionsVersion(definitions),
         )
         if let cached = cache.cachedMonthlySavingsAllocation(for: cacheKey) {
             return cached
@@ -344,7 +344,7 @@ internal struct BudgetCalculator: Sendable {
         let cacheKey = SavingsAllocationCacheKey(
             year: year,
             month: month,
-            definitionsVersion: BudgetCalculationCacheHasher.definitionsVersion(definitions)
+            definitionsVersion: BudgetCalculationCacheHasher.definitionsVersion(definitions),
         )
         if let cached = cache.cachedCategorySavingsAllocation(for: cacheKey) {
             return cached

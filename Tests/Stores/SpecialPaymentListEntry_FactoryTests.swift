@@ -43,7 +43,7 @@ internal struct SpecialPaymentListEntryFactoryTests {
         let entry = presenter.entry(
             occurrence: occurrence,
             balance: balance,
-            now: now
+            now: now,
         )
 
         // Then
@@ -88,7 +88,7 @@ internal struct SpecialPaymentListEntryFactoryTests {
         let entry = presenter.entry(
             occurrence: occurrence,
             balance: nil,
-            now: Date()
+            now: Date(),
         )
 
         // Then
@@ -125,7 +125,7 @@ internal struct SpecialPaymentListEntryFactoryTests {
         let entry = presenter.entry(
             occurrence: occurrence,
             balance: nil,
-            now: Date()
+            now: Date(),
         )
 
         // Then

@@ -97,7 +97,7 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
                 monthlySavingsHits: metrics.monthlySavingsHits,
                 monthlySavingsMisses: metrics.monthlySavingsMisses,
                 categorySavingsHits: metrics.categorySavingsHits,
-                categorySavingsMisses: metrics.categorySavingsMisses
+                categorySavingsMisses: metrics.categorySavingsMisses,
             )
         }
     }
@@ -120,7 +120,7 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
     }
 
     internal func cachedSpecialPaymentSavings(
-        for key: SpecialPaymentSavingsCacheKey
+        for key: SpecialPaymentSavingsCacheKey,
     ) -> [SpecialPaymentSavingsCalculation]? {
         lock.withLock {
             if let value = specialPaymentSavingsCache[key] {
@@ -134,7 +134,7 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
 
     internal func storeSpecialPaymentSavings(
         _ value: [SpecialPaymentSavingsCalculation],
-        for key: SpecialPaymentSavingsCacheKey
+        for key: SpecialPaymentSavingsCacheKey,
     ) {
         lock.withLock {
             specialPaymentSavingsCache[key] = value
@@ -159,7 +159,7 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
     }
 
     internal func cachedCategorySavingsAllocation(
-        for key: SavingsAllocationCacheKey
+        for key: SavingsAllocationCacheKey,
     ) -> [UUID: Decimal]? {
         lock.withLock {
             if let value = categorySavingsCache[key] {
@@ -173,7 +173,7 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
 
     internal func storeCategorySavingsAllocation(
         _ value: [UUID: Decimal],
-        for key: SavingsAllocationCacheKey
+        for key: SavingsAllocationCacheKey,
     ) {
         lock.withLock {
             categorySavingsCache[key] = value
@@ -242,7 +242,7 @@ internal enum BudgetCalculationCacheHasher {
     private static func versionHash<T>(
         for items: [T],
         id: (T) -> UUID,
-        updatedAt: (T) -> Date
+        updatedAt: (T) -> Date,
     ) -> Int {
         var hasher = Hasher()
         hasher.combine(items.count)

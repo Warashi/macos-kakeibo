@@ -14,19 +14,19 @@ internal struct AnnualBudgetAllocationEngineTests {
             policy: AnnualBudgetPolicy.automatic,
             allocations: [
                 AllocationSeed(category: category, amount: 500_000, override: nil),
-            ]
+            ],
         )
         let budgets = [
-            Budget(amount: 50_000, category: category, year: 2025, month: 1),
-            Budget(amount: 50_000, category: category, year: 2025, month: 2),
+            Budget(amount: 50000, category: category, year: 2025, month: 1),
+            Budget(amount: 50000, category: category, year: 2025, month: 2),
         ]
         let params = AllocationCalculationParams(
             transactions: [
-                makeTransaction(amount: -80_000, year: 2025, month: 1, category: category),
-                makeTransaction(amount: -60_000, year: 2025, month: 2, category: category),
+                makeTransaction(amount: -80000, year: 2025, month: 1, category: category),
+                makeTransaction(amount: -60000, year: 2025, month: 2, category: category),
             ],
             budgets: budgets,
-            annualBudgetConfig: config
+            annualBudgetConfig: config,
         )
 
         let accumulationParams = AccumulationParams(
@@ -34,17 +34,17 @@ internal struct AnnualBudgetAllocationEngineTests {
             year: 2025,
             endMonth: 2,
             policy: .automatic,
-            annualBudgetConfig: config
+            annualBudgetConfig: config,
         )
 
         let result = engine.accumulateCategoryAllocations(
             accumulationParams: accumulationParams,
-            policyOverrides: [:]
+            policyOverrides: [:],
         )
 
-        #expect(result.totalUsed == 40_000)
+        #expect(result.totalUsed == 40000)
         let categoryResult = try #require(result.categoryAllocations.first)
-        #expect(categoryResult.allocatableAmount == 40_000)
+        #expect(categoryResult.allocatableAmount == 40000)
         #expect(categoryResult.actualAmount == 140_000)
     }
 
@@ -58,15 +58,15 @@ internal struct AnnualBudgetAllocationEngineTests {
             policy: AnnualBudgetPolicy.disabled,
             allocations: [
                 AllocationSeed(category: minor, amount: 200_000, override: .fullCoverage),
-            ]
+            ],
         )
 
         let params = AllocationCalculationParams(
             transactions: [
-                makeTransaction(amount: -30_000, year: 2025, month: 3, category: major, minorCategory: minor),
+                makeTransaction(amount: -30000, year: 2025, month: 3, category: major, minorCategory: minor),
             ],
             budgets: [],
-            annualBudgetConfig: config
+            annualBudgetConfig: config,
         )
 
         let allocations = engine.calculateCategoryAllocations(
@@ -75,29 +75,29 @@ internal struct AnnualBudgetAllocationEngineTests {
                 year: 2025,
                 month: 3,
                 policy: AnnualBudgetPolicy.disabled,
-                policyOverrides: [minor.id: AnnualBudgetPolicy.fullCoverage]
-            )
+                policyOverrides: [minor.id: AnnualBudgetPolicy.fullCoverage],
+            ),
         )
 
         let allocation = try #require(allocations.first)
-        #expect(allocation.allocatableAmount == 30_000)
+        #expect(allocation.allocatableAmount == 30000)
         #expect(allocation.monthlyBudgetAmount == 0)
     }
 
     private func makeConfig(
         policy: AnnualBudgetPolicy,
-        allocations: [AllocationSeed]
+        allocations: [AllocationSeed],
     ) -> AnnualBudgetConfig {
         let config = AnnualBudgetConfig(
             year: 2025,
             totalAmount: 1_000_000,
-            policy: policy
+            policy: policy,
         )
         config.allocations = allocations.map { seed in
             let allocation = AnnualBudgetAllocation(
                 amount: seed.amount,
                 category: seed.category,
-                policyOverride: seed.override
+                policyOverride: seed.override,
             )
             allocation.config = config
             return allocation
@@ -116,14 +116,14 @@ internal struct AnnualBudgetAllocationEngineTests {
         year: Int,
         month: Int,
         category: Kakeibo.Category?,
-        minorCategory: Kakeibo.Category? = nil
+        minorCategory: Kakeibo.Category? = nil,
     ) -> Transaction {
         Transaction(
             date: Date.from(year: year, month: month) ?? Date(),
             title: "テスト取引",
             amount: amount,
             majorCategory: category,
-            minorCategory: minorCategory
+            minorCategory: minorCategory,
         )
     }
 }

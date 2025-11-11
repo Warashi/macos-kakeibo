@@ -8,7 +8,7 @@ internal struct SpecialPaymentDefinitionFilter {
     internal init(
         ids: Set<UUID>? = nil,
         searchText: String? = nil,
-        categoryIds: Set<UUID>? = nil
+        categoryIds: Set<UUID>? = nil,
     ) {
         self.ids = ids?.isEmpty == true ? nil : ids
         if let text = searchText, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -38,7 +38,7 @@ internal struct SpecialPaymentOccurrenceQuery {
     internal init(
         range: SpecialPaymentOccurrenceRange? = nil,
         statusFilter: Set<SpecialPaymentStatus>? = nil,
-        definitionIds: Set<UUID>? = nil
+        definitionIds: Set<UUID>? = nil,
     ) {
         self.range = range
         self.statusFilter = statusFilter?.isEmpty == true ? nil : statusFilter
@@ -75,21 +75,21 @@ internal protocol SpecialPaymentRepository {
     func synchronize(
         definition: SpecialPaymentDefinition,
         horizonMonths: Int,
-        referenceDate: Date?
+        referenceDate: Date?,
     ) throws -> SpecialPaymentSynchronizationSummary
 
     @discardableResult
     func markOccurrenceCompleted(
         _ occurrence: SpecialPaymentOccurrence,
         input: OccurrenceCompletionInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary
 
     @discardableResult
     func updateOccurrence(
         _ occurrence: SpecialPaymentOccurrence,
         input: OccurrenceUpdateInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary?
 
     func saveChanges() throws

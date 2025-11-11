@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import Kakeibo
+import Testing
 
 @Suite(.serialized)
 @MainActor
@@ -110,7 +110,7 @@ private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol {
     @MainActor
     internal func observeTransactions(
         filter: TransactionListFilter,
-        onChange: @escaping @MainActor ([Transaction]) -> Void
+        onChange: @escaping @MainActor ([Transaction]) -> Void,
     ) throws -> ObservationToken {
         observedFilters.append(filter)
         onChange(transactions)
@@ -127,7 +127,7 @@ private final class TransactionFormUseCaseStub: TransactionFormUseCaseProtocol {
     internal func save(
         state: TransactionFormState,
         editingTransaction: Transaction?,
-        referenceData: TransactionReferenceData
+        referenceData: TransactionReferenceData,
     ) throws {
         if let saveError {
             throw saveError

@@ -16,13 +16,13 @@ internal struct SpecialPaymentScheduleServiceSyncTests {
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: firstDate
+            firstOccurrenceDate: firstDate,
         )
 
         let plan = service.synchronizationPlan(
             for: definition,
             referenceDate: referenceDate,
-            horizonMonths: 24
+            horizonMonths: 24,
         )
 
         #expect(!plan.created.isEmpty)
@@ -40,25 +40,25 @@ internal struct SpecialPaymentScheduleServiceSyncTests {
 
         let definition = SpecialPaymentDefinition(
             name: "車検",
-            amount: 100000,
+            amount: 100_000,
             recurrenceIntervalMonths: 6,
-            firstOccurrenceDate: firstDate
+            firstOccurrenceDate: firstDate,
         )
 
         let lockedOccurrence = SpecialPaymentOccurrence(
             definition: definition,
             scheduledDate: firstDate,
-            expectedAmount: 100000,
+            expectedAmount: 100_000,
             status: .completed,
             actualDate: firstDate,
-            actualAmount: 100000
+            actualAmount: 100_000,
         )
         definition.occurrences = [lockedOccurrence]
 
         let plan = service.synchronizationPlan(
             for: definition,
             referenceDate: referenceDate,
-            horizonMonths: 12
+            horizonMonths: 12,
         )
 
         #expect(plan.locked.contains(where: { $0.id == lockedOccurrence.id }))
@@ -75,21 +75,21 @@ internal struct SpecialPaymentScheduleServiceSyncTests {
             amount: 50000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: firstDate,
-            leadTimeMonths: 3
+            leadTimeMonths: 3,
         )
 
         let existingOccurrence = SpecialPaymentOccurrence(
             definition: definition,
             scheduledDate: firstDate,
             expectedAmount: 50000,
-            status: .planned
+            status: .planned,
         )
         definition.occurrences = [existingOccurrence]
 
         let plan = service.synchronizationPlan(
             for: definition,
             referenceDate: referenceDate,
-            horizonMonths: 12
+            horizonMonths: 12,
         )
 
         let occurrence = try #require(plan.occurrences.first { $0.id == existingOccurrence.id })

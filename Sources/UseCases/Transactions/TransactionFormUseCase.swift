@@ -4,7 +4,7 @@ internal protocol TransactionFormUseCaseProtocol: AnyObject {
     func save(
         state: TransactionFormState,
         editingTransaction: Transaction?,
-        referenceData: TransactionReferenceData
+        referenceData: TransactionReferenceData,
     ) throws
 
     func delete(transaction: Transaction) throws
@@ -17,9 +17,9 @@ internal enum TransactionFormError: Error, Equatable {
     internal var messages: [String] {
         switch self {
         case let .validationFailed(errors):
-            return errors
+            errors
         case let .persistenceFailed(message):
-            return ["データの更新に失敗しました: \(message)"]
+            ["データの更新に失敗しました: \(message)"]
         }
     }
 }
@@ -34,7 +34,7 @@ internal final class DefaultTransactionFormUseCase: TransactionFormUseCaseProtoc
     internal func save(
         state: TransactionFormState,
         editingTransaction: Transaction?,
-        referenceData: TransactionReferenceData
+        referenceData: TransactionReferenceData,
     ) throws {
         var errors = validate(state: state, referenceData: referenceData)
 

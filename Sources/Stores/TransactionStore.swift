@@ -99,7 +99,7 @@ internal final class TransactionStore {
         listUseCase: TransactionListUseCaseProtocol,
         formUseCase: TransactionFormUseCaseProtocol,
         clock: @escaping () -> Date = Date.init,
-        monthAdapter: MonthNavigatorDateAdapter = MonthNavigatorDateAdapter()
+        monthAdapter: MonthNavigatorDateAdapter = MonthNavigatorDateAdapter(),
     ) {
         self.listUseCase = listUseCase
         self.formUseCase = formUseCase
@@ -263,7 +263,7 @@ internal extension TransactionStore {
             try formUseCase.save(
                 state: formState,
                 editingTransaction: editingTransaction,
-                referenceData: referenceData
+                referenceData: referenceData,
             )
             formErrors = []
             isEditorPresented = false
@@ -302,7 +302,7 @@ private extension TransactionStore {
     private func updateCurrentMonthNavigator(_ update: (inout MonthNavigator) -> Void) {
         var navigator = monthAdapter.makeNavigator(
             from: currentMonth,
-            currentDateProvider: clock
+            currentDateProvider: clock,
         )
         update(&navigator)
         guard let newDate = monthAdapter.date(from: navigator) else { return }
@@ -348,7 +348,7 @@ private extension TransactionStore {
             categoryFilter: categoryFilter.selection,
             includeOnlyCalculationTarget: includeOnlyCalculationTarget,
             excludeTransfers: excludeTransfers,
-            sortOption: sortOption
+            sortOption: sortOption,
         )
     }
 }

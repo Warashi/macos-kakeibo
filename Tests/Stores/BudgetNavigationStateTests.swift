@@ -11,7 +11,7 @@ internal struct BudgetNavigationStateTests {
         var state = BudgetNavigationState(
             year: 2025,
             month: 1,
-            currentDateProvider: { referenceDate }
+            currentDateProvider: { referenceDate },
         )
 
         let changed = state.moveToPreviousMonth()
@@ -28,7 +28,7 @@ internal struct BudgetNavigationStateTests {
         var monthlyState = BudgetNavigationState(
             year: 2000,
             month: 1,
-            currentDateProvider: { referenceDate }
+            currentDateProvider: { referenceDate },
         )
         let monthlyChanged = monthlyState.moveToPresent(displayMode: .monthly)
         #expect(monthlyChanged)
@@ -38,7 +38,7 @@ internal struct BudgetNavigationStateTests {
         var annualState = BudgetNavigationState(
             year: 1990,
             month: 8,
-            currentDateProvider: { referenceDate }
+            currentDateProvider: { referenceDate },
         )
         let annualChanged = annualState.moveToPresent(displayMode: .annual)
         #expect(annualChanged)
@@ -48,7 +48,7 @@ internal struct BudgetNavigationStateTests {
         var specialState = BudgetNavigationState(
             year: 2010,
             month: 3,
-            currentDateProvider: { referenceDate }
+            currentDateProvider: { referenceDate },
         )
         let specialChanged = specialState.moveToPresent(displayMode: .specialPaymentsList)
         #expect(specialChanged == false)

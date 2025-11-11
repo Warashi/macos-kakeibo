@@ -33,11 +33,11 @@ internal struct AnnualBudgetAllocationValidatorTests {
         let allocation = AnnualBudgetAllocation(
             amount: 100_000,
             category: category,
-            policyOverride: .automatic
+            policyOverride: .automatic,
         )
         let params = makeParams(
             policy: .disabled,
-            allocations: [allocation]
+            allocations: [allocation],
         )
 
         let context = validator.makeContext(params: params, upToMonth: 5)
@@ -58,12 +58,12 @@ internal struct AnnualBudgetAllocationValidatorTests {
 
     private func makeParams(
         policy: AnnualBudgetPolicy,
-        allocations: [AnnualBudgetAllocation] = []
+        allocations: [AnnualBudgetAllocation] = [],
     ) -> AllocationCalculationParams {
         let config = AnnualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
-            policy: policy
+            policy: policy,
         )
         config.allocations = allocations
         allocations.forEach { $0.config = config }
@@ -71,7 +71,7 @@ internal struct AnnualBudgetAllocationValidatorTests {
         return AllocationCalculationParams(
             transactions: [],
             budgets: [],
-            annualBudgetConfig: config
+            annualBudgetConfig: config,
         )
     }
 }

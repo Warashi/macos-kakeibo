@@ -17,19 +17,19 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
         context.insert(housing)
         context.insert(dining)
 
-        let definitionWithCategory = SpecialPaymentDefinition(
+        let definitionWithCategory = try SpecialPaymentDefinition(
             name: "住宅ローン",
-            amount: 200000,
+            amount: 200_000,
             recurrenceIntervalMonths: 1,
-            firstOccurrenceDate: try #require(Date.from(year: 2025, month: 1, day: 1)),
-            category: housing
+            firstOccurrenceDate: #require(Date.from(year: 2025, month: 1, day: 1)),
+            category: housing,
         )
 
-        let definitionWithoutCategory = SpecialPaymentDefinition(
+        let definitionWithoutCategory = try SpecialPaymentDefinition(
             name: "旅行積立",
             amount: 50000,
             recurrenceIntervalMonths: 6,
-            firstOccurrenceDate: try #require(Date.from(year: 2025, month: 2, day: 1))
+            firstOccurrenceDate: #require(Date.from(year: 2025, month: 2, day: 1)),
         )
 
         context.insert(definitionWithCategory)
@@ -38,7 +38,7 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
 
         let filter = SpecialPaymentDefinitionFilter(
             searchText: "住宅",
-            categoryIds: [housing.id]
+            categoryIds: [housing.id],
         )
 
         let results = try repository.definitions(filter: filter)
@@ -57,23 +57,23 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: firstDate
+            firstOccurrenceDate: firstDate,
         )
 
-        let upcoming = SpecialPaymentOccurrence(
+        let upcoming = try SpecialPaymentOccurrence(
             definition: definition,
-            scheduledDate: try #require(Date.from(year: 2025, month: 5, day: 31)),
+            scheduledDate: #require(Date.from(year: 2025, month: 5, day: 31)),
             expectedAmount: 45000,
-            status: .planned
+            status: .planned,
         )
 
-        let completed = SpecialPaymentOccurrence(
+        let completed = try SpecialPaymentOccurrence(
             definition: definition,
-            scheduledDate: try #require(Date.from(year: 2024, month: 5, day: 31)),
+            scheduledDate: #require(Date.from(year: 2024, month: 5, day: 31)),
             expectedAmount: 42000,
             status: .completed,
-            actualDate: try #require(Date.from(year: 2024, month: 5, day: 30)),
-            actualAmount: 42000
+            actualDate: #require(Date.from(year: 2024, month: 5, day: 30)),
+            actualAmount: 42000,
         )
 
         definition.occurrences = [upcoming, completed]
@@ -82,12 +82,12 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
         context.insert(completed)
         try context.save()
 
-        let query = SpecialPaymentOccurrenceQuery(
+        let query = try SpecialPaymentOccurrenceQuery(
             range: SpecialPaymentOccurrenceRange(
-                startDate: try #require(Date.from(year: 2025, month: 1, day: 1)),
-                endDate: try #require(Date.from(year: 2025, month: 12, day: 31))
+                startDate: #require(Date.from(year: 2025, month: 1, day: 1)),
+                endDate: #require(Date.from(year: 2025, month: 12, day: 31)),
             ),
-            statusFilter: [.planned]
+            statusFilter: [.planned],
         )
 
         let results = try repository.occurrences(query: query)
@@ -102,14 +102,14 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
         let repository = SwiftDataSpecialPaymentRepository(
             modelContext: context,
-            currentDateProvider: { referenceDate }
+            currentDateProvider: { referenceDate },
         )
 
         let definition = SpecialPaymentDefinition(
             name: "保険料",
             amount: 50000,
             recurrenceIntervalMonths: 6,
-            firstOccurrenceDate: referenceDate
+            firstOccurrenceDate: referenceDate,
         )
 
         context.insert(definition)
@@ -118,7 +118,7 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
         let summary = try repository.synchronize(
             definition: definition,
             horizonMonths: 12,
-            referenceDate: referenceDate
+            referenceDate: referenceDate,
         )
 
         #expect(summary.createdCount >= 2)
@@ -132,14 +132,14 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
         let today = try #require(Date.from(year: 2025, month: 1, day: 1))
         let repository = SwiftDataSpecialPaymentRepository(
             modelContext: context,
-            currentDateProvider: { today }
+            currentDateProvider: { today },
         )
 
         let definition = SpecialPaymentDefinition(
             name: "固定資産税",
-            amount: 120000,
+            amount: 120_000,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: today
+            firstOccurrenceDate: today,
         )
 
         context.insert(definition)
@@ -148,7 +148,7 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
         _ = try repository.synchronize(
             definition: definition,
             horizonMonths: 12,
-            referenceDate: today
+            referenceDate: today,
         )
 
         let occurrence = try #require(definition.occurrences.first)
@@ -157,9 +157,9 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
             occurrence,
             input: OccurrenceCompletionInput(
                 actualDate: today,
-                actualAmount: 120000
+                actualAmount: 120_000,
             ),
-            horizonMonths: 12
+            horizonMonths: 12,
         )
 
         #expect(occurrence.status == SpecialPaymentStatus.completed)

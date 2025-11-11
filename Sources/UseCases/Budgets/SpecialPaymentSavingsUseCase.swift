@@ -4,25 +4,25 @@ internal protocol SpecialPaymentSavingsUseCaseProtocol {
     func monthlySavingsTotal(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> Decimal
 
     func categorySavings(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> [UUID: Decimal]
 
     func calculations(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> [SpecialPaymentSavingsCalculation]
 
     func entries(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> [SpecialPaymentSavingsEntry]
 }
 
@@ -36,50 +36,50 @@ internal final class DefaultSpecialPaymentSavingsUseCase: SpecialPaymentSavingsU
     internal func monthlySavingsTotal(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> Decimal {
         calculator.calculateMonthlySavingsAllocation(
             definitions: snapshot.specialPaymentDefinitions,
             year: year,
-            month: month
+            month: month,
         )
     }
 
     internal func categorySavings(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> [UUID: Decimal] {
         calculator.calculateCategorySavingsAllocation(
             definitions: snapshot.specialPaymentDefinitions,
             year: year,
-            month: month
+            month: month,
         )
     }
 
     internal func calculations(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> [SpecialPaymentSavingsCalculation] {
         calculator.calculateSpecialPaymentSavings(
             definitions: snapshot.specialPaymentDefinitions,
             balances: snapshot.specialPaymentBalances,
             year: year,
-            month: month
+            month: month,
         )
     }
 
     internal func entries(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> [SpecialPaymentSavingsEntry] {
         calculations(snapshot: snapshot, year: year, month: month).map { calc in
             SpecialPaymentSavingsEntry(
                 calculation: calc,
                 progress: progress(for: calc, definitions: snapshot.specialPaymentDefinitions),
-                hasAlert: calc.balance < 0
+                hasAlert: calc.balance < 0,
             )
         }
     }
@@ -88,7 +88,7 @@ internal final class DefaultSpecialPaymentSavingsUseCase: SpecialPaymentSavingsU
 private extension DefaultSpecialPaymentSavingsUseCase {
     func progress(
         for calculation: SpecialPaymentSavingsCalculation,
-        definitions: [SpecialPaymentDefinition]
+        definitions: [SpecialPaymentDefinition],
     ) -> Double {
         guard let definition = definitions.first(where: { $0.id == calculation.definitionId }) else {
             return 0

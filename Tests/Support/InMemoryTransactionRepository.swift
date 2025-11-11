@@ -10,7 +10,7 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
     internal init(
         transactions: [Transaction] = [],
         institutions: [FinancialInstitution] = [],
-        categories: [Kakeibo.Category] = []
+        categories: [Kakeibo.Category] = [],
     ) {
         self.transactions = transactions
         self.institutions = institutions
@@ -38,7 +38,7 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
     @discardableResult
     internal func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @MainActor ([Transaction]) -> Void
+        onChange: @escaping @MainActor ([Transaction]) -> Void,
     ) throws -> ObservationToken {
         let snapshot = try fetchTransactions(query: query)
         MainActor.assumeIsolated {

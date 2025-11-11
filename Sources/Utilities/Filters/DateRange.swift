@@ -29,7 +29,7 @@ internal struct DateRange: Equatable, Sendable {
     internal static func currentMonthThroughFutureMonths(
         referenceDate: Date,
         monthsAhead: Int,
-        calendar: Calendar = .current
+        calendar: Calendar = .current,
     ) -> DateRange {
         let start = calendar.startOfMonth(for: referenceDate) ?? referenceDate
         let end = calendar.date(byAdding: .month, value: monthsAhead, to: start) ?? start

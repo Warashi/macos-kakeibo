@@ -54,14 +54,14 @@ internal struct CategoryFilterStateTests {
     internal func selectionMatchesUsesHierarchy() {
         let selectionMinor = CategoryFilterState.Selection(
             majorCategoryId: major.id,
-            minorCategoryId: minorFood.id
+            minorCategoryId: minorFood.id,
         )
         #expect(selectionMinor.matches(category: minorFood))
         #expect(!selectionMinor.matches(category: minorDaily))
 
         let selectionMajor = CategoryFilterState.Selection(
             majorCategoryId: major.id,
-            minorCategoryId: nil
+            minorCategoryId: nil,
         )
         #expect(selectionMajor.matches(category: minorFood))
         #expect(selectionMajor.matches(category: major))

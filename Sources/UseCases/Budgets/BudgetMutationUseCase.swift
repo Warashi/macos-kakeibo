@@ -19,7 +19,7 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
             startYear: input.startYear,
             startMonth: input.startMonth,
             endYear: input.endYear,
-            endMonth: input.endMonth
+            endMonth: input.endMonth,
         )
         let category = try resolveCategory(id: input.categoryId)
         let budget = Budget(
@@ -28,7 +28,7 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
             startYear: input.startYear,
             startMonth: input.startMonth,
             endYear: input.endYear,
-            endMonth: input.endMonth
+            endMonth: input.endMonth,
         )
         repository.insertBudget(budget)
         try repository.saveChanges()
@@ -39,7 +39,7 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
             startYear: input.startYear,
             startMonth: input.startMonth,
             endYear: input.endYear,
-            endMonth: input.endMonth
+            endMonth: input.endMonth,
         )
         let category = try resolveCategory(id: input.categoryId)
         budget.amount = input.amount
@@ -67,7 +67,7 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
             let config = AnnualBudgetConfig(
                 year: input.year,
                 totalAmount: input.totalAmount,
-                policy: input.policy
+                policy: input.policy,
             )
             repository.insertAnnualBudgetConfig(config)
             try syncAllocations(config: config, drafts: input.allocations)
@@ -89,7 +89,7 @@ private extension DefaultBudgetMutationUseCase {
         startYear: Int,
         startMonth: Int,
         endYear: Int,
-        endMonth: Int
+        endMonth: Int,
     ) throws {
         guard (2000 ... 2100).contains(startYear),
               (2000 ... 2100).contains(endYear),
@@ -107,7 +107,7 @@ private extension DefaultBudgetMutationUseCase {
 
     func syncAllocations(
         config: AnnualBudgetConfig,
-        drafts: [AnnualAllocationDraft]
+        drafts: [AnnualAllocationDraft],
     ) throws {
         let uniqueCategoryIds = Set(drafts.map(\.categoryId))
         guard uniqueCategoryIds.count == drafts.count else {
@@ -142,7 +142,7 @@ private extension DefaultBudgetMutationUseCase {
                 let allocation = AnnualBudgetAllocation(
                     amount: draft.amount,
                     category: category,
-                    policyOverride: draft.policyOverride
+                    policyOverride: draft.policyOverride,
                 )
                 allocation.updatedAt = now
                 config.allocations.append(allocation)

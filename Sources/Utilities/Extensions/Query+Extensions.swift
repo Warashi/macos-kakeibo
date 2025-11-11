@@ -63,14 +63,14 @@ internal extension ModelContext {
     @discardableResult
     func observe<T: PersistentModel>(
         descriptor: ModelFetchRequest<T>,
-        onChange: @escaping @MainActor ([T]) -> Void
+        onChange: @escaping @MainActor ([T]) -> Void,
     ) -> ObservationToken {
         let center = NotificationCenter.default
         let contextBox = ModelContextObservationBox(context: self)
         let observer = center.addObserver(
             forName: .NSManagedObjectContextDidSave,
             object: nil,
-            queue: nil
+            queue: nil,
         ) { [descriptor] _ in
             Task { @MainActor in
                 guard let context = contextBox.context else { return }

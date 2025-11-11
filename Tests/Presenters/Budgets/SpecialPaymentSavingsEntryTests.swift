@@ -14,13 +14,13 @@ internal struct SpecialPaymentSavingsEntryTests {
             totalSaved: 30000,
             totalPaid: 0,
             balance: 30000,
-            nextOccurrence: Date.from(year: 2025, month: 5, day: 31)
+            nextOccurrence: Date.from(year: 2025, month: 5, day: 31),
         )
 
         let entry = SpecialPaymentSavingsEntry(
             calculation: calculation,
             progress: 0.75,
-            hasAlert: false
+            hasAlert: false,
         )
 
         #expect(entry.progressPercentage == 75)
@@ -34,16 +34,16 @@ internal struct SpecialPaymentSavingsEntryTests {
             definitionId: definitionId,
             name: "ボーナス",
             monthlySaving: 50000,
-            totalSaved: 200000,
+            totalSaved: 200_000,
             totalPaid: 0,
             balance: -10000,
-            nextOccurrence: nextDate
+            nextOccurrence: nextDate,
         )
 
         let entry = SpecialPaymentSavingsEntry(
             calculation: calculation,
             progress: 0.25,
-            hasAlert: true
+            hasAlert: true,
         )
 
         #expect(entry.id == definitionId)

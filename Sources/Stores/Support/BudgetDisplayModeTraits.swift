@@ -13,22 +13,22 @@ internal struct BudgetDisplayModeTraits {
     internal var navigationStyle: NavigationStyle {
         switch mode {
         case .monthly:
-            return .monthly
+            .monthly
         case .annual:
-            return .annual
+            .annual
         case .specialPaymentsList:
-            return .hidden
+            .hidden
         }
     }
 
     internal var presentButtonLabel: String? {
         switch mode {
         case .monthly:
-            return "今月"
+            "今月"
         case .annual:
-            return "今年"
+            "今年"
         case .specialPaymentsList:
-            return nil
+            nil
         }
     }
 

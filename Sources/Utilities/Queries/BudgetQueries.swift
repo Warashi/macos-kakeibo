@@ -12,21 +12,21 @@ internal enum BudgetQueries {
             sortBy: [
                 SortDescriptor(\Category.displayOrder),
                 SortDescriptor(\Category.name, order: .forward),
-            ]
+            ],
         )
     }
 
     internal static func annualConfig(for year: Int) -> ModelFetchRequest<AnnualBudgetConfig> {
         ModelFetchFactory.make(
             predicate: #Predicate { $0.year == year },
-            fetchLimit: 1
+            fetchLimit: 1,
         )
     }
 
     internal static func latestAnnualConfig() -> ModelFetchRequest<AnnualBudgetConfig> {
         ModelFetchFactory.make(
             sortBy: [SortDescriptor(\AnnualBudgetConfig.year, order: .reverse)],
-            fetchLimit: 1
+            fetchLimit: 1,
         )
     }
 
@@ -39,7 +39,7 @@ internal enum BudgetQueries {
                 SortDescriptor(\Budget.startYear),
                 SortDescriptor(\Budget.startMonth),
                 SortDescriptor(\Budget.createdAt),
-            ]
+            ],
         )
     }
 }

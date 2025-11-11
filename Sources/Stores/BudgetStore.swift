@@ -66,7 +66,7 @@ internal final class BudgetStore {
             monthlyUseCase: monthlyUseCase,
             annualUseCase: annualUseCase,
             specialPaymentUseCase: specialPaymentUseCase,
-            mutationUseCase: mutationUseCase
+            mutationUseCase: mutationUseCase,
         )
     }
 
@@ -76,7 +76,7 @@ internal final class BudgetStore {
         annualUseCase: AnnualBudgetUseCaseProtocol,
         specialPaymentUseCase: SpecialPaymentSavingsUseCaseProtocol,
         mutationUseCase: BudgetMutationUseCaseProtocol,
-        currentDateProvider: @escaping () -> Date = Date.init
+        currentDateProvider: @escaping () -> Date = Date.init,
     ) {
         self.repository = repository
         self.monthlyUseCase = monthlyUseCase
@@ -107,7 +107,7 @@ internal extension BudgetStore {
         return monthlyUseCase.monthlyBudgets(
             snapshot: snapshot,
             year: currentYear,
-            month: currentMonth
+            month: currentMonth,
         )
     }
 
@@ -123,13 +123,13 @@ internal extension BudgetStore {
                 year: currentYear,
                 month: currentMonth,
                 overallCalculation: nil,
-                categoryCalculations: []
+                categoryCalculations: [],
             )
         }
         return monthlyUseCase.monthlyCalculation(
             snapshot: snapshot,
             year: currentYear,
-            month: currentMonth
+            month: currentMonth,
         )
     }
 
@@ -139,7 +139,7 @@ internal extension BudgetStore {
         return monthlyUseCase.categoryEntries(
             snapshot: snapshot,
             year: currentYear,
-            month: currentMonth
+            month: currentMonth,
         )
     }
 
@@ -149,7 +149,7 @@ internal extension BudgetStore {
         return monthlyUseCase.overallEntry(
             snapshot: snapshot,
             year: currentYear,
-            month: currentMonth
+            month: currentMonth,
         )
     }
 
@@ -164,7 +164,7 @@ internal extension BudgetStore {
         return annualUseCase.annualBudgetUsage(
             snapshot: snapshot,
             year: currentYear,
-            month: currentMonth
+            month: currentMonth,
         )
     }
 
@@ -173,7 +173,7 @@ internal extension BudgetStore {
         guard let snapshot else { return nil }
         return annualUseCase.annualOverallEntry(
             snapshot: snapshot,
-            year: currentYear
+            year: currentYear,
         )
     }
 
@@ -182,7 +182,7 @@ internal extension BudgetStore {
         guard let snapshot else { return [] }
         return annualUseCase.annualCategoryEntries(
             snapshot: snapshot,
-            year: currentYear
+            year: currentYear,
         )
     }
 
@@ -192,7 +192,7 @@ internal extension BudgetStore {
         return specialPaymentUseCase.monthlySavingsTotal(
             snapshot: snapshot,
             year: currentYear,
-            month: currentMonth
+            month: currentMonth,
         )
     }
 
@@ -202,7 +202,7 @@ internal extension BudgetStore {
         return specialPaymentUseCase.categorySavings(
             snapshot: snapshot,
             year: currentYear,
-            month: currentMonth
+            month: currentMonth,
         )
     }
 
@@ -212,7 +212,7 @@ internal extension BudgetStore {
         return specialPaymentUseCase.calculations(
             snapshot: snapshot,
             year: currentYear,
-            month: currentMonth
+            month: currentMonth,
         )
     }
 
@@ -222,7 +222,7 @@ internal extension BudgetStore {
         return specialPaymentUseCase.entries(
             snapshot: snapshot,
             year: currentYear,
-            month: currentMonth
+            month: currentMonth,
         )
     }
 }
@@ -280,14 +280,14 @@ internal extension BudgetStore {
     func upsertAnnualBudgetConfig(
         totalAmount: Decimal,
         policy: AnnualBudgetPolicy,
-        allocations: [AnnualAllocationDraft]
+        allocations: [AnnualAllocationDraft],
     ) throws {
         let input = AnnualBudgetConfigInput(
             existingConfig: snapshot?.annualBudgetConfig,
             year: currentYear,
             totalAmount: totalAmount,
             policy: policy,
-            allocations: allocations
+            allocations: allocations,
         )
         try mutationUseCase.upsertAnnualBudgetConfig(input)
         reloadSnapshot()
@@ -305,7 +305,7 @@ private extension BudgetStore {
         var state = BudgetNavigationState(
             year: currentYear,
             month: currentMonth,
-            currentDateProvider: currentDateProvider
+            currentDateProvider: currentDateProvider,
         )
         let changed = update(&state)
         guard changed else { return }

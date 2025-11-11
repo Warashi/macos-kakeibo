@@ -9,7 +9,7 @@ internal struct BudgetNavigationState {
     internal init(
         year: Int,
         month: Int,
-        currentDateProvider: @escaping () -> Date
+        currentDateProvider: @escaping () -> Date,
     ) {
         self.year = year
         self.month = month
@@ -50,11 +50,11 @@ internal struct BudgetNavigationState {
     internal mutating func moveToPresent(displayMode: BudgetStore.DisplayMode) -> Bool {
         switch displayMode {
         case .monthly:
-            return moveToCurrentMonth()
+            moveToCurrentMonth()
         case .annual:
-            return moveToCurrentYear()
+            moveToCurrentYear()
         case .specialPaymentsList:
-            return false
+            false
         }
     }
 
@@ -65,7 +65,7 @@ internal struct BudgetNavigationState {
         var navigator = MonthNavigator(
             year: year,
             month: month,
-            currentDateProvider: currentDateProvider
+            currentDateProvider: currentDateProvider,
         )
         update(&navigator)
         year = navigator.year

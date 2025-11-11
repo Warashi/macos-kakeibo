@@ -73,7 +73,7 @@ internal struct CategoryFilterState: Equatable {
     internal var selection: Selection {
         Selection(
             majorCategoryId: selectedMajorCategoryId,
-            minorCategoryId: selectedMinorCategoryId
+            minorCategoryId: selectedMinorCategoryId,
         )
     }
 

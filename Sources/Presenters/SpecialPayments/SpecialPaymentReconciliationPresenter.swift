@@ -22,7 +22,7 @@ internal struct SpecialPaymentReconciliationPresenter {
         internal init(
             occurrence: SpecialPaymentOccurrence,
             definition: SpecialPaymentDefinition,
-            referenceDate: Date
+            referenceDate: Date,
         ) {
             self.id = occurrence.id
             self.definitionName = definition.name
@@ -39,9 +39,9 @@ internal struct SpecialPaymentReconciliationPresenter {
         internal var needsAttention: Bool {
             switch status {
             case .planned, .saving:
-                return true
+                true
             case .completed, .cancelled:
-                return false
+                false
             }
         }
 
@@ -56,13 +56,13 @@ internal struct SpecialPaymentReconciliationPresenter {
         internal var statusLabel: String {
             switch status {
             case .planned:
-                return "予定"
+                "予定"
             case .saving:
-                return "積立中"
+                "積立中"
             case .completed:
-                return "完了"
+                "完了"
             case .cancelled:
-                return "中止"
+                "中止"
             }
         }
 
@@ -79,7 +79,7 @@ internal struct SpecialPaymentReconciliationPresenter {
                     recurrenceDescription,
                     transactionTitle ?? "",
                     scheduledDate.longDateFormatted,
-                ]
+                ],
             )
         }
     }
@@ -155,7 +155,7 @@ internal struct SpecialPaymentReconciliationPresenter {
 
         internal func score(
             occurrence: SpecialPaymentOccurrence,
-            transaction: Transaction
+            transaction: Transaction,
         ) -> TransactionCandidateScore {
             let expectedAmount = occurrence.expectedAmount
             let actualAmount = transaction.absoluteAmount
@@ -165,7 +165,7 @@ internal struct SpecialPaymentReconciliationPresenter {
             } else {
                 min(
                     1,
-                    amountDifference.safeDivide(expectedAmount).doubleValue
+                    amountDifference.safeDivide(expectedAmount).doubleValue,
                 )
             }
             let amountScore = 1 - normalizedAmountDiff
@@ -174,12 +174,12 @@ internal struct SpecialPaymentReconciliationPresenter {
                 calendar.dateComponents(
                     [.day],
                     from: occurrence.scheduledDate,
-                    to: transaction.date
-                ).day ?? 0
+                    to: transaction.date,
+                ).day ?? 0,
             )
             let normalizedDays = min(
                 1,
-                Double(dayDifference) / Double(windowDays)
+                Double(dayDifference) / Double(windowDays),
             )
             let dateScore = 1 - normalizedDays
 
@@ -195,15 +195,15 @@ internal struct SpecialPaymentReconciliationPresenter {
                 0,
                 min(
                     1,
-                    (amountScore * 0.5) + (dateScore * 0.3) + (titleScore * 0.2)
-                )
+                    (amountScore * 0.5) + (dateScore * 0.3) + (titleScore * 0.2),
+                ),
             )
 
             return TransactionCandidateScore(
                 total: totalScore,
                 amountDifference: amountDifference,
                 dayDifference: dayDifference,
-                titleMatched: titleMatched
+                titleMatched: titleMatched,
             )
         }
     }
@@ -216,7 +216,7 @@ internal struct SpecialPaymentReconciliationPresenter {
 
     internal func makePresentation(
         definitions: [SpecialPaymentDefinition],
-        referenceDate: Date
+        referenceDate: Date,
     ) -> Presentation {
         var rows: [OccurrenceRow] = []
         var occurrenceLookup: [UUID: SpecialPaymentOccurrence] = [:]
@@ -228,8 +228,8 @@ internal struct SpecialPaymentReconciliationPresenter {
                     OccurrenceRow(
                         occurrence: occurrence,
                         definition: definition,
-                        referenceDate: referenceDate
-                    )
+                        referenceDate: referenceDate,
+                    ),
                 )
                 occurrenceLookup[occurrence.id] = occurrence
                 if let transaction = occurrence.transaction {
@@ -251,13 +251,13 @@ internal struct SpecialPaymentReconciliationPresenter {
         return Presentation(
             rows: rows,
             occurrenceLookup: occurrenceLookup,
-            linkedTransactionLookup: linkedTransactionLookup
+            linkedTransactionLookup: linkedTransactionLookup,
         )
     }
 
     internal func transactionCandidates(
         for occurrence: SpecialPaymentOccurrence,
-        context: TransactionCandidateSearchContext
+        context: TransactionCandidateSearchContext,
     ) -> [TransactionCandidate] {
         let scorer = TransactionCandidateScorer(calendar: calendar, windowDays: context.windowDays)
 
@@ -289,8 +289,8 @@ internal struct SpecialPaymentReconciliationPresenter {
                 TransactionCandidate(
                     transaction: transaction,
                     score: score,
-                    isCurrentLink: isCurrentLink
-                )
+                    isCurrentLink: isCurrentLink,
+                ),
             )
         }
 
@@ -301,8 +301,8 @@ internal struct SpecialPaymentReconciliationPresenter {
                 TransactionCandidate(
                     transaction: linkedTransaction,
                     score: score,
-                    isCurrentLink: true
-                )
+                    isCurrentLink: true,
+                ),
             )
         }
 

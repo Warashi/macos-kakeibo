@@ -9,7 +9,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
     internal init(
         modelContext: ModelContext,
         scheduleService: SpecialPaymentScheduleService = SpecialPaymentScheduleService(),
-        currentDateProvider: @escaping () -> Date = { Date() }
+        currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         self.modelContext = modelContext
         self.scheduleService = scheduleService
@@ -18,7 +18,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
     internal func definitions(filter: SpecialPaymentDefinitionFilter?) throws -> [SpecialPaymentDefinition] {
         let descriptor = SpecialPaymentQueries.definitions(
-            predicate: definitionPredicate(for: filter)
+            predicate: definitionPredicate(for: filter),
         )
 
         var results = try modelContext.fetch(descriptor)
@@ -40,7 +40,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
     internal func occurrences(query: SpecialPaymentOccurrenceQuery?) throws -> [SpecialPaymentOccurrence] {
         let descriptor = SpecialPaymentQueries.occurrences(
-            predicate: occurrencePredicate(for: query)
+            predicate: occurrencePredicate(for: query),
         )
 
         var results = try modelContext.fetch(descriptor)
@@ -58,7 +58,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
     internal func balances(query: SpecialPaymentBalanceQuery?) throws -> [SpecialPaymentSavingBalance] {
         let descriptor = SpecialPaymentQueries.balances(
-            predicate: balancePredicate(for: query)
+            predicate: balancePredicate(for: query),
         )
 
         return try modelContext.fetch(descriptor)
@@ -79,7 +79,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
             savingStrategy: input.savingStrategy,
             customMonthlySavingAmount: input.customMonthlySavingAmount,
             dateAdjustmentPolicy: input.dateAdjustmentPolicy,
-            recurrenceDayPattern: input.recurrenceDayPattern
+            recurrenceDayPattern: input.recurrenceDayPattern,
         )
 
         let errors = definition.validate()
@@ -94,7 +94,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
     internal func updateDefinition(
         _ definition: SpecialPaymentDefinition,
-        input: SpecialPaymentDefinitionInput
+        input: SpecialPaymentDefinitionInput,
     ) throws {
         let category = try resolvedCategory(id: input.categoryId)
 
@@ -128,7 +128,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
     internal func synchronize(
         definition: SpecialPaymentDefinition,
         horizonMonths: Int,
-        referenceDate: Date? = nil
+        referenceDate: Date? = nil,
     ) throws -> SpecialPaymentSynchronizationSummary {
         guard definition.recurrenceIntervalMonths > 0 else {
             throw SpecialPaymentDomainError.invalidRecurrence
@@ -141,7 +141,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         let plan = scheduleService.synchronizationPlan(
             for: definition,
             referenceDate: now,
-            horizonMonths: horizonMonths
+            horizonMonths: horizonMonths,
         )
 
         guard !plan.occurrences.isEmpty else {
@@ -149,7 +149,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
                 syncedAt: now,
                 createdCount: 0,
                 updatedCount: 0,
-                removedCount: 0
+                removedCount: 0,
             )
         }
 
@@ -165,7 +165,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
             syncedAt: now,
             createdCount: plan.created.count,
             updatedCount: plan.updated.count,
-            removedCount: plan.removed.count
+            removedCount: plan.removed.count,
         )
     }
 
@@ -173,7 +173,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
     internal func markOccurrenceCompleted(
         _ occurrence: SpecialPaymentOccurrence,
         input: OccurrenceCompletionInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary {
         occurrence.actualDate = input.actualDate
         occurrence.actualAmount = input.actualAmount
@@ -191,7 +191,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         return try synchronize(
             definition: occurrence.definition,
             horizonMonths: horizonMonths,
-            referenceDate: currentDateProvider()
+            referenceDate: currentDateProvider(),
         )
     }
 
@@ -199,7 +199,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
     internal func updateOccurrence(
         _ occurrence: SpecialPaymentOccurrence,
         input: OccurrenceUpdateInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary? {
         let now = currentDateProvider()
         let wasCompleted = occurrence.status == .completed
@@ -225,7 +225,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         return try synchronize(
             definition: occurrence.definition,
             horizonMonths: horizonMonths,
-            referenceDate: now
+            referenceDate: now,
         )
     }
 
@@ -236,7 +236,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
 private extension SwiftDataSpecialPaymentRepository {
     func definitionPredicate(
-        for filter: SpecialPaymentDefinitionFilter?
+        for filter: SpecialPaymentDefinitionFilter?,
     ) -> Predicate<SpecialPaymentDefinition>? {
         guard let identifiers = filter?.ids, !identifiers.isEmpty else {
             return nil
@@ -248,7 +248,7 @@ private extension SwiftDataSpecialPaymentRepository {
     }
 
     func occurrencePredicate(
-        for query: SpecialPaymentOccurrenceQuery?
+        for query: SpecialPaymentOccurrenceQuery?,
     ) -> Predicate<SpecialPaymentOccurrence>? {
         guard let range = query?.range else {
             return nil
@@ -263,7 +263,7 @@ private extension SwiftDataSpecialPaymentRepository {
     }
 
     func balancePredicate(
-        for query: SpecialPaymentBalanceQuery?
+        for query: SpecialPaymentBalanceQuery?,
     ) -> Predicate<SpecialPaymentSavingBalance>? {
         guard let identifiers = query?.definitionIds, !identifiers.isEmpty else {
             return nil

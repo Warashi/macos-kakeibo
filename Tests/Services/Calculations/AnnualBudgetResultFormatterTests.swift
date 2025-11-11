@@ -12,22 +12,22 @@ internal struct AnnualBudgetResultFormatterTests {
         let config = AnnualBudgetConfig(
             year: 2025,
             totalAmount: 200_000,
-            policy: .automatic
+            policy: .automatic,
         )
         let accumulationResult = AnnualBudgetAllocationEngine.AccumulationResult(
-            totalUsed: 50_000,
+            totalUsed: 50000,
             categoryAllocations: [
                 CategoryAllocation(
                     categoryId: UUID(),
                     categoryName: "食費",
                     annualBudgetAmount: 100_000,
-                    monthlyBudgetAmount: 50_000,
-                    actualAmount: 80_000,
-                    excessAmount: 30_000,
-                    allocatableAmount: 30_000,
-                    remainingAfterAllocation: 0
+                    monthlyBudgetAmount: 50000,
+                    actualAmount: 80000,
+                    excessAmount: 30000,
+                    allocatableAmount: 30000,
+                    remainingAfterAllocation: 0,
                 ),
-            ]
+            ],
         )
 
         let usage = formatter.makeUsage(accumulationResult: accumulationResult, config: config)
@@ -42,7 +42,7 @@ internal struct AnnualBudgetResultFormatterTests {
         let config = AnnualBudgetConfig(
             year: 2025,
             totalAmount: 100_000,
-            policy: .disabled
+            policy: .disabled,
         )
 
         let usage = formatter.makeDisabledUsage(year: 2025, config: config)
@@ -56,21 +56,21 @@ internal struct AnnualBudgetResultFormatterTests {
         let usage = AnnualBudgetUsage(
             year: 2025,
             totalAmount: 100_000,
-            usedAmount: 10_000,
-            remainingAmount: 90_000,
+            usedAmount: 10000,
+            remainingAmount: 90000,
             usageRate: 0.1,
-            categoryAllocations: []
+            categoryAllocations: [],
         )
 
         let monthly = formatter.makeMonthlyAllocation(
             year: 2025,
             month: 4,
             annualUsage: usage,
-            categoryAllocations: []
+            categoryAllocations: [],
         )
 
         #expect(monthly.year == 2025)
         #expect(monthly.month == 4)
-        #expect(monthly.annualBudgetUsage.usedAmount == 10_000)
+        #expect(monthly.annualBudgetUsage.usedAmount == 10000)
     }
 }

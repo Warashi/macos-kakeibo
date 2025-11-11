@@ -89,7 +89,7 @@ internal final class SpecialPaymentReconciliationStore {
         candidateSearchWindowDays: Int = 60,
         candidateLimit: Int = 12,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
-        currentDateProvider: @escaping () -> Date = { Date() }
+        currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         self.repository = repository
         self.transactionRepository = transactionRepository
@@ -107,11 +107,11 @@ internal final class SpecialPaymentReconciliationStore {
         candidateSearchWindowDays: Int = 60,
         candidateLimit: Int = 12,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
-        currentDateProvider: @escaping () -> Date = { Date() }
+        currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         let repository = SpecialPaymentRepositoryFactory.make(
             modelContext: modelContext,
-            currentDateProvider: currentDateProvider
+            currentDateProvider: currentDateProvider,
         )
         let resolvedTransactionRepository = transactionRepository
             ?? SwiftDataTransactionRepository(modelContext: modelContext)
@@ -122,7 +122,7 @@ internal final class SpecialPaymentReconciliationStore {
             candidateSearchWindowDays: candidateSearchWindowDays,
             candidateLimit: candidateLimit,
             horizonMonths: horizonMonths,
-            currentDateProvider: currentDateProvider
+            currentDateProvider: currentDateProvider,
         )
     }
 
@@ -152,7 +152,7 @@ internal extension SpecialPaymentReconciliationStore {
 
             let presentation = presenter.makePresentation(
                 definitions: definitions,
-                referenceDate: referenceDate
+                referenceDate: referenceDate,
             )
 
             rows = presentation.rows
@@ -215,7 +215,7 @@ internal extension SpecialPaymentReconciliationStore {
             try occurrencesService.markOccurrenceCompleted(
                 occurrence,
                 input: input,
-                horizonMonths: horizonMonths
+                horizonMonths: horizonMonths,
             )
             statusMessage = "実績を保存しました。"
             refresh()
@@ -250,9 +250,9 @@ internal extension SpecialPaymentReconciliationStore {
                     status: .planned,
                     actualDate: nil,
                     actualAmount: nil,
-                    transaction: nil
+                    transaction: nil,
                 ),
-                horizonMonths: horizonMonths
+                horizonMonths: horizonMonths,
             )
             statusMessage = "取引リンクを解除しました。"
             refresh()
@@ -320,11 +320,11 @@ private extension SpecialPaymentReconciliationStore {
             transactions: transactions,
             linkedTransactionLookup: linkedTransactionLookup,
             windowDays: candidateSearchWindowDays,
-            limit: candidateLimit
+            limit: candidateLimit,
         )
         candidateTransactions = presenter.transactionCandidates(
             for: occurrence,
-            context: context
+            context: context,
         )
     }
 

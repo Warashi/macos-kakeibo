@@ -50,7 +50,7 @@ internal struct BudgetSpecialPaymentSection: View {
             sortBy: [
                 SortDescriptor(\SpecialPaymentDefinition.firstOccurrenceDate),
                 SortDescriptor(\SpecialPaymentDefinition.name),
-            ]
+            ],
         )
         return (try? modelContext.fetch(descriptor)) ?? []
     }

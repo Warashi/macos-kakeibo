@@ -4,25 +4,25 @@ internal protocol MonthlyBudgetUseCaseProtocol {
     func monthlyBudgets(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> [Budget]
 
     func monthlyCalculation(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> MonthlyBudgetCalculation
 
     func categoryEntries(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> [MonthlyBudgetEntry]
 
     func overallEntry(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> MonthlyBudgetEntry?
 }
 
@@ -36,7 +36,7 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
     internal func monthlyBudgets(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> [Budget] {
         snapshot.budgets.filter { $0.contains(year: year, month: month) }
     }
@@ -44,7 +44,7 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
     internal func monthlyCalculation(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> MonthlyBudgetCalculation {
         calculator.calculateMonthlyBudget(
             transactions: snapshot.transactions,
@@ -52,20 +52,20 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
             year: year,
             month: month,
             filter: .default,
-            excludedCategoryIds: excludedCategoryIds(from: snapshot)
+            excludedCategoryIds: excludedCategoryIds(from: snapshot),
         )
     }
 
     internal func categoryEntries(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> [MonthlyBudgetEntry] {
         let calculation = monthlyCalculation(snapshot: snapshot, year: year, month: month)
         let calculationMap: [UUID: BudgetCalculation] = Dictionary(
             uniqueKeysWithValues: calculation.categoryCalculations.map { item in
                 (item.categoryId, item.calculation)
-            }
+            },
         )
 
         return monthlyBudgets(snapshot: snapshot, year: year, month: month)
@@ -73,12 +73,12 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
                 guard let category = budget.category else { return nil }
                 let calc = calculationMap[category.id] ?? calculator.calculate(
                     budgetAmount: budget.amount,
-                    actualAmount: 0
+                    actualAmount: 0,
                 )
                 return MonthlyBudgetEntry(
                     budget: budget,
                     title: category.fullName,
-                    calculation: calc
+                    calculation: calc,
                 )
             }
             .sorted { lhs, rhs in
@@ -89,7 +89,7 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
     internal func overallEntry(
         snapshot: BudgetSnapshot,
         year: Int,
-        month: Int
+        month: Int,
     ) -> MonthlyBudgetEntry? {
         guard let budget = monthlyBudgets(snapshot: snapshot, year: year, month: month)
             .first(where: { $0.category == nil }) else {
@@ -104,7 +104,7 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
         return MonthlyBudgetEntry(
             budget: budget,
             title: "全体予算",
-            calculation: calculation
+            calculation: calculation,
         )
     }
 }
@@ -112,7 +112,7 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
 private extension DefaultMonthlyBudgetUseCase {
     func excludedCategoryIds(from snapshot: BudgetSnapshot) -> Set<UUID> {
         snapshot.annualBudgetConfig?.fullCoverageCategoryIDs(
-            includingChildrenFrom: snapshot.categories
+            includingChildrenFrom: snapshot.categories,
         ) ?? [] as Set<UUID>
     }
 }

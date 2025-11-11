@@ -188,7 +188,7 @@ internal struct SpecialPaymentBalanceService: Sendable {
             startYear: startYear,
             startMonth: startMonth,
             definitionVersion: definitionVersion(for: definition),
-            balanceVersion: balanceVersion(for: balance)
+            balanceVersion: balanceVersion(for: balance),
         )
         if let snapshot = cache.snapshot(for: cacheKey) {
             apply(snapshot: snapshot, to: balance)
@@ -236,7 +236,7 @@ internal struct SpecialPaymentBalanceService: Sendable {
             totalSavedAmount: totalSaved,
             totalPaidAmount: totalPaid,
             lastUpdatedYear: year,
-            lastUpdatedMonth: month
+            lastUpdatedMonth: month,
         )
         cache.store(snapshot: snapshot, for: cacheKey)
     }
@@ -297,7 +297,7 @@ internal final class SpecialPaymentBalanceCache: @unchecked Sendable {
             SpecialPaymentBalanceCacheMetrics(
                 hits: metrics.hits,
                 misses: metrics.misses,
-                invalidations: metrics.invalidations
+                invalidations: metrics.invalidations,
             )
         }
     }

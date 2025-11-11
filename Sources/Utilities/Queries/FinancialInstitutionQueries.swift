@@ -8,14 +8,14 @@ internal enum FinancialInstitutionQueries {
             sortBy: [
                 SortDescriptor(\FinancialInstitution.displayOrder),
                 SortDescriptor(\FinancialInstitution.name, order: .forward),
-            ]
+            ],
         )
     }
 
     internal static func byName(_ name: String) -> ModelFetchRequest<FinancialInstitution> {
         ModelFetchFactory.make(
             predicate: #Predicate { $0.name == name },
-            fetchLimit: 1
+            fetchLimit: 1,
         )
     }
 }

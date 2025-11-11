@@ -161,7 +161,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: referenceDate,
-            leadTimeMonths: 0
+            leadTimeMonths: 0,
         )
         context.insert(definition)
 
@@ -171,7 +171,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
             expectedAmount: 100_000,
             status: .completed,
             actualDate: referenceDate,
-            actualAmount: 100_000
+            actualAmount: 100_000,
         )
         definition.occurrences = [occurrence]
 
@@ -179,7 +179,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
             date: referenceDate,
             title: "大型備品支払い",
             amount: -100_000,
-            memo: ""
+            memo: "",
         )
         occurrence.transaction = transaction
         context.insert(transaction)
@@ -203,7 +203,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         let context = ModelContext(container)
         let repository = SpecialPaymentRepositoryFactory.make(
             modelContext: context,
-            currentDateProvider: { referenceDate }
+            currentDateProvider: { referenceDate },
         )
         let baseService = DefaultSpecialPaymentOccurrencesService(repository: repository)
         let spyService = SpySpecialPaymentOccurrencesService(wrapping: baseService)
@@ -217,7 +217,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         return ReconciliationStoreHarness(
             store: store,
             context: context,
-            occurrencesService: spyService
+            occurrencesService: spyService,
         )
     }
 }

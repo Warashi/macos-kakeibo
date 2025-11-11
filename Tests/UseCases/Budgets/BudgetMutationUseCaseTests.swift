@@ -1,7 +1,7 @@
 import Foundation
+@testable import Kakeibo
 import SwiftData
 import Testing
-@testable import Kakeibo
 
 @Suite(.serialized)
 @MainActor
@@ -18,7 +18,7 @@ internal struct BudgetMutationUseCaseTests {
             startYear: 2025,
             startMonth: 11,
             endYear: 2025,
-            endMonth: 11
+            endMonth: 11,
         )
         try useCase.addBudget(input: input)
 
@@ -44,7 +44,7 @@ internal struct BudgetMutationUseCaseTests {
             startYear: 2025,
             startMonth: 11,
             endYear: 2025,
-            endMonth: 12
+            endMonth: 12,
         )
         try useCase.updateBudget(budget, input: input)
 
@@ -69,7 +69,7 @@ internal struct BudgetMutationUseCaseTests {
             policy: .automatic,
             allocations: [
                 AnnualAllocationDraft(categoryId: category.id, amount: 200_000),
-            ]
+            ],
         )
         try useCase.upsertAnnualBudgetConfig(input)
 
@@ -91,7 +91,7 @@ internal struct BudgetMutationUseCaseTests {
             startYear: 2025,
             startMonth: 12,
             endYear: 2025,
-            endMonth: 10
+            endMonth: 10,
         )
 
         #expect(throws: BudgetStoreError.invalidPeriod) {

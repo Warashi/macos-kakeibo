@@ -6,7 +6,7 @@ internal enum TransactionQueries {
     internal static func list(query: TransactionQuery) -> ModelFetchRequest<Transaction> {
         ModelFetchFactory.make(
             predicate: predicate(for: query),
-            sortBy: sortDescriptors(for: query.sortOption)
+            sortBy: sortDescriptors(for: query.sortOption),
         )
     }
 
@@ -23,7 +23,7 @@ internal enum TransactionQueries {
             sortBy: [
                 SortDescriptor(\Transaction.date, order: .reverse),
                 SortDescriptor(\Transaction.createdAt, order: .reverse),
-            ]
+            ],
         )
     }
 
@@ -35,21 +35,21 @@ internal enum TransactionQueries {
             sortBy: [
                 SortDescriptor(\Transaction.date, order: .reverse),
                 SortDescriptor(\Transaction.createdAt, order: .reverse),
-            ]
+            ],
         )
     }
 
     internal static func byId(_ id: UUID) -> ModelFetchRequest<Transaction> {
         ModelFetchFactory.make(
             predicate: #Predicate { $0.id == id },
-            fetchLimit: 1
+            fetchLimit: 1,
         )
     }
 
     internal static func byImportIdentifier(_ identifier: String) -> ModelFetchRequest<Transaction> {
         ModelFetchFactory.make(
             predicate: #Predicate { $0.importIdentifier == identifier },
-            fetchLimit: 1
+            fetchLimit: 1,
         )
     }
 }
@@ -67,12 +67,12 @@ private extension TransactionQueries {
     static func sortDescriptors(for option: TransactionSortOption) -> [SortDescriptor<Transaction>] {
         switch option {
         case .dateDescending, .amountDescending:
-            return [
+            [
                 SortDescriptor(\Transaction.date, order: .reverse),
                 SortDescriptor(\Transaction.createdAt, order: .reverse),
             ]
         case .dateAscending, .amountAscending:
-            return [
+            [
                 SortDescriptor(\Transaction.date, order: .forward),
                 SortDescriptor(\Transaction.createdAt, order: .forward),
             ]

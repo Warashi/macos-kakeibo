@@ -28,7 +28,7 @@ internal struct QueryBuilderTests {
             majorCategoryId: nil,
             minorCategoryId: nil,
             searchText: "",
-            sortOption: .dateDescending
+            sortOption: .dateDescending,
         )
 
         let transactions = try context.fetch(TransactionQueries.list(query: query))
@@ -59,21 +59,21 @@ internal struct QueryBuilderTests {
 
         let earlier = SpecialPaymentDefinition(
             name: "古い支払い",
-            amount: 10_000,
+            amount: 10000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
-            leadTimeMonths: 0
+            leadTimeMonths: 0,
         )
-        earlier.createdAt = Date(timeIntervalSince1970: 1_000)
+        earlier.createdAt = Date(timeIntervalSince1970: 1000)
 
         let latest = SpecialPaymentDefinition(
             name: "新しい支払い",
-            amount: 20_000,
+            amount: 20000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
-            leadTimeMonths: 0
+            leadTimeMonths: 0,
         )
-        latest.createdAt = Date(timeIntervalSince1970: 2_000)
+        latest.createdAt = Date(timeIntervalSince1970: 2000)
 
         context.insert(earlier)
         context.insert(latest)

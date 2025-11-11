@@ -12,7 +12,7 @@ internal struct MonthNavigator {
         year: Int,
         month: Int,
         calendar: Calendar = .current,
-        currentDateProvider: @escaping () -> Date = Date.init
+        currentDateProvider: @escaping () -> Date = Date.init,
     ) {
         precondition((1 ... 12).contains(month), "month must be between 1 and 12")
         self.year = year
@@ -24,7 +24,7 @@ internal struct MonthNavigator {
     internal init(
         date: Date = Date(),
         calendar: Calendar = .current,
-        currentDateProvider: @escaping () -> Date = Date.init
+        currentDateProvider: @escaping () -> Date = Date.init,
     ) {
         let components = calendar.dateComponents([.year, .month], from: date)
         let resolvedYear = components.year ?? calendar.component(.year, from: currentDateProvider())
@@ -33,7 +33,7 @@ internal struct MonthNavigator {
             year: resolvedYear,
             month: resolvedMonth,
             calendar: calendar,
-            currentDateProvider: currentDateProvider
+            currentDateProvider: currentDateProvider,
         )
     }
 
@@ -85,12 +85,12 @@ internal struct MonthNavigatorDateAdapter {
 
     internal func makeNavigator(
         from date: Date,
-        currentDateProvider: @escaping () -> Date = Date.init
+        currentDateProvider: @escaping () -> Date = Date.init,
     ) -> MonthNavigator {
         MonthNavigator(
             date: date,
             calendar: calendar,
-            currentDateProvider: currentDateProvider
+            currentDateProvider: currentDateProvider,
         )
     }
 

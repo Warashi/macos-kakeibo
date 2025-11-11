@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import Kakeibo
+import Testing
 
 @Suite
 internal struct AnnualBudgetUseCaseTests {
@@ -15,7 +15,7 @@ internal struct AnnualBudgetUseCaseTests {
             Transaction(
                 date: Date.from(year: year, month: 1, day: 10) ?? Date(),
                 title: "家賃",
-                amount: -80_000
+                amount: -80000,
             ),
         ]
         let snapshot = BudgetSnapshot(
@@ -24,14 +24,14 @@ internal struct AnnualBudgetUseCaseTests {
             categories: [],
             annualBudgetConfig: nil,
             specialPaymentDefinitions: [],
-            specialPaymentBalances: []
+            specialPaymentBalances: [],
         )
         let useCase = DefaultAnnualBudgetUseCase()
 
         let entry = useCase.annualOverallEntry(snapshot: snapshot, year: year)
 
         #expect(entry?.calculation.budgetAmount == 220_000)
-        #expect(entry?.calculation.actualAmount == 80_000)
+        #expect(entry?.calculation.actualAmount == 80000)
     }
 
     @Test("年次カテゴリ別エントリを算出する")
@@ -39,15 +39,15 @@ internal struct AnnualBudgetUseCaseTests {
         let year = 2025
         let food = Category(name: "食費", displayOrder: 1)
         let budgets = [
-            Budget(amount: 50_000, category: food, year: year, month: 1),
-            Budget(amount: 60_000, category: food, year: year, month: 2),
+            Budget(amount: 50000, category: food, year: year, month: 1),
+            Budget(amount: 60000, category: food, year: year, month: 2),
         ]
         let transactions = [
             Transaction(
                 date: Date.from(year: year, month: 1, day: 5) ?? Date(),
                 title: "スーパー",
-                amount: -20_000,
-                majorCategory: food
+                amount: -20000,
+                majorCategory: food,
             ),
         ]
         let snapshot = BudgetSnapshot(
@@ -56,7 +56,7 @@ internal struct AnnualBudgetUseCaseTests {
             categories: [food],
             annualBudgetConfig: nil,
             specialPaymentDefinitions: [],
-            specialPaymentBalances: []
+            specialPaymentBalances: [],
         )
         let useCase = DefaultAnnualBudgetUseCase()
 
@@ -64,7 +64,7 @@ internal struct AnnualBudgetUseCaseTests {
 
         let entry = try #require(entries.first)
         #expect(entry.calculation.budgetAmount == 110_000)
-        #expect(entry.calculation.actualAmount == 20_000)
+        #expect(entry.calculation.actualAmount == 20000)
     }
 
     @Test("年次特別枠の使用状況を算出する")
@@ -79,8 +79,8 @@ internal struct AnnualBudgetUseCaseTests {
             Transaction(
                 date: Date.from(year: year, month: 1, day: 1) ?? Date(),
                 title: "家電",
-                amount: -50_000,
-                majorCategory: food
+                amount: -50000,
+                majorCategory: food,
             ),
         ]
         let snapshot = BudgetSnapshot(
@@ -89,13 +89,13 @@ internal struct AnnualBudgetUseCaseTests {
             categories: [food],
             annualBudgetConfig: config,
             specialPaymentDefinitions: [],
-            specialPaymentBalances: []
+            specialPaymentBalances: [],
         )
         let useCase = DefaultAnnualBudgetUseCase()
 
         let usage = useCase.annualBudgetUsage(snapshot: snapshot, year: year, month: 6)
 
-        #expect(usage?.usedAmount == 50_000)
+        #expect(usage?.usedAmount == 50000)
         #expect(usage?.remainingAmount == 150_000)
     }
 }

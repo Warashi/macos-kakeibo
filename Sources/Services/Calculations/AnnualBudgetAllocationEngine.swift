@@ -10,7 +10,7 @@ internal struct AnnualBudgetAllocationEngine: Sendable {
     private let categoryCalculator: AnnualBudgetAllocationCategoryCalculator
 
     internal init(
-        categoryCalculator: AnnualBudgetAllocationCategoryCalculator = AnnualBudgetAllocationCategoryCalculator()
+        categoryCalculator: AnnualBudgetAllocationCategoryCalculator = AnnualBudgetAllocationCategoryCalculator(),
     ) {
         self.categoryCalculator = categoryCalculator
     }
@@ -32,7 +32,7 @@ internal struct AnnualBudgetAllocationEngine: Sendable {
                 actualAmount: 0,
                 excessAmount: 0,
                 allocatableAmount: 0,
-                remainingAfterAllocation: 0
+                remainingAfterAllocation: 0,
             )
         }
 
@@ -42,10 +42,10 @@ internal struct AnnualBudgetAllocationEngine: Sendable {
                 year: accumulationParams.year,
                 month: month,
                 policy: accumulationParams.policy,
-                policyOverrides: policyOverrides
+                policyOverrides: policyOverrides,
             )
             let monthlyCategoryAllocations = categoryCalculator.calculateCategoryAllocations(
-                request: request
+                request: request,
             )
 
             let monthlyUsed = monthlyCategoryAllocations.reduce(Decimal.zero) { $0 + $1.allocatableAmount }
@@ -53,7 +53,7 @@ internal struct AnnualBudgetAllocationEngine: Sendable {
 
             accumulateCategory(
                 allocations: monthlyCategoryAllocations,
-                into: &categoryAccumulator
+                into: &categoryAccumulator,
             )
         }
 
@@ -67,26 +67,26 @@ internal struct AnnualBudgetAllocationEngine: Sendable {
                     actualAmount: accumulator.actualAmount,
                     excessAmount: accumulator.excessAmount,
                     allocatableAmount: accumulator.allocatableAmount,
-                    remainingAfterAllocation: accumulator.remainingAfterAllocation
+                    remainingAfterAllocation: accumulator.remainingAfterAllocation,
                 )
             }
             .sorted { $0.categoryName < $1.categoryName }
 
         return AccumulationResult(
             totalUsed: totalUsed,
-            categoryAllocations: categoryAllocations
+            categoryAllocations: categoryAllocations,
         )
     }
 
     internal func calculateCategoryAllocations(
-        request: MonthlyCategoryAllocationRequest
+        request: MonthlyCategoryAllocationRequest,
     ) -> [CategoryAllocation] {
         categoryCalculator.calculateCategoryAllocations(request: request)
     }
 
     private func accumulateCategory(
         allocations: [CategoryAllocation],
-        into categoryAccumulator: inout [UUID: CategoryAllocationAccumulator]
+        into categoryAccumulator: inout [UUID: CategoryAllocationAccumulator],
     ) {
         for allocation in allocations {
             if var accumulator = categoryAccumulator[allocation.categoryId] {
@@ -105,7 +105,7 @@ internal struct AnnualBudgetAllocationEngine: Sendable {
                     actualAmount: allocation.actualAmount,
                     excessAmount: allocation.excessAmount,
                     allocatableAmount: allocation.allocatableAmount,
-                    remainingAfterAllocation: allocation.remainingAfterAllocation
+                    remainingAfterAllocation: allocation.remainingAfterAllocation,
                 )
             }
         }

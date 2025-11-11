@@ -27,12 +27,12 @@ internal struct SpecialPaymentListPresenter {
         occurrences: [SpecialPaymentOccurrence],
         balances: [UUID: SpecialPaymentSavingBalance],
         filter: SpecialPaymentListFilter,
-        now: Date
+        now: Date,
     ) -> [SpecialPaymentListEntry] {
         let entries = occurrences.compactMap { occurrence -> SpecialPaymentListEntry? in
             guard matches(
                 occurrence: occurrence,
-                filter: filter
+                filter: filter,
             ) else {
                 return nil
             }
@@ -40,7 +40,7 @@ internal struct SpecialPaymentListPresenter {
             return entry(
                 occurrence: occurrence,
                 balance: balance,
-                now: now
+                now: now,
             )
         }
 
@@ -49,7 +49,7 @@ internal struct SpecialPaymentListPresenter {
 
     private func matches(
         occurrence: SpecialPaymentOccurrence,
-        filter: SpecialPaymentListFilter
+        filter: SpecialPaymentListFilter,
     ) -> Bool {
         guard filter.dateRange.contains(occurrence.scheduledDate) else {
             return false
@@ -64,28 +64,28 @@ internal struct SpecialPaymentListPresenter {
 
     private func sortEntries(
         _ entries: [SpecialPaymentListEntry],
-        order: SpecialPaymentListSortOrder
+        order: SpecialPaymentListSortOrder,
     ) -> [SpecialPaymentListEntry] {
         switch order {
         case .dateAscending:
-            return entries.sorted { $0.scheduledDate < $1.scheduledDate }
+            entries.sorted { $0.scheduledDate < $1.scheduledDate }
         case .dateDescending:
-            return entries.sorted { $0.scheduledDate > $1.scheduledDate }
+            entries.sorted { $0.scheduledDate > $1.scheduledDate }
         case .nameAscending:
-            return entries.sorted { $0.name < $1.name }
+            entries.sorted { $0.name < $1.name }
         case .nameDescending:
-            return entries.sorted { $0.name > $1.name }
+            entries.sorted { $0.name > $1.name }
         case .amountAscending:
-            return entries.sorted { $0.expectedAmount < $1.expectedAmount }
+            entries.sorted { $0.expectedAmount < $1.expectedAmount }
         case .amountDescending:
-            return entries.sorted { $0.expectedAmount > $1.expectedAmount }
+            entries.sorted { $0.expectedAmount > $1.expectedAmount }
         }
     }
 
     internal func entry(
         occurrence: SpecialPaymentOccurrence,
         balance: SpecialPaymentSavingBalance?,
-        now: Date
+        now: Date,
     ) -> SpecialPaymentListEntry {
         let definition = occurrence.definition
         let savingsBalance = balance?.balance ?? 0
@@ -102,7 +102,7 @@ internal struct SpecialPaymentListPresenter {
         let daysUntilDue = calendar.dateComponents(
             [.day],
             from: now,
-            to: occurrence.scheduledDate
+            to: occurrence.scheduledDate,
         ).day ?? 0
 
         let hasDiscrepancy: Bool = if let actualAmount = occurrence.actualAmount {
@@ -125,7 +125,7 @@ internal struct SpecialPaymentListPresenter {
             savingsProgress: savingsProgress,
             daysUntilDue: daysUntilDue,
             transactionId: occurrence.transaction?.id,
-            hasDiscrepancy: hasDiscrepancy
+            hasDiscrepancy: hasDiscrepancy,
         )
     }
 }

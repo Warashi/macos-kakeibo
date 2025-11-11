@@ -9,9 +9,9 @@ internal struct SpecialPaymentBalanceCacheTests {
     private func makeDefinition() -> SpecialPaymentDefinition {
         SpecialPaymentDefinition(
             name: "自動車税",
-            amount: 60_000,
+            amount: 60000,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: Date.from(year: 2025, month: 5) ?? Date()
+            firstOccurrenceDate: Date.from(year: 2025, month: 5) ?? Date(),
         )
     }
 
@@ -25,7 +25,7 @@ internal struct SpecialPaymentBalanceCacheTests {
             totalSavedAmount: 0,
             totalPaidAmount: 0,
             lastUpdatedYear: 2025,
-            lastUpdatedMonth: 1
+            lastUpdatedMonth: 1,
         )
         context.insert(definition)
         context.insert(balance)
@@ -43,8 +43,8 @@ internal struct SpecialPaymentBalanceCacheTests {
                 month: 6,
                 startYear: 2025,
                 startMonth: 1,
-                context: context
-            )
+                context: context,
+            ),
         )
         service.recalculateBalance(
             params: .init(
@@ -54,8 +54,8 @@ internal struct SpecialPaymentBalanceCacheTests {
                 month: 6,
                 startYear: 2025,
                 startMonth: 1,
-                context: context
-            )
+                context: context,
+            ),
         )
 
         metrics = service.cacheMetrics()
@@ -73,7 +73,7 @@ internal struct SpecialPaymentBalanceCacheTests {
             totalSavedAmount: 0,
             totalPaidAmount: 0,
             lastUpdatedYear: 2025,
-            lastUpdatedMonth: 1
+            lastUpdatedMonth: 1,
         )
         context.insert(definition)
         context.insert(balance)
@@ -91,8 +91,8 @@ internal struct SpecialPaymentBalanceCacheTests {
                 month: 6,
                 startYear: 2025,
                 startMonth: 1,
-                context: context
-            )
+                context: context,
+            ),
         )
         service.recalculateBalance(
             params: .init(
@@ -102,8 +102,8 @@ internal struct SpecialPaymentBalanceCacheTests {
                 month: 6,
                 startYear: 2025,
                 startMonth: 1,
-                context: context
-            )
+                context: context,
+            ),
         )
 
         service.recordMonthlySavings(
@@ -112,8 +112,8 @@ internal struct SpecialPaymentBalanceCacheTests {
                 balance: balance,
                 year: 2025,
                 month: 7,
-                context: context
-            )
+                context: context,
+            ),
         )
 
         service.recalculateBalance(
@@ -124,8 +124,8 @@ internal struct SpecialPaymentBalanceCacheTests {
                 month: 6,
                 startYear: 2025,
                 startMonth: 1,
-                context: context
-            )
+                context: context,
+            ),
         )
 
         metrics = service.cacheMetrics()

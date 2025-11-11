@@ -5,21 +5,21 @@ internal protocol SpecialPaymentOccurrencesService {
     func synchronizeOccurrences(
         for definition: SpecialPaymentDefinition,
         horizonMonths: Int,
-        referenceDate: Date?
+        referenceDate: Date?,
     ) throws -> SpecialPaymentSynchronizationSummary
 
     @discardableResult
     func markOccurrenceCompleted(
         _ occurrence: SpecialPaymentOccurrence,
         input: OccurrenceCompletionInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary
 
     @discardableResult
     func updateOccurrence(
         _ occurrence: SpecialPaymentOccurrence,
         input: OccurrenceUpdateInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary?
 }
 
@@ -33,7 +33,7 @@ internal final class DefaultSpecialPaymentOccurrencesService: SpecialPaymentOccu
     internal func synchronizeOccurrences(
         for definition: SpecialPaymentDefinition,
         horizonMonths: Int,
-        referenceDate: Date?
+        referenceDate: Date?,
     ) throws -> SpecialPaymentSynchronizationSummary {
         guard definition.recurrenceIntervalMonths > 0 else {
             throw SpecialPaymentDomainError.invalidRecurrence
@@ -46,31 +46,31 @@ internal final class DefaultSpecialPaymentOccurrencesService: SpecialPaymentOccu
         return try repository.synchronize(
             definition: definition,
             horizonMonths: horizonMonths,
-            referenceDate: referenceDate
+            referenceDate: referenceDate,
         )
     }
 
     internal func markOccurrenceCompleted(
         _ occurrence: SpecialPaymentOccurrence,
         input: OccurrenceCompletionInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary {
         try repository.markOccurrenceCompleted(
             occurrence,
             input: input,
-            horizonMonths: horizonMonths
+            horizonMonths: horizonMonths,
         )
     }
 
     internal func updateOccurrence(
         _ occurrence: SpecialPaymentOccurrence,
         input: OccurrenceUpdateInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary? {
         try repository.updateOccurrence(
             occurrence,
             input: input,
-            horizonMonths: horizonMonths
+            horizonMonths: horizonMonths,
         )
     }
 }

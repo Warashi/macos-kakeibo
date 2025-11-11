@@ -27,7 +27,7 @@ internal struct SpecialPaymentScheduleService {
     internal init(
         calendar: Calendar = Calendar(identifier: .gregorian),
         businessDayService: BusinessDayService? = nil,
-        holidayProvider: HolidayProvider? = nil
+        holidayProvider: HolidayProvider? = nil,
     ) {
         self.calendar = calendar
         if let businessDayService {
@@ -36,7 +36,7 @@ internal struct SpecialPaymentScheduleService {
             self.businessDayService = BusinessDayService(
                 calendar: calendar,
                 holidays: [],
-                holidayProvider: holidayProvider
+                holidayProvider: holidayProvider,
             )
         }
     }
@@ -74,14 +74,14 @@ internal struct SpecialPaymentScheduleService {
     internal func synchronizationPlan(
         for definition: SpecialPaymentDefinition,
         referenceDate: Date,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) -> SynchronizationResult {
         let seedDate = nextSeedDate(for: definition)
         let targets = scheduleTargets(
             for: definition,
             seedDate: seedDate,
             referenceDate: referenceDate,
-            horizonMonths: horizonMonths
+            horizonMonths: horizonMonths,
         )
 
         let locked = definition.occurrences.filter(\.isSchedulingLocked)
@@ -93,7 +93,7 @@ internal struct SpecialPaymentScheduleService {
                 removed: [],
                 locked: locked,
                 occurrences: definition.occurrences,
-                referenceDate: referenceDate
+                referenceDate: referenceDate,
             )
         }
 
@@ -104,14 +104,14 @@ internal struct SpecialPaymentScheduleService {
 
         for target in targets {
             if let existingIndex = editableOccurrences.firstIndex(
-                where: { isSameDay($0.scheduledDate, target.scheduledDate) }
+                where: { isSameDay($0.scheduledDate, target.scheduledDate) },
             ) {
                 let occurrence = editableOccurrences.remove(at: existingIndex)
                 let changed = apply(
                     target: target,
                     to: occurrence,
                     referenceDate: referenceDate,
-                    leadTimeMonths: definition.leadTimeMonths
+                    leadTimeMonths: definition.leadTimeMonths,
                 )
                 if changed {
                     updated.append(occurrence)
@@ -125,8 +125,8 @@ internal struct SpecialPaymentScheduleService {
                     status: defaultStatus(
                         for: target.scheduledDate,
                         referenceDate: referenceDate,
-                        leadTimeMonths: definition.leadTimeMonths
-                    )
+                        leadTimeMonths: definition.leadTimeMonths,
+                    ),
                 )
                 occurrence.updatedAt = referenceDate
                 created.append(occurrence)
@@ -142,7 +142,7 @@ internal struct SpecialPaymentScheduleService {
             removed: editableOccurrences,
             locked: locked,
             occurrences: occurrences,
-            referenceDate: referenceDate
+            referenceDate: referenceDate,
         )
     }
 
@@ -298,7 +298,7 @@ internal struct SpecialPaymentScheduleService {
         return calendar.date(
             byAdding: .month,
             value: definition.recurrenceIntervalMonths,
-            to: latestCompleted
+            to: latestCompleted,
         ) ?? definition.firstOccurrenceDate
     }
 
@@ -307,7 +307,7 @@ internal struct SpecialPaymentScheduleService {
         target: ScheduleTarget,
         to occurrence: SpecialPaymentOccurrence,
         referenceDate: Date,
-        leadTimeMonths: Int
+        leadTimeMonths: Int,
     ) -> Bool {
         var didMutate = false
 
@@ -324,7 +324,7 @@ internal struct SpecialPaymentScheduleService {
         let statusChanged = updateStatusIfNeeded(
             for: occurrence,
             referenceDate: referenceDate,
-            leadTimeMonths: leadTimeMonths
+            leadTimeMonths: leadTimeMonths,
         )
         if statusChanged {
             didMutate = true
@@ -337,7 +337,7 @@ internal struct SpecialPaymentScheduleService {
     private func updateStatusIfNeeded(
         for occurrence: SpecialPaymentOccurrence,
         referenceDate: Date,
-        leadTimeMonths: Int
+        leadTimeMonths: Int,
     ) -> Bool {
         guard !occurrence.isSchedulingLocked else {
             return false
@@ -346,7 +346,7 @@ internal struct SpecialPaymentScheduleService {
         let status = defaultStatus(
             for: occurrence.scheduledDate,
             referenceDate: referenceDate,
-            leadTimeMonths: leadTimeMonths
+            leadTimeMonths: leadTimeMonths,
         )
 
         if occurrence.status != status {

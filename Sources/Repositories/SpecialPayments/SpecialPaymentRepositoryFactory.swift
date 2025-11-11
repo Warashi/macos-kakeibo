@@ -7,18 +7,18 @@ internal enum SpecialPaymentRepositoryFactory {
         calendar: Calendar = Calendar(identifier: .gregorian),
         businessDayService: BusinessDayService? = nil,
         holidayProvider: HolidayProvider? = nil,
-        currentDateProvider: @escaping () -> Date = { Date() }
+        currentDateProvider: @escaping () -> Date = { Date() },
     ) -> SpecialPaymentRepository {
         let scheduleService = SpecialPaymentScheduleService(
             calendar: calendar,
             businessDayService: businessDayService,
-            holidayProvider: holidayProvider
+            holidayProvider: holidayProvider,
         )
 
         return SwiftDataSpecialPaymentRepository(
             modelContext: modelContext,
             scheduleService: scheduleService,
-            currentDateProvider: currentDateProvider
+            currentDateProvider: currentDateProvider,
         )
     }
 }

@@ -9,9 +9,9 @@ internal struct SpecialPaymentOccurrencesServiceTests {
     internal func synchronizeValidatesRecurrence() throws {
         let definition = SpecialPaymentDefinition(
             name: "不正定義",
-            amount: 10_000,
+            amount: 10000,
             recurrenceIntervalMonths: 0,
-            firstOccurrenceDate: Date()
+            firstOccurrenceDate: Date(),
         )
         let repository = InMemorySpecialPaymentRepository(definitions: [definition])
         let service = DefaultSpecialPaymentOccurrencesService(repository: repository)
@@ -20,7 +20,7 @@ internal struct SpecialPaymentOccurrencesServiceTests {
             try service.synchronizeOccurrences(
                 for: definition,
                 horizonMonths: 12,
-                referenceDate: nil
+                referenceDate: nil,
             )
         }
     }
@@ -33,18 +33,18 @@ internal struct SpecialPaymentOccurrencesServiceTests {
                 name: "引越し費用",
                 amount: 200_000,
                 recurrenceIntervalMonths: 12,
-                firstOccurrenceDate: referenceDate
+                firstOccurrenceDate: referenceDate,
             ),
             scheduledDate: referenceDate,
             expectedAmount: 200_000,
-            status: .saving
+            status: .saving,
         )
         let definition = occurrence.definition
         definition.occurrences = [occurrence]
 
         let repository = InMemorySpecialPaymentRepository(
             definitions: [definition],
-            currentDateProvider: { referenceDate }
+            currentDateProvider: { referenceDate },
         )
         let service = DefaultSpecialPaymentOccurrencesService(repository: repository)
 
@@ -53,9 +53,9 @@ internal struct SpecialPaymentOccurrencesServiceTests {
             input: OccurrenceCompletionInput(
                 actualDate: referenceDate,
                 actualAmount: 210_000,
-                transaction: nil
+                transaction: nil,
             ),
-            horizonMonths: 12
+            horizonMonths: 12,
         )
 
         #expect(result.createdCount >= 0)
@@ -71,18 +71,18 @@ internal struct SpecialPaymentOccurrencesServiceTests {
                 name: "車検",
                 amount: 110_000,
                 recurrenceIntervalMonths: 24,
-                firstOccurrenceDate: referenceDate
+                firstOccurrenceDate: referenceDate,
             ),
             scheduledDate: referenceDate,
             expectedAmount: 110_000,
-            status: .planned
+            status: .planned,
         )
         let definition = occurrence.definition
         definition.occurrences = [occurrence]
 
         let repository = InMemorySpecialPaymentRepository(
             definitions: [definition],
-            currentDateProvider: { referenceDate }
+            currentDateProvider: { referenceDate },
         )
         let service = DefaultSpecialPaymentOccurrencesService(repository: repository)
 
@@ -92,9 +92,9 @@ internal struct SpecialPaymentOccurrencesServiceTests {
                 status: .planned,
                 actualDate: nil,
                 actualAmount: nil,
-                transaction: nil
+                transaction: nil,
             ),
-            horizonMonths: 6
+            horizonMonths: 6,
         )
 
         #expect(summary == nil)

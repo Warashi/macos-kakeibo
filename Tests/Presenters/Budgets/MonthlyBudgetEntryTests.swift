@@ -15,7 +15,7 @@ internal struct MonthlyBudgetEntryTests {
             amount: 80000,
             category: child,
             year: 2025,
-            month: 1
+            month: 1,
         )
 
         let entry = MonthlyBudgetEntry(
@@ -26,8 +26,8 @@ internal struct MonthlyBudgetEntryTests {
                 actualAmount: 0,
                 remainingAmount: 80000,
                 usageRate: 0,
-                isOverBudget: false
-            )
+                isOverBudget: false,
+            ),
         )
 
         let key = entry.displayOrderKey
@@ -40,21 +40,21 @@ internal struct MonthlyBudgetEntryTests {
     @Test("全体予算はisOverallBudgetがtrueになる")
     internal func overallBudget_flagsCorrectly() throws {
         let budget = Budget(
-            amount: 100000,
+            amount: 100_000,
             year: 2025,
-            month: 5
+            month: 5,
         )
 
         let entry = MonthlyBudgetEntry(
             budget: budget,
             title: "全体予算",
             calculation: BudgetCalculation(
-                budgetAmount: 100000,
+                budgetAmount: 100_000,
                 actualAmount: 20000,
                 remainingAmount: 80000,
                 usageRate: 0.2,
-                isOverBudget: false
-            )
+                isOverBudget: false,
+            ),
         )
 
         #expect(entry.isOverallBudget)

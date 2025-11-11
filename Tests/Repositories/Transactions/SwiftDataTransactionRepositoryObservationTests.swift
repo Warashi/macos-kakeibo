@@ -1,7 +1,7 @@
 import Foundation
+@testable import Kakeibo
 import SwiftData
 import Testing
-@testable import Kakeibo
 
 @Suite("SwiftDataTransactionRepositoryObservation", .serialized)
 @MainActor
@@ -18,7 +18,7 @@ internal struct TransactionRepositoryObservationTests {
             majorCategoryId: nil,
             minorCategoryId: nil,
             searchText: "",
-            sortOption: .dateDescending
+            sortOption: .dateDescending,
         )
 
         var snapshots: [[Transaction]] = []

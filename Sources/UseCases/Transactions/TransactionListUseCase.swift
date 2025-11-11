@@ -32,7 +32,7 @@ internal protocol TransactionListUseCaseProtocol {
     @MainActor
     func observeTransactions(
         filter: TransactionListFilter,
-        onChange: @escaping @MainActor ([Transaction]) -> Void
+        onChange: @escaping @MainActor ([Transaction]) -> Void,
     ) throws -> ObservationToken
 }
 
@@ -58,7 +58,7 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
     @MainActor
     internal func observeTransactions(
         filter: TransactionListFilter,
-        onChange: @escaping @MainActor ([Transaction]) -> Void
+        onChange: @escaping @MainActor ([Transaction]) -> Void,
     ) throws -> ObservationToken {
         let token = try repository.observeTransactions(query: filter.asQuery) { transactions in
             let filtered = Self.filterTransactions(transactions, filter: filter)
@@ -78,25 +78,25 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
 private extension DefaultTransactionListUseCase {
     static func filterTransactions(
         _ transactions: [Transaction],
-        filter: TransactionListFilter
+        filter: TransactionListFilter,
     ) -> [Transaction] {
         let keyword = filter.searchText.comparisonValue
         return Self.sort(
             transactions: transactions.filter { transaction in
                 Self.matchesFilter(transaction: transaction, filter: filter, keyword: keyword)
             },
-            option: filter.sortOption
+            option: filter.sortOption,
         )
     }
 
     static func matchesFilter(
         transaction: Transaction,
         filter: TransactionListFilter,
-        keyword: String?
+        keyword: String?,
     ) -> Bool {
         guard Self.matchesCalculationTarget(
             transaction: transaction,
-            includeOnly: filter.includeOnlyCalculationTarget
+            includeOnly: filter.includeOnlyCalculationTarget,
         ) else {
             return false
         }
@@ -115,7 +115,7 @@ private extension DefaultTransactionListUseCase {
 
         guard filter.categoryFilter.matches(
             majorCategory: transaction.majorCategory,
-            minorCategory: transaction.minorCategory
+            minorCategory: transaction.minorCategory,
         ) else {
             return false
         }

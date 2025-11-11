@@ -27,7 +27,7 @@ internal struct AnnualAllocationDraft {
     internal init(
         categoryId: UUID,
         amount: Decimal,
-        policyOverride: AnnualBudgetPolicy? = nil
+        policyOverride: AnnualBudgetPolicy? = nil,
     ) {
         self.categoryId = categoryId
         self.amount = amount

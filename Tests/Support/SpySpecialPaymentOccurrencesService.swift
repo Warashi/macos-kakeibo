@@ -1,5 +1,5 @@
-@testable import Kakeibo
 import Foundation
+@testable import Kakeibo
 
 internal final class SpySpecialPaymentOccurrencesService: SpecialPaymentOccurrencesService {
     internal struct SynchronizeCall {
@@ -34,19 +34,19 @@ internal final class SpySpecialPaymentOccurrencesService: SpecialPaymentOccurren
     internal func synchronizeOccurrences(
         for definition: SpecialPaymentDefinition,
         horizonMonths: Int,
-        referenceDate: Date?
+        referenceDate: Date?,
     ) throws -> SpecialPaymentSynchronizationSummary {
         synchronizeCalls.append(
             SynchronizeCall(
                 definitionId: definition.id,
                 horizonMonths: horizonMonths,
-                referenceDate: referenceDate
-            )
+                referenceDate: referenceDate,
+            ),
         )
         return try wrapped.synchronizeOccurrences(
             for: definition,
             horizonMonths: horizonMonths,
-            referenceDate: referenceDate
+            referenceDate: referenceDate,
         )
     }
 
@@ -54,19 +54,19 @@ internal final class SpySpecialPaymentOccurrencesService: SpecialPaymentOccurren
     internal func markOccurrenceCompleted(
         _ occurrence: SpecialPaymentOccurrence,
         input: OccurrenceCompletionInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary {
         markCompletionCalls.append(
             MarkCompletionCall(
                 occurrenceId: occurrence.id,
                 input: input,
-                horizonMonths: horizonMonths
-            )
+                horizonMonths: horizonMonths,
+            ),
         )
         return try wrapped.markOccurrenceCompleted(
             occurrence,
             input: input,
-            horizonMonths: horizonMonths
+            horizonMonths: horizonMonths,
         )
     }
 
@@ -74,19 +74,19 @@ internal final class SpySpecialPaymentOccurrencesService: SpecialPaymentOccurren
     internal func updateOccurrence(
         _ occurrence: SpecialPaymentOccurrence,
         input: OccurrenceUpdateInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary? {
         updateCalls.append(
             UpdateCall(
                 occurrenceId: occurrence.id,
                 input: input,
-                horizonMonths: horizonMonths
-            )
+                horizonMonths: horizonMonths,
+            ),
         )
         return try wrapped.updateOccurrence(
             occurrence,
             input: input,
-            horizonMonths: horizonMonths
+            horizonMonths: horizonMonths,
         )
     }
 }

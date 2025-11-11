@@ -6,11 +6,11 @@ internal enum ModelFetchFactory {
     internal static func make<T: PersistentModel>(
         predicate: Predicate<T>? = nil,
         sortBy: [SortDescriptor<T>] = [],
-        fetchLimit: Int? = nil
+        fetchLimit: Int? = nil,
     ) -> ModelFetchRequest<T> {
         var descriptor = ModelFetchRequest<T>(
             predicate: predicate,
-            sortBy: sortBy
+            sortBy: sortBy,
         )
         if let fetchLimit {
             descriptor.fetchLimit = fetchLimit

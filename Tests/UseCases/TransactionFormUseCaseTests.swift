@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import Kakeibo
+import Testing
 
 @Suite(.serialized)
 internal struct TransactionFormUseCaseTests {
@@ -16,8 +16,8 @@ internal struct TransactionFormUseCaseTests {
 
         try useCase.save(
             state: state,
-            editingTransaction: Optional<Transaction>.none,
-            referenceData: referenceData()
+            editingTransaction: Transaction?.none,
+            referenceData: referenceData(),
         )
 
         #expect(repository.transactions.count == 1)
@@ -41,11 +41,11 @@ internal struct TransactionFormUseCaseTests {
         try useCase.save(
             state: state,
             editingTransaction: transaction,
-            referenceData: referenceData()
+            referenceData: referenceData(),
         )
 
         #expect(transaction.title == "会食")
-        #expect(transaction.amount == 12_000)
+        #expect(transaction.amount == 12000)
         #expect(transaction.isIncludedInCalculation == false)
         #expect(transaction.isTransfer == true)
     }
@@ -60,8 +60,8 @@ internal struct TransactionFormUseCaseTests {
         #expect(throws: TransactionFormError.validationFailed(["内容を入力してください", "金額を入力してください"])) {
             try useCase.save(
                 state: state,
-                editingTransaction: Optional<Transaction>.none,
-                referenceData: referenceData()
+                editingTransaction: Transaction?.none,
+                referenceData: referenceData(),
             )
         }
     }
@@ -89,7 +89,7 @@ private extension TransactionFormUseCaseTests {
         let minor = Category(name: "外食", parent: major, displayOrder: 1)
         return TransactionReferenceData(
             institutions: [institution],
-            categories: [major, minor]
+            categories: [major, minor],
         )
     }
 }

@@ -38,7 +38,7 @@ internal final class SpecialPaymentListStore {
     internal init(
         repository: SpecialPaymentRepository,
         presenter: SpecialPaymentListPresenter = SpecialPaymentListPresenter(),
-        currentDateProvider: @escaping () -> Date = { Date() }
+        currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         self.repository = repository
         self.presenter = presenter
@@ -47,7 +47,7 @@ internal final class SpecialPaymentListStore {
         let now = currentDateProvider()
         self.dateRange = DateRange.currentMonthThroughFutureMonths(
             referenceDate: now,
-            monthsAhead: 6
+            monthsAhead: 6,
         )
     }
 
@@ -56,20 +56,20 @@ internal final class SpecialPaymentListStore {
         calendar: Calendar = Calendar(identifier: .gregorian),
         businessDayService: BusinessDayService? = nil,
         holidayProvider: HolidayProvider? = nil,
-        currentDateProvider: @escaping () -> Date = { Date() }
+        currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         let repository = SpecialPaymentRepositoryFactory.make(
             modelContext: modelContext,
             calendar: calendar,
             businessDayService: businessDayService,
             holidayProvider: holidayProvider,
-            currentDateProvider: currentDateProvider
+            currentDateProvider: currentDateProvider,
         )
         let presenter = SpecialPaymentListPresenter(calendar: calendar)
         self.init(
             repository: repository,
             presenter: presenter,
-            currentDateProvider: currentDateProvider
+            currentDateProvider: currentDateProvider,
         )
     }
 
@@ -86,7 +86,7 @@ internal final class SpecialPaymentListStore {
             dateRange: dateRange,
             searchText: SearchText(searchText),
             categoryFilter: categoryFilter.selection,
-            sortOrder: sortOrder
+            sortOrder: sortOrder,
         )
         updateCategoryOptionsIfNeeded(from: occurrences)
 
@@ -94,7 +94,7 @@ internal final class SpecialPaymentListStore {
             occurrences: occurrences,
             balances: balances,
             filter: filter,
-            now: now
+            now: now,
         )
     }
 
@@ -109,7 +109,7 @@ internal final class SpecialPaymentListStore {
         let now = currentDateProvider()
         dateRange = DateRange.currentMonthThroughFutureMonths(
             referenceDate: now,
-            monthsAhead: 6
+            monthsAhead: 6,
         )
     }
 
@@ -123,19 +123,19 @@ internal final class SpecialPaymentListStore {
     private func fetchOccurrences() -> [SpecialPaymentOccurrence] {
         let range = SpecialPaymentOccurrenceRange(
             startDate: dateRange.startDate,
-            endDate: dateRange.endDate
+            endDate: dateRange.endDate,
         )
         let statusFilter = selectedStatus.map { Set([$0]) }
         let query = SpecialPaymentOccurrenceQuery(
             range: range,
-            statusFilter: statusFilter
+            statusFilter: statusFilter,
         )
 
         return (try? repository.occurrences(query: query)) ?? []
     }
 
     private func balanceLookup(for occurrences: [SpecialPaymentOccurrence]) -> [UUID: SpecialPaymentSavingBalance] {
-        let definitionIds = Set(occurrences.map { $0.definition.id })
+        let definitionIds = Set(occurrences.map(\.definition.id))
         guard !definitionIds.isEmpty else { return [:] }
         let query = SpecialPaymentBalanceQuery(definitionIds: definitionIds)
         let balances = (try? repository.balances(query: query)) ?? []

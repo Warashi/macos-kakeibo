@@ -29,7 +29,7 @@ internal struct MonthNavigatorTests {
         var navigator = MonthNavigator(
             year: 2020,
             month: 5,
-            currentDateProvider: { expectedDate }
+            currentDateProvider: { expectedDate },
         )
 
         navigator.moveToCurrentMonth()
@@ -44,7 +44,7 @@ internal struct MonthNavigatorTests {
         var navigator = MonthNavigator(
             year: 2020,
             month: 5,
-            currentDateProvider: { expectedDate }
+            currentDateProvider: { expectedDate },
         )
 
         navigator.moveToCurrentYear()

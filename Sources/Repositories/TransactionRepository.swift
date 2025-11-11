@@ -21,7 +21,7 @@ internal protocol TransactionRepository {
     @discardableResult
     func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @MainActor ([Transaction]) -> Void
+        onChange: @escaping @MainActor ([Transaction]) -> Void,
     ) throws -> ObservationToken
     func insert(_ transaction: Transaction)
     func delete(_ transaction: Transaction)

@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import Kakeibo
+import Testing
 
 @Suite(.serialized)
 internal struct TransactionListUseCaseTests {
@@ -12,7 +12,7 @@ internal struct TransactionListUseCaseTests {
             transactions: [
                 Transaction(date: targetMonth, title: "今月のランチ", amount: -1200),
                 Transaction(date: previousMonth, title: "先月のランチ", amount: -800),
-            ]
+            ],
         )
         let useCase = DefaultTransactionListUseCase(repository: repository)
 
@@ -28,8 +28,8 @@ internal struct TransactionListUseCaseTests {
         let repository = InMemoryTransactionRepository(
             transactions: [
                 Transaction(date: targetMonth, title: "給与", amount: 300_000),
-                Transaction(date: targetMonth, title: "家賃", amount: -80_000),
-            ]
+                Transaction(date: targetMonth, title: "家賃", amount: -80000),
+            ],
         )
         let useCase = DefaultTransactionListUseCase(repository: repository)
 
@@ -49,7 +49,7 @@ internal struct TransactionListUseCaseTests {
             transactions: [
                 Transaction(date: targetMonth, title: "スタバ", amount: -640, memo: "カフェ", isIncludedInCalculation: true),
                 Transaction(date: targetMonth, title: "スーパー", amount: -1200),
-            ]
+            ],
         )
         let useCase = DefaultTransactionListUseCase(repository: repository)
 
@@ -69,7 +69,7 @@ internal struct TransactionListUseCaseTests {
         let minor = Category(name: "外食", parent: major, displayOrder: 1)
         let repository = InMemoryTransactionRepository(
             institutions: [institution],
-            categories: [major, minor]
+            categories: [major, minor],
         )
         let useCase = DefaultTransactionListUseCase(repository: repository)
 
@@ -91,7 +91,7 @@ private extension TransactionListUseCaseTests {
             categoryFilter: .init(majorCategoryId: nil, minorCategoryId: nil),
             includeOnlyCalculationTarget: true,
             excludeTransfers: true,
-            sortOption: .dateDescending
+            sortOption: .dateDescending,
         )
     }
 }

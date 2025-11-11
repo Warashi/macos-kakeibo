@@ -87,43 +87,43 @@ private func createSampleTransactions(category: Kakeibo.Category) -> [Transactio
 private func createTransaction(
     amount: Decimal,
     category: Kakeibo.Category,
-    minorCategory: Kakeibo.Category? = nil
+    minorCategory: Kakeibo.Category? = nil,
 ) -> Transaction {
     createTransaction(
         amount: amount,
         majorCategory: category,
-        minorCategory: minorCategory
+        minorCategory: minorCategory,
     )
 }
 
 private func createTransaction(
     amount: Decimal,
     majorCategory: Kakeibo.Category?,
-    minorCategory: Kakeibo.Category? = nil
+    minorCategory: Kakeibo.Category? = nil,
 ) -> Transaction {
     Transaction(
         date: Date.from(year: 2025, month: 11) ?? Date(),
         title: "テスト取引",
         amount: amount,
         majorCategory: majorCategory,
-        minorCategory: minorCategory
+        minorCategory: minorCategory,
     )
 }
 
 private func makeConfig(
     policy: AnnualBudgetPolicy = .automatic,
-    allocations: [AllocationSeed] = []
+    allocations: [AllocationSeed] = [],
 ) -> AnnualBudgetConfig {
     let config = AnnualBudgetConfig(
         year: 2025,
         totalAmount: 500_000,
-        policy: policy
+        policy: policy,
     )
     config.allocations = allocations.map { seed in
         let allocation = AnnualBudgetAllocation(
             amount: seed.amount,
             category: seed.category,
-            policyOverride: seed.override
+            policyOverride: seed.override,
         )
         allocation.config = config
         return allocation
@@ -302,7 +302,7 @@ internal struct BudgetAllocatorMonthlyTests {
         let budgets: [Budget] = []
         let config = makeConfig(
             allocations: [
-                AllocationSeed(category: category, amount: 90_000, override: .fullCoverage),
+                AllocationSeed(category: category, amount: 90000, override: .fullCoverage),
             ],
         )
 
@@ -376,7 +376,7 @@ internal struct BudgetAllocatorMonthlyTests {
         ]
         let config = makeConfig(
             allocations: [
-                AllocationSeed(category: major, amount: 80_000, override: .fullCoverage),
+                AllocationSeed(category: major, amount: 80000, override: .fullCoverage),
             ],
         )
 
@@ -411,7 +411,7 @@ internal struct BudgetAllocatorMonthlyTests {
         ]
         let config = makeConfig(
             allocations: [
-                AllocationSeed(category: major, amount: 80_000, override: .fullCoverage),
+                AllocationSeed(category: major, amount: 80000, override: .fullCoverage),
             ],
         )
 
@@ -468,5 +468,4 @@ internal struct BudgetAllocatorMonthlyTests {
         // Then
         #expect(result.categoryAllocations.isEmpty)
     }
-
 }

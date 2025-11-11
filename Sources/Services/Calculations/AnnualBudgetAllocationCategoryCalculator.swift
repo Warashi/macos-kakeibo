@@ -11,13 +11,13 @@ internal struct MonthlyCategoryAllocationRequest {
 /// 月次カテゴリ別の充当計算を担当
 internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
     internal func calculateCategoryAllocations(
-        request: MonthlyCategoryAllocationRequest
+        request: MonthlyCategoryAllocationRequest,
     ) -> [CategoryAllocation] {
         let filteredTransactions = filterTransactions(
             transactions: request.params.transactions,
             year: request.year,
             month: request.month,
-            filter: request.params.filter
+            filter: request.params.filter,
         )
 
         let expenseMaps = makeActualExpenseMaps(from: filteredTransactions)
@@ -30,7 +30,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
             overrides: request.policyOverrides,
             defaultPolicy: request.policy,
             allocationAmounts: allocationAmounts,
-            allocatedCategoryIds: Set(allocationAmounts.keys)
+            allocatedCategoryIds: Set(allocationAmounts.keys),
         )
 
         if request.policy == .disabled, policyContext.overrides.isEmpty {
@@ -41,7 +41,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
             actualExpenseMap: actualExpenseMap,
             childExpenseMap: childExpenseMap,
             policyContext: policyContext,
-            childFallbackMap: childFallbackMap
+            childFallbackMap: childFallbackMap,
         )
 
         var allocations: [CategoryAllocation] = []
@@ -51,24 +51,24 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
             contentsOf: calculateAllocationsForMonthlyBudgets(
                 budgets: monthlyBudgets,
                 context: computationContext,
-                processedCategoryIds: &processedCategoryIds
-            )
+                processedCategoryIds: &processedCategoryIds,
+            ),
         )
 
         allocations.append(
             contentsOf: calculateAllocationsForFullCoverage(
                 config: request.params.annualBudgetConfig,
                 context: computationContext,
-                processedCategoryIds: &processedCategoryIds
-            )
+                processedCategoryIds: &processedCategoryIds,
+            ),
         )
 
         allocations.append(
             contentsOf: calculateAllocationsForUnbudgetedCategories(
                 config: request.params.annualBudgetConfig,
                 context: computationContext,
-                processedCategoryIds: &processedCategoryIds
-            )
+                processedCategoryIds: &processedCategoryIds,
+            ),
         )
 
         return allocations
@@ -91,7 +91,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
     private func calculateAllocationsForMonthlyBudgets(
         budgets: [Budget],
         context: AllocationComputationContext,
-        processedCategoryIds: inout Set<UUID>
+        processedCategoryIds: inout Set<UUID>,
     ) -> [CategoryAllocation] {
         var allocations: [CategoryAllocation] = []
 
@@ -107,13 +107,13 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
 
             let actualAmount = calculateActualAmount(
                 for: category,
-                context: context
+                context: context,
             )
 
             let amounts = calculateAllocationAmounts(
                 actualAmount: actualAmount,
                 budgetAmount: budget.amount,
-                policy: effectivePolicy
+                policy: effectivePolicy,
             )
 
             allocations.append(
@@ -125,8 +125,8 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
                     actualAmount: actualAmount,
                     excessAmount: amounts.excess,
                     allocatableAmount: amounts.allocatable,
-                    remainingAfterAllocation: amounts.remainingAfterAllocation
-                )
+                    remainingAfterAllocation: amounts.remainingAfterAllocation,
+                ),
             )
 
             processedCategoryIds.insert(categoryId)
@@ -134,10 +134,11 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
 
         return allocations
     }
+
     private func calculateAllocationsForUnbudgetedCategories(
         config: AnnualBudgetConfig,
         context: AllocationComputationContext,
-        processedCategoryIds: inout Set<UUID>
+        processedCategoryIds: inout Set<UUID>,
     ) -> [CategoryAllocation] {
         var allocations: [CategoryAllocation] = []
 
@@ -151,14 +152,14 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
 
             let actualAmount = calculateActualAmount(
                 for: category,
-                context: context
+                context: context,
             )
             guard actualAmount > 0 else { continue }
 
             let amounts = calculateAllocationAmounts(
                 actualAmount: actualAmount,
                 budgetAmount: 0,
-                policy: effectivePolicy
+                policy: effectivePolicy,
             )
 
             allocations.append(
@@ -170,8 +171,8 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
                     actualAmount: actualAmount,
                     excessAmount: amounts.excess,
                     allocatableAmount: amounts.allocatable,
-                    remainingAfterAllocation: amounts.remainingAfterAllocation
-                )
+                    remainingAfterAllocation: amounts.remainingAfterAllocation,
+                ),
             )
 
             processedCategoryIds.insert(categoryId)
@@ -179,10 +180,11 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
 
         return allocations
     }
+
     private func calculateAllocationsForFullCoverage(
         config: AnnualBudgetConfig,
         context: AllocationComputationContext,
-        processedCategoryIds: inout Set<UUID>
+        processedCategoryIds: inout Set<UUID>,
     ) -> [CategoryAllocation] {
         let fullCoverageAllocations = config.allocations
             .filter { $0.policyOverride == .fullCoverage }
@@ -199,14 +201,14 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
 
             let actualAmount = calculateActualAmount(
                 for: category,
-                context: context
+                context: context,
             )
             guard actualAmount > 0 else { continue }
 
             let amounts = calculateAllocationAmounts(
                 actualAmount: actualAmount,
                 budgetAmount: 0,
-                policy: .fullCoverage
+                policy: .fullCoverage,
             )
 
             allocations.append(
@@ -218,8 +220,8 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
                     actualAmount: actualAmount,
                     excessAmount: amounts.excess,
                     allocatableAmount: amounts.allocatable,
-                    remainingAfterAllocation: amounts.remainingAfterAllocation
-                )
+                    remainingAfterAllocation: amounts.remainingAfterAllocation,
+                ),
             )
 
             processedCategoryIds.insert(categoryId)
@@ -227,9 +229,10 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
 
         return allocations
     }
+
     private func calculateActualAmount(
         for category: Category,
-        context: AllocationComputationContext
+        context: AllocationComputationContext,
     ) -> Decimal {
         let categoryId = category.id
         if category.isMajor {
@@ -263,7 +266,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
     private func calculateAllocationAmounts(
         actualAmount: Decimal,
         budgetAmount: Decimal,
-        policy: AnnualBudgetPolicy
+        policy: AnnualBudgetPolicy,
     ) -> AllocationAmounts {
         switch policy {
         case .automatic:
@@ -271,26 +274,26 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
             return AllocationAmounts(
                 allocatable: excess,
                 excess: excess,
-                remainingAfterAllocation: 0
+                remainingAfterAllocation: 0,
             )
         case .manual:
             let excess = max(0, actualAmount - budgetAmount)
             return AllocationAmounts(
                 allocatable: 0,
                 excess: excess,
-                remainingAfterAllocation: excess
+                remainingAfterAllocation: excess,
             )
         case .disabled:
             return AllocationAmounts(
                 allocatable: 0,
                 excess: 0,
-                remainingAfterAllocation: 0
+                remainingAfterAllocation: 0,
             )
         case .fullCoverage:
             return AllocationAmounts(
                 allocatable: actualAmount,
                 excess: actualAmount,
-                remainingAfterAllocation: 0
+                remainingAfterAllocation: 0,
             )
         }
     }
@@ -313,7 +316,7 @@ private func filterTransactions(
     transactions: [Transaction],
     year: Int,
     month: Int,
-    filter: AggregationFilter
+    filter: AggregationFilter,
 ) -> [Transaction] {
     transactions.filter { transaction in
         guard transaction.date.year == year,
@@ -326,7 +329,7 @@ private func filterTransactions(
 
 private func matchesFilter(
     transaction: Transaction,
-    filter: AggregationFilter
+    filter: AggregationFilter,
 ) -> Bool {
     if filter.includeOnlyCalculationTarget, !transaction.isIncludedInCalculation {
         return false
@@ -373,7 +376,7 @@ private func makeActualExpenseMaps(from transactions: [Transaction]) -> ActualEx
 
     return ActualExpenseMaps(
         categoryExpenses: categoryExpenses,
-        childExpenseByParent: childExpenseByParent
+        childExpenseByParent: childExpenseByParent,
     )
 }
 

@@ -15,38 +15,38 @@ internal struct BudgetCalculationCacheStorageTests {
             filter: filter,
             excludedCategoriesSignature: 0,
             transactionsVersion: 1,
-            budgetsVersion: 1
+            budgetsVersion: 1,
         )
         let calculation = MonthlyBudgetCalculation(
             year: 2025,
             month: 1,
             overallCalculation: BudgetCalculation(
-                budgetAmount: 50_000,
-                actualAmount: 30_000,
-                remainingAmount: 20_000,
+                budgetAmount: 50000,
+                actualAmount: 30000,
+                remainingAmount: 20000,
                 usageRate: 0.6,
-                isOverBudget: false
+                isOverBudget: false,
             ),
             categoryCalculations: [
                 CategoryBudgetCalculation(
                     categoryId: UUID(),
                     categoryName: "食費",
                     calculation: BudgetCalculation(
-                        budgetAmount: 30_000,
-                        actualAmount: 20_000,
-                        remainingAmount: 10_000,
+                        budgetAmount: 30000,
+                        actualAmount: 20000,
+                        remainingAmount: 10000,
                         usageRate: 0.66,
-                        isOverBudget: false
-                    )
+                        isOverBudget: false,
+                    ),
                 ),
-            ]
+            ],
         )
 
         cache.storeMonthlyBudget(calculation, for: key)
 
         let cached = cache.cachedMonthlyBudget(for: key)
         #expect(cached?.year == 2025)
-        #expect(cached?.overallCalculation?.budgetAmount == Decimal(50_000))
+        #expect(cached?.overallCalculation?.budgetAmount == Decimal(50000))
         #expect(cached?.categoryCalculations.count == 1)
     }
 
@@ -60,13 +60,13 @@ internal struct BudgetCalculationCacheStorageTests {
             filter: filter,
             excludedCategoriesSignature: 0,
             transactionsVersion: 1,
-            budgetsVersion: 1
+            budgetsVersion: 1,
         )
         let monthlyValue = MonthlyBudgetCalculation(
             year: 2025,
             month: 2,
             overallCalculation: nil,
-            categoryCalculations: []
+            categoryCalculations: [],
         )
         cache.storeMonthlyBudget(monthlyValue, for: monthlyKey)
 
@@ -74,17 +74,17 @@ internal struct BudgetCalculationCacheStorageTests {
             year: 2025,
             month: 2,
             definitionsVersion: 1,
-            balancesVersion: 1
+            balancesVersion: 1,
         )
         let savingsValue = [
             SpecialPaymentSavingsCalculation(
                 definitionId: UUID(),
                 name: "車検",
-                monthlySaving: 10_000,
+                monthlySaving: 10000,
                 totalSaved: 100_000,
                 totalPaid: 0,
                 balance: 100_000,
-                nextOccurrence: nil
+                nextOccurrence: nil,
             ),
         ]
         cache.storeSpecialPaymentSavings(savingsValue, for: specialKey)
@@ -92,9 +92,9 @@ internal struct BudgetCalculationCacheStorageTests {
         let categoryKey = SavingsAllocationCacheKey(
             year: 2025,
             month: 2,
-            definitionsVersion: 1
+            definitionsVersion: 1,
         )
-        let categoryValue: [UUID: Decimal] = [UUID(): Decimal(5_000)]
+        let categoryValue: [UUID: Decimal] = [UUID(): Decimal(5000)]
         cache.storeCategorySavingsAllocation(categoryValue, for: categoryKey)
 
         cache.invalidate(targets: [.monthlyBudget, .categorySavings])
@@ -114,7 +114,7 @@ internal struct BudgetCalculationCacheStorageTests {
             filter: filter,
             excludedCategoriesSignature: 0,
             transactionsVersion: 1,
-            budgetsVersion: 1
+            budgetsVersion: 1,
         )
 
         _ = cache.cachedMonthlyBudget(for: monthlyKey)
@@ -123,19 +123,19 @@ internal struct BudgetCalculationCacheStorageTests {
                 year: 2025,
                 month: 3,
                 overallCalculation: nil,
-                categoryCalculations: []
+                categoryCalculations: [],
             ),
-            for: monthlyKey
+            for: monthlyKey,
         )
         _ = cache.cachedMonthlyBudget(for: monthlyKey)
 
         let categoryKey = SavingsAllocationCacheKey(
             year: 2025,
             month: 3,
-            definitionsVersion: 1
+            definitionsVersion: 1,
         )
         _ = cache.cachedCategorySavingsAllocation(for: categoryKey)
-        cache.storeCategorySavingsAllocation([UUID(): Decimal(3_000)], for: categoryKey)
+        cache.storeCategorySavingsAllocation([UUID(): Decimal(3000)], for: categoryKey)
         _ = cache.cachedCategorySavingsAllocation(for: categoryKey)
 
         let metrics = cache.metricsSnapshot

@@ -78,7 +78,7 @@ extension CSVImporter {
         let descriptor = CategoryQueries.firstMatching(
             predicate: #Predicate { category in
                 category.name == name && category.parent == nil
-            }
+            },
         )
 
         if let existing = try modelContext.fetch(descriptor).first {
@@ -112,7 +112,7 @@ extension CSVImporter {
         let descriptor = ModelFetchFactory.make(
             predicate: #Predicate { (category: Category) in
                 category.name == name
-            }
+            },
         )
 
         let existing = try modelContext
@@ -141,7 +141,7 @@ extension CSVImporter {
     /// インポート識別子でトランザクションを検索
     internal func fetchTransaction(importIdentifier: String) throws -> Transaction? {
         try modelContext.fetch(
-            TransactionQueries.byImportIdentifier(importIdentifier)
+            TransactionQueries.byImportIdentifier(importIdentifier),
         )
         .first
     }
