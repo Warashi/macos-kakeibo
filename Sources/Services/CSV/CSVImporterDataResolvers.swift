@@ -5,9 +5,11 @@ import SwiftData
 
 extension CSVImporter {
     /// 金融機関を解決（存在すればキャッシュから、なければデータベースから、最後に新規作成）
+    @MainActor
     internal func resolveFinancialInstitution(
         named name: String?,
         cache: inout [String: FinancialInstitution],
+        modelContext: ModelContext,
     ) throws -> (FinancialInstitution?, Bool) {
         guard let name else {
             return (nil, false)
@@ -32,39 +34,43 @@ extension CSVImporter {
     }
 
     /// カテゴリを解決（大項目と中項目）
+    @MainActor
     internal func resolveCategories(
-        majorName: String?,
-        minorName: String?,
-        majorCache: inout [String: Category],
-        minorCache: inout [String: Category],
+        context: inout CategoryResolutionContext,
     ) throws -> CategoryResolutionResult {
         var createdCount = 0
 
         let majorCategory = try resolveMajorCategory(
-            name: majorName,
-            cache: &majorCache,
+            name: context.majorName,
+            cache: &context.majorCache,
             createdCount: &createdCount,
+            modelContext: context.modelContext,
         )
 
-        let minorCategory = try resolveMinorCategory(
-            name: minorName,
+        var minorContext = MinorCategoryResolutionContext(
+            name: context.minorName,
             majorCategory: majorCategory,
-            cache: &minorCache,
-            createdCount: &createdCount,
+            cache: context.minorCache,
+            createdCount: createdCount,
+            modelContext: context.modelContext,
         )
+        let minorCategory = try resolveMinorCategory(context: &minorContext)
+        context.minorCache = minorContext.cache
 
         return CategoryResolutionResult(
             majorCategory: majorCategory,
             minorCategory: minorCategory,
-            createdCount: createdCount,
+            createdCount: minorContext.createdCount,
         )
     }
 
     /// 大項目カテゴリを解決
+    @MainActor
     internal func resolveMajorCategory(
         name: String?,
         cache: inout [String: Category],
         createdCount: inout Int,
+        modelContext: ModelContext,
     ) throws -> Category? {
         guard let name else {
             return nil
@@ -94,18 +100,16 @@ extension CSVImporter {
     }
 
     /// 中項目カテゴリを解決
+    @MainActor
     internal func resolveMinorCategory(
-        name: String?,
-        majorCategory: Category?,
-        cache: inout [String: Category],
-        createdCount: inout Int,
+        context: inout MinorCategoryResolutionContext,
     ) throws -> Category? {
-        guard let name, let majorCategory else {
+        guard let name = context.name, let majorCategory = context.majorCategory else {
             return nil
         }
 
         let key = "\(majorCategory.id.uuidString.lowercased())::\(name.lowercased())"
-        if let cached = cache[key] {
+        if let cached = context.cache[key] {
             return cached
         }
 
@@ -115,31 +119,33 @@ extension CSVImporter {
             },
         )
 
-        let existing = try modelContext
+        let existing = try context.modelContext
             .fetch(descriptor)
             .first { (category: Category) in
                 category.parent?.id == majorCategory.id
             }
 
         if let existing {
-            cache[key] = existing
+            context.cache[key] = existing
             return existing
         }
 
         let newCategory = Category(name: name, parent: majorCategory)
-        modelContext.insert(newCategory)
-        cache[key] = newCategory
-        createdCount += 1
+        context.modelContext.insert(newCategory)
+        context.cache[key] = newCategory
+        context.createdCount += 1
         return newCategory
     }
 
     /// IDでトランザクションを検索
-    internal func fetchTransaction(id: UUID) throws -> Transaction? {
+    @MainActor
+    internal func fetchTransaction(id: UUID, modelContext: ModelContext) throws -> Transaction? {
         try modelContext.fetch(TransactionQueries.byId(id)).first
     }
 
     /// インポート識別子でトランザクションを検索
-    internal func fetchTransaction(importIdentifier: String) throws -> Transaction? {
+    @MainActor
+    internal func fetchTransaction(importIdentifier: String, modelContext: ModelContext) throws -> Transaction? {
         try modelContext.fetch(
             TransactionQueries.byImportIdentifier(importIdentifier),
         )

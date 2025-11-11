@@ -2,8 +2,7 @@ import Foundation
 import SwiftData
 
 /// CSVインポート処理を担当するヘルパー
-@MainActor
-internal final class CSVImporter {
+internal actor CSVImporter {
     internal enum ImportError: Error, LocalizedError {
         case incompleteMapping
         case emptyDocument
@@ -21,12 +20,10 @@ internal final class CSVImporter {
         }
     }
 
-    internal let modelContext: ModelContext
     internal let dateFormatters: [DateFormatter]
     internal let locale: Foundation.Locale
 
-    internal init(modelContext: ModelContext) {
-        self.modelContext = modelContext
+    internal init() {
         self.dateFormatters = CSVImporter.makeDateFormatters()
         self.locale = AppConstants.Locale.default
     }
@@ -58,7 +55,8 @@ internal final class CSVImporter {
     // MARK: - Import
 
     /// プレビュー済みデータをSwiftDataに取り込む
-    internal func performImport(preview: CSVImportPreview) throws -> CSVImportSummary {
+    @MainActor
+    internal func performImport(preview: CSVImportPreview, modelContext: ModelContext) throws -> CSVImportSummary {
         guard !preview.validRecords.isEmpty else {
             throw ImportError.nothingToImport
         }
@@ -70,7 +68,7 @@ internal final class CSVImporter {
         for record in preview.validRecords {
             guard let draft = record.draft else { continue }
 
-            let isNew = try importRecord(draft: draft, state: &state, cache: &cache)
+            let isNew = try importRecord(draft: draft, state: &state, cache: &cache, modelContext: modelContext)
 
             if isNew {
                 state.importedCount += 1
@@ -93,77 +91,78 @@ internal final class CSVImporter {
         )
     }
 
+    @MainActor
     private func importRecord(
         draft: TransactionDraft,
         state: inout ImportState,
         cache: inout EntityCache,
+        modelContext: ModelContext,
     ) throws -> Bool {
         let (institution, institutionCreated) = try resolveFinancialInstitution(
             named: draft.financialInstitutionName,
             cache: &cache.institutions,
+            modelContext: modelContext,
         )
         if institutionCreated {
             state.createdInstitutions += 1
         }
 
-        let categoryResult = try resolveCategories(
+        var categoryContext = CategoryResolutionContext(
             majorName: draft.majorCategoryName,
             minorName: draft.minorCategoryName,
-            majorCache: &cache.majorCategories,
-            minorCache: &cache.minorCategories,
+            majorCache: cache.majorCategories,
+            minorCache: cache.minorCategories,
+            modelContext: modelContext,
         )
+        let categoryResult = try resolveCategories(context: &categoryContext)
+        cache.majorCategories = categoryContext.majorCache
+        cache.minorCategories = categoryContext.minorCache
         state.createdCategories += categoryResult.createdCount
 
-        let (transaction, isNew) = try getOrCreateTransaction(
-            draft: draft,
-            institution: institution,
-            majorCategory: categoryResult.majorCategory,
-            minorCategory: categoryResult.minorCategory,
-        )
-
-        let parameters = TransactionUpdateParameters(
+        let creationParams = TransactionCreationParameters(
             draft: draft,
             identifier: draft.identifier,
             institution: institution,
             majorCategory: categoryResult.majorCategory,
             minorCategory: categoryResult.minorCategory,
         )
-        applyDraft(parameters, to: transaction)
+
+        let (transaction, isNew) = try getOrCreateTransaction(
+            parameters: creationParams,
+            modelContext: modelContext,
+        )
+
+        let updateParams = TransactionUpdateParameters(
+            draft: draft,
+            identifier: draft.identifier,
+            institution: institution,
+            majorCategory: categoryResult.majorCategory,
+            minorCategory: categoryResult.minorCategory,
+        )
+        applyDraft(updateParams, to: transaction)
 
         return isNew
     }
 
+    @MainActor
     private func getOrCreateTransaction(
-        draft: TransactionDraft,
-        institution: FinancialInstitution?,
-        majorCategory: Category?,
-        minorCategory: Category?,
+        parameters: TransactionCreationParameters,
+        modelContext: ModelContext,
     ) throws -> (Transaction, Bool) {
-        if let identifier = draft.identifier {
-            if let uuid = identifier.uuid, let existing = try fetchTransaction(id: uuid) {
+        if let identifier = parameters.identifier {
+            if let uuid = identifier.uuid, let existing = try fetchTransaction(id: uuid, modelContext: modelContext) {
                 return (existing, false)
-            } else if let existing = try fetchTransaction(importIdentifier: identifier.rawValue) {
+            } else if let existing = try fetchTransaction(
+                importIdentifier: identifier.rawValue,
+                modelContext: modelContext,
+            ) {
                 return (existing, false)
             } else {
-                let parameters = TransactionCreationParameters(
-                    draft: draft,
-                    identifier: identifier,
-                    institution: institution,
-                    majorCategory: majorCategory,
-                    minorCategory: minorCategory,
-                )
                 let transaction = createTransaction(parameters)
                 modelContext.insert(transaction)
                 return (transaction, true)
             }
         } else {
-            let parameters = TransactionCreationParameters(
-                draft: draft,
-                identifier: nil,
-                institution: institution,
-                majorCategory: majorCategory,
-                minorCategory: minorCategory,
-            )
             let transaction = createTransaction(parameters)
             modelContext.insert(transaction)
             return (transaction, true)

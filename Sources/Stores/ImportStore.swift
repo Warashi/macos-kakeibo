@@ -33,7 +33,7 @@ internal final class ImportStore {
     internal init(modelContext: ModelContext) {
         self.modelContext = modelContext
         self.parser = CSVParser()
-        self.importer = CSVImporter(modelContext: modelContext)
+        self.importer = CSVImporter()
     }
 
     // MARK: - Actions
@@ -274,7 +274,7 @@ private extension ImportStore {
         defer { isProcessing = false }
 
         do {
-            let preview = try importer.makePreview(
+            let preview = try await importer.makePreview(
                 document: document,
                 mapping: mapping,
                 configuration: configuration,
@@ -305,7 +305,7 @@ private extension ImportStore {
         defer { isProcessing = false }
 
         do {
-            let summary = try importer.performImport(preview: preview)
+            let summary = try await importer.performImport(preview: preview, modelContext: modelContext)
             self.summary = summary
             self.statusMessage = "取り込みが完了しました"
             self.lastUpdatedAt = Date()

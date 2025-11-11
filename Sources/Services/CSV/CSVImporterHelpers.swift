@@ -65,3 +65,23 @@ internal struct TransactionCreationParameters {
     internal let majorCategory: Category?
     internal let minorCategory: Category?
 }
+
+// MARK: - Category Resolution Context
+
+/// カテゴリ解決用コンテキスト
+internal struct CategoryResolutionContext {
+    internal let majorName: String?
+    internal let minorName: String?
+    internal var majorCache: [String: Category]
+    internal var minorCache: [String: Category]
+    internal let modelContext: ModelContext
+}
+
+/// 中項目カテゴリ解決用コンテキスト
+internal struct MinorCategoryResolutionContext {
+    internal let name: String?
+    internal let majorCategory: Category?
+    internal var cache: [String: Category]
+    internal var createdCount: Int
+    internal let modelContext: ModelContext
+}

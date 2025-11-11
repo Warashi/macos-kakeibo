@@ -9,13 +9,13 @@ internal struct CSVImporterTests {
     @Test("マッピング済みCSVからプレビューを生成できる")
     internal func makePreview_success() async throws {
         let context = try makeInMemoryContext()
-        let importer = CSVImporter(modelContext: context)
+        let importer = CSVImporter()
 
         let document = sampleDocument()
         let config = CSVImportConfiguration(hasHeaderRow: true)
         let mapping = sampleMapping()
 
-        let preview = try importer.makePreview(
+        let preview = try await importer.makePreview(
             document: document,
             mapping: mapping,
             configuration: config,
@@ -37,14 +37,14 @@ internal struct CSVImporterTests {
     @Test("必須カラムの割り当てが無い場合はエラー")
     internal func makePreview_requiresMapping() async throws {
         let context = try makeInMemoryContext()
-        let importer = CSVImporter(modelContext: context)
+        let importer = CSVImporter()
 
         let document = sampleDocument()
         var mapping = CSVColumnMapping()
         mapping.assign(.title, to: 1)
 
-        #expect(throws: CSVImporter.ImportError.self) {
-            _ = try importer.makePreview(
+        await #expect(throws: CSVImporter.ImportError.self) {
+            _ = try await importer.makePreview(
                 document: document,
                 mapping: mapping,
                 configuration: CSVImportConfiguration(),
@@ -55,15 +55,15 @@ internal struct CSVImporterTests {
     @Test("プレビュー済みデータを取り込める")
     internal func performImport_createsTransactions() async throws {
         let context = try makeInMemoryContext()
-        let importer = CSVImporter(modelContext: context)
+        let importer = CSVImporter()
 
-        let preview = try importer.makePreview(
+        let preview = try await importer.makePreview(
             document: sampleDocument(),
             mapping: sampleMapping(),
             configuration: CSVImportConfiguration(hasHeaderRow: true),
         )
 
-        let summary = try importer.performImport(preview: preview)
+        let summary = try await importer.performImport(preview: preview, modelContext: context)
         #expect(summary.importedCount == 1)
         #expect(summary.updatedCount == 0)
         #expect(summary.skippedCount == 0)
@@ -80,15 +80,15 @@ internal struct CSVImporterTests {
     @Test("同じIDの行は更新される")
     internal func performImport_updatesExistingTransactions() async throws {
         let context = try makeInMemoryContext()
-        let importer = CSVImporter(modelContext: context)
+        let importer = CSVImporter()
         let config = CSVImportConfiguration(hasHeaderRow: true)
 
-        let preview = try importer.makePreview(
+        let preview = try await importer.makePreview(
             document: sampleDocument(),
             mapping: sampleMapping(),
             configuration: config,
         )
-        _ = try importer.performImport(preview: preview)
+        _ = try await importer.performImport(preview: preview, modelContext: context)
 
         // 2回目: 金額とタイトルを変更したCSVを同じIDで再インポート
         let updatedDocument = CSVDocument(rows: [
@@ -106,12 +106,12 @@ internal struct CSVImporterTests {
                 "0",
             ]),
         ])
-        let secondPreview = try importer.makePreview(
+        let secondPreview = try await importer.makePreview(
             document: updatedDocument,
             mapping: sampleMapping(),
             configuration: config,
         )
-        let summary = try importer.performImport(preview: secondPreview)
+        let summary = try await importer.performImport(preview: secondPreview, modelContext: context)
 
         #expect(summary.importedCount == 0)
         #expect(summary.updatedCount == 1)
