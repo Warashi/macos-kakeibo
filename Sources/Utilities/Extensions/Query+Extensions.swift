@@ -87,4 +87,46 @@ internal extension ModelContext {
             center.removeObserver(observer)
         }
     }
+
+    /// Observes changes and transforms models to Sendable data before invoking the handler off-MainActor.
+    /// - Parameters:
+    ///   - descriptor: Descriptor describing the target model set.
+    ///   - transform: Transformation from models to Sendable data (runs on MainActor).
+    ///   - onChange: Handler invoked with transformed data (can run on any actor).
+    /// - Returns: A token that must be retained while observation is needed.
+    @discardableResult
+    func observe<T: PersistentModel, U: Sendable>(
+        descriptor: ModelFetchRequest<T>,
+        transform: @escaping @MainActor ([T]) -> U,
+        onChange: @escaping @Sendable (U) -> Void,
+    ) -> ObservationToken {
+        let center = NotificationCenter.default
+        let contextBox = ModelContextObservationBox(context: self)
+        let observer = center.addObserver(
+            forName: .NSManagedObjectContextDidSave,
+            object: nil,
+            queue: nil,
+        ) { [descriptor] _ in
+            Task {
+                let transformed: U = await MainActor.run {
+                    guard let context = contextBox.context else {
+                        assertionFailure("ModelContext released during observation")
+                        return transform([])
+                    }
+                    do {
+                        let updated = try context.fetch(descriptor)
+                        return transform(updated)
+                    } catch {
+                        assertionFailure("Failed to fetch observed descriptor: \(error)")
+                        return transform([])
+                    }
+                }
+                onChange(transformed)
+            }
+        }
+
+        return ObservationToken {
+            center.removeObserver(observer)
+        }
+    }
 }
