@@ -5,9 +5,9 @@ internal protocol TransactionFormUseCaseProtocol: AnyObject {
         state: TransactionFormState,
         editingTransaction: Transaction?,
         referenceData: TransactionReferenceData,
-    ) throws
+    ) async throws
 
-    func delete(transaction: Transaction) throws
+    func delete(transaction: Transaction) async throws
 }
 
 internal enum TransactionFormError: Error, Equatable {
@@ -35,7 +35,7 @@ internal final class DefaultTransactionFormUseCase: TransactionFormUseCaseProtoc
         state: TransactionFormState,
         editingTransaction: Transaction?,
         referenceData: TransactionReferenceData,
-    ) throws {
+    ) async throws {
         var errors = validate(state: state, referenceData: referenceData)
 
         let sanitizedAmountText = sanitize(amountText: state.amountText)
@@ -79,20 +79,20 @@ internal final class DefaultTransactionFormUseCase: TransactionFormUseCaseProtoc
                 majorCategory: majorCategory,
                 minorCategory: minorCategory,
             )
-            repository.insert(transaction)
+            await repository.insert(transaction)
         }
 
         do {
-            try repository.saveChanges()
+            try await repository.saveChanges()
         } catch {
             throw TransactionFormError.persistenceFailed(error.localizedDescription)
         }
     }
 
-    internal func delete(transaction: Transaction) throws {
-        repository.delete(transaction)
+    internal func delete(transaction: Transaction) async throws {
+        await repository.delete(transaction)
         do {
-            try repository.saveChanges()
+            try await repository.saveChanges()
         } catch {
             throw TransactionFormError.persistenceFailed(error.localizedDescription)
         }

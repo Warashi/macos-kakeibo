@@ -26,14 +26,14 @@ internal struct TransactionListFilter {
 }
 
 internal protocol TransactionListUseCaseProtocol {
-    func loadReferenceData() throws -> TransactionReferenceData
-    func loadTransactions(filter: TransactionListFilter) throws -> [Transaction]
+    func loadReferenceData() async throws -> TransactionReferenceData
+    func loadTransactions(filter: TransactionListFilter) async throws -> [Transaction]
     @discardableResult
     @MainActor
     func observeTransactions(
         filter: TransactionListFilter,
         onChange: @escaping @MainActor ([Transaction]) -> Void,
-    ) throws -> ObservationToken
+    ) async throws -> ObservationToken
 }
 
 internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtocol {
@@ -43,14 +43,14 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
         self.repository = repository
     }
 
-    internal func loadReferenceData() throws -> TransactionReferenceData {
-        let institutions = try repository.fetchInstitutions()
-        let categories = try repository.fetchCategories()
+    internal func loadReferenceData() async throws -> TransactionReferenceData {
+        let institutions = try await repository.fetchInstitutions()
+        let categories = try await repository.fetchCategories()
         return TransactionReferenceData(institutions: institutions, categories: categories)
     }
 
-    internal func loadTransactions(filter: TransactionListFilter) throws -> [Transaction] {
-        let transactions = try repository.fetchTransactions(query: filter.asQuery)
+    internal func loadTransactions(filter: TransactionListFilter) async throws -> [Transaction] {
+        let transactions = try await repository.fetchTransactions(query: filter.asQuery)
         return Self.filterTransactions(transactions, filter: filter)
     }
 
@@ -59,13 +59,13 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
     internal func observeTransactions(
         filter: TransactionListFilter,
         onChange: @escaping @MainActor ([Transaction]) -> Void,
-    ) throws -> ObservationToken {
-        let token = try repository.observeTransactions(query: filter.asQuery) { transactions in
+    ) async throws -> ObservationToken {
+        let token = try await repository.observeTransactions(query: filter.asQuery) { transactions in
             let filtered = Self.filterTransactions(transactions, filter: filter)
             onChange(filtered)
         }
         do {
-            let initial = try loadTransactions(filter: filter)
+            let initial = try await loadTransactions(filter: filter)
             onChange(initial)
         } catch {
             token.cancel()
