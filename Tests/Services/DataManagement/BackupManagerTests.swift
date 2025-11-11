@@ -15,7 +15,8 @@ internal struct BackupManagerTests {
         let manager = BackupManager()
 
         // When
-        let archive = try manager.createBackup(modelContext: context)
+        let payload = try BackupManager.buildPayload(modelContext: context)
+        let archive = try await manager.createBackup(payload: payload)
 
         // Then
         #expect(!archive.data.isEmpty)
@@ -31,13 +32,15 @@ internal struct BackupManagerTests {
         let sourceContext = ModelContext(sourceContainer)
         try seedSampleData(in: sourceContext)
         let manager = BackupManager()
-        let archive = try manager.createBackup(modelContext: sourceContext)
+        let payload = try BackupManager.buildPayload(modelContext: sourceContext)
+        let archive = try await manager.createBackup(payload: payload)
 
         let restoreContainer = try ModelContainer.createInMemoryContainer()
         let restoreContext = ModelContext(restoreContainer)
 
         // When
-        let summary = try manager.restoreBackup(from: archive.data, modelContext: restoreContext)
+        let decodedPayload = try await manager.decodeBackup(from: archive.data)
+        let summary = try BackupManager.restorePayload(decodedPayload, to: restoreContext)
 
         // Then
         #expect(summary.restoredCounts.transactions == 1)

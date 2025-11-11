@@ -124,7 +124,8 @@ internal struct SettingsStoreTests {
         let sourceContainer = try ModelContainer.createInMemoryContainer()
         let sourceContext = ModelContext(sourceContainer)
         try seedTransaction(in: sourceContext)
-        let archive = try BackupManager().createBackup(modelContext: sourceContext)
+        let payload = try BackupManager.buildPayload(modelContext: sourceContext)
+        let archive = try await BackupManager().createBackup(payload: payload)
 
         let defaults = makeUserDefaults(suffix: "restore")
         let targetContainer = try ModelContainer.createInMemoryContainer()

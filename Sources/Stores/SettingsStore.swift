@@ -149,7 +149,10 @@ internal final class SettingsStore {
         defer {
             isProcessingBackup = false
         }
-        let archive = try backupManager.createBackup(modelContext: modelContext)
+        // MainActor でペイロード生成
+        let payload = try BackupManager.buildPayload(modelContext: modelContext)
+        // Actor でエンコード
+        let archive = try await backupManager.createBackup(payload: payload)
         lastBackupMetadata = archive.metadata
         statusMessage = "バックアップを作成しました"
         return archive
@@ -163,7 +166,10 @@ internal final class SettingsStore {
         defer {
             isProcessingBackup = false
         }
-        let summary = try backupManager.restoreBackup(from: data, modelContext: modelContext)
+        // Actor でデコード
+        let payload = try await backupManager.decodeBackup(from: data)
+        // MainActor で復元
+        let summary = try BackupManager.restorePayload(payload, to: modelContext)
         lastRestoreSummary = summary
         lastBackupMetadata = summary.metadata
         statistics = (try? makeStatistics()) ?? .empty

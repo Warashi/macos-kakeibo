@@ -44,13 +44,11 @@ internal enum BackupManagerError: LocalizedError {
 }
 
 /// バックアップとリストアを担当するコンポーネント
-@MainActor
-internal final class BackupManager {
+internal actor BackupManager {
     /// バックアップを生成
-    /// - Parameter modelContext: SwiftDataのModelContext
+    /// - Parameter payload: バックアップペイロード (MainActor で事前に生成)
     /// - Returns: バックアップデータとメタデータ
-    internal func createBackup(modelContext: ModelContext) throws -> BackupArchive {
-        let payload = try buildPayload(modelContext: modelContext)
+    internal func createBackup(payload: BackupPayload) throws -> BackupArchive {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
@@ -60,43 +58,9 @@ internal final class BackupManager {
         return BackupArchive(data: data, metadata: payload.metadata, suggestedFileName: fileName)
     }
 
-    /// バックアップからデータを復元
-    /// - Parameters:
-    ///   - data: バックアップデータ
-    ///   - modelContext: SwiftDataのModelContext
-    /// - Returns: リストア結果
-    internal func restoreBackup(from data: Data, modelContext: ModelContext) throws -> BackupRestoreSummary {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-
-        guard let payload = try? decoder.decode(BackupPayload.self, from: data) else {
-            throw BackupManagerError.decodingFailed
-        }
-
-        try clearAllData(in: modelContext)
-
-        let institutions = try insertFinancialInstitutions(payload.financialInstitutions, context: modelContext)
-        let categories = try insertCategories(payload.categories, context: modelContext)
-        try insertAnnualBudgetConfigs(payload.annualBudgetConfigs, context: modelContext)
-        try insertBudgets(payload.budgets, categories: categories, context: modelContext)
-        try insertTransactions(
-            payload.transactions,
-            categories: categories,
-            institutions: institutions,
-            context: modelContext,
-        )
-
-        try modelContext.save()
-
-        return BackupRestoreSummary(
-            metadata: payload.metadata,
-            restoredCounts: payload.metadata.recordCounts,
-        )
-    }
-
-    // MARK: - Payload
-
-    private func buildPayload(modelContext: ModelContext) throws -> BackupPayload {
+    /// バックアップペイロードを構築 (MainActor で呼び出す)
+    @MainActor
+    internal static func buildPayload(modelContext: ModelContext) throws -> BackupPayload {
         let transactions = try modelContext.fetchAll(Transaction.self)
         let categories = try modelContext.fetchAll(Category.self)
         let budgets = try modelContext.fetchAll(Budget.self)
@@ -126,9 +90,49 @@ internal final class BackupManager {
         )
     }
 
+    /// バックアップからデータを復元（デコードのみ）
+    /// - Parameter data: バックアップデータ
+    /// - Returns: デコードされたペイロード
+    internal func decodeBackup(from data: Data) throws -> BackupPayload {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        guard let payload = try? decoder.decode(BackupPayload.self, from: data) else {
+            throw BackupManagerError.decodingFailed
+        }
+
+        return payload
+    }
+
+    /// ペイロードからデータを復元 (MainActor で呼び出す)
+    @MainActor
+    internal static func restorePayload(_ payload: BackupPayload, to modelContext: ModelContext) throws
+    -> BackupRestoreSummary {
+        try clearAllData(in: modelContext)
+
+        let institutions = try insertFinancialInstitutions(payload.financialInstitutions, context: modelContext)
+        let categories = try insertCategories(payload.categories, context: modelContext)
+        try insertAnnualBudgetConfigs(payload.annualBudgetConfigs, context: modelContext)
+        try insertBudgets(payload.budgets, categories: categories, context: modelContext)
+        try insertTransactions(
+            payload.transactions,
+            categories: categories,
+            institutions: institutions,
+            context: modelContext,
+        )
+
+        try modelContext.save()
+
+        return BackupRestoreSummary(
+            metadata: payload.metadata,
+            restoredCounts: payload.metadata.recordCounts,
+        )
+    }
+
     // MARK: - Clear
 
-    private func clearAllData(in context: ModelContext) throws {
+    @MainActor
+    private static func clearAllData(in context: ModelContext) throws {
         try deleteAll(Transaction.self, in: context)
         try deleteAll(Budget.self, in: context)
         try deleteAll(AnnualBudgetConfig.self, in: context)
@@ -136,7 +140,8 @@ internal final class BackupManager {
         try deleteAll(FinancialInstitution.self, in: context)
     }
 
-    private func deleteAll<T: PersistentModel>(_ type: T.Type, in context: ModelContext) throws {
+    @MainActor
+    private static func deleteAll<T: PersistentModel>(_ type: T.Type, in context: ModelContext) throws {
         let descriptor: ModelFetchRequest<T> = ModelFetchFactory.make()
         let items = try context.fetch(descriptor)
         for item in items {
@@ -145,7 +150,8 @@ internal final class BackupManager {
     }
 
     /// 親子関係を維持しながらカテゴリを削除
-    private func deleteCategoriesSafely(in context: ModelContext) throws {
+    @MainActor
+    private static func deleteCategoriesSafely(in context: ModelContext) throws {
         let descriptor: ModelFetchRequest<Category> = ModelFetchFactory.make()
         let categories = try context.fetch(descriptor)
         let minors = categories.filter(\.isMinor)
@@ -159,7 +165,8 @@ internal final class BackupManager {
     // MARK: - Insert
 
     @discardableResult
-    private func insertFinancialInstitutions(
+    @MainActor
+    private static func insertFinancialInstitutions(
         _ dtos: [FinancialInstitutionDTO],
         context: ModelContext,
     ) throws -> [UUID: FinancialInstitution] {
@@ -179,7 +186,8 @@ internal final class BackupManager {
     }
 
     @discardableResult
-    private func insertCategories(
+    @MainActor
+    private static func insertCategories(
         _ dtos: [CategoryDTO],
         context: ModelContext,
     ) throws -> [UUID: Category] {
@@ -212,7 +220,8 @@ internal final class BackupManager {
         return result
     }
 
-    private func insertBudgets(
+    @MainActor
+    private static func insertBudgets(
         _ dtos: [BudgetDTO],
         categories: [UUID: Category],
         context: ModelContext,
@@ -233,7 +242,8 @@ internal final class BackupManager {
         }
     }
 
-    private func insertAnnualBudgetConfigs(
+    @MainActor
+    private static func insertAnnualBudgetConfigs(
         _ dtos: [AnnualBudgetConfigDTO],
         context: ModelContext,
     ) throws {
@@ -250,7 +260,8 @@ internal final class BackupManager {
         }
     }
 
-    private func insertTransactions(
+    @MainActor
+    private static func insertTransactions(
         _ dtos: [TransactionDTO],
         categories: [UUID: Category],
         institutions: [UUID: FinancialInstitution],
@@ -277,7 +288,7 @@ internal final class BackupManager {
 
     // MARK: - Helpers
 
-    private func makeFileName(for date: Date) -> String {
+    private nonisolated func makeFileName(for date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = AppConstants.Backup.fileDateFormat
         formatter.locale = Foundation.Locale(identifier: "en_US_POSIX")
@@ -288,30 +299,30 @@ internal final class BackupManager {
 
 // MARK: - Payload DTOs
 
-private struct BackupPayload: Codable {
-    let metadata: BackupMetadata
-    let transactions: [TransactionDTO]
-    let categories: [CategoryDTO]
-    let budgets: [BudgetDTO]
-    let annualBudgetConfigs: [AnnualBudgetConfigDTO]
-    let financialInstitutions: [FinancialInstitutionDTO]
+internal struct BackupPayload: Codable, Sendable {
+    internal let metadata: BackupMetadata
+    internal let transactions: [TransactionDTO]
+    internal let categories: [CategoryDTO]
+    internal let budgets: [BudgetDTO]
+    internal let annualBudgetConfigs: [AnnualBudgetConfigDTO]
+    internal let financialInstitutions: [FinancialInstitutionDTO]
 }
 
-private struct TransactionDTO: Codable {
-    let id: UUID
-    let date: Date
-    let title: String
-    let amount: Decimal
-    let memo: String
-    let isIncludedInCalculation: Bool
-    let isTransfer: Bool
-    let financialInstitutionId: UUID?
-    let majorCategoryId: UUID?
-    let minorCategoryId: UUID?
-    let createdAt: Date
-    let updatedAt: Date
+internal struct TransactionDTO: Codable {
+    internal let id: UUID
+    internal let date: Date
+    internal let title: String
+    internal let amount: Decimal
+    internal let memo: String
+    internal let isIncludedInCalculation: Bool
+    internal let isTransfer: Bool
+    internal let financialInstitutionId: UUID?
+    internal let majorCategoryId: UUID?
+    internal let minorCategoryId: UUID?
+    internal let createdAt: Date
+    internal let updatedAt: Date
 
-    init(transaction: Transaction) {
+    internal init(transaction: Transaction) {
         self.id = transaction.id
         self.date = transaction.date
         self.title = transaction.title
@@ -327,16 +338,16 @@ private struct TransactionDTO: Codable {
     }
 }
 
-private struct CategoryDTO: Codable {
-    let id: UUID
-    let name: String
-    let parentId: UUID?
-    let allowsAnnualBudget: Bool
-    let displayOrder: Int
-    let createdAt: Date
-    let updatedAt: Date
+internal struct CategoryDTO: Codable {
+    internal let id: UUID
+    internal let name: String
+    internal let parentId: UUID?
+    internal let allowsAnnualBudget: Bool
+    internal let displayOrder: Int
+    internal let createdAt: Date
+    internal let updatedAt: Date
 
-    init(category: Category) {
+    internal init(category: Category) {
         self.id = category.id
         self.name = category.name
         self.parentId = category.parent?.id
@@ -347,18 +358,18 @@ private struct CategoryDTO: Codable {
     }
 }
 
-private struct BudgetDTO: Codable {
-    let id: UUID
-    let amount: Decimal
-    let categoryId: UUID?
-    let startYear: Int
-    let startMonth: Int
-    let endYear: Int
-    let endMonth: Int
-    let createdAt: Date
-    let updatedAt: Date
+internal struct BudgetDTO: Codable {
+    internal let id: UUID
+    internal let amount: Decimal
+    internal let categoryId: UUID?
+    internal let startYear: Int
+    internal let startMonth: Int
+    internal let endYear: Int
+    internal let endMonth: Int
+    internal let createdAt: Date
+    internal let updatedAt: Date
 
-    init(budget: Budget) {
+    internal init(budget: Budget) {
         self.id = budget.id
         self.amount = budget.amount
         self.categoryId = budget.category?.id
@@ -371,15 +382,15 @@ private struct BudgetDTO: Codable {
     }
 }
 
-private struct AnnualBudgetConfigDTO: Codable {
-    let id: UUID
-    let year: Int
-    let totalAmount: Decimal
-    let policyRawValue: String
-    let createdAt: Date
-    let updatedAt: Date
+internal struct AnnualBudgetConfigDTO: Codable {
+    internal let id: UUID
+    internal let year: Int
+    internal let totalAmount: Decimal
+    internal let policyRawValue: String
+    internal let createdAt: Date
+    internal let updatedAt: Date
 
-    init(config: AnnualBudgetConfig) {
+    internal init(config: AnnualBudgetConfig) {
         self.id = config.id
         self.year = config.year
         self.totalAmount = config.totalAmount
@@ -388,19 +399,19 @@ private struct AnnualBudgetConfigDTO: Codable {
         self.updatedAt = config.updatedAt
     }
 
-    var policy: AnnualBudgetPolicy {
+    internal var policy: AnnualBudgetPolicy {
         AnnualBudgetPolicy(rawValue: policyRawValue) ?? .automatic
     }
 }
 
-private struct FinancialInstitutionDTO: Codable {
-    let id: UUID
-    let name: String
-    let displayOrder: Int
-    let createdAt: Date
-    let updatedAt: Date
+internal struct FinancialInstitutionDTO: Codable {
+    internal let id: UUID
+    internal let name: String
+    internal let displayOrder: Int
+    internal let createdAt: Date
+    internal let updatedAt: Date
 
-    init(institution: FinancialInstitution) {
+    internal init(institution: FinancialInstitution) {
         self.id = institution.id
         self.name = institution.name
         self.displayOrder = institution.displayOrder
