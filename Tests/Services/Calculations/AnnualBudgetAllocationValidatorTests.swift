@@ -5,7 +5,7 @@ import Testing
 
 @Suite
 internal struct AnnualBudgetAllocationValidatorTests {
-    private let validator = AnnualBudgetAllocationValidator()
+    private let validator: AnnualBudgetAllocationValidator = AnnualBudgetAllocationValidator()
 
     @Test("upToMonthがnilの場合は12ヶ月分を計算")
     internal func defaultMonthRange() throws {

@@ -5,7 +5,7 @@ import Testing
 
 @Suite("SpecialPaymentScheduleService Synchronization")
 internal struct SpecialPaymentScheduleServiceSyncTests {
-    private let service = SpecialPaymentScheduleService()
+    private let service: SpecialPaymentScheduleService = SpecialPaymentScheduleService()
 
     @Test("定義から将来のOccurrenceを生成する")
     internal func synchronizationPlan_createsFutureOccurrences() throws {

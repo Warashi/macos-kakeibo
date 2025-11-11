@@ -42,7 +42,10 @@ internal struct SpecialPaymentOccurrencesServiceTests {
         let definition = occurrence.definition
         definition.occurrences = [occurrence]
 
-        let repository = InMemorySpecialPaymentRepository(definitions: [definition], currentDateProvider: { referenceDate })
+        let repository = InMemorySpecialPaymentRepository(
+            definitions: [definition],
+            currentDateProvider: { referenceDate }
+        )
         let service = DefaultSpecialPaymentOccurrencesService(repository: repository)
 
         let result = try service.markOccurrenceCompleted(
@@ -77,7 +80,10 @@ internal struct SpecialPaymentOccurrencesServiceTests {
         let definition = occurrence.definition
         definition.occurrences = [occurrence]
 
-        let repository = InMemorySpecialPaymentRepository(definitions: [definition], currentDateProvider: { referenceDate })
+        let repository = InMemorySpecialPaymentRepository(
+            definitions: [definition],
+            currentDateProvider: { referenceDate }
+        )
         let service = DefaultSpecialPaymentOccurrencesService(repository: repository)
 
         let summary = try service.updateOccurrence(

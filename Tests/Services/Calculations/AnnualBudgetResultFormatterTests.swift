@@ -5,7 +5,7 @@ import Testing
 
 @Suite
 internal struct AnnualBudgetResultFormatterTests {
-    private let formatter = AnnualBudgetResultFormatter()
+    private let formatter: AnnualBudgetResultFormatter = AnnualBudgetResultFormatter()
 
     @Test("使用状況フォーマット：残額と利用率を計算")
     internal func formatUsage() throws {

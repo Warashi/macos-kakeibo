@@ -4,7 +4,7 @@ import Testing
 @testable import Kakeibo
 
 @Suite("SpecialPaymentReconciliationPresenter")
-internal struct SpecialPaymentReconciliationPresenterTests {
+internal struct ReconciliationPresenterTests {
     @Test("makePresentation builds sorted rows and lookups")
     internal func makePresentation_buildsRows() throws {
         let presenter = SpecialPaymentReconciliationPresenter()

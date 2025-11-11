@@ -5,7 +5,7 @@ import Testing
 @testable import Kakeibo
 
 @Suite(.serialized)
-internal struct AnnualBudgetAllocatorTests {
+internal struct AnnualBudgetAllocatorUsageTests {
     private let allocator: AnnualBudgetAllocator = AnnualBudgetAllocator()
 
     @Test("年次特別枠使用状況計算：自動充当")
@@ -75,6 +75,71 @@ internal struct AnnualBudgetAllocatorTests {
         #expect(result.annualBudgetUsage.usedAmount == 30000)
         #expect(result.annualBudgetUsage.remainingAmount == 470_000)
     }
+}
+
+private func createSampleTransactions(category: Kakeibo.Category) -> [Transaction] {
+    [
+        createTransaction(amount: -50000, category: category),
+        createTransaction(amount: -30000, category: category),
+    ]
+}
+
+private func createTransaction(
+    amount: Decimal,
+    category: Kakeibo.Category,
+    minorCategory: Kakeibo.Category? = nil
+) -> Transaction {
+    createTransaction(
+        amount: amount,
+        majorCategory: category,
+        minorCategory: minorCategory
+    )
+}
+
+private func createTransaction(
+    amount: Decimal,
+    majorCategory: Kakeibo.Category?,
+    minorCategory: Kakeibo.Category? = nil
+) -> Transaction {
+    Transaction(
+        date: Date.from(year: 2025, month: 11) ?? Date(),
+        title: "テスト取引",
+        amount: amount,
+        majorCategory: majorCategory,
+        minorCategory: minorCategory
+    )
+}
+
+private func makeConfig(
+    policy: AnnualBudgetPolicy = .automatic,
+    allocations: [AllocationSeed] = []
+) -> AnnualBudgetConfig {
+    let config = AnnualBudgetConfig(
+        year: 2025,
+        totalAmount: 500_000,
+        policy: policy
+    )
+    config.allocations = allocations.map { seed in
+        let allocation = AnnualBudgetAllocation(
+            amount: seed.amount,
+            category: seed.category,
+            policyOverride: seed.override
+        )
+        allocation.config = config
+        return allocation
+    }
+    return config
+}
+
+private struct AllocationSeed {
+    let category: Kakeibo.Category
+    let amount: Decimal
+    let override: AnnualBudgetPolicy?
+}
+
+@Suite(.serialized)
+internal struct BudgetAllocatorMonthlyTests {
+    private let allocator: AnnualBudgetAllocator = AnnualBudgetAllocator()
 
     @Test("年次特別枠使用状況計算：無効")
     internal func annualBudgetUsage_disabled() throws {
@@ -198,7 +263,7 @@ internal struct AnnualBudgetAllocatorTests {
         let config = makeConfig(
             policy: AnnualBudgetPolicy.manual,
             allocations: [
-                (category, 120_000, AnnualBudgetPolicy.fullCoverage),
+                AllocationSeed(category: category, amount: 120_000, override: .fullCoverage),
             ],
         )
 
@@ -237,7 +302,7 @@ internal struct AnnualBudgetAllocatorTests {
         let budgets: [Budget] = []
         let config = makeConfig(
             allocations: [
-                (category, 90000, AnnualBudgetPolicy.fullCoverage),
+                AllocationSeed(category: category, amount: 90_000, override: .fullCoverage),
             ],
         )
 
@@ -276,7 +341,7 @@ internal struct AnnualBudgetAllocatorTests {
         let budgets: [Budget] = []
         let config = makeConfig(
             allocations: [
-                (category, 150_000, nil),
+                AllocationSeed(category: category, amount: 150_000, override: nil),
             ],
         )
 
@@ -311,7 +376,7 @@ internal struct AnnualBudgetAllocatorTests {
         ]
         let config = makeConfig(
             allocations: [
-                (major, 80000, AnnualBudgetPolicy.fullCoverage),
+                AllocationSeed(category: major, amount: 80_000, override: .fullCoverage),
             ],
         )
 
@@ -346,7 +411,7 @@ internal struct AnnualBudgetAllocatorTests {
         ]
         let config = makeConfig(
             allocations: [
-                (major, 80000, AnnualBudgetPolicy.fullCoverage),
+                AllocationSeed(category: major, amount: 80_000, override: .fullCoverage),
             ],
         )
 
@@ -404,59 +469,4 @@ internal struct AnnualBudgetAllocatorTests {
         #expect(result.categoryAllocations.isEmpty)
     }
 
-    // MARK: - Helper Methods
-
-    private func createSampleTransactions(category: Kakeibo.Category) -> [Transaction] {
-        [
-            createTransaction(amount: -50000, category: category),
-            createTransaction(amount: -30000, category: category),
-        ]
-    }
-
-    private func createTransaction(
-        amount: Decimal,
-        category: Kakeibo.Category,
-        minorCategory: Kakeibo.Category? = nil,
-    ) -> Transaction {
-        createTransaction(
-            amount: amount,
-            majorCategory: category,
-            minorCategory: minorCategory,
-        )
-    }
-
-    private func createTransaction(
-        amount: Decimal,
-        majorCategory: Kakeibo.Category?,
-        minorCategory: Kakeibo.Category? = nil,
-    ) -> Transaction {
-        Transaction(
-            date: Date.from(year: 2025, month: 11) ?? Date(),
-            title: "テスト取引",
-            amount: amount,
-            majorCategory: majorCategory,
-            minorCategory: minorCategory,
-        )
-    }
-
-    private func makeConfig(
-        policy: AnnualBudgetPolicy = .automatic,
-        allocations: [(Kakeibo.Category, Decimal, AnnualBudgetPolicy?)] = [],
-    ) -> AnnualBudgetConfig {
-        let config = AnnualBudgetConfig(
-            year: 2025,
-            totalAmount: 500_000,
-            policy: policy,
-        )
-        config.allocations = allocations.map { category, amount, override in
-            let allocation = AnnualBudgetAllocation(
-                amount: amount,
-                category: category,
-                policyOverride: override,
-            )
-            allocation.config = config
-            return allocation
-        }
-        return config
-    }
 }

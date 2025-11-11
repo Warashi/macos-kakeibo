@@ -10,7 +10,9 @@ internal struct SpecialPaymentReconciliationStoreTests {
     @Test("読み込み時に未完了のOccurrenceが優先される")
     internal func refreshPrioritizesPendingOccurrences() throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context, _) = try makeStore(referenceDate: referenceDate)
+        let harness = try makeStore(referenceDate: referenceDate)
+        let store = harness.store
+        let context = harness.context
 
         let definition = SpecialPaymentDefinition(
             name: "車検",
@@ -51,7 +53,9 @@ internal struct SpecialPaymentReconciliationStoreTests {
     @Test("候補スコアリングは金額と日付が近い取引を優先する")
     internal func candidateScoringPrefersCloseMatches() throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 4, day: 10))
-        let (store, context, _) = try makeStore(referenceDate: referenceDate)
+        let harness = try makeStore(referenceDate: referenceDate)
+        let store = harness.store
+        let context = harness.context
 
         let definition = SpecialPaymentDefinition(
             name: "固定資産税",
@@ -99,7 +103,10 @@ internal struct SpecialPaymentReconciliationStoreTests {
     @Test("実績保存で取引が紐付けられ完了状態になる")
     internal func saveSelectedOccurrenceLinksTransaction() throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 2, day: 15))
-        let (store, context, spy) = try makeStore(referenceDate: referenceDate)
+        let harness = try makeStore(referenceDate: referenceDate)
+        let store = harness.store
+        let context = harness.context
+        let spy = harness.occurrencesService
 
         let definition = SpecialPaymentDefinition(
             name: "旅行積立",
@@ -144,7 +151,10 @@ internal struct SpecialPaymentReconciliationStoreTests {
     @Test("リンク解除で未完了に戻りサービス経由で更新される")
     internal func unlinkSelectedOccurrenceResetsActuals() throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let (store, context, spy) = try makeStore(referenceDate: referenceDate)
+        let harness = try makeStore(referenceDate: referenceDate)
+        let store = harness.store
+        let context = harness.context
+        let spy = harness.occurrencesService
 
         let definition = SpecialPaymentDefinition(
             name: "大型備品",
@@ -188,7 +198,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
 
     // MARK: - Helpers
 
-    private func makeStore(referenceDate: Date) throws -> (SpecialPaymentReconciliationStore, ModelContext, SpySpecialPaymentOccurrencesService) {
+    private func makeStore(referenceDate: Date) throws -> ReconciliationStoreHarness {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = SpecialPaymentRepositoryFactory.make(
@@ -204,6 +214,16 @@ internal struct SpecialPaymentReconciliationStoreTests {
             horizonMonths: SpecialPaymentScheduleService.defaultHorizonMonths,
             currentDateProvider: { referenceDate },
         )
-        return (store, context, spyService)
+        return ReconciliationStoreHarness(
+            store: store,
+            context: context,
+            occurrencesService: spyService
+        )
     }
+}
+
+private struct ReconciliationStoreHarness {
+    let store: SpecialPaymentReconciliationStore
+    let context: ModelContext
+    let occurrencesService: SpySpecialPaymentOccurrencesService
 }

@@ -18,8 +18,8 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         ]
         let config = makeConfig(
             allocations: [
-                (category1, 100_000, AnnualBudgetPolicy.fullCoverage),
-                (category2, 50000, AnnualBudgetPolicy.fullCoverage),
+                AllocationSeed(category: category1, amount: 100_000, override: .fullCoverage),
+                AllocationSeed(category: category2, amount: 50_000, override: .fullCoverage),
             ],
         )
 
@@ -67,7 +67,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         ]
         let config = makeConfig(
             allocations: [
-                (category, 120_000, nil),
+                AllocationSeed(category: category, amount: 120_000, override: nil),
             ],
         )
 
@@ -104,8 +104,8 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         ]
         let config = makeConfig(
             allocations: [
-                (major, 150_000, nil),
-                (minor, 50000, nil),
+                AllocationSeed(category: major, amount: 150_000, override: nil),
+                AllocationSeed(category: minor, amount: 50_000, override: nil),
             ],
         )
 
@@ -148,22 +148,28 @@ internal struct AnnualBudgetAllocatorCategoryTests {
 
     private func makeConfig(
         policy: AnnualBudgetPolicy = .automatic,
-        allocations: [(Kakeibo.Category, Decimal, AnnualBudgetPolicy?)] = [],
+        allocations: [AllocationSeed] = []
     ) -> AnnualBudgetConfig {
         let config = AnnualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
             policy: policy,
         )
-        config.allocations = allocations.map { category, amount, override in
+        config.allocations = allocations.map { seed in
             let allocation = AnnualBudgetAllocation(
-                amount: amount,
-                category: category,
-                policyOverride: override,
+                amount: seed.amount,
+                category: seed.category,
+                policyOverride: seed.override,
             )
             allocation.config = config
             return allocation
         }
         return config
     }
+}
+
+private struct AllocationSeed {
+    let category: Kakeibo.Category
+    let amount: Decimal
+    let override: AnnualBudgetPolicy?
 }

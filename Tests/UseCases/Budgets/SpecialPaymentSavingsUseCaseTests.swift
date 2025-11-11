@@ -30,7 +30,7 @@ internal struct SpecialPaymentSavingsUseCaseTests {
     }
 
     @Test("表示用エントリを生成する")
-    internal func buildsEntries() {
+    internal func buildsEntries() throws {
         let definition = SpecialPaymentDefinition(
             name: "旅行",
             amount: 120_000,
@@ -57,7 +57,7 @@ internal struct SpecialPaymentSavingsUseCaseTests {
         let useCase = DefaultSpecialPaymentSavingsUseCase()
 
         let entries = useCase.entries(snapshot: snapshot, year: 2025, month: 11)
-        let entry = try! #require(entries.first)
+        let entry = try #require(entries.first)
 
         #expect(entry.name == "旅行")
         #expect(entry.monthlySaving == 10_000)

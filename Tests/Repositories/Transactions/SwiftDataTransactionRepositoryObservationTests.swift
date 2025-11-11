@@ -5,7 +5,7 @@ import Testing
 
 @Suite("SwiftDataTransactionRepositoryObservation", .serialized)
 @MainActor
-internal struct SwiftDataTransactionRepositoryObservationTests {
+internal struct TransactionRepositoryObservationTests {
     @Test("取引の追加・更新・削除で通知される")
     internal func notifiesOnMutations() async throws {
         let (repository, month) = try makeRepository()

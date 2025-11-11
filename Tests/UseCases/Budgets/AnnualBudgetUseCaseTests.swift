@@ -35,7 +35,7 @@ internal struct AnnualBudgetUseCaseTests {
     }
 
     @Test("年次カテゴリ別エントリを算出する")
-    internal func calculatesCategoryEntries() {
+    internal func calculatesCategoryEntries() throws {
         let year = 2025
         let food = Category(name: "食費", displayOrder: 1)
         let budgets = [
@@ -62,7 +62,7 @@ internal struct AnnualBudgetUseCaseTests {
 
         let entries = useCase.annualCategoryEntries(snapshot: snapshot, year: year)
 
-        let entry = try! #require(entries.first)
+        let entry = try #require(entries.first)
         #expect(entry.calculation.budgetAmount == 110_000)
         #expect(entry.calculation.actualAmount == 20_000)
     }

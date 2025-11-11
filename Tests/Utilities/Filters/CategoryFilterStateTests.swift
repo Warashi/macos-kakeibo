@@ -5,10 +5,10 @@ import Testing
 
 @Suite
 internal struct CategoryFilterStateTests {
-    private let major = Kakeibo.Category(name: "生活費", displayOrder: 1)
+    private let major: Kakeibo.Category = Kakeibo.Category(name: "生活費", displayOrder: 1)
     private let minorFood: Kakeibo.Category
     private let minorDaily: Kakeibo.Category
-    private let anotherMajor = Kakeibo.Category(name: "趣味", displayOrder: 2)
+    private let anotherMajor: Kakeibo.Category = Kakeibo.Category(name: "趣味", displayOrder: 2)
 
     internal init() {
         let food = Kakeibo.Category(name: "食費", parent: major, displayOrder: 1)

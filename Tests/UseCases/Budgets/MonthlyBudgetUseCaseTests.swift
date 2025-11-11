@@ -28,7 +28,7 @@ internal struct MonthlyBudgetUseCaseTests {
     }
 
     @Test("カテゴリ別エントリで実績が反映される")
-    internal func categoryEntriesCalculateActuals() {
+    internal func categoryEntriesCalculateActuals() throws {
         let category = Category(name: "食費", displayOrder: 1)
         let budget = Budget(amount: 5000, category: category, year: 2025, month: 11)
         let transaction = Transaction(
@@ -49,7 +49,7 @@ internal struct MonthlyBudgetUseCaseTests {
 
         let entries = useCase.categoryEntries(snapshot: snapshot, year: 2025, month: 11)
 
-        let entry = try! #require(entries.first)
+        let entry = try #require(entries.first)
         #expect(entry.calculation.actualAmount == 2000)
         #expect(entry.calculation.remainingAmount == 3000)
     }
