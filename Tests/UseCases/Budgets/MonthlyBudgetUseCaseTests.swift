@@ -18,6 +18,7 @@ internal struct MonthlyBudgetUseCaseTests {
             annualBudgetConfig: nil,
             specialPaymentDefinitions: [],
             specialPaymentBalances: [],
+            specialPaymentOccurrences: [],
         )
         let useCase = DefaultMonthlyBudgetUseCase()
 
@@ -44,6 +45,7 @@ internal struct MonthlyBudgetUseCaseTests {
             annualBudgetConfig: nil,
             specialPaymentDefinitions: [],
             specialPaymentBalances: [],
+            specialPaymentOccurrences: [],
         )
         let useCase = DefaultMonthlyBudgetUseCase()
 
@@ -70,6 +72,7 @@ internal struct MonthlyBudgetUseCaseTests {
             annualBudgetConfig: nil,
             specialPaymentDefinitions: [],
             specialPaymentBalances: [],
+            specialPaymentOccurrences: [],
         )
         let useCase = DefaultMonthlyBudgetUseCase()
 

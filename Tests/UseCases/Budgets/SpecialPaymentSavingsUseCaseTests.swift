@@ -6,21 +6,30 @@ import Testing
 internal struct SpecialPaymentSavingsUseCaseTests {
     @Test("月次積立合計を算出する")
     internal func calculatesMonthlySavingsTotal() {
-        let definition = SpecialPaymentDefinition(
+        let definitionDTO = SpecialPaymentDefinitionDTO(
+            id: UUID(),
             name: "自動車税",
+            notes: "",
             amount: 60000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 5) ?? Date(),
+            leadTimeMonths: 3,
+            categoryId: nil,
             savingStrategy: .customMonthly,
             customMonthlySavingAmount: 5000,
+            dateAdjustmentPolicy: .none,
+            recurrenceDayPattern: nil,
+            createdAt: Date(),
+            updatedAt: Date(),
         )
         let snapshot = BudgetSnapshot(
             budgets: [],
             transactions: [],
             categories: [],
             annualBudgetConfig: nil,
-            specialPaymentDefinitions: [definition],
+            specialPaymentDefinitions: [definitionDTO],
             specialPaymentBalances: [],
+            specialPaymentOccurrences: [],
         )
         let useCase = DefaultSpecialPaymentSavingsUseCase()
 
@@ -31,28 +40,41 @@ internal struct SpecialPaymentSavingsUseCaseTests {
 
     @Test("表示用エントリを生成する")
     internal func buildsEntries() throws {
-        let definition = SpecialPaymentDefinition(
+        let definitionId = UUID()
+        let definitionDTO = SpecialPaymentDefinitionDTO(
+            id: definitionId,
             name: "旅行",
+            notes: "",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 12) ?? Date(),
+            leadTimeMonths: 3,
+            categoryId: nil,
             savingStrategy: .customMonthly,
             customMonthlySavingAmount: 10000,
+            dateAdjustmentPolicy: .none,
+            recurrenceDayPattern: nil,
+            createdAt: Date(),
+            updatedAt: Date(),
         )
-        let balance = SpecialPaymentSavingBalance(
-            definition: definition,
+        let balanceDTO = SpecialPaymentSavingBalanceDTO(
+            id: UUID(),
+            definitionId: definitionId,
             totalSavedAmount: 30000,
             totalPaidAmount: 0,
             lastUpdatedYear: 2025,
             lastUpdatedMonth: 10,
+            createdAt: Date(),
+            updatedAt: Date(),
         )
         let snapshot = BudgetSnapshot(
             budgets: [],
             transactions: [],
             categories: [],
             annualBudgetConfig: nil,
-            specialPaymentDefinitions: [definition],
-            specialPaymentBalances: [balance],
+            specialPaymentDefinitions: [definitionDTO],
+            specialPaymentBalances: [balanceDTO],
+            specialPaymentOccurrences: [],
         )
         let useCase = DefaultSpecialPaymentSavingsUseCase()
 
