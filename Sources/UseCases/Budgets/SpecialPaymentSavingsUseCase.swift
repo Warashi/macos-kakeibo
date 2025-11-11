@@ -63,10 +63,13 @@ internal final class DefaultSpecialPaymentSavingsUseCase: SpecialPaymentSavingsU
         month: Int,
     ) -> [SpecialPaymentSavingsCalculation] {
         calculator.calculateSpecialPaymentSavings(
-            definitions: snapshot.specialPaymentDefinitions,
-            balances: snapshot.specialPaymentBalances,
-            year: year,
-            month: month,
+            SpecialPaymentSavingsCalculationInput(
+                definitions: snapshot.specialPaymentDefinitions,
+                balances: snapshot.specialPaymentBalances,
+                occurrences: snapshot.specialPaymentOccurrences,
+                year: year,
+                month: month,
+            ),
         )
     }
 
@@ -88,7 +91,7 @@ internal final class DefaultSpecialPaymentSavingsUseCase: SpecialPaymentSavingsU
 private extension DefaultSpecialPaymentSavingsUseCase {
     func progress(
         for calculation: SpecialPaymentSavingsCalculation,
-        definitions: [SpecialPaymentDefinition],
+        definitions: [SpecialPaymentDefinitionDTO],
     ) -> Double {
         guard let definition = definitions.first(where: { $0.id == calculation.definitionId }) else {
             return 0
