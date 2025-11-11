@@ -23,7 +23,7 @@ internal struct SpecialPaymentOccurrenceDTO: Sendable {
         actualAmount: Decimal?,
         transactionId: UUID?,
         createdAt: Date,
-        updatedAt: Date
+        updatedAt: Date,
     ) {
         self.id = id
         self.definitionId = definitionId

@@ -31,7 +31,7 @@ internal struct SpecialPaymentDefinitionDTO: Sendable {
         dateAdjustmentPolicy: DateAdjustmentPolicy,
         recurrenceDayPattern: DayOfMonthPattern?,
         createdAt: Date,
-        updatedAt: Date
+        updatedAt: Date,
     ) {
         self.id = id
         self.name = name

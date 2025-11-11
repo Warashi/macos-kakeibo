@@ -63,32 +63,32 @@ internal struct SpecialPaymentSynchronizationSummary {
 
 @DatabaseActor
 internal protocol SpecialPaymentRepository: Sendable {
-    func definitions(filter: SpecialPaymentDefinitionFilter?) throws -> [SpecialPaymentDefinition]
-    func occurrences(query: SpecialPaymentOccurrenceQuery?) throws -> [SpecialPaymentOccurrence]
-    func balances(query: SpecialPaymentBalanceQuery?) throws -> [SpecialPaymentSavingBalance]
+    func definitions(filter: SpecialPaymentDefinitionFilter?) throws -> [SpecialPaymentDefinitionDTO]
+    func occurrences(query: SpecialPaymentOccurrenceQuery?) throws -> [SpecialPaymentOccurrenceDTO]
+    func balances(query: SpecialPaymentBalanceQuery?) throws -> [SpecialPaymentSavingBalanceDTO]
 
     @discardableResult
-    func createDefinition(_ input: SpecialPaymentDefinitionInput) throws -> SpecialPaymentDefinition
-    func updateDefinition(_ definition: SpecialPaymentDefinition, input: SpecialPaymentDefinitionInput) throws
-    func deleteDefinition(_ definition: SpecialPaymentDefinition) throws
+    func createDefinition(_ input: SpecialPaymentDefinitionInput) throws -> UUID
+    func updateDefinition(definitionId: UUID, input: SpecialPaymentDefinitionInput) throws
+    func deleteDefinition(definitionId: UUID) throws
 
     @discardableResult
     func synchronize(
-        definition: SpecialPaymentDefinition,
+        definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
     ) throws -> SpecialPaymentSynchronizationSummary
 
     @discardableResult
     func markOccurrenceCompleted(
-        _ occurrence: SpecialPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary
 
     @discardableResult
     func updateOccurrence(
-        _ occurrence: SpecialPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary?

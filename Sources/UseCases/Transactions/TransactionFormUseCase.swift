@@ -101,25 +101,22 @@ private extension DefaultTransactionFormUseCase {
             throw TransactionFormError.persistenceFailed("更新対象の取引が見つかりません")
         }
 
-        let institution: FinancialInstitution?
-        if let institutionId = state.financialInstitutionId {
-            institution = try repository.findInstitution(id: institutionId)
+        let institution: FinancialInstitution? = if let institutionId = state.financialInstitutionId {
+            try repository.findInstitution(id: institutionId)
         } else {
-            institution = nil
+            nil
         }
 
-        let majorCategory: Category?
-        if let majorId = state.majorCategoryId {
-            majorCategory = try repository.findCategory(id: majorId)
+        let majorCategory: Category? = if let majorId = state.majorCategoryId {
+            try repository.findCategory(id: majorId)
         } else {
-            majorCategory = nil
+            nil
         }
 
-        let minorCategory: Category?
-        if let minorId = state.minorCategoryId {
-            minorCategory = try repository.findCategory(id: minorId)
+        let minorCategory: Category? = if let minorId = state.minorCategoryId {
+            try repository.findCategory(id: minorId)
         } else {
-            minorCategory = nil
+            nil
         }
 
         transaction.title = state.title
@@ -139,25 +136,22 @@ private extension DefaultTransactionFormUseCase {
         amount: Decimal,
         referenceData: TransactionReferenceData,
     ) async throws {
-        let institution: FinancialInstitution?
-        if let institutionId = state.financialInstitutionId {
-            institution = try repository.findInstitution(id: institutionId)
+        let institution: FinancialInstitution? = if let institutionId = state.financialInstitutionId {
+            try repository.findInstitution(id: institutionId)
         } else {
-            institution = nil
+            nil
         }
 
-        let majorCategory: Category?
-        if let majorId = state.majorCategoryId {
-            majorCategory = try repository.findCategory(id: majorId)
+        let majorCategory: Category? = if let majorId = state.majorCategoryId {
+            try repository.findCategory(id: majorId)
         } else {
-            majorCategory = nil
+            nil
         }
 
-        let minorCategory: Category?
-        if let minorId = state.minorCategoryId {
-            minorCategory = try repository.findCategory(id: minorId)
+        let minorCategory: Category? = if let minorId = state.minorCategoryId {
+            try repository.findCategory(id: minorId)
         } else {
-            minorCategory = nil
+            nil
         }
 
         let transaction = Transaction(

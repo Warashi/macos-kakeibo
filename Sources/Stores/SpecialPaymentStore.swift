@@ -84,30 +84,27 @@ internal struct OccurrenceUpdateInput {
 @MainActor
 internal final class SpecialPaymentStore {
     private let repository: SpecialPaymentRepository
-    private let occurrencesService: SpecialPaymentOccurrencesService
     private let currentDateProvider: () -> Date
 
     internal private(set) var lastSyncedAt: Date?
 
     internal init(
         repository: SpecialPaymentRepository,
-        occurrencesService: SpecialPaymentOccurrencesService? = nil,
         currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         self.repository = repository
-        self.occurrencesService = occurrencesService ?? DefaultSpecialPaymentOccurrencesService(repository: repository)
         self.currentDateProvider = currentDateProvider
     }
 
     // MARK: - Public API
 
     internal func synchronizeOccurrences(
-        for definition: SpecialPaymentDefinition,
+        definitionId: UUID,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
         referenceDate: Date? = nil,
-    ) throws {
-        let summary = try occurrencesService.synchronizeOccurrences(
-            for: definition,
+    ) async throws {
+        let summary = try await repository.synchronize(
+            definitionId: definitionId,
             horizonMonths: horizonMonths,
             referenceDate: referenceDate,
         )
@@ -116,12 +113,12 @@ internal final class SpecialPaymentStore {
     }
 
     internal func markOccurrenceCompleted(
-        _ occurrence: SpecialPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
-    ) throws {
-        let summary = try occurrencesService.markOccurrenceCompleted(
-            occurrence,
+    ) async throws {
+        let summary = try await repository.markOccurrenceCompleted(
+            occurrenceId: occurrenceId,
             input: input,
             horizonMonths: horizonMonths,
         )
@@ -130,16 +127,16 @@ internal final class SpecialPaymentStore {
 
     /// Occurrenceの実績データとステータスを更新
     /// - Parameters:
-    ///   - occurrence: 更新対象のOccurrence
+    ///   - occurrenceId: 更新対象のOccurrenceのID
     ///   - input: 更新内容
     ///   - horizonMonths: スケジュール生成期間
     internal func updateOccurrence(
-        _ occurrence: SpecialPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
-    ) throws {
-        let summary = try occurrencesService.updateOccurrence(
-            occurrence,
+    ) async throws {
+        let summary = try await repository.updateOccurrence(
+            occurrenceId: occurrenceId,
             input: input,
             horizonMonths: horizonMonths,
         )
@@ -158,9 +155,9 @@ extension SpecialPaymentStore {
         _ input: SpecialPaymentDefinitionInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) async throws {
-        let definition = try await repository.createDefinition(input)
+        let definitionId = try await repository.createDefinition(input)
         let summary = try await repository.synchronize(
-            definition: definition,
+            definitionId: definitionId,
             horizonMonths: horizonMonths,
             referenceDate: currentDateProvider(),
         )
@@ -169,13 +166,13 @@ extension SpecialPaymentStore {
 
     /// 特別支払い定義を更新
     internal func updateDefinition(
-        _ definition: SpecialPaymentDefinition,
+        definitionId: UUID,
         input: SpecialPaymentDefinitionInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
     ) async throws {
-        try await repository.updateDefinition(definition, input: input)
+        try await repository.updateDefinition(definitionId: definitionId, input: input)
         let summary = try await repository.synchronize(
-            definition: definition,
+            definitionId: definitionId,
             horizonMonths: horizonMonths,
             referenceDate: currentDateProvider(),
         )
@@ -183,7 +180,7 @@ extension SpecialPaymentStore {
     }
 
     /// 特別支払い定義を削除
-    internal func deleteDefinition(_ definition: SpecialPaymentDefinition) async throws {
-        try await repository.deleteDefinition(definition)
+    internal func deleteDefinition(definitionId: UUID) async throws {
+        try await repository.deleteDefinition(definitionId: definitionId)
     }
 }

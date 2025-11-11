@@ -19,7 +19,7 @@ internal struct SpecialPaymentSavingBalanceDTO: Sendable {
         lastUpdatedYear: Int,
         lastUpdatedMonth: Int,
         createdAt: Date,
-        updatedAt: Date
+        updatedAt: Date,
     ) {
         self.id = id
         self.definitionId = definitionId
