@@ -78,13 +78,16 @@ internal final class DashboardStore {
 
         // 現在の年月で初期化
         let now = Date()
-        self.currentYear = now.year
-        self.currentMonth = now.month
+        let initialYear = now.year
+        let initialMonth = now.month
 
-        // 初期値を設定（refresh で上書きされる）
+        // すべての stored property を初期化
+        self.currentYear = initialYear
+        self.currentMonth = initialMonth
+
         self.monthlySummary = MonthlySummary(
-            year: currentYear,
-            month: currentMonth,
+            year: initialYear,
+            month: initialMonth,
             totalIncome: 0,
             totalExpense: 0,
             net: 0,
@@ -92,7 +95,7 @@ internal final class DashboardStore {
             categorySummaries: [],
         )
         self.annualSummary = AnnualSummary(
-            year: currentYear,
+            year: initialYear,
             totalIncome: 0,
             totalExpense: 0,
             net: 0,
@@ -101,8 +104,8 @@ internal final class DashboardStore {
             monthlySummaries: [],
         )
         self.monthlyBudgetCalculation = MonthlyBudgetCalculation(
-            year: currentYear,
-            month: currentMonth,
+            year: initialYear,
+            month: initialMonth,
             overallCalculation: nil,
             categoryCalculations: [],
         )
@@ -113,7 +116,8 @@ internal final class DashboardStore {
         self.annualBudgetProgressCalculation = nil
         self.annualBudgetCategoryEntries = []
 
-        if getAnnualBudgetConfig(year: currentYear) == nil,
+        // すべての stored property の初期化が完了したので、年のフォールバックチェックが可能
+        if getAnnualBudgetConfig(year: self.currentYear) == nil,
            let fallbackYear = latestAnnualBudgetConfigYear() {
             self.currentYear = fallbackYear
         }
