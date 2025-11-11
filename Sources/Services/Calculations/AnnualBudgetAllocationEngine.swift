@@ -37,12 +37,15 @@ internal struct AnnualBudgetAllocationEngine: Sendable {
         }
 
         for month in 1 ... accumulationParams.endMonth {
-            let monthlyCategoryAllocations = categoryCalculator.calculateCategoryAllocations(
+            let request = MonthlyCategoryAllocationRequest(
                 params: accumulationParams.params,
                 year: accumulationParams.year,
                 month: month,
                 policy: accumulationParams.policy,
                 policyOverrides: policyOverrides
+            )
+            let monthlyCategoryAllocations = categoryCalculator.calculateCategoryAllocations(
+                request: request
             )
 
             let monthlyUsed = monthlyCategoryAllocations.reduce(Decimal.zero) { $0 + $1.allocatableAmount }
@@ -76,19 +79,9 @@ internal struct AnnualBudgetAllocationEngine: Sendable {
     }
 
     internal func calculateCategoryAllocations(
-        params: AllocationCalculationParams,
-        year: Int,
-        month: Int,
-        policy: AnnualBudgetPolicy,
-        policyOverrides: [UUID: AnnualBudgetPolicy]
+        request: MonthlyCategoryAllocationRequest
     ) -> [CategoryAllocation] {
-        categoryCalculator.calculateCategoryAllocations(
-            params: params,
-            year: year,
-            month: month,
-            policy: policy,
-            policyOverrides: policyOverrides
-        )
+        categoryCalculator.calculateCategoryAllocations(request: request)
     }
 
     private func accumulateCategory(

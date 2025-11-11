@@ -282,13 +282,14 @@ internal extension BudgetStore {
         policy: AnnualBudgetPolicy,
         allocations: [AnnualAllocationDraft]
     ) throws {
-        try mutationUseCase.upsertAnnualBudgetConfig(
+        let input = AnnualBudgetConfigInput(
             existingConfig: snapshot?.annualBudgetConfig,
             year: currentYear,
             totalAmount: totalAmount,
             policy: policy,
             allocations: allocations
         )
+        try mutationUseCase.upsertAnnualBudgetConfig(input)
         reloadSnapshot()
     }
 }

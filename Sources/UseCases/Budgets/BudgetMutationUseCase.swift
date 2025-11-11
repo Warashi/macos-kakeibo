@@ -4,13 +4,7 @@ internal protocol BudgetMutationUseCaseProtocol {
     func addBudget(input: BudgetInput) throws
     func updateBudget(_ budget: Budget, input: BudgetInput) throws
     func deleteBudget(_ budget: Budget) throws
-    func upsertAnnualBudgetConfig(
-        existingConfig: AnnualBudgetConfig?,
-        year: Int,
-        totalAmount: Decimal,
-        policy: AnnualBudgetPolicy,
-        allocations: [AnnualAllocationDraft]
-    ) throws
+    func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) throws
 }
 
 internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol {
@@ -63,26 +57,20 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
         try repository.saveChanges()
     }
 
-    internal func upsertAnnualBudgetConfig(
-        existingConfig: AnnualBudgetConfig?,
-        year: Int,
-        totalAmount: Decimal,
-        policy: AnnualBudgetPolicy,
-        allocations: [AnnualAllocationDraft]
-    ) throws {
-        if let config = existingConfig {
-            config.totalAmount = totalAmount
-            config.policy = policy
+    internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) throws {
+        if let config = input.existingConfig {
+            config.totalAmount = input.totalAmount
+            config.policy = input.policy
             config.updatedAt = Date()
-            try syncAllocations(config: config, drafts: allocations)
+            try syncAllocations(config: config, drafts: input.allocations)
         } else {
             let config = AnnualBudgetConfig(
-                year: year,
-                totalAmount: totalAmount,
-                policy: policy
+                year: input.year,
+                totalAmount: input.totalAmount,
+                policy: input.policy
             )
             repository.insertAnnualBudgetConfig(config)
-            try syncAllocations(config: config, drafts: allocations)
+            try syncAllocations(config: config, drafts: input.allocations)
         }
         try repository.saveChanges()
     }

@@ -86,7 +86,10 @@ internal final class DefaultSpecialPaymentSavingsUseCase: SpecialPaymentSavingsU
 }
 
 private extension DefaultSpecialPaymentSavingsUseCase {
-    func progress(for calculation: SpecialPaymentSavingsCalculation, definitions: [SpecialPaymentDefinition]) -> Double {
+    func progress(
+        for calculation: SpecialPaymentSavingsCalculation,
+        definitions: [SpecialPaymentDefinition]
+    ) -> Double {
         guard let definition = definitions.first(where: { $0.id == calculation.definitionId }) else {
             return 0
         }

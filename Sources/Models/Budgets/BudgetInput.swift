@@ -10,6 +10,14 @@ internal struct BudgetInput {
     internal let endMonth: Int
 }
 
+internal struct AnnualBudgetConfigInput {
+    internal let existingConfig: AnnualBudgetConfig?
+    internal let year: Int
+    internal let totalAmount: Decimal
+    internal let policy: AnnualBudgetPolicy
+    internal let allocations: [AnnualAllocationDraft]
+}
+
 /// 年次特別枠の割当ドラフト
 internal struct AnnualAllocationDraft {
     internal let categoryId: UUID

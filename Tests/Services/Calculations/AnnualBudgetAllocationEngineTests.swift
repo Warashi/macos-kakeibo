@@ -5,7 +5,7 @@ import Testing
 
 @Suite
 internal struct AnnualBudgetAllocationEngineTests {
-    private let engine = AnnualBudgetAllocationEngine()
+    private let engine: AnnualBudgetAllocationEngine = AnnualBudgetAllocationEngine()
 
     @Test("累積計算で複数月の充当額を合算できる")
     internal func accumulateMultipleMonths() throws {
@@ -13,7 +13,7 @@ internal struct AnnualBudgetAllocationEngineTests {
         let config = makeConfig(
             policy: AnnualBudgetPolicy.automatic,
             allocations: [
-                (category, 500_000, nil),
+                AllocationSeed(category: category, amount: 500_000, override: nil),
             ]
         )
         let budgets = [
@@ -57,7 +57,7 @@ internal struct AnnualBudgetAllocationEngineTests {
         let config = makeConfig(
             policy: AnnualBudgetPolicy.disabled,
             allocations: [
-                (minor, 200_000, .fullCoverage),
+                AllocationSeed(category: minor, amount: 200_000, override: .fullCoverage),
             ]
         )
 
@@ -70,11 +70,13 @@ internal struct AnnualBudgetAllocationEngineTests {
         )
 
         let allocations = engine.calculateCategoryAllocations(
-            params: params,
-            year: 2025,
-            month: 3,
-            policy: AnnualBudgetPolicy.disabled,
-            policyOverrides: [minor.id: AnnualBudgetPolicy.fullCoverage]
+            request: MonthlyCategoryAllocationRequest(
+                params: params,
+                year: 2025,
+                month: 3,
+                policy: AnnualBudgetPolicy.disabled,
+                policyOverrides: [minor.id: AnnualBudgetPolicy.fullCoverage]
+            )
         )
 
         let allocation = try #require(allocations.first)
@@ -84,23 +86,29 @@ internal struct AnnualBudgetAllocationEngineTests {
 
     private func makeConfig(
         policy: AnnualBudgetPolicy,
-        allocations: [(Kakeibo.Category, Decimal, AnnualBudgetPolicy?)]
+        allocations: [AllocationSeed]
     ) -> AnnualBudgetConfig {
         let config = AnnualBudgetConfig(
             year: 2025,
             totalAmount: 1_000_000,
             policy: policy
         )
-        config.allocations = allocations.map { category, amount, override in
+        config.allocations = allocations.map { seed in
             let allocation = AnnualBudgetAllocation(
-                amount: amount,
-                category: category,
-                policyOverride: override
+                amount: seed.amount,
+                category: seed.category,
+                policyOverride: seed.override
             )
             allocation.config = config
             return allocation
         }
         return config
+    }
+
+    private struct AllocationSeed {
+        let category: Kakeibo.Category
+        let amount: Decimal
+        let override: AnnualBudgetPolicy?
     }
 
     private func makeTransaction(

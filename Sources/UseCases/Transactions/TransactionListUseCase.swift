@@ -94,7 +94,10 @@ private extension DefaultTransactionListUseCase {
         filter: TransactionListFilter,
         keyword: String?
     ) -> Bool {
-        guard Self.matchesCalculationTarget(transaction: transaction, includeOnly: filter.includeOnlyCalculationTarget) else {
+        guard Self.matchesCalculationTarget(
+            transaction: transaction,
+            includeOnly: filter.includeOnlyCalculationTarget
+        ) else {
             return false
         }
 

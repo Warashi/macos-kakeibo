@@ -76,86 +76,30 @@ internal struct BudgetCalculator: Sendable {
         filter: AggregationFilter = .default,
         excludedCategoryIds: Set<UUID> = [],
     ) -> MonthlyBudgetCalculation {
-        let cacheKey = MonthlyBudgetCacheKey(
+        let context = MonthlyBudgetComputationContext(
+            transactions: transactions,
+            budgets: budgets,
             year: year,
             month: month,
-            filter: FilterSignature(filter: filter),
-            excludedCategoriesSignature: BudgetCalculationCacheHasher
-                .excludedCategoriesSignature(for: excludedCategoryIds),
-            transactionsVersion: BudgetCalculationCacheHasher.transactionsVersion(for: transactions),
-            budgetsVersion: BudgetCalculationCacheHasher.budgetsVersion(for: budgets)
+            filter: filter,
+            excludedCategoryIds: excludedCategoryIds
         )
+        let cacheKey = makeMonthlyBudgetCacheKey(context: context)
         if let cached = cache.cachedMonthlyBudget(for: cacheKey) {
             return cached
         }
 
-        // 月次集計を取得
-        let monthlySummary = aggregator.aggregateMonthly(
-            transactions: transactions,
-            year: year,
-            month: month,
-            filter: filter,
+        let monthlySummary = aggregateMonthlySummary(context: context)
+        let monthlyBudgets = budgetsForMonth(context: context)
+        let overallCalculation = overallMonthlyCalculation(
+            monthlyBudgets: monthlyBudgets,
+            summary: monthlySummary,
+            excludedCategoryIds: context.excludedCategoryIds
         )
-
-        // 対象月の予算を取得
-        let monthlyBudgets = budgets.filter { budget in
-            budget.contains(year: year, month: month)
-        }
-
-        // 全体予算（categoryがnilのもの）
-        let overallBudget = monthlyBudgets.first { $0.category == nil }
-        let excludedExpense = monthlySummary.categorySummaries.reduce(Decimal.zero) { partial, summary in
-            guard let categoryId = summary.categoryId,
-                  excludedCategoryIds.contains(categoryId) else {
-                return partial
-            }
-            return partial + summary.totalExpense
-        }
-        let adjustedTotalExpense = monthlySummary.totalExpense - excludedExpense
-
-        let overallCalculation: BudgetCalculation? = if let budget = overallBudget {
-            calculate(
-                budgetAmount: budget.amount,
-                actualAmount: max(0, adjustedTotalExpense),
-            )
-        } else {
-            nil
-        }
-
-        // カテゴリ別予算計算
-        let categoryCalculations = monthlyBudgets.compactMap { budget -> CategoryBudgetCalculation? in
-            guard let category = budget.category else { return nil }
-
-            // このカテゴリの実績を取得
-            let categoryActual: Decimal
-            if category.isMajor {
-                // 大項目の場合：大項目自身と全ての子カテゴリの実績を合計
-                let childCategoryIds = Set(category.children.map(\.id))
-                categoryActual = monthlySummary.categorySummaries
-                    .filter { summary in
-                        // 大項目自身のID、または子カテゴリのIDと一致するものを集計
-                        summary.categoryId == category
-                            .id || (summary.categoryId.map { childCategoryIds.contains($0) } ?? false)
-                    }
-                    .reduce(Decimal.zero) { $0 + $1.totalExpense }
-            } else {
-                // 中項目の場合：そのカテゴリIDと完全一致するもののみ
-                categoryActual = monthlySummary.categorySummaries
-                    .first { $0.categoryId == category.id }?
-                    .totalExpense ?? 0
-            }
-
-            let calculation = calculate(
-                budgetAmount: budget.amount,
-                actualAmount: categoryActual,
-            )
-
-            return CategoryBudgetCalculation(
-                categoryId: category.id,
-                categoryName: category.fullName,
-                calculation: calculation,
-            )
-        }
+        let categoryCalculations = categoryBudgetCalculations(
+            monthlyBudgets: monthlyBudgets,
+            summary: monthlySummary
+        )
 
         let result = MonthlyBudgetCalculation(
             year: year,
@@ -165,6 +109,118 @@ internal struct BudgetCalculator: Sendable {
         )
         cache.storeMonthlyBudget(result, for: cacheKey)
         return result
+    }
+
+    private func makeMonthlyBudgetCacheKey(
+        context: MonthlyBudgetComputationContext
+    ) -> MonthlyBudgetCacheKey {
+        MonthlyBudgetCacheKey(
+            year: context.year,
+            month: context.month,
+            filter: FilterSignature(filter: context.filter),
+            excludedCategoriesSignature: BudgetCalculationCacheHasher
+                .excludedCategoriesSignature(for: context.excludedCategoryIds),
+            transactionsVersion: BudgetCalculationCacheHasher.transactionsVersion(for: context.transactions),
+            budgetsVersion: BudgetCalculationCacheHasher.budgetsVersion(for: context.budgets)
+        )
+    }
+
+    private func aggregateMonthlySummary(
+        context: MonthlyBudgetComputationContext
+    ) -> MonthlySummary {
+        aggregator.aggregateMonthly(
+            transactions: context.transactions,
+            year: context.year,
+            month: context.month,
+            filter: context.filter
+        )
+    }
+
+    private func budgetsForMonth(
+        context: MonthlyBudgetComputationContext
+    ) -> [Budget] {
+        context.budgets.filter { $0.contains(year: context.year, month: context.month) }
+    }
+
+    private func overallMonthlyCalculation(
+        monthlyBudgets: [Budget],
+        summary: MonthlySummary,
+        excludedCategoryIds: Set<UUID>
+    ) -> BudgetCalculation? {
+        guard let budget = monthlyBudgets.first(where: { $0.category == nil }) else {
+            return nil
+        }
+        let excludedExpense = excludedExpense(
+            from: summary,
+            excludedCategoryIds: excludedCategoryIds
+        )
+        let adjustedTotalExpense = summary.totalExpense - excludedExpense
+        return calculate(
+            budgetAmount: budget.amount,
+            actualAmount: max(0, adjustedTotalExpense)
+        )
+    }
+
+    private func excludedExpense(
+        from summary: MonthlySummary,
+        excludedCategoryIds: Set<UUID>
+    ) -> Decimal {
+        summary.categorySummaries.reduce(into: Decimal.zero) { partial, summary in
+            guard let categoryId = summary.categoryId,
+                  excludedCategoryIds.contains(categoryId) else {
+                return
+            }
+            partial += summary.totalExpense
+        }
+    }
+
+    private func categoryBudgetCalculations(
+        monthlyBudgets: [Budget],
+        summary: MonthlySummary
+    ) -> [CategoryBudgetCalculation] {
+        monthlyBudgets.compactMap { budget -> CategoryBudgetCalculation? in
+            guard let category = budget.category else { return nil }
+            let categoryActual = categoryActualAmount(
+                for: category,
+                summary: summary
+            )
+            let calculation = calculate(
+                budgetAmount: budget.amount,
+                actualAmount: categoryActual
+            )
+            return CategoryBudgetCalculation(
+                categoryId: category.id,
+                categoryName: category.fullName,
+                calculation: calculation
+            )
+        }
+    }
+
+    private func categoryActualAmount(
+        for category: Category,
+        summary: MonthlySummary
+    ) -> Decimal {
+        if category.isMajor {
+            let childCategoryIds = Set(category.children.map(\.id))
+            return summary.categorySummaries
+                .filter { summary in
+                    summary.categoryId == category.id
+                        || (summary.categoryId.map { childCategoryIds.contains($0) } ?? false)
+                }
+                .reduce(Decimal.zero) { $0 + $1.totalExpense }
+        }
+        return summary.categorySummaries
+            .first { $0.categoryId == category.id }?
+            .totalExpense ?? 0
+    }
+
+    private struct MonthlyBudgetComputationContext {
+        let transactions: [Transaction]
+        let budgets: [Budget]
+        let year: Int
+        let month: Int
+        let filter: AggregationFilter
+        let excludedCategoryIds: Set<UUID>
     }
 
     /// カテゴリ別の予算チェック

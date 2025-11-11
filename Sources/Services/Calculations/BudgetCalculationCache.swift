@@ -68,23 +68,24 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
     internal struct Target: OptionSet {
         internal let rawValue: Int
 
-        internal static let monthlyBudget = Target(rawValue: 1 << 0)
-        internal static let specialPaymentSavings = Target(rawValue: 1 << 1)
-        internal static let monthlySavings = Target(rawValue: 1 << 2)
-        internal static let categorySavings = Target(rawValue: 1 << 3)
-        internal static let all: Target = [.monthlyBudget, .specialPaymentSavings, .monthlySavings, .categorySavings]
-
-        internal init(rawValue: Int) {
-            self.rawValue = rawValue
-        }
+        internal static let monthlyBudget: Target = Target(rawValue: 1 << 0)
+        internal static let specialPaymentSavings: Target = Target(rawValue: 1 << 1)
+        internal static let monthlySavings: Target = Target(rawValue: 1 << 2)
+        internal static let categorySavings: Target = Target(rawValue: 1 << 3)
+        internal static let all: Target = [
+            .monthlyBudget,
+            .specialPaymentSavings,
+            .monthlySavings,
+            .categorySavings,
+        ]
     }
 
-    private let lock = NSLock()
+    private let lock: NSLock = NSLock()
     private var monthlyBudgetCache: [MonthlyBudgetCacheKey: MonthlyBudgetCalculation] = [:]
     private var specialPaymentSavingsCache: [SpecialPaymentSavingsCacheKey: [SpecialPaymentSavingsCalculation]] = [:]
     private var monthlySavingsCache: [SavingsAllocationCacheKey: Decimal] = [:]
     private var categorySavingsCache: [SavingsAllocationCacheKey: [UUID: Decimal]] = [:]
-    private var metrics = StorageMetrics()
+    private var metrics: StorageMetrics = StorageMetrics()
 
     internal var metricsSnapshot: BudgetCalculationCacheMetrics {
         lock.withLock {

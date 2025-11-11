@@ -61,11 +61,13 @@ internal struct AnnualBudgetAllocator: Sendable {
         )
 
         let categoryAllocations = engine.calculateCategoryAllocations(
-            params: params,
-            year: year,
-            month: month,
-            policy: context.policy,
-            policyOverrides: context.policyOverrides,
+            request: MonthlyCategoryAllocationRequest(
+                params: params,
+                year: year,
+                month: month,
+                policy: context.policy,
+                policyOverrides: context.policyOverrides
+            )
         )
 
         let accumulationResult = engine.accumulateCategoryAllocations(

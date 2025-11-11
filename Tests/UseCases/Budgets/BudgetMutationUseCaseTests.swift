@@ -62,7 +62,7 @@ internal struct BudgetMutationUseCaseTests {
         context.insert(category)
         try context.save()
 
-        try useCase.upsertAnnualBudgetConfig(
+        let input = AnnualBudgetConfigInput(
             existingConfig: nil,
             year: 2025,
             totalAmount: 200_000,
@@ -71,6 +71,7 @@ internal struct BudgetMutationUseCaseTests {
                 AnnualAllocationDraft(categoryId: category.id, amount: 200_000),
             ]
         )
+        try useCase.upsertAnnualBudgetConfig(input)
 
         let snapshot = try repository.fetchSnapshot(for: 2025)
         let config = try #require(snapshot.annualBudgetConfig)

@@ -96,7 +96,8 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
             return nil
         }
 
-        guard let calculation = monthlyCalculation(snapshot: snapshot, year: year, month: month).overallCalculation else {
+        guard let calculation = monthlyCalculation(snapshot: snapshot, year: year, month: month)
+            .overallCalculation else {
             return nil
         }
 

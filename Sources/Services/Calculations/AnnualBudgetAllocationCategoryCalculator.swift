@@ -1,37 +1,48 @@
 import Foundation
 
+internal struct MonthlyCategoryAllocationRequest {
+    internal let params: AllocationCalculationParams
+    internal let year: Int
+    internal let month: Int
+    internal let policy: AnnualBudgetPolicy
+    internal let policyOverrides: [UUID: AnnualBudgetPolicy]
+}
+
 /// 月次カテゴリ別の充当計算を担当
 internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
     internal func calculateCategoryAllocations(
-        params: AllocationCalculationParams,
-        year: Int,
-        month: Int,
-        policy: AnnualBudgetPolicy,
-        policyOverrides: [UUID: AnnualBudgetPolicy]
+        request: MonthlyCategoryAllocationRequest
     ) -> [CategoryAllocation] {
         let filteredTransactions = filterTransactions(
-            transactions: params.transactions,
-            year: year,
-            month: month,
-            filter: params.filter
+            transactions: request.params.transactions,
+            year: request.year,
+            month: request.month,
+            filter: request.params.filter
         )
 
         let expenseMaps = makeActualExpenseMaps(from: filteredTransactions)
         let actualExpenseMap = expenseMaps.categoryExpenses
         let childExpenseMap = expenseMaps.childExpenseByParent
         let childFallbackMap = buildChildFallbackMap(from: filteredTransactions)
-        let monthlyBudgets = params.budgets.filter { $0.contains(year: year, month: month) }
-        let allocationAmounts = allocationAmountMap(from: params.annualBudgetConfig)
+        let monthlyBudgets = request.params.budgets.filter { $0.contains(year: request.year, month: request.month) }
+        let allocationAmounts = allocationAmountMap(from: request.params.annualBudgetConfig)
         let policyContext = PolicyContext(
-            overrides: policyOverrides,
-            defaultPolicy: policy,
+            overrides: request.policyOverrides,
+            defaultPolicy: request.policy,
             allocationAmounts: allocationAmounts,
             allocatedCategoryIds: Set(allocationAmounts.keys)
         )
 
-        if policy == .disabled, policyContext.overrides.isEmpty {
+        if request.policy == .disabled, policyContext.overrides.isEmpty {
             return []
         }
+
+        let computationContext = AllocationComputationContext(
+            actualExpenseMap: actualExpenseMap,
+            childExpenseMap: childExpenseMap,
+            policyContext: policyContext,
+            childFallbackMap: childFallbackMap
+        )
 
         var allocations: [CategoryAllocation] = []
         var processedCategoryIds: Set<UUID> = []
@@ -39,32 +50,23 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
         allocations.append(
             contentsOf: calculateAllocationsForMonthlyBudgets(
                 budgets: monthlyBudgets,
-                actualExpenseMap: actualExpenseMap,
-                childExpenseMap: childExpenseMap,
-                policyContext: policyContext,
-                childFallbackMap: childFallbackMap,
+                context: computationContext,
                 processedCategoryIds: &processedCategoryIds
             )
         )
 
         allocations.append(
             contentsOf: calculateAllocationsForFullCoverage(
-                config: params.annualBudgetConfig,
-                actualExpenseMap: actualExpenseMap,
-                childExpenseMap: childExpenseMap,
-                policyContext: policyContext,
-                childFallbackMap: childFallbackMap,
+                config: request.params.annualBudgetConfig,
+                context: computationContext,
                 processedCategoryIds: &processedCategoryIds
             )
         )
 
         allocations.append(
             contentsOf: calculateAllocationsForUnbudgetedCategories(
-                config: params.annualBudgetConfig,
-                actualExpenseMap: actualExpenseMap,
-                childExpenseMap: childExpenseMap,
-                policyContext: policyContext,
-                childFallbackMap: childFallbackMap,
+                config: request.params.annualBudgetConfig,
+                context: computationContext,
                 processedCategoryIds: &processedCategoryIds
             )
         )
@@ -79,12 +81,16 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
         let allocatedCategoryIds: Set<UUID>
     }
 
+    private struct AllocationComputationContext {
+        let actualExpenseMap: [UUID: Decimal]
+        let childExpenseMap: [UUID: Decimal]
+        let policyContext: PolicyContext
+        let childFallbackMap: [UUID: Set<UUID>]
+    }
+
     private func calculateAllocationsForMonthlyBudgets(
         budgets: [Budget],
-        actualExpenseMap: [UUID: Decimal],
-        childExpenseMap: [UUID: Decimal],
-        policyContext: PolicyContext,
-        childFallbackMap: [UUID: Set<UUID>],
+        context: AllocationComputationContext,
         processedCategoryIds: inout Set<UUID>
     ) -> [CategoryAllocation] {
         var allocations: [CategoryAllocation] = []
@@ -93,18 +99,15 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
             guard let category = budget.category else { continue }
 
             let categoryId = category.id
-            let isEligible = category.allowsAnnualBudget || policyContext.allocationAmounts[categoryId] != nil
+            let isEligible = category.allowsAnnualBudget || context.policyContext.allocationAmounts[categoryId] != nil
             guard isEligible else { continue }
-            let annualBudgetAmount = policyContext.allocationAmounts[categoryId] ?? 0
-            let effectivePolicy = policyContext.overrides[categoryId] ?? policyContext.defaultPolicy
+            let annualBudgetAmount = context.policyContext.allocationAmounts[categoryId] ?? 0
+            let effectivePolicy = context.policyContext.overrides[categoryId] ?? context.policyContext.defaultPolicy
             guard effectivePolicy != .disabled else { continue }
 
             let actualAmount = calculateActualAmount(
                 for: category,
-                from: actualExpenseMap,
-                childExpenseMap: childExpenseMap,
-                childFallbackMap: childFallbackMap,
-                allocatedCategoryIds: policyContext.allocatedCategoryIds
+                context: context
             )
 
             let amounts = calculateAllocationAmounts(
@@ -133,10 +136,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
     }
     private func calculateAllocationsForUnbudgetedCategories(
         config: AnnualBudgetConfig,
-        actualExpenseMap: [UUID: Decimal],
-        childExpenseMap: [UUID: Decimal],
-        policyContext: PolicyContext,
-        childFallbackMap: [UUID: Set<UUID>],
+        context: AllocationComputationContext,
         processedCategoryIds: inout Set<UUID>
     ) -> [CategoryAllocation] {
         var allocations: [CategoryAllocation] = []
@@ -146,15 +146,12 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
             let categoryId = category.id
             guard !processedCategoryIds.contains(categoryId) else { continue }
 
-            let effectivePolicy = policyContext.overrides[categoryId] ?? policyContext.defaultPolicy
+            let effectivePolicy = context.policyContext.overrides[categoryId] ?? context.policyContext.defaultPolicy
             guard effectivePolicy != .disabled else { continue }
 
             let actualAmount = calculateActualAmount(
                 for: category,
-                from: actualExpenseMap,
-                childExpenseMap: childExpenseMap,
-                childFallbackMap: childFallbackMap,
-                allocatedCategoryIds: policyContext.allocatedCategoryIds
+                context: context
             )
             guard actualAmount > 0 else { continue }
 
@@ -184,10 +181,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
     }
     private func calculateAllocationsForFullCoverage(
         config: AnnualBudgetConfig,
-        actualExpenseMap: [UUID: Decimal],
-        childExpenseMap: [UUID: Decimal],
-        policyContext: PolicyContext,
-        childFallbackMap: [UUID: Set<UUID>],
+        context: AllocationComputationContext,
         processedCategoryIds: inout Set<UUID>
     ) -> [CategoryAllocation] {
         let fullCoverageAllocations = config.allocations
@@ -200,13 +194,12 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
             let category = allocation.category
             let categoryId = category.id
             guard !processedCategoryIds.contains(categoryId) else { continue }
+            let effectivePolicy = context.policyContext.overrides[categoryId] ?? context.policyContext.defaultPolicy
+            guard effectivePolicy == .fullCoverage else { continue }
 
             let actualAmount = calculateActualAmount(
                 for: category,
-                from: actualExpenseMap,
-                childExpenseMap: childExpenseMap,
-                childFallbackMap: childFallbackMap,
-                allocatedCategoryIds: policyContext.allocatedCategoryIds
+                context: context
             )
             guard actualAmount > 0 else { continue }
 
@@ -236,33 +229,29 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
     }
     private func calculateActualAmount(
         for category: Category,
-        from actualExpenseMap: [UUID: Decimal],
-        childExpenseMap: [UUID: Decimal],
-        childFallbackMap: [UUID: Set<UUID>],
-        allocatedCategoryIds: Set<UUID>
+        context: AllocationComputationContext
     ) -> Decimal {
         let categoryId = category.id
         if category.isMajor {
             let childCategoryIds: Set<UUID> = if category.children.isEmpty,
-                                                 let fallbackChildren = childFallbackMap[categoryId] {
+                                                 let fallbackChildren = context.childFallbackMap[categoryId] {
                 fallbackChildren
             } else {
                 Set(category.children.map(\.id))
             }
-            var total = actualExpenseMap[categoryId] ?? 0
+            var total = context.actualExpenseMap[categoryId] ?? 0
 
-            for childId in childCategoryIds where !allocatedCategoryIds.contains(childId) {
-                total += actualExpenseMap[childId] ?? 0
+            for childId in childCategoryIds where !context.policyContext.allocatedCategoryIds.contains(childId) {
+                total += context.actualExpenseMap[childId] ?? 0
             }
 
             if childCategoryIds.isEmpty {
-                total += childExpenseMap[categoryId] ?? 0
+                total += context.childExpenseMap[categoryId] ?? 0
             }
 
             return total
-        } else {
-            return actualExpenseMap[categoryId] ?? 0
         }
+        return context.actualExpenseMap[categoryId] ?? 0
     }
 
     private func allocationAmountMap(from config: AnnualBudgetConfig) -> [UUID: Decimal] {

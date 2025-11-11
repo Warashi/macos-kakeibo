@@ -278,30 +278,11 @@ private extension BudgetView {
 
     func saveAnnualBudgetConfig() {
         guard let store else { return }
-        guard let amount = annualFormState.decimalAmount, amount > 0 else {
-            annualFormError = "総額を正しく入力してください"
+        guard let amount = validatedAnnualTotalAmount() else { return }
+        guard let finalizedDrafts = finalizedAnnualAllocations(totalAmount: amount) else {
             return
         }
-
-        let finalizedDrafts: [AnnualAllocationDraft]
-        switch annualFormState.finalizeAllocations(totalAmount: amount) {
-        case let .success(result):
-            finalizedDrafts = result
-        case let .failure(error):
-            switch error {
-            case .noAllocations:
-                annualFormError = "カテゴリと金額を入力してください"
-            case .manualDoesNotMatchTotal:
-                annualFormError = "カテゴリ合計が総額と一致していません"
-            }
-            return
-        }
-
-        let uniqueCategoryIds = Set(finalizedDrafts.map(\.categoryId))
-        guard uniqueCategoryIds.count == finalizedDrafts.count else {
-            annualFormError = "カテゴリが重複しています"
-            return
-        }
+        guard ensureUniqueAnnualCategories(finalizedDrafts) else { return }
 
         do {
             try store.upsertAnnualBudgetConfig(
@@ -317,6 +298,38 @@ private extension BudgetView {
         } catch {
             showError(message: "年次特別枠の保存に失敗しました: \(error.localizedDescription)")
         }
+    }
+
+    func validatedAnnualTotalAmount() -> Decimal? {
+        guard let amount = annualFormState.decimalAmount, amount > 0 else {
+            annualFormError = "総額を正しく入力してください"
+            return nil
+        }
+        return amount
+    }
+
+    func finalizedAnnualAllocations(totalAmount: Decimal) -> [AnnualAllocationDraft]? {
+        switch annualFormState.finalizeAllocations(totalAmount: totalAmount) {
+        case let .success(result):
+            return result
+        case let .failure(error):
+            switch error {
+            case .noAllocations:
+                annualFormError = "カテゴリと金額を入力してください"
+            case .manualDoesNotMatchTotal:
+                annualFormError = "カテゴリ合計が総額と一致していません"
+            }
+            return nil
+        }
+    }
+
+    func ensureUniqueAnnualCategories(_ drafts: [AnnualAllocationDraft]) -> Bool {
+        let uniqueCategoryIds = Set(drafts.map(\.categoryId))
+        let hasDuplicates = uniqueCategoryIds.count != drafts.count
+        if hasDuplicates {
+            annualFormError = "カテゴリが重複しています"
+        }
+        return !hasDuplicates
     }
 }
 
