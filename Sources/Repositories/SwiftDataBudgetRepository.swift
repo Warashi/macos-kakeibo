@@ -32,6 +32,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         let categories = try modelContext.fetch(CategoryQueries.sortedForDisplay())
         let definitions = try specialPaymentRepository.definitions(filter: nil)
         let balances = try specialPaymentRepository.balances(query: nil)
+        let occurrences = try specialPaymentRepository.occurrences(query: nil)
         let config = try modelContext.fetch(BudgetQueries.annualConfig(for: year)).first
         return BudgetSnapshot(
             budgets: budgets,
@@ -40,6 +41,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
             annualBudgetConfig: config,
             specialPaymentDefinitions: definitions,
             specialPaymentBalances: balances,
+            specialPaymentOccurrences: occurrences,
         )
     }
 
