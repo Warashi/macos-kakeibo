@@ -82,11 +82,11 @@ internal actor BackupManager {
 
         return BackupPayload(
             metadata: metadata,
-            transactions: transactions.map(TransactionDTO.init),
-            categories: categories.map(CategoryDTO.init),
-            budgets: budgets.map(BudgetDTO.init),
-            annualBudgetConfigs: configs.map(AnnualBudgetConfigDTO.init),
-            financialInstitutions: institutions.map(FinancialInstitutionDTO.init),
+            transactions: transactions.map(BackupTransactionDTO.init),
+            categories: categories.map(BackupCategoryDTO.init),
+            budgets: budgets.map(BackupBudgetDTO.init),
+            annualBudgetConfigs: configs.map(BackupAnnualBudgetConfigDTO.init),
+            financialInstitutions: institutions.map(BackupFinancialInstitutionDTO.init),
         )
     }
 
@@ -167,7 +167,7 @@ internal actor BackupManager {
     @discardableResult
     @MainActor
     private static func insertFinancialInstitutions(
-        _ dtos: [FinancialInstitutionDTO],
+        _ dtos: [BackupFinancialInstitutionDTO],
         context: ModelContext,
     ) throws -> [UUID: FinancialInstitution] {
         var result: [UUID: FinancialInstitution] = [:]
@@ -188,7 +188,7 @@ internal actor BackupManager {
     @discardableResult
     @MainActor
     private static func insertCategories(
-        _ dtos: [CategoryDTO],
+        _ dtos: [BackupCategoryDTO],
         context: ModelContext,
     ) throws -> [UUID: Category] {
         var result: [UUID: Category] = [:]
@@ -222,7 +222,7 @@ internal actor BackupManager {
 
     @MainActor
     private static func insertBudgets(
-        _ dtos: [BudgetDTO],
+        _ dtos: [BackupBudgetDTO],
         categories: [UUID: Category],
         context: ModelContext,
     ) throws {
@@ -244,7 +244,7 @@ internal actor BackupManager {
 
     @MainActor
     private static func insertAnnualBudgetConfigs(
-        _ dtos: [AnnualBudgetConfigDTO],
+        _ dtos: [BackupAnnualBudgetConfigDTO],
         context: ModelContext,
     ) throws {
         for dto in dtos {
@@ -262,7 +262,7 @@ internal actor BackupManager {
 
     @MainActor
     private static func insertTransactions(
-        _ dtos: [TransactionDTO],
+        _ dtos: [BackupTransactionDTO],
         categories: [UUID: Category],
         institutions: [UUID: FinancialInstitution],
         context: ModelContext,
@@ -301,14 +301,14 @@ internal actor BackupManager {
 
 internal struct BackupPayload: Codable, Sendable {
     internal let metadata: BackupMetadata
-    internal let transactions: [TransactionDTO]
-    internal let categories: [CategoryDTO]
-    internal let budgets: [BudgetDTO]
-    internal let annualBudgetConfigs: [AnnualBudgetConfigDTO]
-    internal let financialInstitutions: [FinancialInstitutionDTO]
+    internal let transactions: [BackupTransactionDTO]
+    internal let categories: [BackupCategoryDTO]
+    internal let budgets: [BackupBudgetDTO]
+    internal let annualBudgetConfigs: [BackupAnnualBudgetConfigDTO]
+    internal let financialInstitutions: [BackupFinancialInstitutionDTO]
 }
 
-internal struct TransactionDTO: Codable {
+internal struct BackupTransactionDTO: Codable {
     internal let id: UUID
     internal let date: Date
     internal let title: String
@@ -338,7 +338,7 @@ internal struct TransactionDTO: Codable {
     }
 }
 
-internal struct CategoryDTO: Codable {
+internal struct BackupCategoryDTO: Codable {
     internal let id: UUID
     internal let name: String
     internal let parentId: UUID?
@@ -358,7 +358,7 @@ internal struct CategoryDTO: Codable {
     }
 }
 
-internal struct BudgetDTO: Codable {
+internal struct BackupBudgetDTO: Codable {
     internal let id: UUID
     internal let amount: Decimal
     internal let categoryId: UUID?
@@ -382,7 +382,7 @@ internal struct BudgetDTO: Codable {
     }
 }
 
-internal struct AnnualBudgetConfigDTO: Codable {
+internal struct BackupAnnualBudgetConfigDTO: Codable {
     internal let id: UUID
     internal let year: Int
     internal let totalAmount: Decimal
@@ -404,7 +404,7 @@ internal struct AnnualBudgetConfigDTO: Codable {
     }
 }
 
-internal struct FinancialInstitutionDTO: Codable {
+internal struct BackupFinancialInstitutionDTO: Codable {
     internal let id: UUID
     internal let name: String
     internal let displayOrder: Int
