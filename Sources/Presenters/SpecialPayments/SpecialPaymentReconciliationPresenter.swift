@@ -3,7 +3,7 @@ import Foundation
 internal struct SpecialPaymentReconciliationPresenter {
     internal struct Presentation {
         internal let rows: [OccurrenceRow]
-        internal let occurrenceLookup: [UUID: SpecialPaymentOccurrence]
+        internal let occurrenceLookup: [UUID: SpecialPaymentOccurrenceDTO]
         internal let linkedTransactionLookup: [UUID: UUID]
     }
 
@@ -20,20 +20,39 @@ internal struct SpecialPaymentReconciliationPresenter {
         internal let isOverdue: Bool
 
         internal init(
-            occurrence: SpecialPaymentOccurrence,
-            definition: SpecialPaymentDefinition,
+            occurrence: SpecialPaymentOccurrenceDTO,
+            definition: SpecialPaymentDefinitionDTO,
+            categoryName: String?,
+            transactionTitle: String?,
             referenceDate: Date,
         ) {
             self.id = occurrence.id
             self.definitionName = definition.name
-            self.categoryName = definition.category?.fullName
+            self.categoryName = categoryName
             self.scheduledDate = occurrence.scheduledDate
             self.expectedAmount = occurrence.expectedAmount
             self.status = occurrence.status
-            self.recurrenceDescription = definition.recurrenceDescription
-            self.transactionTitle = occurrence.transaction?.title
+            self.recurrenceDescription = Self.makeRecurrenceDescription(
+                recurrenceIntervalMonths: definition.recurrenceIntervalMonths,
+            )
+            self.transactionTitle = transactionTitle
             self.actualAmount = occurrence.actualAmount
             self.isOverdue = occurrence.scheduledDate < referenceDate && !occurrence.isCompleted
+        }
+
+        private static func makeRecurrenceDescription(recurrenceIntervalMonths: Int) -> String {
+            guard recurrenceIntervalMonths > 0 else { return "未設定" }
+            let years = recurrenceIntervalMonths / 12
+            let months = recurrenceIntervalMonths % 12
+
+            switch (years, months) {
+            case let (0, monthsOnly):
+                return "\(monthsOnly)か月"
+            case let (yearsOnly, 0):
+                return "\(yearsOnly)年"
+            default:
+                return "\(years)年\(months)か月"
+            }
         }
 
         internal var needsAttention: Bool {
@@ -86,7 +105,7 @@ internal struct SpecialPaymentReconciliationPresenter {
 
     internal struct TransactionCandidate: Identifiable, Hashable, Comparable {
         internal var id: UUID { transaction.id }
-        internal let transaction: Transaction
+        internal let transaction: TransactionDTO
         internal let score: TransactionCandidateScore
         internal let isCurrentLink: Bool
 
@@ -102,7 +121,7 @@ internal struct SpecialPaymentReconciliationPresenter {
     }
 
     internal struct TransactionCandidateSearchContext {
-        internal let transactions: [Transaction]
+        internal let transactions: [TransactionDTO]
         internal let linkedTransactionLookup: [UUID: UUID]
         internal let windowDays: Int
         internal let limit: Int
@@ -154,8 +173,9 @@ internal struct SpecialPaymentReconciliationPresenter {
         }
 
         internal func score(
-            occurrence: SpecialPaymentOccurrence,
-            transaction: Transaction,
+            occurrence: SpecialPaymentOccurrenceDTO,
+            definition: SpecialPaymentDefinitionDTO,
+            transaction: TransactionDTO,
         ) -> TransactionCandidateScore {
             let expectedAmount = occurrence.expectedAmount
             let actualAmount = transaction.absoluteAmount
@@ -183,7 +203,7 @@ internal struct SpecialPaymentReconciliationPresenter {
             )
             let dateScore = 1 - normalizedDays
 
-            let normalizedDefinition = occurrence.definition.name.lowercased()
+            let normalizedDefinition = definition.name.lowercased()
             let normalizedTitle = transaction.title.lowercased()
             let titleMatched = !normalizedDefinition.isEmpty && (
                 normalizedTitle.contains(normalizedDefinition)
@@ -215,26 +235,35 @@ internal struct SpecialPaymentReconciliationPresenter {
     }
 
     internal func makePresentation(
-        definitions: [SpecialPaymentDefinition],
+        occurrences: [SpecialPaymentOccurrenceDTO],
+        definitions: [UUID: SpecialPaymentDefinitionDTO],
+        categories: [UUID: String],
+        transactions: [UUID: String],
         referenceDate: Date,
     ) -> Presentation {
         var rows: [OccurrenceRow] = []
-        var occurrenceLookup: [UUID: SpecialPaymentOccurrence] = [:]
+        var occurrenceLookup: [UUID: SpecialPaymentOccurrenceDTO] = [:]
         var linkedTransactionLookup: [UUID: UUID] = [:]
 
-        for definition in definitions {
-            for occurrence in definition.occurrences {
-                rows.append(
-                    OccurrenceRow(
-                        occurrence: occurrence,
-                        definition: definition,
-                        referenceDate: referenceDate,
-                    ),
-                )
-                occurrenceLookup[occurrence.id] = occurrence
-                if let transaction = occurrence.transaction {
-                    linkedTransactionLookup[transaction.id] = occurrence.id
-                }
+        for occurrence in occurrences {
+            guard let definition = definitions[occurrence.definitionId] else {
+                continue
+            }
+            let categoryName = definition.categoryId.flatMap { categories[$0] }
+            let transactionTitle = occurrence.transactionId.flatMap { transactions[$0] }
+
+            rows.append(
+                OccurrenceRow(
+                    occurrence: occurrence,
+                    definition: definition,
+                    categoryName: categoryName,
+                    transactionTitle: transactionTitle,
+                    referenceDate: referenceDate,
+                ),
+            )
+            occurrenceLookup[occurrence.id] = occurrence
+            if let transactionId = occurrence.transactionId {
+                linkedTransactionLookup[transactionId] = occurrence.id
             }
         }
 
@@ -256,7 +285,8 @@ internal struct SpecialPaymentReconciliationPresenter {
     }
 
     internal func transactionCandidates(
-        for occurrence: SpecialPaymentOccurrence,
+        for occurrence: SpecialPaymentOccurrenceDTO,
+        definition: SpecialPaymentDefinitionDTO,
         context: TransactionCandidateSearchContext,
     ) -> [TransactionCandidate] {
         let scorer = TransactionCandidateScorer(calendar: calendar, windowDays: context.windowDays)
@@ -282,7 +312,7 @@ internal struct SpecialPaymentReconciliationPresenter {
                 continue
             }
 
-            let score = scorer.score(occurrence: occurrence, transaction: transaction)
+            let score = scorer.score(occurrence: occurrence, definition: definition, transaction: transaction)
             guard score.isWithinBounds else { continue }
 
             candidates.append(
@@ -290,18 +320,6 @@ internal struct SpecialPaymentReconciliationPresenter {
                     transaction: transaction,
                     score: score,
                     isCurrentLink: isCurrentLink,
-                ),
-            )
-        }
-
-        if let linkedTransaction = occurrence.transaction,
-           !candidates.contains(where: { $0.transaction.id == linkedTransaction.id }) {
-            let score = scorer.score(occurrence: occurrence, transaction: linkedTransaction)
-            candidates.append(
-                TransactionCandidate(
-                    transaction: linkedTransaction,
-                    score: score,
-                    isCurrentLink: true,
                 ),
             )
         }
