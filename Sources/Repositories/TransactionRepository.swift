@@ -14,7 +14,7 @@ internal struct TransactionQuery {
 }
 
 @DatabaseActor
-internal protocol TransactionRepository {
+internal protocol TransactionRepository: Sendable {
     func fetchTransactions(query: TransactionQuery) throws -> [TransactionDTO]
     func fetchAllTransactions() throws -> [TransactionDTO]
     func fetchInstitutions() throws -> [FinancialInstitutionDTO]

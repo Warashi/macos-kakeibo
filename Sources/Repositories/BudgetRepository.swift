@@ -1,7 +1,7 @@
 import Foundation
 
 @DatabaseActor
-internal protocol BudgetRepository {
+internal protocol BudgetRepository: Sendable {
     func fetchSnapshot(for year: Int) throws -> BudgetSnapshot
     func category(id: UUID) throws -> Category?
     func insertBudget(_ budget: Budget)

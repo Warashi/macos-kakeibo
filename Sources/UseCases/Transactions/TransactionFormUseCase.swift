@@ -71,19 +71,19 @@ internal final class DefaultTransactionFormUseCase: TransactionFormUseCaseProtoc
         }
 
         do {
-            try await repository.saveChanges()
+            try repository.saveChanges()
         } catch {
             throw TransactionFormError.persistenceFailed(error.localizedDescription)
         }
     }
 
     internal func delete(transactionId: UUID) async throws {
-        guard let transaction = try await repository.findTransaction(id: transactionId) else {
+        guard let transaction = try repository.findTransaction(id: transactionId) else {
             throw TransactionFormError.persistenceFailed("取引が見つかりません")
         }
-        await repository.delete(transaction)
+        repository.delete(transaction)
         do {
-            try await repository.saveChanges()
+            try repository.saveChanges()
         } catch {
             throw TransactionFormError.persistenceFailed(error.localizedDescription)
         }
@@ -97,13 +97,30 @@ private extension DefaultTransactionFormUseCase {
         amount: Decimal,
         referenceData: TransactionReferenceData,
     ) async throws {
-        guard let transaction = try await repository.findTransaction(id: transactionId) else {
+        guard let transaction = try repository.findTransaction(id: transactionId) else {
             throw TransactionFormError.persistenceFailed("更新対象の取引が見つかりません")
         }
 
-        let institution = try await repository.findInstitution(id: state.financialInstitutionId)
-        let majorCategory = try await repository.findCategory(id: state.majorCategoryId)
-        let minorCategory = try await repository.findCategory(id: state.minorCategoryId)
+        let institution: FinancialInstitution?
+        if let institutionId = state.financialInstitutionId {
+            institution = try repository.findInstitution(id: institutionId)
+        } else {
+            institution = nil
+        }
+
+        let majorCategory: Category?
+        if let majorId = state.majorCategoryId {
+            majorCategory = try repository.findCategory(id: majorId)
+        } else {
+            majorCategory = nil
+        }
+
+        let minorCategory: Category?
+        if let minorId = state.minorCategoryId {
+            minorCategory = try repository.findCategory(id: minorId)
+        } else {
+            minorCategory = nil
+        }
 
         transaction.title = state.title
         transaction.memo = state.memo
@@ -122,9 +139,26 @@ private extension DefaultTransactionFormUseCase {
         amount: Decimal,
         referenceData: TransactionReferenceData,
     ) async throws {
-        let institution = try await repository.findInstitution(id: state.financialInstitutionId)
-        let majorCategory = try await repository.findCategory(id: state.majorCategoryId)
-        let minorCategory = try await repository.findCategory(id: state.minorCategoryId)
+        let institution: FinancialInstitution?
+        if let institutionId = state.financialInstitutionId {
+            institution = try repository.findInstitution(id: institutionId)
+        } else {
+            institution = nil
+        }
+
+        let majorCategory: Category?
+        if let majorId = state.majorCategoryId {
+            majorCategory = try repository.findCategory(id: majorId)
+        } else {
+            majorCategory = nil
+        }
+
+        let minorCategory: Category?
+        if let minorId = state.minorCategoryId {
+            minorCategory = try repository.findCategory(id: minorId)
+        } else {
+            minorCategory = nil
+        }
 
         let transaction = Transaction(
             date: state.date,
@@ -137,7 +171,7 @@ private extension DefaultTransactionFormUseCase {
             majorCategory: majorCategory,
             minorCategory: minorCategory,
         )
-        await repository.insert(transaction)
+        repository.insert(transaction)
     }
 
     func validate(state: TransactionFormState, referenceData: TransactionReferenceData) -> [String] {

@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 
 internal enum SpecialPaymentRepositoryFactory {
+    @DatabaseActor
     internal static func make(
         modelContext: ModelContext,
         calendar: Calendar = Calendar(identifier: .gregorian),

@@ -30,7 +30,7 @@ internal protocol TransactionListUseCaseProtocol {
     func loadReferenceData() async throws -> TransactionReferenceData
     func loadTransactions(filter: TransactionListFilter) async throws -> [TransactionDTO]
     @discardableResult
-    nonisolated func observeTransactions(
+    func observeTransactions(
         filter: TransactionListFilter,
         onChange: @escaping @MainActor ([TransactionDTO]) -> Void,
     ) async throws -> ObservationToken
@@ -45,27 +45,27 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
     }
 
     internal func loadReferenceData() async throws -> TransactionReferenceData {
-        let institutions = try await repository.fetchInstitutions()
-        let categories = try await repository.fetchCategories()
+        let institutions = try repository.fetchInstitutions()
+        let categories = try repository.fetchCategories()
         return TransactionReferenceData(institutions: institutions, categories: categories)
     }
 
     internal func loadTransactions(filter: TransactionListFilter) async throws -> [TransactionDTO] {
-        let transactions = try await repository.fetchTransactions(query: filter.asQuery)
+        let transactions = try repository.fetchTransactions(query: filter.asQuery)
         return Self.filterTransactions(transactions, filter: filter)
     }
 
     @discardableResult
-    internal nonisolated func observeTransactions(
+    internal func observeTransactions(
         filter: TransactionListFilter,
         onChange: @escaping @MainActor ([TransactionDTO]) -> Void,
     ) async throws -> ObservationToken {
-        let token = try await repository.observeTransactions(query: filter.asQuery) { transactions in
+        let token = try repository.observeTransactions(query: filter.asQuery) { transactions in
             let filtered = Self.filterTransactions(transactions, filter: filter)
             onChange(filtered)
         }
         do {
-            let initial = try await loadTransactions(filter: filter)
+            let initial = try loadTransactions(filter: filter)
             await MainActor.run {
                 onChange(initial)
             }

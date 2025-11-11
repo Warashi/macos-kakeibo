@@ -105,14 +105,16 @@ internal final class SpecialPaymentStore {
         businessDayService: BusinessDayService? = nil,
         holidayProvider: HolidayProvider? = nil,
         currentDateProvider: @escaping () -> Date = { Date() },
-    ) {
-        let resolvedRepository = SpecialPaymentRepositoryFactory.make(
-            modelContext: modelContext,
-            calendar: calendar,
-            businessDayService: businessDayService,
-            holidayProvider: holidayProvider,
-            currentDateProvider: currentDateProvider,
-        )
+    ) async {
+        let resolvedRepository = await Task { @DatabaseActor in
+            SpecialPaymentRepositoryFactory.make(
+                modelContext: modelContext,
+                calendar: calendar,
+                businessDayService: businessDayService,
+                holidayProvider: holidayProvider,
+                currentDateProvider: currentDateProvider,
+            )
+        }.value
         self.init(
             repository: resolvedRepository,
             currentDateProvider: currentDateProvider,
@@ -177,9 +179,9 @@ extension SpecialPaymentStore {
     internal func createDefinition(
         _ input: SpecialPaymentDefinitionInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
-    ) throws {
-        let definition = try repository.createDefinition(input)
-        let summary = try repository.synchronize(
+    ) async throws {
+        let definition = try await repository.createDefinition(input)
+        let summary = try await repository.synchronize(
             definition: definition,
             horizonMonths: horizonMonths,
             referenceDate: currentDateProvider(),
@@ -192,9 +194,9 @@ extension SpecialPaymentStore {
         _ definition: SpecialPaymentDefinition,
         input: SpecialPaymentDefinitionInput,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
-    ) throws {
-        try repository.updateDefinition(definition, input: input)
-        let summary = try repository.synchronize(
+    ) async throws {
+        try await repository.updateDefinition(definition, input: input)
+        let summary = try await repository.synchronize(
             definition: definition,
             horizonMonths: horizonMonths,
             referenceDate: currentDateProvider(),
@@ -203,7 +205,7 @@ extension SpecialPaymentStore {
     }
 
     /// 特別支払い定義を削除
-    internal func deleteDefinition(_ definition: SpecialPaymentDefinition) throws {
-        try repository.deleteDefinition(definition)
+    internal func deleteDefinition(_ definition: SpecialPaymentDefinition) async throws {
+        try await repository.deleteDefinition(definition)
     }
 }

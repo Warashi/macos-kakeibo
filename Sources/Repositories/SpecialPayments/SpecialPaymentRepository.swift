@@ -62,7 +62,7 @@ internal struct SpecialPaymentSynchronizationSummary {
 }
 
 @DatabaseActor
-internal protocol SpecialPaymentRepository {
+internal protocol SpecialPaymentRepository: Sendable {
     func definitions(filter: SpecialPaymentDefinitionFilter?) throws -> [SpecialPaymentDefinition]
     func occurrences(query: SpecialPaymentOccurrenceQuery?) throws -> [SpecialPaymentOccurrence]
     func balances(query: SpecialPaymentBalanceQuery?) throws -> [SpecialPaymentSavingBalance]
