@@ -39,6 +39,19 @@ internal struct CategoryFilterState: Equatable {
             guard let filterMajorId = self.majorCategoryId else { return true }
             return majorCategoryId == filterMajorId
         }
+
+        internal func matchesByCategoryId(categoryId: UUID?) -> Bool {
+            guard let categoryId else {
+                return majorCategoryId == nil && minorCategoryId == nil
+            }
+
+            if let minorCategoryId {
+                return categoryId == minorCategoryId
+            }
+
+            guard let majorCategoryId else { return true }
+            return categoryId == majorCategoryId
+        }
     }
 
     internal private(set) var availableCategories: [Category]
