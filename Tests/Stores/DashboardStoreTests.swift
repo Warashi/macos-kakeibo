@@ -43,6 +43,7 @@ internal struct DashboardStoreTests {
         let store = DashboardStore(modelContext: context)
         store.currentYear = 2025
         store.currentMonth = 11
+        store.refresh()
 
         // When
         let summary = store.monthlySummary
@@ -84,6 +85,7 @@ internal struct DashboardStoreTests {
         let store = DashboardStore(modelContext: context)
         store.currentYear = 2025
         store.currentMonth = 12
+        store.refresh()
 
         let summary = store.monthlySummary
         #expect(summary.transactionCount == 1)
@@ -123,6 +125,7 @@ internal struct DashboardStoreTests {
         let store = DashboardStore(modelContext: context)
         store.currentYear = 2025
         store.currentMonth = 8
+        store.refresh()
 
         let summary = store.annualSummary
         #expect(summary.transactionCount == 2)
@@ -251,6 +254,7 @@ internal struct DashboardStoreTests {
         let store = DashboardStore(modelContext: context)
         store.currentYear = 2025
         store.currentMonth = 11
+        store.refresh()
         store.displayMode = .monthly
 
         // When
@@ -278,6 +282,7 @@ internal struct DashboardStoreTests {
 
         let store = DashboardStore(modelContext: context)
         store.currentYear = 2025
+        store.refresh()
 
         let progress = try #require(store.annualBudgetProgressCalculation)
         #expect(progress.budgetAmount == 120_000)
@@ -306,6 +311,7 @@ internal struct DashboardStoreTests {
 
         let store = DashboardStore(modelContext: context)
         store.currentYear = 2025
+        store.refresh()
 
         let progress = try #require(store.annualBudgetProgressCalculation)
         #expect(progress.budgetAmount == 10000)
@@ -365,6 +371,7 @@ internal struct DashboardStoreTests {
         let store = DashboardStore(modelContext: context)
         store.currentYear = 2025
         store.currentMonth = 1
+        store.refresh()
 
         // When
         let usage = try #require(store.annualBudgetUsage)
@@ -423,6 +430,7 @@ internal struct DashboardStoreTests {
 
         let store = DashboardStore(modelContext: context)
         store.currentYear = 2025
+        store.refresh()
 
         // When
         let progress = try #require(store.annualBudgetProgressCalculation)
