@@ -29,7 +29,10 @@ internal final class BudgetStore {
     // MARK: - State
 
     private var snapshot: BudgetSnapshot? {
-        didSet { refreshToken = UUID() }
+        didSet {
+            refreshToken = UUID()
+            recalculate()
+        }
     }
 
     internal var currentYear: Int {
@@ -43,6 +46,7 @@ internal final class BudgetStore {
         didSet {
             guard oldValue != currentMonth else { return }
             refreshToken = UUID()
+            recalculate()
         }
     }
 
@@ -52,6 +56,47 @@ internal final class BudgetStore {
     internal var displayModeTraits: BudgetDisplayModeTraits {
         BudgetDisplayModeTraits(mode: displayMode)
     }
+
+    // MARK: - Cached Data
+
+    /// 現在の月の予算一覧
+    internal var monthlyBudgets: [Budget] = []
+
+    /// カテゴリ選択肢
+    internal var selectableCategories: [Category] = []
+
+    /// 月次計算結果
+    internal var monthlyBudgetCalculation: MonthlyBudgetCalculation
+
+    /// カテゴリ別エントリ
+    internal var categoryBudgetEntries: [MonthlyBudgetEntry] = []
+
+    /// 全体予算エントリ
+    internal var overallBudgetEntry: MonthlyBudgetEntry?
+
+    /// 年次特別枠設定
+    internal var annualBudgetConfig: AnnualBudgetConfig?
+
+    /// 年次特別枠の使用状況
+    internal var annualBudgetUsage: AnnualBudgetUsage?
+
+    /// 年次全体予算エントリ
+    internal var annualOverallBudgetEntry: AnnualBudgetEntry?
+
+    /// 年次カテゴリ別エントリ
+    internal var annualCategoryBudgetEntries: [AnnualBudgetEntry] = []
+
+    /// 月次積立金額の合計
+    internal var monthlySpecialPaymentSavingsTotal: Decimal = .zero
+
+    /// カテゴリ別積立金額
+    internal var categorySpecialPaymentSavings: [UUID: Decimal] = [:]
+
+    /// 特別支払い積立計算結果
+    internal var specialPaymentSavingsCalculations: [SpecialPaymentSavingsCalculation] = []
+
+    /// 特別支払い積立の表示用エントリ
+    internal var specialPaymentSavingsEntries: [SpecialPaymentSavingsEntry] = []
 
     // MARK: - Initialization
 
@@ -86,14 +131,25 @@ internal final class BudgetStore {
         self.currentDateProvider = currentDateProvider
 
         let now = currentDateProvider()
-        self.currentYear = now.year
-        self.currentMonth = now.month
+        let initialYear = now.year
+        let initialMonth = now.month
+
+        self.currentYear = initialYear
+        self.currentMonth = initialMonth
+
+        // 初期値を設定（recalculate で上書きされる）
+        self.monthlyBudgetCalculation = MonthlyBudgetCalculation(
+            year: initialYear,
+            month: initialMonth,
+            overallCalculation: nil,
+            categoryCalculations: [],
+        )
 
         reloadSnapshot()
     }
 }
 
-// MARK: - Data Accessors
+// MARK: - Data Refresh
 
 internal extension BudgetStore {
     /// データを再取得
@@ -101,125 +157,87 @@ internal extension BudgetStore {
         reloadSnapshot()
     }
 
-    /// 現在の月の予算一覧
-    var monthlyBudgets: [Budget] {
-        guard let snapshot else { return [] }
-        return monthlyUseCase.monthlyBudgets(
-            snapshot: snapshot,
-            year: currentYear,
-            month: currentMonth,
-        )
-    }
-
-    /// カテゴリ選択肢
-    var selectableCategories: [Category] {
-        snapshot?.categories ?? []
-    }
-
-    /// 月次計算結果
-    var monthlyBudgetCalculation: MonthlyBudgetCalculation {
+    /// 計算結果を再計算
+    private func recalculate() {
         guard let snapshot else {
-            return MonthlyBudgetCalculation(
+            // snapshotがない場合は初期値を設定
+            monthlyBudgets = []
+            selectableCategories = []
+            monthlyBudgetCalculation = MonthlyBudgetCalculation(
                 year: currentYear,
                 month: currentMonth,
                 overallCalculation: nil,
                 categoryCalculations: [],
             )
+            categoryBudgetEntries = []
+            overallBudgetEntry = nil
+            annualBudgetConfig = nil
+            annualBudgetUsage = nil
+            annualOverallBudgetEntry = nil
+            annualCategoryBudgetEntries = []
+            monthlySpecialPaymentSavingsTotal = .zero
+            categorySpecialPaymentSavings = [:]
+            specialPaymentSavingsCalculations = []
+            specialPaymentSavingsEntries = []
+            return
         }
-        return monthlyUseCase.monthlyCalculation(
+
+        // 月次データの計算
+        monthlyBudgets = monthlyUseCase.monthlyBudgets(
             snapshot: snapshot,
             year: currentYear,
             month: currentMonth,
         )
-    }
-
-    /// カテゴリ別エントリ
-    var categoryBudgetEntries: [MonthlyBudgetEntry] {
-        guard let snapshot else { return [] }
-        return monthlyUseCase.categoryEntries(
+        selectableCategories = snapshot.categories
+        monthlyBudgetCalculation = monthlyUseCase.monthlyCalculation(
             snapshot: snapshot,
             year: currentYear,
             month: currentMonth,
         )
-    }
-
-    /// 全体予算エントリ
-    var overallBudgetEntry: MonthlyBudgetEntry? {
-        guard let snapshot else { return nil }
-        return monthlyUseCase.overallEntry(
+        categoryBudgetEntries = monthlyUseCase.categoryEntries(
             snapshot: snapshot,
             year: currentYear,
             month: currentMonth,
         )
-    }
-
-    /// 年次特別枠設定
-    var annualBudgetConfig: AnnualBudgetConfig? {
-        snapshot?.annualBudgetConfig
-    }
-
-    /// 年次特別枠の使用状況
-    var annualBudgetUsage: AnnualBudgetUsage? {
-        guard let snapshot else { return nil }
-        return annualUseCase.annualBudgetUsage(
+        overallBudgetEntry = monthlyUseCase.overallEntry(
             snapshot: snapshot,
             year: currentYear,
             month: currentMonth,
         )
-    }
 
-    /// 年次全体予算エントリ
-    var annualOverallBudgetEntry: AnnualBudgetEntry? {
-        guard let snapshot else { return nil }
-        return annualUseCase.annualOverallEntry(
-            snapshot: snapshot,
-            year: currentYear,
-        )
-    }
-
-    /// 年次カテゴリ別エントリ
-    var annualCategoryBudgetEntries: [AnnualBudgetEntry] {
-        guard let snapshot else { return [] }
-        return annualUseCase.annualCategoryEntries(
-            snapshot: snapshot,
-            year: currentYear,
-        )
-    }
-
-    /// 月次積立金額の合計
-    var monthlySpecialPaymentSavingsTotal: Decimal {
-        guard let snapshot else { return .zero }
-        return specialPaymentUseCase.monthlySavingsTotal(
+        // 年次データの計算
+        annualBudgetConfig = snapshot.annualBudgetConfig
+        annualBudgetUsage = annualUseCase.annualBudgetUsage(
             snapshot: snapshot,
             year: currentYear,
             month: currentMonth,
         )
-    }
+        annualOverallBudgetEntry = annualUseCase.annualOverallEntry(
+            snapshot: snapshot,
+            year: currentYear,
+        )
+        annualCategoryBudgetEntries = annualUseCase.annualCategoryEntries(
+            snapshot: snapshot,
+            year: currentYear,
+        )
 
-    /// カテゴリ別積立金額
-    var categorySpecialPaymentSavings: [UUID: Decimal] {
-        guard let snapshot else { return [:] }
-        return specialPaymentUseCase.categorySavings(
+        // 特別支払いデータの計算
+        monthlySpecialPaymentSavingsTotal = specialPaymentUseCase.monthlySavingsTotal(
             snapshot: snapshot,
             year: currentYear,
             month: currentMonth,
         )
-    }
-
-    /// 特別支払い積立計算結果
-    var specialPaymentSavingsCalculations: [SpecialPaymentSavingsCalculation] {
-        guard let snapshot else { return [] }
-        return specialPaymentUseCase.calculations(
+        categorySpecialPaymentSavings = specialPaymentUseCase.categorySavings(
             snapshot: snapshot,
             year: currentYear,
             month: currentMonth,
         )
-    }
-
-    /// 特別支払い積立の表示用エントリ
-    var specialPaymentSavingsEntries: [SpecialPaymentSavingsEntry] {
-        guard let snapshot else { return [] }
-        return specialPaymentUseCase.entries(
+        specialPaymentSavingsCalculations = specialPaymentUseCase.calculations(
+            snapshot: snapshot,
+            year: currentYear,
+            month: currentMonth,
+        )
+        specialPaymentSavingsEntries = specialPaymentUseCase.entries(
             snapshot: snapshot,
             year: currentYear,
             month: currentMonth,
