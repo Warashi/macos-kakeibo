@@ -20,9 +20,16 @@ internal struct SpecialPaymentReconciliationView: View {
 
     private func prepareStore() {
         guard store == nil else { return }
-        let reconciliationStore = SpecialPaymentReconciliationStore(modelContext: modelContext)
-        reconciliationStore.refresh()
-        store = reconciliationStore
+        Task {
+            let specialPaymentRepository = await SpecialPaymentRepositoryFactory.make(modelContext: modelContext)
+            let transactionRepository = await SwiftDataTransactionRepository(modelContext: modelContext)
+            let reconciliationStore = SpecialPaymentReconciliationStore(
+                repository: specialPaymentRepository,
+                transactionRepository: transactionRepository,
+            )
+            await reconciliationStore.refresh()
+            store = reconciliationStore
+        }
     }
 }
 
@@ -79,7 +86,7 @@ private struct ReconciliationHeaderView: View {
                     .font(.title2.bold())
                 Spacer()
                 Button {
-                    store.refresh()
+                    Task { await store.refresh() }
                 } label: {
                     Label("再読み込み", systemImage: "arrow.clockwise")
                 }
@@ -255,7 +262,7 @@ private struct ReconciliationFormView: View {
 
             HStack(spacing: 12) {
                 Button {
-                    store.saveSelectedOccurrence()
+                    Task { await store.saveSelectedOccurrence() }
                 } label: {
                     Label("実績を保存", systemImage: "checkmark.circle.fill")
                 }
@@ -267,7 +274,7 @@ private struct ReconciliationFormView: View {
                 }
 
                 Button("リンク解除", role: .destructive) {
-                    store.unlinkSelectedOccurrence()
+                    Task { await store.unlinkSelectedOccurrence() }
                 }
                 .disabled(store.selectedRow?.transactionTitle == nil)
             }
@@ -347,7 +354,7 @@ private struct CandidateRow: View {
     internal let isSelected: Bool
     internal let onSelect: () -> Void
 
-    private var transaction: Transaction { candidate.transaction }
+    private var transaction: TransactionDTO { candidate.transaction }
 
     internal var body: some View {
         Button(action: onSelect) {
