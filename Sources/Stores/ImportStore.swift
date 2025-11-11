@@ -305,7 +305,7 @@ private extension ImportStore {
         defer { isProcessing = false }
 
         do {
-            let summary = try await importer.performImport(preview: preview, modelContext: modelContext)
+            let summary = try importer.performImport(preview: preview, modelContext: modelContext)
             self.summary = summary
             self.statusMessage = "取り込みが完了しました"
             self.lastUpdatedAt = Date()

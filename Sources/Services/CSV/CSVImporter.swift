@@ -169,7 +169,7 @@ internal actor CSVImporter {
         }
     }
 
-    private func createTransaction(_ parameters: TransactionCreationParameters) -> Transaction {
+    private nonisolated func createTransaction(_ parameters: TransactionCreationParameters) -> Transaction {
         if let identifier = parameters.identifier {
             Transaction(
                 id: identifier.uuid ?? UUID(),
@@ -224,7 +224,7 @@ internal actor CSVImporter {
 // MARK: - Transaction Update
 
 private extension CSVImporter {
-    func applyDraft(
+    nonisolated func applyDraft(
         _ parameters: TransactionUpdateParameters,
         to transaction: Transaction,
     ) {
