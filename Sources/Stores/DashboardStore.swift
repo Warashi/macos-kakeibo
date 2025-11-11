@@ -14,10 +14,7 @@ internal final class DashboardStore {
     // MARK: - Dependencies
 
     private let modelContext: ModelContext
-    private let aggregator: TransactionAggregator
-    private let budgetCalculator: BudgetCalculator
-    private let annualBudgetAllocator: AnnualBudgetAllocator
-    private let annualBudgetProgressCalculator: AnnualBudgetProgressCalculator
+    private let dashboardService: DashboardService
 
     // MARK: - State
 
@@ -56,9 +53,6 @@ internal final class DashboardStore {
     /// カテゴリ別ハイライト（支出額上位）
     internal var categoryHighlights: [CategorySummary]
 
-    /// 年次予算進捗計算結果
-    private var annualBudgetProgressResult: AnnualBudgetProgressResult?
-
     /// 年次予算進捗（全体）
     internal var annualBudgetProgressCalculation: BudgetCalculation?
 
@@ -68,13 +62,15 @@ internal final class DashboardStore {
     // MARK: - Initialization
 
     /// イニシャライザ
-    /// - Parameter modelContext: SwiftDataのモデルコンテキスト
-    internal init(modelContext: ModelContext) {
+    /// - Parameters:
+    ///   - modelContext: SwiftDataのモデルコンテキスト
+    ///   - dashboardService: ダッシュボード計算サービス
+    internal init(
+        modelContext: ModelContext,
+        dashboardService: DashboardService = DashboardService(),
+    ) {
         self.modelContext = modelContext
-        self.aggregator = TransactionAggregator()
-        self.budgetCalculator = BudgetCalculator()
-        self.annualBudgetAllocator = AnnualBudgetAllocator()
-        self.annualBudgetProgressCalculator = AnnualBudgetProgressCalculator()
+        self.dashboardService = dashboardService
 
         // 現在の年月で初期化
         let now = Date()
@@ -112,7 +108,6 @@ internal final class DashboardStore {
         self.annualBudgetUsage = nil
         self.monthlyAllocation = nil
         self.categoryHighlights = []
-        self.annualBudgetProgressResult = nil
         self.annualBudgetProgressCalculation = nil
         self.annualBudgetCategoryEntries = []
 
@@ -210,81 +205,32 @@ internal final class DashboardStore {
     internal func refresh() {
         let data = fetchAllData()
 
-        // 除外カテゴリIDを計算
-        let excludedCategoryIds = data.config?.fullCoverageCategoryIDs(
-            includingChildrenFrom: data.categories,
-        ) ?? []
+        // Build input for dashboard service
+        let input = DashboardInput(
+            monthlyTransactions: data.monthlyTransactions,
+            annualTransactions: data.annualTransactions,
+            budgets: data.budgets,
+            categories: data.categories,
+            config: data.config,
+        )
 
-        // 月次集計
-        monthlySummary = aggregator.aggregateMonthly(
-            transactions: data.monthlyTransactions,
+        // Calculate dashboard data via service
+        let result = dashboardService.calculate(
+            input: input,
             year: currentYear,
             month: currentMonth,
-            filter: .default,
+            displayMode: displayMode,
         )
 
-        // 年次集計
-        annualSummary = aggregator.aggregateAnnually(
-            transactions: data.annualTransactions,
-            year: currentYear,
-            filter: .default,
-        )
-
-        // 月次予算計算
-        monthlyBudgetCalculation = budgetCalculator.calculateMonthlyBudget(
-            transactions: data.monthlyTransactions,
-            budgets: data.budgets,
-            year: currentYear,
-            month: currentMonth,
-            filter: .default,
-            excludedCategoryIds: excludedCategoryIds,
-        )
-
-        // 年次特別枠使用状況
-        if let config = data.config {
-            let params = AllocationCalculationParams(
-                transactions: data.annualTransactions,
-                budgets: data.budgets,
-                annualBudgetConfig: config,
-                filter: .default,
-            )
-            annualBudgetUsage = annualBudgetAllocator.calculateAnnualBudgetUsage(
-                params: params,
-                upToMonth: currentMonth,
-            )
-            monthlyAllocation = annualBudgetAllocator.calculateMonthlyAllocation(
-                params: params,
-                year: currentYear,
-                month: currentMonth,
-            )
-        } else {
-            annualBudgetUsage = nil
-            monthlyAllocation = nil
-        }
-
-        // カテゴリ別ハイライト
-        let summaries = displayMode == .monthly
-            ? monthlySummary.categorySummaries
-            : annualSummary.categorySummaries
-        categoryHighlights = Array(summaries.prefix(10))
-
-        // 年次予算進捗
-        let progressResult = annualBudgetProgressCalculator.calculate(
-            budgets: data.budgets,
-            transactions: data.annualTransactions,
-            year: currentYear,
-            filter: .default,
-            excludedCategoryIds: excludedCategoryIds,
-        )
-        if progressResult.overallEntry == nil, progressResult.categoryEntries.isEmpty {
-            annualBudgetProgressResult = nil
-            annualBudgetProgressCalculation = nil
-            annualBudgetCategoryEntries = []
-        } else {
-            annualBudgetProgressResult = progressResult
-            annualBudgetProgressCalculation = progressResult.aggregateCalculation
-            annualBudgetCategoryEntries = progressResult.categoryEntries
-        }
+        // Update state with calculation results
+        monthlySummary = result.monthlySummary
+        annualSummary = result.annualSummary
+        monthlyBudgetCalculation = result.monthlyBudgetCalculation
+        annualBudgetUsage = result.annualBudgetUsage
+        monthlyAllocation = result.monthlyAllocation
+        categoryHighlights = result.categoryHighlights
+        annualBudgetProgressCalculation = result.annualBudgetProgressCalculation
+        annualBudgetCategoryEntries = result.annualBudgetCategoryEntries
     }
 
     // MARK: - Actions

@@ -37,12 +37,10 @@ internal final class DashboardService {
         month: Int,
         displayMode: DashboardStore.DisplayMode,
     ) -> DashboardResult {
-        // Excluded category IDs
         let excludedCategoryIds = input.config?.fullCoverageCategoryIDs(
             includingChildrenFrom: input.categories,
         ) ?? []
 
-        // Monthly summary
         let monthlySummary = aggregator.aggregateMonthly(
             transactions: input.monthlyTransactions,
             year: year,
@@ -50,14 +48,12 @@ internal final class DashboardService {
             filter: .default,
         )
 
-        // Annual summary
         let annualSummary = aggregator.aggregateAnnually(
             transactions: input.annualTransactions,
             year: year,
             filter: .default,
         )
 
-        // Monthly budget calculation
         let monthlyBudgetCalculation = budgetCalculator.calculateMonthlyBudget(
             transactions: input.monthlyTransactions,
             budgets: input.budgets,
@@ -67,51 +63,23 @@ internal final class DashboardService {
             excludedCategoryIds: excludedCategoryIds,
         )
 
-        // Annual budget usage
-        var annualBudgetUsage: AnnualBudgetUsage?
-        var monthlyAllocation: MonthlyAllocation?
-        if let config = input.config {
-            let params = AllocationCalculationParams(
-                transactions: input.annualTransactions,
-                budgets: input.budgets,
-                annualBudgetConfig: config,
-                filter: .default,
-            )
-            annualBudgetUsage = annualBudgetAllocator.calculateAnnualBudgetUsage(
-                params: params,
-                upToMonth: month,
-            )
-            monthlyAllocation = annualBudgetAllocator.calculateMonthlyAllocation(
-                params: params,
-                year: year,
-                month: month,
-            )
-        }
-
-        // Category highlights
-        let summaries = displayMode == .monthly
-            ? monthlySummary.categorySummaries
-            : annualSummary.categorySummaries
-        let categoryHighlights = Array(summaries.prefix(10))
-
-        // Annual budget progress
-        let progressResult = annualBudgetProgressCalculator.calculate(
-            budgets: input.budgets,
-            transactions: input.annualTransactions,
+        let (annualBudgetUsage, monthlyAllocation) = calculateAnnualBudgetAllocation(
+            input: input,
             year: year,
-            filter: .default,
-            excludedCategoryIds: excludedCategoryIds,
+            month: month,
         )
 
-        let annualBudgetProgressCalculation: BudgetCalculation?
-        let annualBudgetCategoryEntries: [AnnualBudgetEntry]
-        if progressResult.overallEntry == nil, progressResult.categoryEntries.isEmpty {
-            annualBudgetProgressCalculation = nil
-            annualBudgetCategoryEntries = []
-        } else {
-            annualBudgetProgressCalculation = progressResult.aggregateCalculation
-            annualBudgetCategoryEntries = progressResult.categoryEntries
-        }
+        let categoryHighlights = calculateCategoryHighlights(
+            monthlySummary: monthlySummary,
+            annualSummary: annualSummary,
+            displayMode: displayMode,
+        )
+
+        let (progressCalculation, categoryEntries) = calculateAnnualBudgetProgress(
+            input: input,
+            year: year,
+            excludedCategoryIds: excludedCategoryIds,
+        )
 
         return DashboardResult(
             monthlySummary: monthlySummary,
@@ -120,9 +88,72 @@ internal final class DashboardService {
             annualBudgetUsage: annualBudgetUsage,
             monthlyAllocation: monthlyAllocation,
             categoryHighlights: categoryHighlights,
-            annualBudgetProgressCalculation: annualBudgetProgressCalculation,
-            annualBudgetCategoryEntries: annualBudgetCategoryEntries,
+            annualBudgetProgressCalculation: progressCalculation,
+            annualBudgetCategoryEntries: categoryEntries,
         )
+    }
+
+    // MARK: - Private Helpers
+
+    private func calculateAnnualBudgetAllocation(
+        input: DashboardInput,
+        year: Int,
+        month: Int,
+    ) -> (AnnualBudgetUsage?, MonthlyAllocation?) {
+        guard let config = input.config else {
+            return (nil, nil)
+        }
+
+        let params = AllocationCalculationParams(
+            transactions: input.annualTransactions,
+            budgets: input.budgets,
+            annualBudgetConfig: config,
+            filter: .default,
+        )
+
+        let usage = annualBudgetAllocator.calculateAnnualBudgetUsage(
+            params: params,
+            upToMonth: month,
+        )
+
+        let allocation = annualBudgetAllocator.calculateMonthlyAllocation(
+            params: params,
+            year: year,
+            month: month,
+        )
+
+        return (usage, allocation)
+    }
+
+    private func calculateCategoryHighlights(
+        monthlySummary: MonthlySummary,
+        annualSummary: AnnualSummary,
+        displayMode: DashboardStore.DisplayMode,
+    ) -> [CategorySummary] {
+        let summaries = displayMode == .monthly
+            ? monthlySummary.categorySummaries
+            : annualSummary.categorySummaries
+        return Array(summaries.prefix(10))
+    }
+
+    private func calculateAnnualBudgetProgress(
+        input: DashboardInput,
+        year: Int,
+        excludedCategoryIds: Set<UUID>,
+    ) -> (BudgetCalculation?, [AnnualBudgetEntry]) {
+        let progressResult = annualBudgetProgressCalculator.calculate(
+            budgets: input.budgets,
+            transactions: input.annualTransactions,
+            year: year,
+            filter: .default,
+            excludedCategoryIds: excludedCategoryIds,
+        )
+
+        if progressResult.overallEntry == nil, progressResult.categoryEntries.isEmpty {
+            return (nil, [])
+        } else {
+            return (progressResult.aggregateCalculation, progressResult.categoryEntries)
+        }
     }
 }
 
