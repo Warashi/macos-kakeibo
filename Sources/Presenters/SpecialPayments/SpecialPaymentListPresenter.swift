@@ -24,21 +24,30 @@ internal struct SpecialPaymentListPresenter {
     }
 
     internal func entries(
-        occurrences: [SpecialPaymentOccurrence],
-        balances: [UUID: SpecialPaymentSavingBalance],
+        occurrences: [SpecialPaymentOccurrenceDTO],
+        definitions: [UUID: SpecialPaymentDefinitionDTO],
+        balances: [UUID: SpecialPaymentSavingBalanceDTO],
+        categories: [UUID: String],
         filter: SpecialPaymentListFilter,
         now: Date,
     ) -> [SpecialPaymentListEntry] {
         let entries = occurrences.compactMap { occurrence -> SpecialPaymentListEntry? in
+            guard let definition = definitions[occurrence.definitionId] else {
+                return nil
+            }
             guard matches(
                 occurrence: occurrence,
+                definition: definition,
+                categoryName: definition.categoryId.flatMap { categories[$0] },
                 filter: filter,
             ) else {
                 return nil
             }
-            let balance = balances[occurrence.definition.id]
+            let balance = balances[occurrence.definitionId]
             return entry(
                 occurrence: occurrence,
+                definition: definition,
+                categoryName: definition.categoryId.flatMap { categories[$0] },
                 balance: balance,
                 now: now,
             )
@@ -48,18 +57,20 @@ internal struct SpecialPaymentListPresenter {
     }
 
     private func matches(
-        occurrence: SpecialPaymentOccurrence,
+        occurrence: SpecialPaymentOccurrenceDTO,
+        definition: SpecialPaymentDefinitionDTO,
+        categoryName: String?,
         filter: SpecialPaymentListFilter,
     ) -> Bool {
         guard filter.dateRange.contains(occurrence.scheduledDate) else {
             return false
         }
 
-        if !filter.searchText.matches(haystack: occurrence.definition.name) {
+        if !filter.searchText.matches(haystack: definition.name) {
             return false
         }
 
-        return filter.categoryFilter.matches(category: occurrence.definition.category)
+        return filter.categoryFilter.matchesByCategoryId(categoryId: definition.categoryId)
     }
 
     private func sortEntries(
@@ -83,11 +94,12 @@ internal struct SpecialPaymentListPresenter {
     }
 
     internal func entry(
-        occurrence: SpecialPaymentOccurrence,
-        balance: SpecialPaymentSavingBalance?,
+        occurrence: SpecialPaymentOccurrenceDTO,
+        definition: SpecialPaymentDefinitionDTO,
+        categoryName: String?,
+        balance: SpecialPaymentSavingBalanceDTO?,
         now: Date,
     ) -> SpecialPaymentListEntry {
-        let definition = occurrence.definition
         let savingsBalance = balance?.balance ?? 0
 
         let savingsProgress: Double
@@ -115,8 +127,8 @@ internal struct SpecialPaymentListPresenter {
             id: occurrence.id,
             definitionId: definition.id,
             name: definition.name,
-            categoryId: definition.category?.id,
-            categoryName: definition.category?.fullName,
+            categoryId: definition.categoryId,
+            categoryName: categoryName,
             scheduledDate: occurrence.scheduledDate,
             expectedAmount: occurrence.expectedAmount,
             actualAmount: occurrence.actualAmount,
@@ -124,7 +136,7 @@ internal struct SpecialPaymentListPresenter {
             savingsBalance: savingsBalance,
             savingsProgress: savingsProgress,
             daysUntilDue: daysUntilDue,
-            transactionId: occurrence.transaction?.id,
+            transactionId: occurrence.transactionId,
             hasDiscrepancy: hasDiscrepancy,
         )
     }
