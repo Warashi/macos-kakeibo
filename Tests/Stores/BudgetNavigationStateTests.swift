@@ -30,7 +30,8 @@ internal struct BudgetNavigationStateTests {
             month: 1,
             currentDateProvider: { referenceDate }
         )
-        #expect(monthlyState.moveToPresent(displayMode: .monthly))
+        let monthlyChanged = monthlyState.moveToPresent(displayMode: .monthly)
+        #expect(monthlyChanged)
         #expect(monthlyState.year == 2025)
         #expect(monthlyState.month == 4)
 
@@ -39,7 +40,8 @@ internal struct BudgetNavigationStateTests {
             month: 8,
             currentDateProvider: { referenceDate }
         )
-        #expect(annualState.moveToPresent(displayMode: .annual))
+        let annualChanged = annualState.moveToPresent(displayMode: .annual)
+        #expect(annualChanged)
         #expect(annualState.year == 2025)
         #expect(annualState.month == 8)
 
@@ -48,7 +50,8 @@ internal struct BudgetNavigationStateTests {
             month: 3,
             currentDateProvider: { referenceDate }
         )
-        #expect(specialState.moveToPresent(displayMode: .specialPaymentsList) == false)
+        let specialChanged = specialState.moveToPresent(displayMode: .specialPaymentsList)
+        #expect(specialChanged == false)
         #expect(specialState.year == 2010)
         #expect(specialState.month == 3)
     }
