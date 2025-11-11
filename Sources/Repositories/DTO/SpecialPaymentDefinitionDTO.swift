@@ -65,4 +65,17 @@ internal struct SpecialPaymentDefinitionDTO: Sendable {
         self.createdAt = definition.createdAt
         self.updatedAt = definition.updatedAt
     }
+
+    /// 月次の積立金額（カスタムの場合は指定値、均等配分なら周期で割った値）
+    internal var monthlySavingAmount: Decimal {
+        switch savingStrategy {
+        case .disabled:
+            return 0
+        case .evenlyDistributed:
+            guard recurrenceIntervalMonths > 0 else { return 0 }
+            return amount.safeDivide(Decimal(recurrenceIntervalMonths))
+        case .customMonthly:
+            return customMonthlySavingAmount ?? 0
+        }
+    }
 }
