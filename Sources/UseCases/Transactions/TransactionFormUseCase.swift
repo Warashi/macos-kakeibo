@@ -1,13 +1,14 @@
 import Foundation
 
+@DatabaseActor
 internal protocol TransactionFormUseCaseProtocol: AnyObject {
     func save(
         state: TransactionFormState,
-        editingTransaction: Transaction?,
+        editingTransactionId: UUID?,
         referenceData: TransactionReferenceData,
     ) async throws
 
-    func delete(transaction: Transaction) async throws
+    func delete(transactionId: UUID) async throws
 }
 
 internal enum TransactionFormError: Error, Equatable {
@@ -24,6 +25,7 @@ internal enum TransactionFormError: Error, Equatable {
     }
 }
 
+@DatabaseActor
 internal final class DefaultTransactionFormUseCase: TransactionFormUseCaseProtocol {
     private let repository: TransactionRepository
 
@@ -33,7 +35,7 @@ internal final class DefaultTransactionFormUseCase: TransactionFormUseCaseProtoc
 
     internal func save(
         state: TransactionFormState,
-        editingTransaction: Transaction?,
+        editingTransactionId: UUID?,
         referenceData: TransactionReferenceData,
     ) async throws {
         var errors = validate(state: state, referenceData: referenceData)
@@ -52,34 +54,20 @@ internal final class DefaultTransactionFormUseCase: TransactionFormUseCaseProtoc
         }
 
         let signedAmount = state.transactionKind == .expense ? -amountMagnitude : amountMagnitude
-        let institution = referenceData.institution(id: state.financialInstitutionId)
-        let majorCategory = referenceData.category(id: state.majorCategoryId)
-        let minorCategory = referenceData.category(id: state.minorCategoryId)
 
-        if let transaction = editingTransaction {
-            transaction.title = state.title
-            transaction.memo = state.memo
-            transaction.date = state.date
-            transaction.amount = signedAmount
-            transaction.isIncludedInCalculation = state.isIncludedInCalculation
-            transaction.isTransfer = state.isTransfer
-            transaction.financialInstitution = institution
-            transaction.majorCategory = majorCategory
-            transaction.minorCategory = minorCategory
-            transaction.updatedAt = Date()
-        } else {
-            let transaction = Transaction(
-                date: state.date,
-                title: state.title,
+        if let transactionId = editingTransactionId {
+            try await updateExistingTransaction(
+                transactionId: transactionId,
+                state: state,
                 amount: signedAmount,
-                memo: state.memo,
-                isIncludedInCalculation: state.isIncludedInCalculation,
-                isTransfer: state.isTransfer,
-                financialInstitution: institution,
-                majorCategory: majorCategory,
-                minorCategory: minorCategory,
+                referenceData: referenceData,
             )
-            await repository.insert(transaction)
+        } else {
+            try await createNewTransaction(
+                state: state,
+                amount: signedAmount,
+                referenceData: referenceData,
+            )
         }
 
         do {
@@ -89,7 +77,10 @@ internal final class DefaultTransactionFormUseCase: TransactionFormUseCaseProtoc
         }
     }
 
-    internal func delete(transaction: Transaction) async throws {
+    internal func delete(transactionId: UUID) async throws {
+        guard let transaction = try await repository.findTransaction(id: transactionId) else {
+            throw TransactionFormError.persistenceFailed("取引が見つかりません")
+        }
         await repository.delete(transaction)
         do {
             try await repository.saveChanges()
@@ -100,6 +91,55 @@ internal final class DefaultTransactionFormUseCase: TransactionFormUseCaseProtoc
 }
 
 private extension DefaultTransactionFormUseCase {
+    func updateExistingTransaction(
+        transactionId: UUID,
+        state: TransactionFormState,
+        amount: Decimal,
+        referenceData: TransactionReferenceData,
+    ) async throws {
+        guard let transaction = try await repository.findTransaction(id: transactionId) else {
+            throw TransactionFormError.persistenceFailed("更新対象の取引が見つかりません")
+        }
+
+        let institution = try await repository.findInstitution(id: state.financialInstitutionId)
+        let majorCategory = try await repository.findCategory(id: state.majorCategoryId)
+        let minorCategory = try await repository.findCategory(id: state.minorCategoryId)
+
+        transaction.title = state.title
+        transaction.memo = state.memo
+        transaction.date = state.date
+        transaction.amount = amount
+        transaction.isIncludedInCalculation = state.isIncludedInCalculation
+        transaction.isTransfer = state.isTransfer
+        transaction.financialInstitution = institution
+        transaction.majorCategory = majorCategory
+        transaction.minorCategory = minorCategory
+        transaction.updatedAt = Date()
+    }
+
+    func createNewTransaction(
+        state: TransactionFormState,
+        amount: Decimal,
+        referenceData: TransactionReferenceData,
+    ) async throws {
+        let institution = try await repository.findInstitution(id: state.financialInstitutionId)
+        let majorCategory = try await repository.findCategory(id: state.majorCategoryId)
+        let minorCategory = try await repository.findCategory(id: state.minorCategoryId)
+
+        let transaction = Transaction(
+            date: state.date,
+            title: state.title,
+            amount: amount,
+            memo: state.memo,
+            isIncludedInCalculation: state.isIncludedInCalculation,
+            isTransfer: state.isTransfer,
+            financialInstitution: institution,
+            majorCategory: majorCategory,
+            minorCategory: minorCategory,
+        )
+        await repository.insert(transaction)
+    }
+
     func validate(state: TransactionFormState, referenceData: TransactionReferenceData) -> [String] {
         var errors: [String] = []
 
@@ -113,7 +153,7 @@ private extension DefaultTransactionFormUseCase {
                 return errors
             }
 
-            if referenceData.category(id: minorId)?.parent?.id != majorId {
+            if referenceData.category(id: minorId)?.parentId != majorId {
                 errors.append("中項目の親カテゴリが一致していません")
             }
         }

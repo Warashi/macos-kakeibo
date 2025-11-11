@@ -12,6 +12,13 @@ internal enum FinancialInstitutionQueries {
         )
     }
 
+    internal static func byId(_ id: UUID) -> ModelFetchRequest<FinancialInstitution> {
+        ModelFetchFactory.make(
+            predicate: #Predicate { $0.id == id },
+            fetchLimit: 1,
+        )
+    }
+
     internal static func byName(_ name: String) -> ModelFetchRequest<FinancialInstitution> {
         ModelFetchFactory.make(
             predicate: #Predicate { $0.name == name },

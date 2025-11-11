@@ -61,6 +61,7 @@ internal struct SpecialPaymentSynchronizationSummary {
     internal let removedCount: Int
 }
 
+@DatabaseActor
 internal protocol SpecialPaymentRepository {
     func definitions(filter: SpecialPaymentDefinitionFilter?) throws -> [SpecialPaymentDefinition]
     func occurrences(query: SpecialPaymentOccurrenceQuery?) throws -> [SpecialPaymentOccurrence]

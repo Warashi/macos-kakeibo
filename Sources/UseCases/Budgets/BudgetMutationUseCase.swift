@@ -1,5 +1,6 @@
 import Foundation
 
+@DatabaseActor
 internal protocol BudgetMutationUseCaseProtocol {
     func addBudget(input: BudgetInput) async throws
     func updateBudget(_ budget: Budget, input: BudgetInput) async throws
@@ -7,6 +8,7 @@ internal protocol BudgetMutationUseCaseProtocol {
     func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) async throws
 }
 
+@DatabaseActor
 internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol {
     private let repository: BudgetRepository
 

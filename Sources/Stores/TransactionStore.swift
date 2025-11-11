@@ -15,7 +15,7 @@ internal final class TransactionStore {
     /// 日毎の取引セクション
     internal struct TransactionSection: Identifiable {
         internal let date: Date
-        internal let transactions: [Transaction]
+        internal let transactions: [TransactionDTO]
 
         internal var id: Date { date }
         internal var title: String { date.longDateFormatted }
@@ -30,7 +30,7 @@ internal final class TransactionStore {
     @ObservationIgnored
     private var transactionsToken: ObservationToken?
 
-    internal var transactions: [Transaction] = []
+    internal var transactions: [TransactionDTO] = []
     internal var searchText: String = "" {
         didSet {
             Task { await reloadTransactions() }
@@ -85,12 +85,12 @@ internal final class TransactionStore {
         }
     }
 
-    internal private(set) var availableInstitutions: [FinancialInstitution] = []
-    internal private(set) var availableCategories: [Category] = []
+    internal private(set) var availableInstitutions: [FinancialInstitutionDTO] = []
+    internal private(set) var availableCategories: [CategoryDTO] = []
     internal var listErrorMessage: String?
 
     internal var isEditorPresented: Bool = false
-    internal private(set) var editingTransaction: Transaction?
+    internal private(set) var editingTransactionId: UUID?
     internal var formState: TransactionFormState
     internal var formErrors: [String] = []
 
@@ -182,7 +182,7 @@ internal extension TransactionStore {
     }
 
     /// 大項目一覧
-    var majorCategories: [Category] {
+    var majorCategories: [CategoryDTO] {
         availableCategories
             .filter(\.isMajor)
             .sorted { lhs, rhs in
@@ -194,10 +194,10 @@ internal extension TransactionStore {
     }
 
     /// 指定した大項目に紐づく中項目一覧
-    func minorCategories(for majorCategoryId: UUID?) -> [Category] {
+    func minorCategories(for majorCategoryId: UUID?) -> [CategoryDTO] {
         guard let majorCategoryId else { return [] }
         return availableCategories
-            .filter { $0.parent?.id == majorCategoryId }
+            .filter { $0.parentId == majorCategoryId }
             .sorted { lhs, rhs in
                 if lhs.displayOrder == rhs.displayOrder {
                     return lhs.name < rhs.name
@@ -234,7 +234,7 @@ internal extension TransactionStore {
 
     /// 新規作成モードに切り替え
     func prepareForNewTransaction() {
-        editingTransaction = nil
+        editingTransactionId = nil
         let today = clock()
         let defaultDate = today.isSameMonth(as: currentMonth) ? today : currentMonth
         formState = .empty(defaultDate: defaultDate)
@@ -243,16 +243,16 @@ internal extension TransactionStore {
     }
 
     /// 既存取引の編集を開始
-    func startEditing(transaction: Transaction) {
-        editingTransaction = transaction
-        formState = .from(transaction: transaction)
+    func startEditing(transaction: TransactionDTO) {
+        editingTransactionId = transaction.id
+        formState = .from(transactionDTO: transaction)
         formErrors = []
         isEditorPresented = true
     }
 
     /// 編集をキャンセル
     func cancelEditing() {
-        editingTransaction = nil
+        editingTransactionId = nil
         isEditorPresented = false
         formErrors = []
     }
@@ -276,7 +276,7 @@ internal extension TransactionStore {
         do {
             try await formUseCase.save(
                 state: formState,
-                editingTransaction: editingTransaction,
+                editingTransactionId: editingTransactionId,
                 referenceData: referenceData,
             )
             formErrors = []
@@ -294,9 +294,9 @@ internal extension TransactionStore {
 
     /// 取引を削除
     @discardableResult
-    func deleteTransaction(_ transaction: Transaction) async -> Bool {
+    func deleteTransaction(_ transactionId: UUID) async -> Bool {
         do {
-            try await formUseCase.delete(transaction: transaction)
+            try await formUseCase.delete(transactionId: transactionId)
             formErrors = []
             refresh()
             return true
@@ -328,12 +328,10 @@ private extension TransactionStore {
             let reference = try await listUseCase.loadReferenceData()
             availableInstitutions = reference.institutions
             availableCategories = reference.categories
-            categoryFilter.updateCategories(reference.categories)
             listErrorMessage = nil
         } catch {
             availableInstitutions = []
             availableCategories = []
-            categoryFilter.updateCategories([])
             listErrorMessage = "参照データの読み込みに失敗しました: \(error.localizedDescription)"
         }
     }

@@ -13,16 +13,20 @@ internal struct TransactionQuery {
     internal let sortOption: TransactionSortOption
 }
 
+@DatabaseActor
 internal protocol TransactionRepository {
-    func fetchTransactions(query: TransactionQuery) throws -> [Transaction]
-    func fetchAllTransactions() throws -> [Transaction]
-    func fetchInstitutions() throws -> [FinancialInstitution]
-    func fetchCategories() throws -> [Category]
+    func fetchTransactions(query: TransactionQuery) throws -> [TransactionDTO]
+    func fetchAllTransactions() throws -> [TransactionDTO]
+    func fetchInstitutions() throws -> [FinancialInstitutionDTO]
+    func fetchCategories() throws -> [CategoryDTO]
     @discardableResult
     func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @MainActor ([Transaction]) -> Void,
+        onChange: @escaping @MainActor ([TransactionDTO]) -> Void,
     ) throws -> ObservationToken
+    func findTransaction(id: UUID) throws -> Transaction?
+    func findInstitution(id: UUID) throws -> FinancialInstitution?
+    func findCategory(id: UUID) throws -> Category?
     func insert(_ transaction: Transaction)
     func delete(_ transaction: Transaction)
     func saveChanges() throws

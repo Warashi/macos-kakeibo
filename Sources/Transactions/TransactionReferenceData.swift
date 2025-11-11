@@ -1,15 +1,15 @@
 import Foundation
 
-internal struct TransactionReferenceData {
-    internal let institutions: [FinancialInstitution]
-    internal let categories: [Category]
+internal struct TransactionReferenceData: Sendable {
+    internal let institutions: [FinancialInstitutionDTO]
+    internal let categories: [CategoryDTO]
 
-    internal func institution(id: UUID?) -> FinancialInstitution? {
+    internal func institution(id: UUID?) -> FinancialInstitutionDTO? {
         guard let id else { return nil }
         return institutions.first { $0.id == id }
     }
 
-    internal func category(id: UUID?) -> Category? {
+    internal func category(id: UUID?) -> CategoryDTO? {
         guard let id else { return nil }
         return categories.first { $0.id == id }
     }

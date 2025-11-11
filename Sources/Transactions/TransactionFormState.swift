@@ -42,6 +42,21 @@ internal struct TransactionFormState: Equatable {
         )
     }
 
+    internal static func from(transactionDTO: TransactionDTO) -> TransactionFormState {
+        TransactionFormState(
+            date: transactionDTO.date,
+            title: transactionDTO.title,
+            memo: transactionDTO.memo,
+            amountText: Self.amountString(from: transactionDTO.absoluteAmount),
+            transactionKind: transactionDTO.isExpense ? .expense : .income,
+            isIncludedInCalculation: transactionDTO.isIncludedInCalculation,
+            isTransfer: transactionDTO.isTransfer,
+            financialInstitutionId: transactionDTO.financialInstitutionId,
+            majorCategoryId: transactionDTO.majorCategoryId,
+            minorCategoryId: transactionDTO.minorCategoryId,
+        )
+    }
+
     private static func amountString(from decimal: Decimal) -> String {
         NSDecimalNumber(decimal: decimal).stringValue
     }
