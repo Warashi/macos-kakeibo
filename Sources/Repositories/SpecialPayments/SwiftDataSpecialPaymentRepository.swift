@@ -17,7 +17,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         self.currentDateProvider = currentDateProvider
     }
 
-    internal func definitions(filter: SpecialPaymentDefinitionFilter?) throws -> [SpecialPaymentDefinition] {
+    internal func definitions(filter: SpecialPaymentDefinitionFilter?) throws -> [SpecialPaymentDefinitionDTO] {
         let descriptor = SpecialPaymentQueries.definitions(
             predicate: definitionPredicate(for: filter),
         )
@@ -36,10 +36,10 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
             }
         }
 
-        return results
+        return results.map { SpecialPaymentDefinitionDTO(from: $0) }
     }
 
-    internal func occurrences(query: SpecialPaymentOccurrenceQuery?) throws -> [SpecialPaymentOccurrence] {
+    internal func occurrences(query: SpecialPaymentOccurrenceQuery?) throws -> [SpecialPaymentOccurrenceDTO] {
         let descriptor = SpecialPaymentQueries.occurrences(
             predicate: occurrencePredicate(for: query),
         )
@@ -54,19 +54,19 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
             results = results.filter { definitionIds.contains($0.definition.id) }
         }
 
-        return results
+        return results.map { SpecialPaymentOccurrenceDTO(from: $0) }
     }
 
-    internal func balances(query: SpecialPaymentBalanceQuery?) throws -> [SpecialPaymentSavingBalance] {
+    internal func balances(query: SpecialPaymentBalanceQuery?) throws -> [SpecialPaymentSavingBalanceDTO] {
         let descriptor = SpecialPaymentQueries.balances(
             predicate: balancePredicate(for: query),
         )
 
-        return try modelContext.fetch(descriptor)
+        return try modelContext.fetch(descriptor).map { SpecialPaymentSavingBalanceDTO(from: $0) }
     }
 
     @discardableResult
-    internal func createDefinition(_ input: SpecialPaymentDefinitionInput) throws -> SpecialPaymentDefinition {
+    internal func createDefinition(_ input: SpecialPaymentDefinitionInput) throws -> UUID {
         let category = try resolvedCategory(id: input.categoryId)
 
         let definition = SpecialPaymentDefinition(
@@ -90,13 +90,14 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
         modelContext.insert(definition)
         try modelContext.save()
-        return definition
+        return definition.id
     }
 
     internal func updateDefinition(
-        _ definition: SpecialPaymentDefinition,
+        definitionId: UUID,
         input: SpecialPaymentDefinitionInput,
     ) throws {
+        let definition = try findDefinition(id: definitionId)
         let category = try resolvedCategory(id: input.categoryId)
 
         definition.name = input.name
@@ -120,17 +121,20 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         try modelContext.save()
     }
 
-    internal func deleteDefinition(_ definition: SpecialPaymentDefinition) throws {
+    internal func deleteDefinition(definitionId: UUID) throws {
+        let definition = try findDefinition(id: definitionId)
         modelContext.delete(definition)
         try modelContext.save()
     }
 
     @discardableResult
     internal func synchronize(
-        definition: SpecialPaymentDefinition,
+        definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date? = nil,
     ) throws -> SpecialPaymentSynchronizationSummary {
+        let definition = try findDefinition(id: definitionId)
+
         guard definition.recurrenceIntervalMonths > 0 else {
             throw SpecialPaymentDomainError.invalidRecurrence
         }
@@ -172,10 +176,12 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
     @discardableResult
     internal func markOccurrenceCompleted(
-        _ occurrence: SpecialPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary {
+        let occurrence = try findOccurrence(id: occurrenceId)
+
         occurrence.actualDate = input.actualDate
         occurrence.actualAmount = input.actualAmount
         occurrence.transaction = input.transaction
@@ -190,7 +196,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         try modelContext.save()
 
         return try synchronize(
-            definition: occurrence.definition,
+            definitionId: occurrence.definition.id,
             horizonMonths: horizonMonths,
             referenceDate: currentDateProvider(),
         )
@@ -198,10 +204,11 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
     @discardableResult
     internal func updateOccurrence(
-        _ occurrence: SpecialPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary? {
+        let occurrence = try findOccurrence(id: occurrenceId)
         let now = currentDateProvider()
         let wasCompleted = occurrence.status == .completed
         let willBeCompleted = input.status == .completed
@@ -224,7 +231,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         }
 
         return try synchronize(
-            definition: occurrence.definition,
+            definitionId: occurrence.definition.id,
             horizonMonths: horizonMonths,
             referenceDate: now,
         )
@@ -236,6 +243,28 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 }
 
 private extension SwiftDataSpecialPaymentRepository {
+    func findDefinition(id: UUID) throws -> SpecialPaymentDefinition {
+        let predicate = #Predicate<SpecialPaymentDefinition> { definition in
+            definition.id == id
+        }
+        let descriptor = SpecialPaymentQueries.definitions(predicate: predicate)
+        guard let definition = try modelContext.fetch(descriptor).first else {
+            throw SpecialPaymentDomainError.definitionNotFound
+        }
+        return definition
+    }
+
+    func findOccurrence(id: UUID) throws -> SpecialPaymentOccurrence {
+        let predicate = #Predicate<SpecialPaymentOccurrence> { occurrence in
+            occurrence.id == id
+        }
+        let descriptor = SpecialPaymentQueries.occurrences(predicate: predicate)
+        guard let occurrence = try modelContext.fetch(descriptor).first else {
+            throw SpecialPaymentDomainError.occurrenceNotFound
+        }
+        return occurrence
+    }
+
     func definitionPredicate(
         for filter: SpecialPaymentDefinitionFilter?,
     ) -> Predicate<SpecialPaymentDefinition>? {
