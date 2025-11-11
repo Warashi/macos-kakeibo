@@ -6,4 +6,6 @@ internal enum SpecialPaymentDomainError: Error, Equatable {
     case invalidHorizon
     case validationFailed([String])
     case categoryNotFound
+    case definitionNotFound
+    case occurrenceNotFound
 }
