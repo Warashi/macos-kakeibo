@@ -51,7 +51,7 @@ internal struct TransactionRepositoryObservationTests {
     }
 }
 
-private extension SwiftDataTransactionRepositoryObservationTests {
+private extension TransactionRepositoryObservationTests {
     func makeRepository() throws -> (SwiftDataTransactionRepository, Date) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
