@@ -99,28 +99,6 @@ internal final class SpecialPaymentStore {
         self.currentDateProvider = currentDateProvider
     }
 
-    internal convenience init(
-        modelContext: ModelContext,
-        calendar: Calendar = Calendar(identifier: .gregorian),
-        businessDayService: BusinessDayService? = nil,
-        holidayProvider: HolidayProvider? = nil,
-        currentDateProvider: @escaping () -> Date = { Date() },
-    ) async {
-        let resolvedRepository = await Task { @DatabaseActor in
-            SpecialPaymentRepositoryFactory.make(
-                modelContext: modelContext,
-                calendar: calendar,
-                businessDayService: businessDayService,
-                holidayProvider: holidayProvider,
-                currentDateProvider: currentDateProvider,
-            )
-        }.value
-        self.init(
-            repository: resolvedRepository,
-            currentDateProvider: currentDateProvider,
-        )
-    }
-
     // MARK: - Public API
 
     internal func synchronizeOccurrences(
