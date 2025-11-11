@@ -101,6 +101,13 @@ internal struct SpecialPaymentReconciliationPresenter {
         }
     }
 
+    internal struct TransactionCandidateSearchContext {
+        internal let transactions: [Transaction]
+        internal let linkedTransactionLookup: [UUID: UUID]
+        internal let windowDays: Int
+        internal let limit: Int
+    }
+
     internal struct TransactionCandidateScore: Hashable {
         internal let total: Double
         internal let amountDifference: Decimal
@@ -250,20 +257,17 @@ internal struct SpecialPaymentReconciliationPresenter {
 
     internal func transactionCandidates(
         for occurrence: SpecialPaymentOccurrence,
-        transactions: [Transaction],
-        linkedTransactionLookup: [UUID: UUID],
-        windowDays: Int,
-        limit: Int
+        context: TransactionCandidateSearchContext
     ) -> [TransactionCandidate] {
-        let scorer = TransactionCandidateScorer(calendar: calendar, windowDays: windowDays)
+        let scorer = TransactionCandidateScorer(calendar: calendar, windowDays: context.windowDays)
 
-        let startWindow = calendar.date(byAdding: .day, value: -windowDays, to: occurrence.scheduledDate)
-        let endWindow = calendar.date(byAdding: .day, value: windowDays, to: occurrence.scheduledDate)
+        let startWindow = calendar.date(byAdding: .day, value: -context.windowDays, to: occurrence.scheduledDate)
+        let endWindow = calendar.date(byAdding: .day, value: context.windowDays, to: occurrence.scheduledDate)
 
         var candidates: [TransactionCandidate] = []
 
-        for transaction in transactions {
-            let linkedOccurrenceId = linkedTransactionLookup[transaction.id]
+        for transaction in context.transactions {
+            let linkedOccurrenceId = context.linkedTransactionLookup[transaction.id]
             if let linkedOccurrenceId, linkedOccurrenceId != occurrence.id {
                 continue
             }
@@ -303,6 +307,6 @@ internal struct SpecialPaymentReconciliationPresenter {
         }
 
         candidates.sort()
-        return Array(candidates.prefix(limit))
+        return Array(candidates.prefix(context.limit))
     }
 }

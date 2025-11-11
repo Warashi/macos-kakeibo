@@ -59,18 +59,6 @@ internal struct SpecialPaymentSynchronizationSummary {
     internal let createdCount: Int
     internal let updatedCount: Int
     internal let removedCount: Int
-
-    internal init(
-        syncedAt: Date,
-        createdCount: Int,
-        updatedCount: Int,
-        removedCount: Int
-    ) {
-        self.syncedAt = syncedAt
-        self.createdCount = createdCount
-        self.updatedCount = updatedCount
-        self.removedCount = removedCount
-    }
 }
 
 internal protocol SpecialPaymentRepository {

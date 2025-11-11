@@ -122,10 +122,12 @@ let presentation = presenter.makePresentation(
 
 let candidates = presenter.transactionCandidates(
     for: occurrence,
-    transactions: allTransactions,
-    linkedTransactionLookup: presentation.linkedTransactionLookup,
-    windowDays: 60,
-    limit: 12
+    context: .init(
+        transactions: allTransactions,
+        linkedTransactionLookup: presentation.linkedTransactionLookup,
+        windowDays: 60,
+        limit: 12
+    )
 )
 ```
 

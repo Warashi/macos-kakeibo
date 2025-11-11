@@ -264,33 +264,33 @@ internal struct SpecialPaymentBalanceCacheMetrics: Sendable {
 }
 
 internal struct BalanceCacheKey: Hashable {
-    let definitionId: UUID
-    let balanceId: UUID
-    let year: Int
-    let month: Int
-    let startYear: Int?
-    let startMonth: Int?
-    let definitionVersion: Int
-    let balanceVersion: Int
+    internal let definitionId: UUID
+    internal let balanceId: UUID
+    internal let year: Int
+    internal let month: Int
+    internal let startYear: Int?
+    internal let startMonth: Int?
+    internal let definitionVersion: Int
+    internal let balanceVersion: Int
 }
 
 internal struct BalanceSnapshot: Sendable {
-    let totalSavedAmount: Decimal
-    let totalPaidAmount: Decimal
-    let lastUpdatedYear: Int
-    let lastUpdatedMonth: Int
+    internal let totalSavedAmount: Decimal
+    internal let totalPaidAmount: Decimal
+    internal let lastUpdatedYear: Int
+    internal let lastUpdatedMonth: Int
 }
 
-final class SpecialPaymentBalanceCache: @unchecked Sendable {
+internal final class SpecialPaymentBalanceCache: @unchecked Sendable {
     private struct Metrics {
         var hits: Int = 0
         var misses: Int = 0
         var invalidations: Int = 0
     }
 
-    private let lock = NSLock()
+    private let lock: NSLock = NSLock()
     private var snapshots: [BalanceCacheKey: BalanceSnapshot] = [:]
-    private var metrics = Metrics()
+    private var metrics: Metrics = Metrics()
 
     internal var metricsSnapshot: SpecialPaymentBalanceCacheMetrics {
         lock.withLock {

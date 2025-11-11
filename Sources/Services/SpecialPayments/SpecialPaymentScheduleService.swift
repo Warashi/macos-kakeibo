@@ -18,22 +18,6 @@ internal struct SpecialPaymentScheduleService {
         internal let locked: [SpecialPaymentOccurrence]
         internal let occurrences: [SpecialPaymentOccurrence]
         internal let referenceDate: Date
-
-        internal init(
-            created: [SpecialPaymentOccurrence],
-            updated: [SpecialPaymentOccurrence],
-            removed: [SpecialPaymentOccurrence],
-            locked: [SpecialPaymentOccurrence],
-            occurrences: [SpecialPaymentOccurrence],
-            referenceDate: Date
-        ) {
-            self.created = created
-            self.updated = updated
-            self.removed = removed
-            self.locked = locked
-            self.occurrences = occurrences
-            self.referenceDate = referenceDate
-        }
     }
 
     private let calendar: Calendar

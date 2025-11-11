@@ -113,7 +113,8 @@ internal final class SpecialPaymentReconciliationStore {
             modelContext: modelContext,
             currentDateProvider: currentDateProvider
         )
-        let resolvedTransactionRepository = transactionRepository ?? SwiftDataTransactionRepository(modelContext: modelContext)
+        let resolvedTransactionRepository = transactionRepository
+            ?? SwiftDataTransactionRepository(modelContext: modelContext)
         self.init(
             repository: repository,
             transactionRepository: resolvedTransactionRepository,
@@ -315,12 +316,15 @@ private extension SpecialPaymentReconciliationStore {
     }
 
     private func recomputeCandidates(for occurrence: SpecialPaymentOccurrence) {
-        candidateTransactions = presenter.transactionCandidates(
-            for: occurrence,
+        let context = SpecialPaymentReconciliationPresenter.TransactionCandidateSearchContext(
             transactions: transactions,
             linkedTransactionLookup: linkedTransactionLookup,
             windowDays: candidateSearchWindowDays,
             limit: candidateLimit
+        )
+        candidateTransactions = presenter.transactionCandidates(
+            for: occurrence,
+            context: context
         )
     }
 

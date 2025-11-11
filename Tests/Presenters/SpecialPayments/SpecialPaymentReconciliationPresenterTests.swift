@@ -67,12 +67,16 @@ internal struct SpecialPaymentReconciliationPresenterTests {
             amount: -50000
         )
 
-        let candidates = presenter.transactionCandidates(
-            for: occurrence,
+        let context = SpecialPaymentReconciliationPresenter.TransactionCandidateSearchContext(
             transactions: [matchingTransaction, distantTransaction],
             linkedTransactionLookup: [:],
             windowDays: 30,
             limit: 5
+        )
+
+        let candidates = presenter.transactionCandidates(
+            for: occurrence,
+            context: context
         )
 
         #expect(candidates.count == 1)

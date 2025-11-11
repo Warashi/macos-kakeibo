@@ -92,7 +92,10 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         return definition
     }
 
-    internal func updateDefinition(_ definition: SpecialPaymentDefinition, input: SpecialPaymentDefinitionInput) throws {
+    internal func updateDefinition(
+        _ definition: SpecialPaymentDefinition,
+        input: SpecialPaymentDefinitionInput
+    ) throws {
         let category = try resolvedCategory(id: input.categoryId)
 
         definition.name = input.name
