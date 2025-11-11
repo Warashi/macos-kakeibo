@@ -32,34 +32,46 @@ internal final class TransactionStore {
 
     internal var transactions: [Transaction] = []
     internal var searchText: String = "" {
-        didSet { reloadTransactions() }
+        didSet {
+            Task { await reloadTransactions() }
+        }
     }
 
     internal var selectedFilterKind: TransactionFilterKind = .all {
-        didSet { reloadTransactions() }
+        didSet {
+            Task { await reloadTransactions() }
+        }
     }
 
     internal var selectedInstitutionId: UUID? {
-        didSet { reloadTransactions() }
+        didSet {
+            Task { await reloadTransactions() }
+        }
     }
 
     internal var categoryFilter: CategoryFilterState = .init() {
         didSet {
             guard oldValue != categoryFilter else { return }
-            reloadTransactions()
+            Task { await reloadTransactions() }
         }
     }
 
     internal var includeOnlyCalculationTarget: Bool = true {
-        didSet { reloadTransactions() }
+        didSet {
+            Task { await reloadTransactions() }
+        }
     }
 
     internal var excludeTransfers: Bool = true {
-        didSet { reloadTransactions() }
+        didSet {
+            Task { await reloadTransactions() }
+        }
     }
 
     internal var sortOption: TransactionSortOption = .dateDescending {
-        didSet { reloadTransactions() }
+        didSet {
+            Task { await reloadTransactions() }
+        }
     }
 
     internal var currentMonth: Date {
@@ -69,7 +81,7 @@ internal final class TransactionStore {
                 currentMonth = normalized
                 return
             }
-            reloadTransactions()
+            Task { await reloadTransactions() }
         }
     }
 
@@ -121,8 +133,10 @@ internal final class TransactionStore {
 internal extension TransactionStore {
     /// 参照データと取引を再取得
     func refresh() {
-        loadReferenceData()
-        reloadTransactions()
+        Task {
+            await loadReferenceData()
+            await reloadTransactions()
+        }
     }
 
     /// 現在の月ラベル
@@ -258,9 +272,9 @@ internal extension TransactionStore {
 
     /// フォーム内容を保存
     @discardableResult
-    func saveCurrentForm() -> Bool {
+    func saveCurrentForm() async -> Bool {
         do {
-            try formUseCase.save(
+            try await formUseCase.save(
                 state: formState,
                 editingTransaction: editingTransaction,
                 referenceData: referenceData,
@@ -280,9 +294,9 @@ internal extension TransactionStore {
 
     /// 取引を削除
     @discardableResult
-    func deleteTransaction(_ transaction: Transaction) -> Bool {
+    func deleteTransaction(_ transaction: Transaction) async -> Bool {
         do {
-            try formUseCase.delete(transaction: transaction)
+            try await formUseCase.delete(transaction: transaction)
             formErrors = []
             refresh()
             return true
@@ -309,9 +323,9 @@ private extension TransactionStore {
         currentMonth = newDate
     }
 
-    func loadReferenceData() {
+    func loadReferenceData() async {
         do {
-            let reference = try listUseCase.loadReferenceData()
+            let reference = try await listUseCase.loadReferenceData()
             availableInstitutions = reference.institutions
             availableCategories = reference.categories
             categoryFilter.updateCategories(reference.categories)
@@ -324,10 +338,10 @@ private extension TransactionStore {
         }
     }
 
-    func reloadTransactions() {
+    func reloadTransactions() async {
         transactionsToken?.cancel()
         do {
-            transactionsToken = try listUseCase.observeTransactions(filter: makeFilter()) { [weak self] result in
+            transactionsToken = try await listUseCase.observeTransactions(filter: makeFilter()) { [weak self] result in
                 guard let self else { return }
                 self.transactions = result
                 self.listErrorMessage = nil

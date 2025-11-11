@@ -294,18 +294,18 @@ internal extension BudgetStore {
 // MARK: - Mutations
 
 internal extension BudgetStore {
-    func addBudget(_ input: BudgetInput) throws {
-        try mutationUseCase.addBudget(input: input)
+    func addBudget(_ input: BudgetInput) async throws {
+        try await mutationUseCase.addBudget(input: input)
         reloadSnapshot()
     }
 
-    func updateBudget(budget: Budget, input: BudgetInput) throws {
-        try mutationUseCase.updateBudget(budget, input: input)
+    func updateBudget(budget: Budget, input: BudgetInput) async throws {
+        try await mutationUseCase.updateBudget(budget, input: input)
         reloadSnapshot()
     }
 
-    func deleteBudget(_ budget: Budget) throws {
-        try mutationUseCase.deleteBudget(budget)
+    func deleteBudget(_ budget: Budget) async throws {
+        try await mutationUseCase.deleteBudget(budget)
         reloadSnapshot()
     }
 
@@ -313,7 +313,7 @@ internal extension BudgetStore {
         totalAmount: Decimal,
         policy: AnnualBudgetPolicy,
         allocations: [AnnualAllocationDraft],
-    ) throws {
+    ) async throws {
         let input = AnnualBudgetConfigInput(
             existingConfig: snapshot?.annualBudgetConfig,
             year: currentYear,
@@ -321,7 +321,7 @@ internal extension BudgetStore {
             policy: policy,
             allocations: allocations,
         )
-        try mutationUseCase.upsertAnnualBudgetConfig(input)
+        try await mutationUseCase.upsertAnnualBudgetConfig(input)
         reloadSnapshot()
     }
 }
