@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+@DatabaseActor
 internal final class SwiftDataTransactionRepository: TransactionRepository {
     private let modelContext: ModelContext
 

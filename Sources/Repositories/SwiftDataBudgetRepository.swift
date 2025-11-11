@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+@DatabaseActor
 internal final class SwiftDataBudgetRepository: BudgetRepository {
     private let modelContext: ModelContext
     private let specialPaymentRepository: SpecialPaymentRepository
