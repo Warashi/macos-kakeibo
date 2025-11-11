@@ -16,7 +16,18 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
 
     internal func fetchSnapshot(for year: Int) throws -> BudgetSnapshot {
         let budgets = try modelContext.fetch(BudgetQueries.allBudgets())
-        let transactions = try modelContext.fetch(TransactionQueries.all())
+
+        // 年の範囲の取引のみ取得（パフォーマンス最適化）
+        let transactions: [Transaction] = if let startDate = Date.from(year: year, month: 1),
+                                             let endDate = Date.from(year: year + 1, month: 1) {
+            try modelContext.fetch(TransactionQueries.between(
+                startDate: startDate,
+                endDate: endDate,
+            ))
+        } else {
+            []
+        }
+
         let categories = try modelContext.fetch(CategoryQueries.sortedForDisplay())
         let definitions = try specialPaymentRepository.definitions(filter: nil)
         let balances = try specialPaymentRepository.balances(query: nil)
