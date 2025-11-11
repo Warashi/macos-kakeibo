@@ -218,25 +218,12 @@ internal enum BudgetCalculationCacheHasher {
         versionHash(for: budgets, id: { $0.id }, updatedAt: { $0.updatedAt })
     }
 
-    internal static func balancesVersion(for balances: [SpecialPaymentSavingBalance]) -> Int {
+    internal static func balancesVersion(for balances: [SpecialPaymentSavingBalanceDTO]) -> Int {
         versionHash(for: balances, id: { $0.id }, updatedAt: { $0.updatedAt })
     }
 
-    internal static func definitionsVersion(_ definitions: [SpecialPaymentDefinition]) -> Int {
-        var hasher = Hasher()
-        hasher.combine(definitions.count)
-
-        let sortedDefinitions = definitions.sorted { $0.id.uuidString < $1.id.uuidString }
-        for definition in sortedDefinitions {
-            hasher.combine(definition.id)
-            hasher.combine(definition.updatedAt.timeIntervalSinceReferenceDate)
-            hasher.combine(definition.occurrences.count)
-            if let latestOccurrence = definition.occurrences.map(\.updatedAt).max() {
-                hasher.combine(latestOccurrence.timeIntervalSinceReferenceDate)
-            }
-        }
-
-        return hasher.finalize()
+    internal static func definitionsVersion(_ definitions: [SpecialPaymentDefinitionDTO]) -> Int {
+        versionHash(for: definitions, id: { $0.id }, updatedAt: { $0.updatedAt })
     }
 
     private static func versionHash<T>(

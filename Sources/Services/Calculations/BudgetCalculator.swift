@@ -243,23 +243,16 @@ internal struct BudgetCalculator: Sendable {
     // MARK: - 特別支払い積立計算
 
     /// 全特別支払いの積立状況を計算
-    /// - Parameters:
-    ///   - definitions: 特別支払い定義リスト
-    ///   - balances: 積立残高リスト
-    ///   - year: 対象年
-    ///   - month: 対象月
+    /// - Parameter input: 計算パラメータ
     /// - Returns: 積立状況計算結果リスト
     internal func calculateSpecialPaymentSavings(
-        definitions: [SpecialPaymentDefinition],
-        balances: [SpecialPaymentSavingBalance],
-        year: Int,
-        month: Int,
+        _ input: SpecialPaymentSavingsCalculationInput,
     ) -> [SpecialPaymentSavingsCalculation] {
         let cacheKey = SpecialPaymentSavingsCacheKey(
-            year: year,
-            month: month,
-            definitionsVersion: BudgetCalculationCacheHasher.definitionsVersion(definitions),
-            balancesVersion: BudgetCalculationCacheHasher.balancesVersion(for: balances),
+            year: input.year,
+            month: input.month,
+            definitionsVersion: BudgetCalculationCacheHasher.definitionsVersion(input.definitions),
+            balancesVersion: BudgetCalculationCacheHasher.balancesVersion(for: input.balances),
         )
         if let cached = cache.cachedSpecialPaymentSavings(for: cacheKey) {
             return cached
@@ -267,10 +260,16 @@ internal struct BudgetCalculator: Sendable {
 
         // 残高をdefinitionIdでマップ化
         let balanceMap = Dictionary(
-            uniqueKeysWithValues: balances.map { ($0.definition.id, $0) },
+            uniqueKeysWithValues: input.balances.map { ($0.definitionId, $0) },
         )
 
-        let calculations = definitions.map { definition in
+        // 発生予定をdefinitionIdでグループ化
+        let occurrencesByDefinition = Dictionary(
+            grouping: input.occurrences,
+            by: { $0.definitionId },
+        )
+
+        let calculations = input.definitions.map { definition in
             let balance = balanceMap[definition.id]
             let monthlySaving = definition.monthlySavingAmount
             let totalSaved = balance?.totalSavedAmount ?? 0
@@ -278,9 +277,9 @@ internal struct BudgetCalculator: Sendable {
             let balanceAmount = totalSaved.safeSubtract(totalPaid)
 
             // 次回発生予定のOccurrenceを取得
-            let upcomingOccurrences = definition.occurrences.filter { occurrence in
+            let upcomingOccurrences = occurrencesByDefinition[definition.id]?.filter { occurrence in
                 occurrence.scheduledDate >= Date() && occurrence.status != .completed
-            }
+            } ?? []
             let nextOccurrence = upcomingOccurrences.first?.scheduledDate
 
             return SpecialPaymentSavingsCalculation(
@@ -299,12 +298,12 @@ internal struct BudgetCalculator: Sendable {
 
     /// 月次に組み込むべき積立金額の合計を計算
     /// - Parameters:
-    ///   - definitions: 特別支払い定義リスト
+    ///   - definitions: 特別支払い定義リスト（DTO）
     ///   - year: 対象年
     ///   - month: 対象月
     /// - Returns: 月次積立金額の合計
     internal func calculateMonthlySavingsAllocation(
-        definitions: [SpecialPaymentDefinition],
+        definitions: [SpecialPaymentDefinitionDTO],
         year: Int,
         month: Int,
     ) -> Decimal {
@@ -332,12 +331,12 @@ internal struct BudgetCalculator: Sendable {
 
     /// カテゴリ別の積立金額を計算
     /// - Parameters:
-    ///   - definitions: 特別支払い定義リスト
+    ///   - definitions: 特別支払い定義リスト（DTO）
     ///   - year: 対象年
     ///   - month: 対象月
     /// - Returns: カテゴリIDと積立金額のマップ
     internal func calculateCategorySavingsAllocation(
-        definitions: [SpecialPaymentDefinition],
+        definitions: [SpecialPaymentDefinitionDTO],
         year: Int,
         month: Int,
     ) -> [UUID: Decimal] {
@@ -352,13 +351,13 @@ internal struct BudgetCalculator: Sendable {
 
         // カテゴリが設定されていて、積立が有効な定義のみをフィルタリング
         let categorizedDefinitions = definitions.filter { definition in
-            definition.category != nil && definition.savingStrategy != .disabled
+            definition.categoryId != nil && definition.savingStrategy != .disabled
         }
 
         // カテゴリごとに積立額を集計
         var categoryAllocations: [UUID: Decimal] = [:]
         for definition in categorizedDefinitions {
-            guard let categoryId = definition.category?.id else { continue }
+            guard let categoryId = definition.categoryId else { continue }
 
             let currentAmount = categoryAllocations[categoryId] ?? 0
             let newAmount = currentAmount.safeAdd(definition.monthlySavingAmount)
