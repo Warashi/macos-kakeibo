@@ -15,8 +15,8 @@ View ──binds──> Store (@Observable)
    └─refresh──> ModelContext snapshots (BudgetSnapshot, etc.)
 ```
 
-- **Stores** は ModelContext から `BudgetSnapshot` などを構築し、 UseCase へ引き渡す役割に専念します。
-- **UseCase** はビューが必要とする形 (`MonthlyBudgetEntry`, `SpecialPaymentSavingsEntry` など) へデータを整形し、計算サービスの差し替えポイントになります。
+- **Stores** は ModelContext から `BudgetSnapshot` などを構築し、 UseCase へ引き渡す役割に専念します。BudgetStore のナビゲーション/表示モード制御は `Sources/Stores/Support/` の `BudgetNavigationState` / `BudgetDisplayModeTraits` へ切り出しています。
+- **UseCase** はビューが必要とする形 (`MonthlyBudgetEntry`, `SpecialPaymentSavingsEntry` など) へデータを整形し、計算サービスの差し替えポイントになります。これらのDTOは `Sources/Presenters/Budgets/` 配下で共有され、複数画面から再利用できます。
 - **Services** 層では `BudgetCalculator` と `SpecialPaymentBalanceService` が計算とキャッシュ制御を担当し、`TransactionAggregator` や `AnnualBudgetAllocator` を再利用しています。
 
 ## 計算チェーンとキャッシュ

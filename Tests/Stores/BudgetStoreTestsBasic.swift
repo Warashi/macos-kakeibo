@@ -145,6 +145,65 @@ internal struct BudgetStoreTestsBasic {
         #expect(store.refreshToken != initialToken)
     }
 
+    @Test("displayModeTraitsはモードに応じてナビゲーション情報を返す")
+    internal func displayModeTraits_reflectModes() throws {
+        let (store, _) = try makeStore()
+
+        #expect(store.displayModeTraits.navigationStyle == .monthly)
+        #expect(store.displayModeTraits.presentButtonLabel == "今月")
+
+        store.displayMode = .annual
+        #expect(store.displayModeTraits.navigationStyle == .annual)
+        #expect(store.displayModeTraits.presentButtonLabel == "今年")
+
+        store.displayMode = .specialPaymentsList
+        #expect(store.displayModeTraits.showsNavigation == false)
+        #expect(store.displayModeTraits.presentButtonLabel == nil)
+    }
+
+    @Test("moveToPresent: 月次モードでは現在の年月に戻す")
+    internal func moveToPresent_resetsMonthAndYear() throws {
+        let (store, _) = try makeStore()
+        store.displayMode = .monthly
+        store.currentYear = 2000
+        store.currentMonth = 1
+
+        let expectedYear = Date().year
+        let expectedMonth = Date().month
+
+        store.moveToPresent()
+
+        #expect(store.currentYear == expectedYear)
+        #expect(store.currentMonth == expectedMonth)
+    }
+
+    @Test("moveToPresent: 年次モードでは年のみ更新")
+    internal func moveToPresent_updatesOnlyYearForAnnual() throws {
+        let (store, _) = try makeStore()
+        store.displayMode = .annual
+        store.currentYear = 2000
+        store.currentMonth = 6
+
+        let expectedYear = Date().year
+        store.moveToPresent()
+
+        #expect(store.currentYear == expectedYear)
+        #expect(store.currentMonth == 6)
+    }
+
+    @Test("moveToPresent: 特別支払い一覧では変化しない")
+    internal func moveToPresent_doesNothingForSpecialPayments() throws {
+        let (store, _) = try makeStore()
+        store.displayMode = .specialPaymentsList
+        store.currentYear = 2000
+        store.currentMonth = 6
+
+        store.moveToPresent()
+
+        #expect(store.currentYear == 2000)
+        #expect(store.currentMonth == 6)
+    }
+
     // MARK: - Helpers
 
     private func makeStore() throws -> (BudgetStore, ModelContext) {

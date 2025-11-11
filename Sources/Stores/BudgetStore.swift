@@ -49,6 +49,10 @@ internal final class BudgetStore {
     internal var displayMode: DisplayMode = .monthly
     internal private(set) var refreshToken: UUID = .init()
 
+    internal var displayModeTraits: BudgetDisplayModeTraits {
+        BudgetDisplayModeTraits(mode: displayMode)
+    }
+
     // MARK: - Initialization
 
     internal convenience init(modelContext: ModelContext) {
@@ -227,27 +231,31 @@ internal extension BudgetStore {
 
 internal extension BudgetStore {
     func moveToPreviousMonth() {
-        updateMonthNavigator { $0.moveToPreviousMonth() }
+        updateNavigation { $0.moveToPreviousMonth() }
     }
 
     func moveToNextMonth() {
-        updateMonthNavigator { $0.moveToNextMonth() }
+        updateNavigation { $0.moveToNextMonth() }
     }
 
     func moveToCurrentMonth() {
-        updateMonthNavigator { $0.moveToCurrentMonth() }
+        updateNavigation { $0.moveToCurrentMonth() }
     }
 
     func moveToPreviousYear() {
-        updateMonthNavigator { $0.moveToPreviousYear() }
+        updateNavigation { $0.moveToPreviousYear() }
     }
 
     func moveToNextYear() {
-        updateMonthNavigator { $0.moveToNextYear() }
+        updateNavigation { $0.moveToNextYear() }
     }
 
     func moveToCurrentYear() {
-        updateMonthNavigator { $0.moveToCurrentYear() }
+        updateNavigation { $0.moveToCurrentYear() }
+    }
+
+    func moveToPresent() {
+        updateNavigation { $0.moveToPresent(displayMode: displayMode) }
     }
 }
 
@@ -292,72 +300,24 @@ private extension BudgetStore {
         snapshot = try? repository.fetchSnapshot(for: currentYear)
     }
 
-    private func updateMonthNavigator(_ update: (inout MonthNavigator) -> Void) {
-        var navigator = MonthNavigator(
+    private func updateNavigation(_ update: (inout BudgetNavigationState) -> Bool) {
+        var state = BudgetNavigationState(
             year: currentYear,
             month: currentMonth,
             currentDateProvider: currentDateProvider
         )
-        update(&navigator)
-        currentYear = navigator.year
-        currentMonth = navigator.month
-    }
-}
-
-// MARK: - Entry Model
-
-/// 月次予算の表示用エントリ
-internal struct MonthlyBudgetEntry: Identifiable {
-    internal let budget: Budget
-    internal let title: String
-    internal let calculation: BudgetCalculation
-
-    internal var id: UUID { budget.id }
-
-    internal var periodDescription: String {
-        budget.periodDescription
+        let changed = update(&state)
+        guard changed else { return }
+        applyNavigation(state)
     }
 
-    internal var isOverallBudget: Bool {
-        budget.category == nil
-    }
-
-    /// ソート用にカテゴリのdisplayOrderを親子で考慮した順序情報を返す
-    internal var displayOrderKey: CategoryDisplayOrderKey {
-        let parentOrder = budget.category?.parent?.displayOrder ?? budget.category?.displayOrder ?? 0
-        let ownOrder = budget.category?.displayOrder ?? 0
-        return CategoryDisplayOrderKey(parentOrder: parentOrder, ownOrder: ownOrder, title: title)
-    }
-}
-
-// MARK: - Budget Input
-
-/// 月次予算の入力パラメータ
-internal struct BudgetInput {
-    internal let amount: Decimal
-    internal let categoryId: UUID?
-    internal let startYear: Int
-    internal let startMonth: Int
-    internal let endYear: Int
-    internal let endMonth: Int
-}
-
-// MARK: - Category Display Order Key
-
-/// カテゴリの表示順序を表すキー
-internal struct CategoryDisplayOrderKey: Comparable {
-    internal let parentOrder: Int
-    internal let ownOrder: Int
-    internal let title: String
-
-    internal static func < (lhs: CategoryDisplayOrderKey, rhs: CategoryDisplayOrderKey) -> Bool {
-        if lhs.parentOrder != rhs.parentOrder {
-            return lhs.parentOrder < rhs.parentOrder
+    private func applyNavigation(_ state: BudgetNavigationState) {
+        if currentYear != state.year {
+            currentYear = state.year
         }
-        if lhs.ownOrder != rhs.ownOrder {
-            return lhs.ownOrder < rhs.ownOrder
+        if currentMonth != state.month {
+            currentMonth = state.month
         }
-        return lhs.title < rhs.title
     }
 }
 
@@ -367,59 +327,4 @@ internal enum BudgetStoreError: Error {
     case categoryNotFound
     case duplicateAnnualAllocationCategory
     case invalidPeriod
-}
-
-// MARK: - Annual Allocation Draft
-
-internal struct AnnualAllocationDraft {
-    internal let categoryId: UUID
-    internal let amount: Decimal
-    internal let policyOverride: AnnualBudgetPolicy?
-
-    internal init(
-        categoryId: UUID,
-        amount: Decimal,
-        policyOverride: AnnualBudgetPolicy? = nil
-    ) {
-        self.categoryId = categoryId
-        self.amount = amount
-        self.policyOverride = policyOverride
-    }
-}
-
-// MARK: - Special Payment Savings Entry
-
-/// 特別支払い積立の表示用エントリ
-internal struct SpecialPaymentSavingsEntry: Identifiable {
-    internal let calculation: SpecialPaymentSavingsCalculation
-
-    /// 進捗率（0.0 〜 1.0）
-    internal let progress: Double
-
-    /// アラート表示フラグ（残高不足など）
-    internal let hasAlert: Bool
-
-    internal var id: UUID {
-        calculation.definitionId
-    }
-
-    internal var name: String {
-        calculation.name
-    }
-
-    internal var monthlySaving: Decimal {
-        calculation.monthlySaving
-    }
-
-    internal var balance: Decimal {
-        calculation.balance
-    }
-
-    internal var nextOccurrence: Date? {
-        calculation.nextOccurrence
-    }
-
-    internal var progressPercentage: Double {
-        progress * 100
-    }
 }

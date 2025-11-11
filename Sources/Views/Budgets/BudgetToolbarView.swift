@@ -23,18 +23,19 @@ internal struct BudgetToolbarView: View {
 
             Spacer()
 
-            if store.displayMode != .specialPaymentsList {
-                if store.displayMode == .monthly {
+            if store.displayModeTraits.showsNavigation {
+                switch store.displayModeTraits.navigationStyle {
+                case .monthly:
                     BudgetMonthNavigationView(store: store)
-                } else {
+                case .annual:
                     BudgetYearNavigationView(store: store)
+                case .hidden:
+                    EmptyView()
                 }
 
-                Button(store.displayMode == .monthly ? "今月" : "今年") {
-                    if store.displayMode == .monthly {
-                        store.moveToCurrentMonth()
-                    } else {
-                        store.moveToCurrentYear()
+                if let presentLabel = store.displayModeTraits.presentButtonLabel {
+                    Button(presentLabel) {
+                        store.moveToPresent()
                     }
                 }
             }
