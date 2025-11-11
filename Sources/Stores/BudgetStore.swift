@@ -160,29 +160,39 @@ internal extension BudgetStore {
     /// 計算結果を再計算
     private func recalculate() {
         guard let snapshot else {
-            // snapshotがない場合は初期値を設定
-            monthlyBudgets = []
-            selectableCategories = []
-            monthlyBudgetCalculation = MonthlyBudgetCalculation(
-                year: currentYear,
-                month: currentMonth,
-                overallCalculation: nil,
-                categoryCalculations: [],
-            )
-            categoryBudgetEntries = []
-            overallBudgetEntry = nil
-            annualBudgetConfig = nil
-            annualBudgetUsage = nil
-            annualOverallBudgetEntry = nil
-            annualCategoryBudgetEntries = []
-            monthlySpecialPaymentSavingsTotal = .zero
-            categorySpecialPaymentSavings = [:]
-            specialPaymentSavingsCalculations = []
-            specialPaymentSavingsEntries = []
+            resetAllCalculations()
             return
         }
 
-        // 月次データの計算
+        recalculateMonthlyBudgets(snapshot: snapshot)
+        recalculateAnnualBudgets(snapshot: snapshot)
+        recalculateSpecialPaymentSavings(snapshot: snapshot)
+    }
+
+    /// すべての計算結果を初期値にリセット
+    private func resetAllCalculations() {
+        monthlyBudgets = []
+        selectableCategories = []
+        monthlyBudgetCalculation = MonthlyBudgetCalculation(
+            year: currentYear,
+            month: currentMonth,
+            overallCalculation: nil,
+            categoryCalculations: [],
+        )
+        categoryBudgetEntries = []
+        overallBudgetEntry = nil
+        annualBudgetConfig = nil
+        annualBudgetUsage = nil
+        annualOverallBudgetEntry = nil
+        annualCategoryBudgetEntries = []
+        monthlySpecialPaymentSavingsTotal = .zero
+        categorySpecialPaymentSavings = [:]
+        specialPaymentSavingsCalculations = []
+        specialPaymentSavingsEntries = []
+    }
+
+    /// 月次予算データを再計算
+    private func recalculateMonthlyBudgets(snapshot: BudgetSnapshot) {
         monthlyBudgets = monthlyUseCase.monthlyBudgets(
             snapshot: snapshot,
             year: currentYear,
@@ -204,8 +214,10 @@ internal extension BudgetStore {
             year: currentYear,
             month: currentMonth,
         )
+    }
 
-        // 年次データの計算
+    /// 年次予算データを再計算
+    private func recalculateAnnualBudgets(snapshot: BudgetSnapshot) {
         annualBudgetConfig = snapshot.annualBudgetConfig
         annualBudgetUsage = annualUseCase.annualBudgetUsage(
             snapshot: snapshot,
@@ -220,8 +232,10 @@ internal extension BudgetStore {
             snapshot: snapshot,
             year: currentYear,
         )
+    }
 
-        // 特別支払いデータの計算
+    /// 特別支払い積立データを再計算
+    private func recalculateSpecialPaymentSavings(snapshot: BudgetSnapshot) {
         monthlySpecialPaymentSavingsTotal = specialPaymentUseCase.monthlySavingsTotal(
             snapshot: snapshot,
             year: currentYear,
