@@ -19,8 +19,8 @@ internal struct AnnualBudgetUseCaseTests {
             ),
         ]
         let snapshot = BudgetSnapshot(
-            budgets: budgets,
-            transactions: transactions,
+            budgets: budgets.map { BudgetDTO(from: $0) },
+            transactions: transactions.map { TransactionDTO(from: $0) },
             categories: [],
             annualBudgetConfig: nil,
             specialPaymentDefinitions: [],
@@ -52,9 +52,9 @@ internal struct AnnualBudgetUseCaseTests {
             ),
         ]
         let snapshot = BudgetSnapshot(
-            budgets: budgets,
-            transactions: transactions,
-            categories: [food],
+            budgets: budgets.map { BudgetDTO(from: $0) },
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            categories: [CategoryDTO(from: food)],
             annualBudgetConfig: nil,
             specialPaymentDefinitions: [],
             specialPaymentBalances: [],
@@ -87,9 +87,9 @@ internal struct AnnualBudgetUseCaseTests {
         ]
         let snapshot = BudgetSnapshot(
             budgets: [],
-            transactions: transactions,
-            categories: [food],
-            annualBudgetConfig: config,
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            categories: [CategoryDTO(from: food)],
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
             specialPaymentDefinitions: [],
             specialPaymentBalances: [],
             specialPaymentOccurrences: [],
