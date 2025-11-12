@@ -28,14 +28,23 @@ internal struct ReconciliationPresenterTests {
         )
         definition.occurrences = [later, earlier]
 
-        let presentation = presenter.makePresentation(
-            definitions: [definition],
+        let definitionDTO = SpecialPaymentDefinitionDTO(from: definition)
+        let earlierDTO = SpecialPaymentOccurrenceDTO(from: earlier)
+        let laterDTO = SpecialPaymentOccurrenceDTO(from: later)
+
+        let input = SpecialPaymentReconciliationPresenter.PresentationInput(
+            occurrences: [earlierDTO, laterDTO],
+            definitions: [definitionDTO.id: definitionDTO],
+            categories: [:],
+            transactions: [:],
             referenceDate: Date.from(year: 2025, month: 4, day: 1) ?? Date(),
         )
 
+        let presentation = presenter.makePresentation(input: input)
+
         #expect(presentation.rows.count == 2)
         #expect(presentation.rows.first?.scheduledDate == earlier.scheduledDate)
-        #expect(presentation.occurrenceLookup[earlier.id] === earlier)
+        #expect(presentation.occurrenceLookup[earlier.id]?.id == earlierDTO.id)
         #expect(presentation.linkedTransactionLookup.isEmpty)
     }
 
@@ -67,15 +76,21 @@ internal struct ReconciliationPresenterTests {
             amount: -50000,
         )
 
+        let definitionDTO = SpecialPaymentDefinitionDTO(from: definition)
+        let occurrenceDTO = SpecialPaymentOccurrenceDTO(from: occurrence)
+        let matchingTransactionDTO = TransactionDTO(from: matchingTransaction)
+        let distantTransactionDTO = TransactionDTO(from: distantTransaction)
+
         let context = SpecialPaymentReconciliationPresenter.TransactionCandidateSearchContext(
-            transactions: [matchingTransaction, distantTransaction],
+            transactions: [matchingTransactionDTO, distantTransactionDTO],
             linkedTransactionLookup: [:],
             windowDays: 30,
             limit: 5,
         )
 
         let candidates = presenter.transactionCandidates(
-            for: occurrence,
+            for: occurrenceDTO,
+            definition: definitionDTO,
             context: context,
         )
 
