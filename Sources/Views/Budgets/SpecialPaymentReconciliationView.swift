@@ -91,7 +91,7 @@ private struct ReconciliationHeaderView: View {
                     .font(.title2.bold())
                 Spacer()
                 Button {
-                    Task { await store.refresh() }
+                    Task { @MainActor in await store.refresh() }
                 } label: {
                     Label("再読み込み", systemImage: "arrow.clockwise")
                 }
@@ -267,7 +267,7 @@ private struct ReconciliationFormView: View {
 
             HStack(spacing: 12) {
                 Button {
-                    Task { await store.saveSelectedOccurrence() }
+                    Task { @MainActor in await store.saveSelectedOccurrence() }
                 } label: {
                     Label("実績を保存", systemImage: "checkmark.circle.fill")
                 }
@@ -279,7 +279,7 @@ private struct ReconciliationFormView: View {
                 }
 
                 Button("リンク解除", role: .destructive) {
-                    Task { await store.unlinkSelectedOccurrence() }
+                    Task { @MainActor in await store.unlinkSelectedOccurrence() }
                 }
                 .disabled(store.selectedRow?.transactionTitle == nil)
             }
