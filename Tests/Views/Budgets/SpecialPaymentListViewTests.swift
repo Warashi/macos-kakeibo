@@ -14,26 +14,29 @@ internal struct SpecialPaymentListViewTests {
     }
 
     @Test("SpecialPaymentListContentViewにストアを渡して初期化できる")
-    internal func specialPaymentListContentViewInitialization() throws {
+    internal func specialPaymentListContentViewInitialization() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let store = SpecialPaymentListStore(modelContext: context)
+        let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
+        let store = SpecialPaymentListStore(repository: repository)
 
         let view = SpecialPaymentListContentView(store: store)
         let _: any View = view
     }
 
     @Test("空のストアで entries が空であることを確認")
-    internal func emptyStoreHasNoEntries() throws {
+    internal func emptyStoreHasNoEntries() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let store = SpecialPaymentListStore(modelContext: context)
+        let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
+        let store = SpecialPaymentListStore(repository: repository)
 
-        #expect(store.entries.isEmpty)
+        let entries = await store.entries()
+        #expect(entries.isEmpty)
     }
 
     @Test("サンプルデータを投入して entries が取得できることを確認")
-    internal func storeReturnsEntriesWithSampleData() throws {
+    internal func storeReturnsEntriesWithSampleData() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -57,64 +60,68 @@ internal struct SpecialPaymentListViewTests {
         try context.save()
 
         // ストアを作成
-        let store = SpecialPaymentListStore(modelContext: context)
+        let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
+        let store = SpecialPaymentListStore(repository: repository)
         store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
         store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
 
         // エントリが取得できることを確認
-        #expect(store.entries.count == 1)
-        #expect(store.entries.first?.name == "自動車税")
-        #expect(store.entries.first?.expectedAmount == 45000)
+        let entries = await store.entries()
+        #expect(entries.count == 1)
+        #expect(entries.first?.name == "自動車税")
+        #expect(entries.first?.expectedAmount == 45000)
     }
 
     @Test("検索テキストフィルタが機能することを確認")
-    internal func searchTextFilterWorks() throws {
-        let (store, _) = try makeStoreWithMultipleEntries()
+    internal func searchTextFilterWorks() async throws {
+        let (store, _) = try await makeStoreWithMultipleEntries()
 
         // 検索テキストを設定
         store.searchText = "自動車"
 
         // フィルタされたエントリを確認
-        #expect(store.entries.count == 1)
-        #expect(store.entries.first?.name == "自動車税")
+        let entries = await store.entries()
+        #expect(entries.count == 1)
+        #expect(entries.first?.name == "自動車税")
     }
 
     @Test("ステータスフィルタが機能することを確認")
-    internal func statusFilterWorks() throws {
-        let (store, _) = try makeStoreWithMultipleEntries()
+    internal func statusFilterWorks() async throws {
+        let (store, _) = try await makeStoreWithMultipleEntries()
 
         // completedステータスでフィルタ
         store.selectedStatus = .completed
 
         // フィルタされたエントリを確認
-        #expect(store.entries.count == 1)
-        #expect(store.entries.first?.status == .completed)
+        let entries = await store.entries()
+        #expect(entries.count == 1)
+        #expect(entries.first?.status == .completed)
     }
 
     @Test("複数エントリでソート機能が正しく動作することを確認")
-    internal func sortingWorksWithMultipleEntries() throws {
-        let (store, _) = try makeStoreWithMultipleEntries()
+    internal func sortingWorksWithMultipleEntries() async throws {
+        let (store, _) = try await makeStoreWithMultipleEntries()
 
         // 日付昇順でソート
         store.sortOrder = .dateAscending
-        let ascendingEntries = store.entries
+        let ascendingEntries = await store.entries()
         #expect(ascendingEntries.count == 3)
         #expect(ascendingEntries[0].scheduledDate < ascendingEntries[1].scheduledDate)
         #expect(ascendingEntries[1].scheduledDate < ascendingEntries[2].scheduledDate)
 
         // 日付降順でソート
         store.sortOrder = .dateDescending
-        let descendingEntries = store.entries
+        let descendingEntries = await store.entries()
         #expect(descendingEntries[0].scheduledDate > descendingEntries[1].scheduledDate)
         #expect(descendingEntries[1].scheduledDate > descendingEntries[2].scheduledDate)
     }
 
     @Test("複数ステータスのエントリが正しく表示されることを確認")
-    internal func multipleStatusEntriesDisplayCorrectly() throws {
-        let (store, _) = try makeStoreWithMultipleEntries()
+    internal func multipleStatusEntriesDisplayCorrectly() async throws {
+        let (store, _) = try await makeStoreWithMultipleEntries()
 
         // すべてのエントリを取得
-        let allEntries = store.entries
+        let allEntries = await store.entries()
 
         // 各ステータスのエントリが存在することを確認
         #expect(allEntries.contains(where: { $0.status == .saving }))
@@ -123,8 +130,8 @@ internal struct SpecialPaymentListViewTests {
     }
 
     @Test("フィルタリセット機能が正しく動作することを確認")
-    internal func resetFiltersWorks() throws {
-        let (store, _) = try makeStoreWithMultipleEntries()
+    internal func resetFiltersWorks() async throws {
+        let (store, _) = try await makeStoreWithMultipleEntries()
 
         // フィルタを設定
         store.searchText = "テスト"
@@ -149,7 +156,7 @@ internal struct SpecialPaymentListViewTests {
 
     // MARK: - Helpers
 
-    private func makeStoreWithMultipleEntries() throws -> (SpecialPaymentListStore, ModelContext) {
+    private func makeStoreWithMultipleEntries() async throws -> (SpecialPaymentListStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -206,7 +213,8 @@ internal struct SpecialPaymentListViewTests {
         context.insert(occurrence3)
         try context.save()
 
-        let store = SpecialPaymentListStore(modelContext: context)
+        let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
+        let store = SpecialPaymentListStore(repository: repository)
         store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
         store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
 
