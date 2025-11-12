@@ -34,11 +34,18 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         let balances = try specialPaymentRepository.balances(query: nil)
         let occurrences = try specialPaymentRepository.occurrences(query: nil)
         let config = try modelContext.fetch(BudgetQueries.annualConfig(for: year)).first
+
+        // SwiftDataモデルをDTOに変換
+        let budgetDTOs = budgets.map { BudgetDTO(from: $0) }
+        let transactionDTOs = transactions.map { TransactionDTO(from: $0) }
+        let categoryDTOs = categories.map { CategoryDTO(from: $0) }
+        let configDTO = config.map { AnnualBudgetConfigDTO(from: $0) }
+
         return BudgetSnapshot(
-            budgets: budgets,
-            transactions: transactions,
-            categories: categories,
-            annualBudgetConfig: config,
+            budgets: budgetDTOs,
+            transactions: transactionDTOs,
+            categories: categoryDTOs,
+            annualBudgetConfig: configDTO,
             specialPaymentDefinitions: definitions,
             specialPaymentBalances: balances,
             specialPaymentOccurrences: occurrences,
