@@ -89,22 +89,22 @@ internal struct SpecialPaymentListContentView: View {
         .onChange(of: allCategories) { _, newValue in
             store.categoryFilter.updateCategories(newValue)
         }
-        .onChange(of: store.dateRange) { _, _ in
+        .onChange(of: store.dateRange) { [store] _, _ in
             Task { @MainActor in await store.refreshEntries() }
         }
-        .onChange(of: store.searchText) { _, _ in
+        .onChange(of: store.searchText) { [store] _, _ in
             Task { @MainActor in await store.refreshEntries() }
         }
-        .onChange(of: store.categoryFilter.selectedMajorCategoryId) { _, _ in
+        .onChange(of: store.categoryFilter.selectedMajorCategoryId) { [store] _, _ in
             Task { @MainActor in await store.refreshEntries() }
         }
-        .onChange(of: store.categoryFilter.selectedMinorCategoryId) { _, _ in
+        .onChange(of: store.categoryFilter.selectedMinorCategoryId) { [store] _, _ in
             Task { @MainActor in await store.refreshEntries() }
         }
-        .onChange(of: store.selectedStatus) { _, _ in
+        .onChange(of: store.selectedStatus) { [store] _, _ in
             Task { @MainActor in await store.refreshEntries() }
         }
-        .onChange(of: store.sortOrder) { _, _ in
+        .onChange(of: store.sortOrder) { [store] _, _ in
             Task { @MainActor in await store.refreshEntries() }
         }
     }
