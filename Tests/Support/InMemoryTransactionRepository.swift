@@ -55,7 +55,7 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         institutions.first { $0.id == id }
     }
 
-    internal func findCategory(id: UUID) throws -> Category? {
+    internal func findCategory(id: UUID) throws -> Kakeibo.Category? {
         categories.first { $0.id == id }
     }
 

@@ -195,7 +195,8 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
 
         occurrence.actualDate = input.actualDate
         occurrence.actualAmount = input.actualAmount
-        occurrence.transaction = input.transaction
+        // Note: In-memory repository doesn't support transaction associations
+        // occurrence.transaction = input.transaction
         occurrence.status = .completed
         occurrence.updatedAt = currentDateProvider()
 
@@ -228,7 +229,8 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
         occurrence.status = input.status
         occurrence.actualDate = input.actualDate
         occurrence.actualAmount = input.actualAmount
-        occurrence.transaction = input.transaction
+        // Note: In-memory repository doesn't support transaction associations
+        // occurrence.transaction = input.transaction
         occurrence.updatedAt = now
 
         let errors = occurrence.validate()
