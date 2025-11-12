@@ -32,8 +32,7 @@ internal struct TransactionFormUseCaseTests {
         let transaction = Transaction(date: sampleDate(), title: "昼食", amount: -800, memo: "Before")
         repository.transactions = [transaction]
         let useCase = DefaultTransactionFormUseCase(repository: repository)
-        let transactionDTO = TransactionDTO(from: transaction)
-        var state = TransactionFormState.from(transaction: transactionDTO)
+        var state = TransactionFormState.from(transaction: transaction)
         state.title = "会食"
         state.amountText = "12,000"
         state.transactionKind = .income
