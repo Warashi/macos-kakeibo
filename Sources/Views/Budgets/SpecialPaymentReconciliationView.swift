@@ -20,9 +20,10 @@ internal struct SpecialPaymentReconciliationView: View {
 
     private func prepareStore() {
         guard store == nil else { return }
+        let context = modelContext
         Task {
-            let specialPaymentRepository = await SpecialPaymentRepositoryFactory.make(modelContext: modelContext)
-            let transactionRepository = await SwiftDataTransactionRepository(modelContext: modelContext)
+            let specialPaymentRepository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
+            let transactionRepository = await SwiftDataTransactionRepository(modelContext: context)
             let reconciliationStore = SpecialPaymentReconciliationStore(
                 repository: specialPaymentRepository,
                 transactionRepository: transactionRepository,
