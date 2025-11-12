@@ -113,7 +113,7 @@ internal final class TransactionStore {
         let now = clock()
         self.currentMonth = now.startOfMonth
         self.formState = .empty(defaultDate: now)
-        refresh()
+        Task { await refresh() }
     }
 
     deinit {
@@ -125,11 +125,9 @@ internal final class TransactionStore {
 
 internal extension TransactionStore {
     /// 参照データと取引を再取得
-    func refresh() {
-        Task {
-            await loadReferenceData()
-            await reloadTransactions()
-        }
+    func refresh() async {
+        await loadReferenceData()
+        await reloadTransactions()
     }
 
     /// 現在の月ラベル
@@ -274,7 +272,7 @@ internal extension TransactionStore {
             )
             formErrors = []
             isEditorPresented = false
-            refresh()
+            await refresh()
             return true
         } catch let error as TransactionFormError {
             formErrors = error.messages
@@ -291,7 +289,7 @@ internal extension TransactionStore {
         do {
             try await formUseCase.delete(transactionId: transactionId)
             formErrors = []
-            refresh()
+            await refresh()
             return true
         } catch let error as TransactionFormError {
             formErrors = error.messages
