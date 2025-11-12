@@ -187,11 +187,9 @@ internal struct BudgetView: View {
 private extension BudgetView {
     func prepareStore() {
         guard store == nil else { return }
-        // ModelContext is MainActor-isolated but needs to be passed to DatabaseActor functions.
-        // This is safe because ModelContext is designed for this usage pattern in SwiftData.
-        nonisolated(unsafe) let context = modelContext
-        Task {
-            let repository = await SwiftDataBudgetRepository(modelContext: context)
+        Task { @MainActor in
+            guard store == nil else { return }
+            let repository = await SwiftDataBudgetRepository(modelContext: modelContext)
             let monthlyUseCase = DefaultMonthlyBudgetUseCase()
             let annualUseCase = DefaultAnnualBudgetUseCase()
             let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase()
@@ -381,11 +379,8 @@ private extension BudgetView {
             return
         }
 
-        // ModelContext is MainActor-isolated but needs to be passed to DatabaseActor functions.
-        // This is safe because ModelContext is designed for this usage pattern in SwiftData.
-        nonisolated(unsafe) let context = modelContext
-        Task {
-            let repository = await SwiftDataSpecialPaymentRepository(modelContext: context)
+        Task { @MainActor in
+            let repository = await SwiftDataSpecialPaymentRepository(modelContext: modelContext)
             let specialPaymentStore = SpecialPaymentStore(repository: repository)
 
             do {
@@ -443,11 +438,8 @@ private extension BudgetView {
 
     func deletePendingSpecialPayment() {
         guard let definition = specialPaymentPendingDeletion else { return }
-        // ModelContext is MainActor-isolated but needs to be passed to DatabaseActor functions.
-        // This is safe because ModelContext is designed for this usage pattern in SwiftData.
-        nonisolated(unsafe) let context = modelContext
-        Task {
-            let repository = await SwiftDataSpecialPaymentRepository(modelContext: context)
+        Task { @MainActor in
+            let repository = await SwiftDataSpecialPaymentRepository(modelContext: modelContext)
             let specialPaymentStore = SpecialPaymentStore(repository: repository)
             do {
                 try await specialPaymentStore.deleteDefinition(definitionId: definition.id)

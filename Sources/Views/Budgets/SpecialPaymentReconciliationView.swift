@@ -21,26 +21,19 @@ internal struct SpecialPaymentReconciliationView: View {
         .frame(minWidth: 920, minHeight: 620)
     }
 
+    @MainActor
     private func prepareStore() async {
-        // ModelContext is MainActor-isolated but needs to be passed to DatabaseActor functions.
-        // This is safe because ModelContext is designed for this usage pattern in SwiftData.
-        nonisolated(unsafe) let context = modelContext
-        let specialPaymentRepository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
-        let transactionRepository = await SwiftDataTransactionRepository(modelContext: context)
+        guard store == nil else { return }
+        let specialPaymentRepository = await SpecialPaymentRepositoryFactory.make(modelContext: modelContext)
+        let transactionRepository = await SwiftDataTransactionRepository(modelContext: modelContext)
         let occurrencesService = await DefaultSpecialPaymentOccurrencesService(repository: specialPaymentRepository)
-        await MainActor.run {
-            let reconciliationStore = SpecialPaymentReconciliationStore(
-                repository: specialPaymentRepository,
-                transactionRepository: transactionRepository,
-                occurrencesService: occurrencesService,
-            )
-            Task {
-                await reconciliationStore.refresh()
-                await MainActor.run {
-                    store = reconciliationStore
-                }
-            }
-        }
+        let reconciliationStore = SpecialPaymentReconciliationStore(
+            repository: specialPaymentRepository,
+            transactionRepository: transactionRepository,
+            occurrencesService: occurrencesService,
+        )
+        await reconciliationStore.refresh()
+        store = reconciliationStore
     }
 }
 
