@@ -5,9 +5,10 @@ import Testing
 @testable import Kakeibo
 
 @Suite("SwiftDataSpecialPaymentRepository")
+@DatabaseActor
 internal struct SwiftDataSpecialPaymentRepositoryTests {
     @Test("definitionsをカテゴリと検索でフィルタできる")
-    internal func definitionsFilter() throws {
+    internal func definitionsFilter() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
@@ -47,7 +48,7 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
     }
 
     @Test("occurrencesを日付レンジとステータスでフィルタできる")
-    internal func occurrencesFilter() throws {
+    internal func occurrencesFilter() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
@@ -96,7 +97,7 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
     }
 
     @Test("synchronizeでOccurrenceが生成される")
-    internal func synchronizeCreatesOccurrences() throws {
+    internal func synchronizeCreatesOccurrences() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
@@ -126,7 +127,7 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
     }
 
     @Test("markOccurrenceCompletedで完了と再同期が行われる")
-    internal func markOccurrenceCompletedTriggersResync() throws {
+    internal func markOccurrenceCompletedTriggersResync() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let today = try #require(Date.from(year: 2025, month: 1, day: 1))
