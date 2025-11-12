@@ -29,8 +29,10 @@ internal struct AnnualBudgetAllocatorUsageTests {
         )
 
         // When
+        let categories = [CategoryDTO(from: category)]
         let result = allocator.calculateAnnualBudgetUsage(
             params: params,
+            categories: categories,
             upToMonth: 11,
         )
 
@@ -65,8 +67,10 @@ internal struct AnnualBudgetAllocatorUsageTests {
         )
 
         // When
+        let categories = [CategoryDTO(from: category)]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
+            categories: categories,
             year: 2025,
             month: 11,
         )
@@ -162,8 +166,10 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         // When
+        let categories = [CategoryDTO(from: category)]
         let result = allocator.calculateAnnualBudgetUsage(
             params: params,
+            categories: categories,
             upToMonth: 11,
         )
 
@@ -198,8 +204,10 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         // When
+        let categories = [CategoryDTO(from: category)]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
+            categories: categories,
             year: 2025,
             month: 11,
         )
@@ -234,8 +242,10 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         // When
+        let categories = [CategoryDTO(from: category)]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
+            categories: categories,
             year: 2025,
             month: 11,
         )
@@ -274,8 +284,10 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         // When
+        let categories = [CategoryDTO(from: category)]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
+            categories: categories,
             year: 2025,
             month: 11,
         )
@@ -313,8 +325,10 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         // When
+        let categories = [CategoryDTO(from: category)]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
+            categories: categories,
             year: 2025,
             month: 11,
         )
@@ -352,8 +366,10 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         // When
+        let categories = [CategoryDTO(from: category)]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
+            categories: categories,
             year: 2025,
             month: 11,
         )
@@ -387,8 +403,10 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         // When
+        let categories = [CategoryDTO(from: major), CategoryDTO(from: minor)]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
+            categories: categories,
             year: 2025,
             month: 11,
         )
@@ -422,8 +440,10 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         // When
+        let categories = [CategoryDTO(from: major), CategoryDTO(from: minor)]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
+            categories: categories,
             year: 2025,
             month: 11,
         )
@@ -459,8 +479,10 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         // When
+        let categories = [CategoryDTO(from: category)]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
+            categories: categories,
             year: 2025,
             month: 11,
         )
