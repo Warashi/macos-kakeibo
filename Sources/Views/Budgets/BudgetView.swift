@@ -185,18 +185,20 @@ internal struct BudgetView: View {
 private extension BudgetView {
     func prepareStore() {
         guard store == nil else { return }
-        let repository = SwiftDataBudgetRepository(modelContext: modelContext)
-        let monthlyUseCase = DefaultMonthlyBudgetUseCase()
-        let annualUseCase = DefaultAnnualBudgetUseCase()
-        let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase()
-        let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
-        store = BudgetStore(
-            repository: repository,
-            monthlyUseCase: monthlyUseCase,
-            annualUseCase: annualUseCase,
-            specialPaymentUseCase: specialPaymentUseCase,
-            mutationUseCase: mutationUseCase,
-        )
+        Task {
+            let repository = await SwiftDataBudgetRepository(modelContext: modelContext)
+            let monthlyUseCase = await DefaultMonthlyBudgetUseCase()
+            let annualUseCase = await DefaultAnnualBudgetUseCase()
+            let specialPaymentUseCase = await DefaultSpecialPaymentSavingsUseCase()
+            let mutationUseCase = await DefaultBudgetMutationUseCase(repository: repository)
+            store = await BudgetStore(
+                repository: repository,
+                monthlyUseCase: monthlyUseCase,
+                annualUseCase: annualUseCase,
+                specialPaymentUseCase: specialPaymentUseCase,
+                mutationUseCase: mutationUseCase,
+            )
+        }
     }
 }
 
@@ -297,19 +299,21 @@ private extension BudgetView {
         }
         guard ensureUniqueAnnualCategories(finalizedDrafts) else { return }
 
-        do {
-            try store.upsertAnnualBudgetConfig(
-                totalAmount: amount,
-                policy: annualFormState.policy,
-                allocations: finalizedDrafts,
-            )
-            isPresentingAnnualEditor = false
-        } catch BudgetStoreError.categoryNotFound {
-            annualFormError = "選択したカテゴリが見つかりませんでした"
-        } catch BudgetStoreError.duplicateAnnualAllocationCategory {
-            annualFormError = "カテゴリが重複しています"
-        } catch {
-            showError(message: "年次特別枠の保存に失敗しました: \(error.localizedDescription)")
+        Task {
+            do {
+                try await store.upsertAnnualBudgetConfig(
+                    totalAmount: amount,
+                    policy: annualFormState.policy,
+                    allocations: finalizedDrafts,
+                )
+                isPresentingAnnualEditor = false
+            } catch BudgetStoreError.categoryNotFound {
+                annualFormError = "選択したカテゴリが見つかりませんでした"
+            } catch BudgetStoreError.duplicateAnnualAllocationCategory {
+                annualFormError = "カテゴリが重複しています"
+            } catch {
+                showError(message: "年次特別枠の保存に失敗しました: \(error.localizedDescription)")
+            }
         }
     }
 
@@ -371,41 +375,44 @@ private extension BudgetView {
             return
         }
 
-        let specialPaymentStore = SpecialPaymentStore(modelContext: modelContext)
+        Task {
+            let repository = await SwiftDataSpecialPaymentRepository(modelContext: modelContext)
+            let specialPaymentStore = SpecialPaymentStore(repository: repository)
 
-        do {
-            guard let amount = specialPaymentFormState.decimalAmount else {
-                specialPaymentFormError = "金額を正しく入力してください"
-                return
+            do {
+                guard let amount = specialPaymentFormState.decimalAmount else {
+                    specialPaymentFormError = "金額を正しく入力してください"
+                    return
+                }
+
+                let input = SpecialPaymentDefinitionInput(
+                    name: specialPaymentFormState.nameText.trimmingCharacters(in: .whitespacesAndNewlines),
+                    notes: specialPaymentFormState.notesText,
+                    amount: amount,
+                    recurrenceIntervalMonths: specialPaymentFormState.recurrenceIntervalMonths,
+                    firstOccurrenceDate: specialPaymentFormState.firstOccurrenceDate,
+                    leadTimeMonths: specialPaymentFormState.leadTimeMonths,
+                    categoryId: specialPaymentFormState.selectedCategoryId,
+                    savingStrategy: specialPaymentFormState.savingStrategy,
+                    customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
+                    dateAdjustmentPolicy: specialPaymentFormState.dateAdjustmentPolicy,
+                    recurrenceDayPattern: specialPaymentFormState.recurrenceDayPattern,
+                )
+
+                switch specialPaymentEditorMode {
+                case .create:
+                    try await specialPaymentStore.createDefinition(input)
+                case let .edit(definition):
+                    try await specialPaymentStore.updateDefinition(definitionId: definition.id, input: input)
+                }
+                isPresentingSpecialPaymentEditor = false
+            } catch SpecialPaymentDomainError.categoryNotFound {
+                specialPaymentFormError = "選択したカテゴリが見つかりませんでした"
+            } catch let SpecialPaymentDomainError.validationFailed(errors) {
+                specialPaymentFormError = errors.joined(separator: "\n")
+            } catch {
+                showError(message: "特別支払いの保存に失敗しました: \(error.localizedDescription)")
             }
-
-            let input = SpecialPaymentDefinitionInput(
-                name: specialPaymentFormState.nameText.trimmingCharacters(in: .whitespacesAndNewlines),
-                notes: specialPaymentFormState.notesText,
-                amount: amount,
-                recurrenceIntervalMonths: specialPaymentFormState.recurrenceIntervalMonths,
-                firstOccurrenceDate: specialPaymentFormState.firstOccurrenceDate,
-                leadTimeMonths: specialPaymentFormState.leadTimeMonths,
-                categoryId: specialPaymentFormState.selectedCategoryId,
-                savingStrategy: specialPaymentFormState.savingStrategy,
-                customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
-                dateAdjustmentPolicy: specialPaymentFormState.dateAdjustmentPolicy,
-                recurrenceDayPattern: specialPaymentFormState.recurrenceDayPattern,
-            )
-
-            switch specialPaymentEditorMode {
-            case .create:
-                try specialPaymentStore.createDefinition(input)
-            case let .edit(definition):
-                try specialPaymentStore.updateDefinition(definition, input: input)
-            }
-            isPresentingSpecialPaymentEditor = false
-        } catch SpecialPaymentDomainError.categoryNotFound {
-            specialPaymentFormError = "選択したカテゴリが見つかりませんでした"
-        } catch let SpecialPaymentDomainError.validationFailed(errors) {
-            specialPaymentFormError = errors.joined(separator: "\n")
-        } catch {
-            showError(message: "特別支払いの保存に失敗しました: \(error.localizedDescription)")
         }
     }
 }
@@ -427,13 +434,16 @@ private extension BudgetView {
 
     func deletePendingSpecialPayment() {
         guard let definition = specialPaymentPendingDeletion else { return }
-        let specialPaymentStore = SpecialPaymentStore(modelContext: modelContext)
-        do {
-            try specialPaymentStore.deleteDefinition(definition)
-        } catch {
-            showError(message: "特別支払いの削除に失敗しました: \(error.localizedDescription)")
+        Task {
+            let repository = await SwiftDataSpecialPaymentRepository(modelContext: modelContext)
+            let specialPaymentStore = SpecialPaymentStore(repository: repository)
+            do {
+                try await specialPaymentStore.deleteDefinition(definitionId: definition.id)
+            } catch {
+                showError(message: "特別支払いの削除に失敗しました: \(error.localizedDescription)")
+            }
+            specialPaymentPendingDeletion = nil
         }
-        specialPaymentPendingDeletion = nil
     }
 }
 
