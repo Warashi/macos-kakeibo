@@ -8,8 +8,8 @@ import Testing
 @MainActor
 internal struct BudgetStoreTestsSpecialPaymentSavings {
     @Test("特別支払い積立：月次積立金額の合計を取得")
-    internal func specialPaymentSavings_monthlyTotal() throws {
-        let (store, context) = try makeStore()
+    internal func specialPaymentSavings_monthlyTotal() async throws {
+        let (store, context) = try await makeStore()
 
         let category = Category(name: "保険・税金")
         let definition1 = SpecialPaymentDefinition(
@@ -35,7 +35,7 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         context.insert(definition2)
         try context.save()
 
-        store.refresh()
+        await store.refresh()
 
         // When
         let total = store.monthlySpecialPaymentSavingsTotal
@@ -45,8 +45,8 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
     }
 
     @Test("特別支払い積立：カテゴリ別積立金額を取得")
-    internal func specialPaymentSavings_byCategory() throws {
-        let (store, context) = try makeStore()
+    internal func specialPaymentSavings_byCategory() async throws {
+        let (store, context) = try await makeStore()
 
         let categoryTax = Category(name: "保険・税金")
         let categoryEducation = Category(name: "教育費")
@@ -74,7 +74,7 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         context.insert(definition2)
         try context.save()
 
-        store.refresh()
+        await store.refresh()
 
         // When
         let allocations = store.categorySpecialPaymentSavings
@@ -86,8 +86,8 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
     }
 
     @Test("特別支払い積立：積立状況一覧を取得")
-    internal func specialPaymentSavings_entries() throws {
-        let (store, context) = try makeStore()
+    internal func specialPaymentSavings_entries() async throws {
+        let (store, context) = try await makeStore()
 
         let balanceService = SpecialPaymentBalanceService()
 
@@ -115,7 +115,7 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         }
         try context.save()
 
-        store.refresh()
+        await store.refresh()
 
         // When
         let entries = store.specialPaymentSavingsEntries
@@ -132,8 +132,8 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
     }
 
     @Test("特別支払い積立：残高不足の場合アラートフラグが立つ")
-    internal func specialPaymentSavings_alertFlag() throws {
-        let (store, context) = try makeStore()
+    internal func specialPaymentSavings_alertFlag() async throws {
+        let (store, context) = try await makeStore()
 
         let definition = SpecialPaymentDefinition(
             name: "車検",
@@ -155,7 +155,7 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         context.insert(balance)
         try context.save()
 
-        store.refresh()
+        await store.refresh()
 
         // When
         let entries = store.specialPaymentSavingsEntries
@@ -168,13 +168,32 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
 
     // MARK: - Helpers
 
-    private func makeStore() throws -> (BudgetStore, ModelContext) {
+    @MainActor
+    private func makeStore() async throws -> (BudgetStore, ModelContext) {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = BudgetStore(modelContext: context)
+        let store = try await makeBudgetStore(context: context)
         store.currentYear = 2025
         store.currentMonth = 11
         return (store, context)
+    }
+
+    @DatabaseActor
+    private func makeBudgetStore(context: ModelContext) async throws -> BudgetStore {
+        let repository = SwiftDataBudgetRepository(modelContext: context)
+        let calculator = BudgetCalculator()
+        let monthlyUseCase = DefaultMonthlyBudgetUseCase(calculator: calculator)
+        let annualUseCase = DefaultAnnualBudgetUseCase()
+        let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase(calculator: calculator)
+        let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
+
+        return await BudgetStore(
+            repository: repository,
+            monthlyUseCase: monthlyUseCase,
+            annualUseCase: annualUseCase,
+            specialPaymentUseCase: specialPaymentUseCase,
+            mutationUseCase: mutationUseCase,
+        )
     }
 
     private func createInMemoryContainer() throws -> ModelContainer {

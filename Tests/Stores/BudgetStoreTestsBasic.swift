@@ -8,11 +8,11 @@ import Testing
 @MainActor
 internal struct BudgetStoreTestsBasic {
     @Test("初期化：現在の年月で開始する")
-    internal func initialization_setsCurrentDate() throws {
+    internal func initialization_setsCurrentDate() async throws {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
 
-        let store = BudgetStore(modelContext: context)
+        let store = try await makeBudgetStore(context: context)
         let now = Date()
 
         #expect(store.currentYear == now.year)
@@ -20,8 +20,8 @@ internal struct BudgetStoreTestsBasic {
     }
 
     @Test("予算追加：全体予算を作成できる")
-    internal func addBudget_createsOverallBudget() throws {
-        let (store, _) = try makeStore()
+    internal func addBudget_createsOverallBudget() async throws {
+        let (store, _) = try await makeStore()
 
         let input = BudgetInput(
             amount: 50000,
@@ -31,7 +31,7 @@ internal struct BudgetStoreTestsBasic {
             endYear: store.currentYear,
             endMonth: store.currentMonth,
         )
-        try store.addBudget(input)
+        try await store.addBudget(input)
 
         #expect(store.monthlyBudgets.count == 1)
         #expect(store.overallBudgetEntry?.calculation.budgetAmount == 50000)
@@ -39,8 +39,8 @@ internal struct BudgetStoreTestsBasic {
     }
 
     @Test("期間予算は複数月で参照できる")
-    internal func periodBudget_appliesAcrossMonths() throws {
-        let (store, _) = try makeStore()
+    internal func periodBudget_appliesAcrossMonths() async throws {
+        let (store, _) = try await makeStore()
 
         let input = BudgetInput(
             amount: 4000,
@@ -50,20 +50,20 @@ internal struct BudgetStoreTestsBasic {
             endYear: store.currentYear + 1,
             endMonth: 1,
         )
-        try store.addBudget(input)
+        try await store.addBudget(input)
 
         #expect(store.monthlyBudgets.count == 1)
-        store.moveToNextMonth()
+        await store.moveToNextMonth()
         #expect(store.monthlyBudgets.count == 1)
-        store.moveToNextMonth()
+        await store.moveToNextMonth()
         #expect(store.monthlyBudgets.count == 1)
     }
 
     @Test("期間が不正な場合はエラーになる")
-    internal func addBudget_invalidPeriodThrows() throws {
-        let (store, _) = try makeStore()
+    internal func addBudget_invalidPeriodThrows() async throws {
+        let (store, _) = try await makeStore()
 
-        #expect(
+        await #expect(
             throws: BudgetStoreError.invalidPeriod,
         ) {
             let input = BudgetInput(
@@ -74,13 +74,13 @@ internal struct BudgetStoreTestsBasic {
                 endYear: store.currentYear,
                 endMonth: store.currentMonth - 1,
             )
-            try store.addBudget(input)
+            try await store.addBudget(input)
         }
     }
 
     @Test("予算更新：金額とカテゴリを変更できる")
-    internal func updateBudget_changesValues() throws {
-        let (store, context) = try makeStore()
+    internal func updateBudget_changesValues() async throws {
+        let (store, context) = try await makeStore()
         let food = Category(name: "食費", displayOrder: 1)
         let transport = Category(name: "交通", displayOrder: 2)
         context.insert(food)
@@ -105,7 +105,7 @@ internal struct BudgetStoreTestsBasic {
             endYear: store.currentYear,
             endMonth: store.currentMonth + 1,
         )
-        try store.updateBudget(budget: budgetDTO, input: input)
+        try await store.updateBudget(budget: budgetDTO, input: input)
 
         #expect(budget.amount == 12000)
         #expect(budget.category?.id == transport.id)
@@ -113,8 +113,8 @@ internal struct BudgetStoreTestsBasic {
     }
 
     @Test("予算削除：削除後にリストから除外される")
-    internal func deleteBudget_removesBudget() throws {
-        let (store, context) = try makeStore()
+    internal func deleteBudget_removesBudget() async throws {
+        let (store, context) = try await makeStore()
         let budget = Budget(
             amount: 8000,
             year: store.currentYear,
@@ -124,14 +124,14 @@ internal struct BudgetStoreTestsBasic {
         try context.save()
 
         let budgetDTO = BudgetDTO(from: budget)
-        try store.deleteBudget(budgetDTO)
+        try await store.deleteBudget(budgetDTO)
 
         #expect(store.monthlyBudgets.isEmpty)
     }
 
     @Test("CRUD後にリフレッシュトークンが更新される")
-    internal func refreshToken_updatesAfterMutations() throws {
-        let (store, _) = try makeStore()
+    internal func refreshToken_updatesAfterMutations() async throws {
+        let (store, _) = try await makeStore()
         let initialToken = store.refreshToken
 
         let input = BudgetInput(
@@ -143,14 +143,14 @@ internal struct BudgetStoreTestsBasic {
             endMonth: store.currentMonth,
         )
 
-        try store.addBudget(input)
+        try await store.addBudget(input)
 
         #expect(store.refreshToken != initialToken)
     }
 
     @Test("displayModeTraitsはモードに応じてナビゲーション情報を返す")
-    internal func displayModeTraits_reflectModes() throws {
-        let (store, _) = try makeStore()
+    internal func displayModeTraits_reflectModes() async throws {
+        let (store, _) = try await makeStore()
 
         #expect(store.displayModeTraits.navigationStyle == .monthly)
         #expect(store.displayModeTraits.presentButtonLabel == "今月")
@@ -165,8 +165,8 @@ internal struct BudgetStoreTestsBasic {
     }
 
     @Test("moveToPresent: 月次モードでは現在の年月に戻す")
-    internal func moveToPresent_resetsMonthAndYear() throws {
-        let (store, _) = try makeStore()
+    internal func moveToPresent_resetsMonthAndYear() async throws {
+        let (store, _) = try await makeStore()
         store.displayMode = .monthly
         store.currentYear = 2000
         store.currentMonth = 1
@@ -174,34 +174,34 @@ internal struct BudgetStoreTestsBasic {
         let expectedYear = Date().year
         let expectedMonth = Date().month
 
-        store.moveToPresent()
+        await store.moveToPresent()
 
         #expect(store.currentYear == expectedYear)
         #expect(store.currentMonth == expectedMonth)
     }
 
     @Test("moveToPresent: 年次モードでは年のみ更新")
-    internal func moveToPresent_updatesOnlyYearForAnnual() throws {
-        let (store, _) = try makeStore()
+    internal func moveToPresent_updatesOnlyYearForAnnual() async throws {
+        let (store, _) = try await makeStore()
         store.displayMode = .annual
         store.currentYear = 2000
         store.currentMonth = 6
 
         let expectedYear = Date().year
-        store.moveToPresent()
+        await store.moveToPresent()
 
         #expect(store.currentYear == expectedYear)
         #expect(store.currentMonth == 6)
     }
 
     @Test("moveToPresent: 特別支払い一覧では変化しない")
-    internal func moveToPresent_doesNothingForSpecialPayments() throws {
-        let (store, _) = try makeStore()
+    internal func moveToPresent_doesNothingForSpecialPayments() async throws {
+        let (store, _) = try await makeStore()
         store.displayMode = .specialPaymentsList
         store.currentYear = 2000
         store.currentMonth = 6
 
-        store.moveToPresent()
+        await store.moveToPresent()
 
         #expect(store.currentYear == 2000)
         #expect(store.currentMonth == 6)
@@ -209,13 +209,32 @@ internal struct BudgetStoreTestsBasic {
 
     // MARK: - Helpers
 
-    private func makeStore() throws -> (BudgetStore, ModelContext) {
+    @MainActor
+    private func makeStore() async throws -> (BudgetStore, ModelContext) {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = BudgetStore(modelContext: context)
+        let store = try await makeBudgetStore(context: context)
         store.currentYear = 2025
         store.currentMonth = 11
         return (store, context)
+    }
+
+    @DatabaseActor
+    private func makeBudgetStore(context: ModelContext) async throws -> BudgetStore {
+        let repository = SwiftDataBudgetRepository(modelContext: context)
+        let calculator = BudgetCalculator()
+        let monthlyUseCase = DefaultMonthlyBudgetUseCase(calculator: calculator)
+        let annualUseCase = DefaultAnnualBudgetUseCase()
+        let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase(calculator: calculator)
+        let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
+
+        return await BudgetStore(
+            repository: repository,
+            monthlyUseCase: monthlyUseCase,
+            annualUseCase: annualUseCase,
+            specialPaymentUseCase: specialPaymentUseCase,
+            mutationUseCase: mutationUseCase,
+        )
     }
 
     private func createInMemoryContainer() throws -> ModelContainer {

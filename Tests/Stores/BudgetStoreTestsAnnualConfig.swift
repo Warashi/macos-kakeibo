@@ -8,8 +8,8 @@ import Testing
 @MainActor
 internal struct BudgetStoreTestsAnnualConfig {
     @Test("年次特別枠：登録と更新")
-    internal func upsertAnnualBudgetConfig_createsAndUpdates() throws {
-        let (store, context) = try makeStore()
+    internal func upsertAnnualBudgetConfig_createsAndUpdates() async throws {
+        let (store, context) = try await makeStore()
         let food = Category(name: "食費")
         let travel = Category(name: "旅行")
         context.insert(food)
@@ -18,7 +18,7 @@ internal struct BudgetStoreTestsAnnualConfig {
 
         #expect(store.annualBudgetConfig == nil)
 
-        try store.upsertAnnualBudgetConfig(
+        try await store.upsertAnnualBudgetConfig(
             totalAmount: 300_000,
             policy: .manual,
             allocations: [
@@ -41,7 +41,7 @@ internal struct BudgetStoreTestsAnnualConfig {
         #expect(food.allowsAnnualBudget)
         #expect(travel.allowsAnnualBudget)
 
-        try store.upsertAnnualBudgetConfig(
+        try await store.upsertAnnualBudgetConfig(
             totalAmount: 500_000,
             policy: .disabled,
             allocations: [
@@ -59,16 +59,16 @@ internal struct BudgetStoreTestsAnnualConfig {
     }
 
     @Test("年次特別枠：カテゴリ重複はエラー")
-    internal func upsertAnnualBudgetConfig_duplicateCategories() throws {
-        let (store, context) = try makeStore()
+    internal func upsertAnnualBudgetConfig_duplicateCategories() async throws {
+        let (store, context) = try await makeStore()
         let food = Category(name: "食費")
         context.insert(food)
         try context.save()
 
-        #expect(
+        await #expect(
             throws: BudgetStoreError.duplicateAnnualAllocationCategory,
         ) {
-            try store.upsertAnnualBudgetConfig(
+            try await store.upsertAnnualBudgetConfig(
                 totalAmount: 100_000,
                 policy: .automatic,
                 allocations: [
@@ -81,13 +81,32 @@ internal struct BudgetStoreTestsAnnualConfig {
 
     // MARK: - Helpers
 
-    private func makeStore() throws -> (BudgetStore, ModelContext) {
+    @MainActor
+    private func makeStore() async throws -> (BudgetStore, ModelContext) {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = BudgetStore(modelContext: context)
+        let store = try await makeBudgetStore(context: context)
         store.currentYear = 2025
         store.currentMonth = 11
         return (store, context)
+    }
+
+    @DatabaseActor
+    private func makeBudgetStore(context: ModelContext) async throws -> BudgetStore {
+        let repository = SwiftDataBudgetRepository(modelContext: context)
+        let calculator = BudgetCalculator()
+        let monthlyUseCase = DefaultMonthlyBudgetUseCase(calculator: calculator)
+        let annualUseCase = DefaultAnnualBudgetUseCase()
+        let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase(calculator: calculator)
+        let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
+
+        return await BudgetStore(
+            repository: repository,
+            monthlyUseCase: monthlyUseCase,
+            annualUseCase: annualUseCase,
+            specialPaymentUseCase: specialPaymentUseCase,
+            mutationUseCase: mutationUseCase,
+        )
     }
 
     private func createInMemoryContainer() throws -> ModelContainer {

@@ -8,8 +8,8 @@ import Testing
 @MainActor
 internal struct BudgetStoreTestsAggregation {
     @Test("予算追加：カテゴリ別予算を集計できる")
-    internal func categoryBudgetEntries_calculatesActuals() throws {
-        let (store, context) = try makeStore()
+    internal func categoryBudgetEntries_calculatesActuals() async throws {
+        let (store, context) = try await makeStore()
         let food = Category(name: "食費", allowsAnnualBudget: true, displayOrder: 1)
         context.insert(food)
 
@@ -23,7 +23,7 @@ internal struct BudgetStoreTestsAggregation {
         context.insert(transaction)
         try context.save()
 
-        store.refresh()
+        await store.refresh()
 
         let input = BudgetInput(
             amount: 5000,
@@ -33,7 +33,7 @@ internal struct BudgetStoreTestsAggregation {
             endYear: store.currentYear,
             endMonth: store.currentMonth,
         )
-        try store.addBudget(input)
+        try await store.addBudget(input)
 
         let entries = store.categoryBudgetEntries
         #expect(entries.count == 1)
@@ -44,8 +44,8 @@ internal struct BudgetStoreTestsAggregation {
     }
 
     @Test("年次予算：全体とカテゴリ別の集計を算出する")
-    internal func annualBudgetEntries_calculatesYearlyTotals() throws {
-        let (store, context) = try makeStore()
+    internal func annualBudgetEntries_calculatesYearlyTotals() async throws {
+        let (store, context) = try await makeStore()
         let food = Category(name: "食費", displayOrder: 1)
         let transport = Category(name: "交通", displayOrder: 2)
         context.insert(food)
@@ -85,7 +85,7 @@ internal struct BudgetStoreTestsAggregation {
         transactions.forEach(context.insert)
         try context.save()
 
-        store.refresh()
+        await store.refresh()
 
         let overallEntry = try #require(store.annualOverallBudgetEntry)
         #expect(overallEntry.calculation.budgetAmount == 220_000)
@@ -106,13 +106,32 @@ internal struct BudgetStoreTestsAggregation {
 
     // MARK: - Helpers
 
-    private func makeStore() throws -> (BudgetStore, ModelContext) {
+    @MainActor
+    private func makeStore() async throws -> (BudgetStore, ModelContext) {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = BudgetStore(modelContext: context)
+        let store = try await makeBudgetStore(context: context)
         store.currentYear = 2025
         store.currentMonth = 11
         return (store, context)
+    }
+
+    @DatabaseActor
+    private func makeBudgetStore(context: ModelContext) async throws -> BudgetStore {
+        let repository = SwiftDataBudgetRepository(modelContext: context)
+        let calculator = BudgetCalculator()
+        let monthlyUseCase = DefaultMonthlyBudgetUseCase(calculator: calculator)
+        let annualUseCase = DefaultAnnualBudgetUseCase()
+        let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase(calculator: calculator)
+        let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
+
+        return await BudgetStore(
+            repository: repository,
+            monthlyUseCase: monthlyUseCase,
+            annualUseCase: annualUseCase,
+            specialPaymentUseCase: specialPaymentUseCase,
+            mutationUseCase: mutationUseCase,
+        )
     }
 
     private func createInMemoryContainer() throws -> ModelContainer {

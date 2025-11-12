@@ -1,7 +1,7 @@
 import Foundation
 
 @DatabaseActor
-internal protocol BudgetMutationUseCaseProtocol {
+internal protocol BudgetMutationUseCaseProtocol: Sendable {
     func addBudget(input: BudgetInput) async throws
     func updateBudget(_ budget: BudgetDTO, input: BudgetInput) async throws
     func deleteBudget(_ budget: BudgetDTO) async throws
