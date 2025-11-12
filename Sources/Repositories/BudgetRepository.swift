@@ -4,6 +4,7 @@ import Foundation
 internal protocol BudgetRepository: Sendable {
     func fetchSnapshot(for year: Int) throws -> BudgetSnapshot
     func category(id: UUID) throws -> Category?
+    func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfig?
     func insertBudget(_ budget: Budget)
     func deleteBudget(_ budget: Budget)
     func updateBudget(input: BudgetUpdateInput) throws

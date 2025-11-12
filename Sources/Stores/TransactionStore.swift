@@ -7,8 +7,8 @@ import SwiftData
 /// - 検索やフィルタの状態管理
 /// - 取引のCRUD操作
 /// - 金額サマリの計算
-@Observable
 @MainActor
+@Observable
 internal final class TransactionStore {
     // MARK: - Nested Types
 
@@ -99,13 +99,6 @@ internal final class TransactionStore {
     }
 
     // MARK: - Initialization
-
-    internal convenience init(modelContext: ModelContext) {
-        let repository = SwiftDataTransactionRepository(modelContext: modelContext)
-        let listUseCase = DefaultTransactionListUseCase(repository: repository)
-        let formUseCase = DefaultTransactionFormUseCase(repository: repository)
-        self.init(listUseCase: listUseCase, formUseCase: formUseCase)
-    }
 
     internal init(
         listUseCase: TransactionListUseCaseProtocol,
@@ -265,7 +258,7 @@ internal extension TransactionStore {
         }
 
         if let minorId = formState.minorCategoryId,
-           referenceData.category(id: minorId)?.parent?.id != majorId {
+           referenceData.category(id: minorId)?.parentId != majorId {
             formState.minorCategoryId = nil
         }
     }

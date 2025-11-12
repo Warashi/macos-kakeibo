@@ -26,7 +26,7 @@ internal struct TransactionListFilter {
 }
 
 @DatabaseActor
-internal protocol TransactionListUseCaseProtocol {
+internal protocol TransactionListUseCaseProtocol: Sendable {
     func loadReferenceData() async throws -> TransactionReferenceData
     func loadTransactions(filter: TransactionListFilter) async throws -> [TransactionDTO]
     @discardableResult
@@ -65,7 +65,7 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
             onChange(filtered)
         }
         do {
-            let initial = try loadTransactions(filter: filter)
+            let initial = try await loadTransactions(filter: filter)
             await MainActor.run {
                 onChange(initial)
             }
@@ -78,7 +78,7 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
 }
 
 private extension DefaultTransactionListUseCase {
-    static func filterTransactions(
+    nonisolated static func filterTransactions(
         _ transactions: [TransactionDTO],
         filter: TransactionListFilter,
     ) -> [TransactionDTO] {
@@ -91,7 +91,7 @@ private extension DefaultTransactionListUseCase {
         )
     }
 
-    static func matchesFilter(
+    nonisolated static func matchesFilter(
         transaction: TransactionDTO,
         filter: TransactionListFilter,
         keyword: String?,
@@ -130,15 +130,15 @@ private extension DefaultTransactionListUseCase {
         return true
     }
 
-    static func matchesCalculationTarget(transaction: TransactionDTO, includeOnly: Bool) -> Bool {
+    nonisolated static func matchesCalculationTarget(transaction: TransactionDTO, includeOnly: Bool) -> Bool {
         !includeOnly || transaction.isIncludedInCalculation
     }
 
-    static func matchesTransfer(transaction: TransactionDTO, excludeTransfers: Bool) -> Bool {
+    nonisolated static func matchesTransfer(transaction: TransactionDTO, excludeTransfers: Bool) -> Bool {
         !excludeTransfers || !transaction.isTransfer
     }
 
-    static func matchesKind(transaction: TransactionDTO, filterKind: TransactionFilterKind) -> Bool {
+    nonisolated static func matchesKind(transaction: TransactionDTO, filterKind: TransactionFilterKind) -> Bool {
         switch filterKind {
         case .income:
             transaction.isIncome
@@ -149,12 +149,12 @@ private extension DefaultTransactionListUseCase {
         }
     }
 
-    static func matchesInstitution(transaction: TransactionDTO, institutionId: UUID?) -> Bool {
+    nonisolated static func matchesInstitution(transaction: TransactionDTO, institutionId: UUID?) -> Bool {
         guard let institutionId else { return true }
         return transaction.financialInstitutionId == institutionId
     }
 
-    static func matchesSearch(transaction: TransactionDTO, keyword: String) -> Bool {
+    nonisolated static func matchesSearch(transaction: TransactionDTO, keyword: String) -> Bool {
         let haystacks = [
             transaction.title,
             transaction.memo,
@@ -163,7 +163,7 @@ private extension DefaultTransactionListUseCase {
         return haystacks.contains { $0.lowercased().contains(loweredKeyword) }
     }
 
-    static func sort(transactions: [TransactionDTO], option: TransactionSortOption) -> [TransactionDTO] {
+    nonisolated static func sort(transactions: [TransactionDTO], option: TransactionSortOption) -> [TransactionDTO] {
         transactions.sorted { lhs, rhs in
             switch option {
             case .dateDescending:

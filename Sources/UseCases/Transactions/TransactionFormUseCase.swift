@@ -1,7 +1,7 @@
 import Foundation
 
 @DatabaseActor
-internal protocol TransactionFormUseCaseProtocol: AnyObject {
+internal protocol TransactionFormUseCaseProtocol: AnyObject, Sendable {
     func save(
         state: TransactionFormState,
         editingTransactionId: UUID?,

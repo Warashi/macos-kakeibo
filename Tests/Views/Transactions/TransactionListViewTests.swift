@@ -14,26 +14,32 @@ internal struct TransactionListViewTests {
     }
 
     @Test("TransactionListContentViewにストアを渡して初期化できる")
-    internal func transactionListContentInitialization() throws {
+    internal func transactionListContentInitialization() async throws {
         let container = try ModelContainer(
             for: Transaction.self, Category.self, FinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
         let context = ModelContext(container)
-        let store = TransactionStore(modelContext: context)
+        let repository = await SwiftDataTransactionRepository(modelContext: context)
+        let listUseCase = await DefaultTransactionListUseCase(repository: repository)
+        let formUseCase = await DefaultTransactionFormUseCase(repository: repository)
+        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase)
 
         let view = TransactionListContentView(store: store)
         let _: any View = view
     }
 
     @Test("TransactionFilterBarはストアを受け取って初期化できる")
-    internal func transactionFilterBarInitialization() throws {
+    internal func transactionFilterBarInitialization() async throws {
         let container = try ModelContainer(
             for: Transaction.self, Category.self, FinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
         let context = ModelContext(container)
-        let store = TransactionStore(modelContext: context)
+        let repository = await SwiftDataTransactionRepository(modelContext: context)
+        let listUseCase = await DefaultTransactionListUseCase(repository: repository)
+        let formUseCase = await DefaultTransactionFormUseCase(repository: repository)
+        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase)
 
         let filterBar = TransactionFilterBar(store: store)
         let _: any View = filterBar

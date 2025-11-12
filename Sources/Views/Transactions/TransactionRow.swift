@@ -1,9 +1,11 @@
 import SwiftUI
 
 internal struct TransactionRow: View {
-    internal let transaction: Transaction
-    internal let onEdit: (Transaction) -> Void
-    internal let onDelete: (Transaction) -> Void
+    internal let transaction: TransactionDTO
+    internal let categoryFullName: String
+    internal let institutionName: String?
+    internal let onEdit: (TransactionDTO) -> Void
+    internal let onDelete: (UUID) -> Void
 
     private var accentColor: Color {
         transaction.isExpense ? .expense : .income
@@ -26,11 +28,11 @@ internal struct TransactionRow: View {
                 }
 
                 HStack(spacing: 8) {
-                    Label(transaction.categoryFullName, systemImage: "folder")
+                    Label(categoryFullName, systemImage: "folder")
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
-                    if let institutionName = transaction.financialInstitution?.name {
+                    if let institutionName {
                         Label(institutionName, systemImage: "building.columns")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -66,7 +68,7 @@ internal struct TransactionRow: View {
                 }
 
                 Button(role: .destructive) {
-                    onDelete(transaction)
+                    onDelete(transaction.id)
                 } label: {
                     Label("削除", systemImage: "trash")
                 }

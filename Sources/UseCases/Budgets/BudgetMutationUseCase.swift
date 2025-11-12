@@ -58,12 +58,15 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
     }
 
     internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) async throws {
-        if let config = input.existingConfig {
+        // 既存の設定を年から取得
+        if let config = try repository.annualBudgetConfig(for: input.year) {
+            // 既存の設定を更新
             config.totalAmount = input.totalAmount
             config.policy = input.policy
             config.updatedAt = Date()
             try syncAllocations(config: config, drafts: input.allocations)
         } else {
+            // 新規作成
             let config = AnnualBudgetConfig(
                 year: input.year,
                 totalAmount: input.totalAmount,

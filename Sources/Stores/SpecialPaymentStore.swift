@@ -81,7 +81,6 @@ internal struct OccurrenceUpdateInput {
 }
 
 @Observable
-@MainActor
 internal final class SpecialPaymentStore {
     private let repository: SpecialPaymentRepository
     private let currentDateProvider: () -> Date

@@ -5,8 +5,8 @@ import SwiftData
 /// 予算管理ストア
 ///
 /// 月次/年次/特別支払いモードを切り替えながら、表示状態を管理します。
-@Observable
 @MainActor
+@Observable
 internal final class BudgetStore {
     // MARK: - Types
 
@@ -300,7 +300,6 @@ internal extension BudgetStore {
         allocations: [AnnualAllocationDraft],
     ) async throws {
         let input = AnnualBudgetConfigInput(
-            existingConfig: snapshot?.annualBudgetConfig,
             year: currentYear,
             totalAmount: totalAmount,
             policy: policy,

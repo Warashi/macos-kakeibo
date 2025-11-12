@@ -58,7 +58,8 @@ internal actor BackupManager {
         return BackupArchive(data: data, metadata: payload.metadata, suggestedFileName: fileName)
     }
 
-    /// バックアップペイロードを構築 (MainActor で呼び出す)
+    /// バックアップペイロードを構築
+    /// - Note: @MainActor is required because ModelContext is Non-Sendable
     @MainActor
     internal static func buildPayload(modelContext: ModelContext) throws -> BackupPayload {
         let transactions = try modelContext.fetchAll(Transaction.self)
@@ -104,7 +105,8 @@ internal actor BackupManager {
         return payload
     }
 
-    /// ペイロードからデータを復元 (MainActor で呼び出す)
+    /// ペイロードからデータを復元
+    /// - Note: @MainActor is required because ModelContext is Non-Sendable
     @MainActor
     internal static func restorePayload(_ payload: BackupPayload, to modelContext: ModelContext) throws
     -> BackupRestoreSummary {

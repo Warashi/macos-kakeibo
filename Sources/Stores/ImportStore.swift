@@ -4,7 +4,6 @@ import SwiftData
 
 /// CSVインポート画面の状態を管理するストア
 @Observable
-@MainActor
 internal final class ImportStore {
     // MARK: - Dependencies
 
@@ -38,6 +37,7 @@ internal final class ImportStore {
 
     // MARK: - Actions
 
+    @MainActor
     internal func loadFile(from url: URL) async {
         guard !isProcessing else { return }
         isProcessing = true
@@ -76,6 +76,7 @@ internal final class ImportStore {
         }
     }
 
+    @MainActor
     internal func handleNextAction() async {
         guard !isProcessing else { return }
         errorMessage = nil
@@ -258,6 +259,7 @@ internal extension ImportStore {
 // MARK: - Private Helpers
 
 private extension ImportStore {
+    @MainActor
     func generatePreview() async {
         guard let document else {
             errorMessage = "CSVファイルが読み込まれていません"
@@ -289,6 +291,7 @@ private extension ImportStore {
         }
     }
 
+    @MainActor
     func performImport() async {
         guard let preview else {
             errorMessage = "プレビューが生成されていません"

@@ -55,6 +55,7 @@ internal actor CSVImporter {
     // MARK: - Import
 
     /// プレビュー済みデータをSwiftDataに取り込む
+    /// - Note: @MainActor is required because ModelContext is Non-Sendable
     @MainActor
     internal func performImport(preview: CSVImportPreview, modelContext: ModelContext) throws -> CSVImportSummary {
         guard !preview.validRecords.isEmpty else {

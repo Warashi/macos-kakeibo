@@ -3,8 +3,7 @@ import Foundation
 /// Dashboard calculation service
 ///
 /// Encapsulates dashboard calculation logic, keeping it separate from UI state management.
-/// Runs on MainActor due to SwiftData model access requirements.
-@MainActor
+/// Works with DTOs and can run on any actor.
 internal final class DashboardService {
     // MARK: - Dependencies
 

@@ -14,9 +14,17 @@ internal struct TransactionListView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .onAppear {
-            guard store == nil else { return }
-            store = TransactionStore(modelContext: modelContext)
+        .onAppear(perform: prepareStore)
+    }
+
+    private func prepareStore() {
+        guard store == nil else { return }
+        let context = modelContext
+        Task {
+            let repository = await SwiftDataTransactionRepository(modelContext: context)
+            let listUseCase = await DefaultTransactionListUseCase(repository: repository)
+            let formUseCase = await DefaultTransactionFormUseCase(repository: repository)
+            store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase)
         }
     }
 }
@@ -84,12 +92,18 @@ internal struct TransactionListContentView: View {
                         ForEach(section.transactions, id: \.id) { transaction in
                             TransactionRow(
                                 transaction: transaction,
-                                onEdit: { store.startEditing(transaction: $0) },
-                                onDelete: { _ = store.deleteTransaction($0) },
+                                categoryFullName: categoryFullName(for: transaction),
+                                institutionName: institutionName(for: transaction),
+                                onEdit: { transactionDTO in
+                                    store.startEditing(transaction: transactionDTO)
+                                },
+                                onDelete: { transactionId in
+                                    Task { await store.deleteTransaction(transactionId) }
+                                },
                             )
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(role: .destructive) {
-                                    _ = store.deleteTransaction(transaction)
+                                    Task { await store.deleteTransaction(transaction.id) }
                                 } label: {
                                     Label("削除", systemImage: "trash")
                                 }
@@ -117,5 +131,32 @@ internal struct TransactionListContentView: View {
                 .font(.title3.bold())
                 .foregroundStyle(tint)
         }
+    }
+
+    private func categoryFullName(for transaction: TransactionDTO) -> String {
+        let majorName: String? = {
+            guard let majorId = transaction.majorCategoryId else { return nil }
+            return store.availableCategories.first { $0.id == majorId }?.name
+        }()
+
+        let minorName: String? = {
+            guard let minorId = transaction.minorCategoryId else { return nil }
+            return store.availableCategories.first { $0.id == minorId }?.name
+        }()
+
+        if let minorName, let majorName {
+            return "\(majorName) / \(minorName)"
+        } else if let majorName {
+            return majorName
+        } else {
+            return "未分類"
+        }
+    }
+
+    private func institutionName(for transaction: TransactionDTO) -> String? {
+        guard let institutionId = transaction.financialInstitutionId else {
+            return nil
+        }
+        return store.availableInstitutions.first { $0.id == institutionId }?.name
     }
 }

@@ -9,7 +9,6 @@ import SwiftData
 /// - カテゴリ別ハイライトの集計
 /// - 年次特別枠の残額計算
 @Observable
-@MainActor
 internal final class DashboardStore {
     // MARK: - Dependencies
 

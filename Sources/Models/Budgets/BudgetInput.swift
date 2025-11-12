@@ -17,7 +17,6 @@ internal struct BudgetUpdateInput {
 }
 
 internal struct AnnualBudgetConfigInput {
-    internal let existingConfig: AnnualBudgetConfig?
     internal let year: Int
     internal let totalAmount: Decimal
     internal let policy: AnnualBudgetPolicy

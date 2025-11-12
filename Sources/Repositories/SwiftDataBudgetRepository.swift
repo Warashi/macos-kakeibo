@@ -56,6 +56,10 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         try modelContext.fetch(CategoryQueries.byId(id)).first
     }
 
+    internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfig? {
+        try modelContext.fetch(BudgetQueries.annualConfig(for: year)).first
+    }
+
     internal func insertBudget(_ budget: Budget) {
         modelContext.insert(budget)
     }

@@ -4,7 +4,6 @@ import SwiftData
 
 /// 設定画面全体を管理するストア
 @Observable
-@MainActor
 internal final class SettingsStore {
     // MARK: - Nested Types
 
@@ -144,12 +143,12 @@ internal final class SettingsStore {
     // MARK: - Backup & Restore
 
     /// バックアップを作成
+    @MainActor
     internal func createBackupArchive() async throws -> BackupArchive {
         isProcessingBackup = true
         defer {
             isProcessingBackup = false
         }
-        // MainActor でペイロード生成
         let payload = try BackupManager.buildPayload(modelContext: modelContext)
         // Actor でエンコード
         let archive = try await backupManager.createBackup(payload: payload)
@@ -161,6 +160,7 @@ internal final class SettingsStore {
     /// バックアップから復元
     /// - Parameter data: バックアップデータ
     /// - Returns: 復元サマリ
+    @MainActor
     internal func restoreBackup(from data: Data) async throws -> BackupRestoreSummary {
         isProcessingBackup = true
         defer {
@@ -168,7 +168,6 @@ internal final class SettingsStore {
         }
         // Actor でデコード
         let payload = try await backupManager.decodeBackup(from: data)
-        // MainActor で復元
         let summary = try BackupManager.restorePayload(payload, to: modelContext)
         lastRestoreSummary = summary
         lastBackupMetadata = summary.metadata

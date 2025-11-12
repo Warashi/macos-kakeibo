@@ -46,7 +46,8 @@ internal struct BudgetMutationUseCaseTests {
             endYear: 2025,
             endMonth: 12,
         )
-        try useCase.updateBudget(budget, input: input)
+        let budgetDTO = BudgetDTO(from: budget)
+        try useCase.updateBudget(budgetDTO, input: input)
 
         #expect(budget.amount == 6000)
         #expect(budget.category?.id == category.id)
@@ -63,7 +64,6 @@ internal struct BudgetMutationUseCaseTests {
         try context.save()
 
         let input = AnnualBudgetConfigInput(
-            existingConfig: nil,
             year: 2025,
             totalAmount: 200_000,
             policy: .automatic,

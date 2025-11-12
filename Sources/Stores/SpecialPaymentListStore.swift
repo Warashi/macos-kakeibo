@@ -6,7 +6,6 @@ import SwiftData
 
 /// 特別支払い一覧表示用のストア
 @Observable
-@MainActor
 internal final class SpecialPaymentListStore {
     internal typealias SortOrder = SpecialPaymentListSortOrder
 
@@ -151,7 +150,7 @@ internal final class SpecialPaymentListStore {
             categoriesById[categoryId] = (name: categoryName, displayOrder: 0)
         }
 
-        let sorted = categoriesById.keys.sorted { lhs, rhs in
+        _ = categoriesById.keys.sorted { lhs, rhs in
             guard let lhsInfo = categoriesById[lhs],
                   let rhsInfo = categoriesById[rhs] else {
                 return false
