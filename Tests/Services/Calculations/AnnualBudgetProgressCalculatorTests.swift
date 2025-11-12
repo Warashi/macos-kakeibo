@@ -54,9 +54,11 @@ internal struct AnnualBudgetProgressCalculatorTests {
         ]
 
         // When: 年次予算進捗を計算
+        let categories = [CategoryDTO(from: majorCategory), CategoryDTO(from: minorCategory)]
         let result = calculator.calculate(
-            budgets: [budget],
-            transactions: transactions,
+            budgets: [BudgetDTO(from: budget)],
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            categories: categories,
             year: 2025,
         )
 
@@ -127,9 +129,15 @@ internal struct AnnualBudgetProgressCalculatorTests {
         ]
 
         // When: 年次予算進捗を計算
+        let categories = [
+            CategoryDTO(from: majorCategory),
+            CategoryDTO(from: minorCategory1),
+            CategoryDTO(from: minorCategory2),
+        ]
         let result = calculator.calculate(
-            budgets: [budget],
-            transactions: transactions,
+            budgets: [BudgetDTO(from: budget)],
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            categories: categories,
             year: 2025,
         )
 
@@ -159,9 +167,15 @@ internal struct AnnualBudgetProgressCalculatorTests {
         let testData = createMultipleCategoryTestData()
 
         // When: 年次予算進捗を計算
+        let categories = [
+            CategoryDTO(from: testData.foodCategory),
+            CategoryDTO(from: testData.diningOutCategory),
+            CategoryDTO(from: testData.transportCategory),
+        ]
         let result = calculator.calculate(
-            budgets: testData.budgets,
-            transactions: testData.transactions,
+            budgets: testData.budgets.map { BudgetDTO(from: $0) },
+            transactions: testData.transactions.map { TransactionDTO(from: $0) },
+            categories: categories,
             year: 2025,
         )
 
@@ -205,6 +219,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         let budgets: [Budget]
         let transactions: [Transaction]
         let foodCategory: Kakeibo.Category
+        let diningOutCategory: Kakeibo.Category
         let transportCategory: Kakeibo.Category
     }
 
@@ -260,6 +275,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
             budgets: budgets,
             transactions: transactions,
             foodCategory: foodCategory,
+            diningOutCategory: diningOut,
             transportCategory: transportCategory,
         )
     }
@@ -310,9 +326,11 @@ internal struct AnnualBudgetProgressCalculatorTests {
 
         // When: 食費カテゴリを除外して年次予算進捗を計算
         let excludedCategoryIds: Set<UUID> = [foodCategory.id]
+        let categories = [CategoryDTO(from: foodCategory), CategoryDTO(from: transportCategory)]
         let result = calculator.calculate(
-            budgets: [overallBudget, foodBudget],
-            transactions: transactions,
+            budgets: [BudgetDTO(from: overallBudget), BudgetDTO(from: foodBudget)],
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            categories: categories,
             year: 2025,
             excludedCategoryIds: excludedCategoryIds,
         )
@@ -381,9 +399,15 @@ internal struct AnnualBudgetProgressCalculatorTests {
 
         // When: 食費と娯楽費を除外して年次予算進捗を計算
         let excludedCategoryIds: Set<UUID> = [foodCategory.id, entertainmentCategory.id]
+        let categories = [
+            CategoryDTO(from: foodCategory),
+            CategoryDTO(from: transportCategory),
+            CategoryDTO(from: entertainmentCategory),
+        ]
         let result = calculator.calculate(
-            budgets: [overallBudget],
-            transactions: transactions,
+            budgets: [BudgetDTO(from: overallBudget)],
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            categories: categories,
             year: 2025,
             excludedCategoryIds: excludedCategoryIds,
         )
