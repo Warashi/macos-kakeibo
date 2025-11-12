@@ -30,7 +30,10 @@ internal struct AnnualBudgetResultFormatterTests {
             ],
         )
 
-        let usage = formatter.makeUsage(accumulationResult: accumulationResult, config: config)
+        let usage = formatter.makeUsage(
+            accumulationResult: accumulationResult,
+            config: AnnualBudgetConfigDTO(from: config),
+        )
 
         #expect(usage.remainingAmount == 150_000)
         #expect(abs(usage.usageRate - 0.25) < 0.0001)
@@ -45,7 +48,7 @@ internal struct AnnualBudgetResultFormatterTests {
             policy: .disabled,
         )
 
-        let usage = formatter.makeDisabledUsage(year: 2025, config: config)
+        let usage = formatter.makeDisabledUsage(year: 2025, config: AnnualBudgetConfigDTO(from: config))
 
         #expect(usage.usedAmount == 0)
         #expect(usage.categoryAllocations.isEmpty)
