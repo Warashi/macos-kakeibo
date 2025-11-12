@@ -13,7 +13,7 @@ internal struct AnnualBudgetFormStateTests {
         config.allocations = [allocation]
 
         var state = AnnualBudgetFormState()
-        state.load(from: config)
+        state.load(from: AnnualBudgetConfigDTO(from: config), categories: [CategoryDTO(from: category)])
 
         let row = try #require(state.allocationRows.first)
         #expect(row.amountText == "0")

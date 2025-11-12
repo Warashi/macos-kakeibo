@@ -36,8 +36,9 @@ internal struct AnnualBudgetPanelTests {
 
         let panel = AnnualBudgetPanel(
             year: 2025,
-            config: config,
+            config: AnnualBudgetConfigDTO(from: config),
             usage: usage,
+            categories: [CategoryDTO(from: category)],
             onEdit: {},
         )
 
@@ -72,7 +73,11 @@ internal struct AnnualBudgetPanelTests {
             ],
         )
 
-        let content = AnnualBudgetPanelContentBuilder.build(config: config, usage: usage)
+        let content = AnnualBudgetPanelContentBuilder.build(
+            config: AnnualBudgetConfigDTO(from: config),
+            usage: usage,
+            categories: [CategoryDTO(from: category)],
+        )
         #expect(content.rows.count == 2)
 
         let overallRow = content.rows[0]
@@ -96,7 +101,11 @@ internal struct AnnualBudgetPanelTests {
         allocation.config = config
         config.allocations = [allocation]
 
-        let content = AnnualBudgetPanelContentBuilder.build(config: config, usage: nil)
+        let content = AnnualBudgetPanelContentBuilder.build(
+            config: AnnualBudgetConfigDTO(from: config),
+            usage: nil,
+            categories: [CategoryDTO(from: category)],
+        )
         #expect(content.rows.count == 2)
 
         let summary = content.summary
@@ -158,7 +167,11 @@ internal struct AnnualBudgetPanelTests {
             ],
         )
 
-        let content = AnnualBudgetPanelContentBuilder.build(config: config, usage: usage)
+        let content = AnnualBudgetPanelContentBuilder.build(
+            config: AnnualBudgetConfigDTO(from: config),
+            usage: usage,
+            categories: [CategoryDTO(from: category)],
+        )
 
         let overallRow = content.rows[0]
         #expect(overallRow.remainingAmount == -20000)
