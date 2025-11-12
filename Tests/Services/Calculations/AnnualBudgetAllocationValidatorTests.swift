@@ -71,7 +71,7 @@ internal struct AnnualBudgetAllocationValidatorTests {
         return AllocationCalculationParams(
             transactions: [],
             budgets: [],
-            annualBudgetConfig: config,
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
     }
 }
