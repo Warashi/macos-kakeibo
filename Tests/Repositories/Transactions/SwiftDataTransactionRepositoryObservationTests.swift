@@ -8,7 +8,7 @@ import Testing
 internal struct TransactionRepositoryObservationTests {
     @Test("取引の追加・更新・削除で通知される")
     internal func notifiesOnMutations() async throws {
-        let (repository, month) = try makeRepository()
+        let (repository, month) = try await makeRepository()
         let query = TransactionQuery(
             month: month,
             filterKind: .all,
@@ -21,8 +21,8 @@ internal struct TransactionRepositoryObservationTests {
             sortOption: .dateDescending,
         )
 
-        var snapshots: [[Transaction]] = []
-        let token = try repository.observeTransactions(query: query) { transactions in
+        var snapshots: [[TransactionDTO]] = []
+        let token = try await repository.observeTransactions(query: query) { transactions in
             snapshots.append(transactions)
         }
         defer { token.cancel() }
@@ -30,21 +30,21 @@ internal struct TransactionRepositoryObservationTests {
         #expect(snapshots.isEmpty)
 
         let transaction = Transaction(date: month, title: "ランチ", amount: -1200)
-        repository.insert(transaction)
-        try repository.saveChanges()
+        await repository.insert(transaction)
+        try await repository.saveChanges()
         try await Task.sleep(nanoseconds: 100_000_000)
 
         #expect(!snapshots.isEmpty)
         #expect(snapshots.last?.contains(where: { $0.id == transaction.id }) == true)
 
         transaction.title = "ディナー"
-        try repository.saveChanges()
+        try await repository.saveChanges()
         try await Task.sleep(nanoseconds: 100_000_000)
 
         #expect(snapshots.last?.first?.title == "ディナー")
 
-        repository.delete(transaction)
-        try repository.saveChanges()
+        await repository.delete(transaction)
+        try await repository.saveChanges()
         try await Task.sleep(nanoseconds: 100_000_000)
 
         #expect(snapshots.last?.isEmpty == true)
@@ -52,10 +52,10 @@ internal struct TransactionRepositoryObservationTests {
 }
 
 private extension TransactionRepositoryObservationTests {
-    func makeRepository() throws -> (SwiftDataTransactionRepository, Date) {
+    func makeRepository() async throws -> (SwiftDataTransactionRepository, Date) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = SwiftDataTransactionRepository(modelContext: context)
+        let repository = await SwiftDataTransactionRepository(modelContext: context)
         let month = Date.from(year: 2025, month: 11, day: 1) ?? Date()
         return (repository, month)
     }
