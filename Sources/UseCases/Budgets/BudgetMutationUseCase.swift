@@ -43,15 +43,11 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
             endYear: input.endYear,
             endMonth: input.endMonth,
         )
-        let category = try resolveCategory(id: input.categoryId)
         try repository.updateBudget(
-            id: budget.id,
-            amount: input.amount,
-            category: category,
-            startYear: input.startYear,
-            startMonth: input.startMonth,
-            endYear: input.endYear,
-            endMonth: input.endMonth,
+            input: BudgetUpdateInput(
+                id: budget.id,
+                input: input,
+            ),
         )
         try repository.saveChanges()
     }

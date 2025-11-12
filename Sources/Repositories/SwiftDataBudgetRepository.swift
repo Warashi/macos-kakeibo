@@ -64,24 +64,16 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         modelContext.delete(budget)
     }
 
-    internal func updateBudget(
-        id: UUID,
-        amount: Decimal,
-        category: Category?,
-        startYear: Int,
-        startMonth: Int,
-        endYear: Int,
-        endMonth: Int,
-    ) throws {
-        guard let budget = try modelContext.fetch(BudgetQueries.byId(id)).first else {
+    internal func updateBudget(input: BudgetUpdateInput) throws {
+        guard let budget = try modelContext.fetch(BudgetQueries.byId(input.id)).first else {
             throw RepositoryError.notFound
         }
-        budget.amount = amount
-        budget.category = category
-        budget.startYear = startYear
-        budget.startMonth = startMonth
-        budget.endYear = endYear
-        budget.endMonth = endMonth
+        budget.amount = input.input.amount
+        budget.category = try category(id: input.input.categoryId)
+        budget.startYear = input.input.startYear
+        budget.startMonth = input.input.startMonth
+        budget.endYear = input.input.endYear
+        budget.endMonth = input.input.endMonth
         budget.updatedAt = Date()
     }
 

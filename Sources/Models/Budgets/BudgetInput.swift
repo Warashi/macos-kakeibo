@@ -10,6 +10,12 @@ internal struct BudgetInput {
     internal let endMonth: Int
 }
 
+/// 月次予算の更新パラメータ
+internal struct BudgetUpdateInput {
+    internal let id: UUID
+    internal let input: BudgetInput
+}
+
 internal struct AnnualBudgetConfigInput {
     internal let existingConfig: AnnualBudgetConfig?
     internal let year: Int
