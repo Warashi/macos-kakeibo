@@ -15,9 +15,19 @@ internal struct SpecialPaymentListView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .onAppear {
-            guard store == nil else { return }
-            store = SpecialPaymentListStore(modelContext: modelContext)
+        .onAppear(perform: prepareStore)
+    }
+
+    private func prepareStore() {
+        guard store == nil else { return }
+        let context = modelContext
+        Task {
+            let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
+            let listStore = SpecialPaymentListStore(repository: repository)
+            await listStore.refreshEntries()
+            await MainActor.run {
+                store = listStore
+            }
         }
     }
 }
@@ -50,7 +60,7 @@ internal struct SpecialPaymentListContentView: View {
                 } label: {
                     Label("CSVエクスポート", systemImage: "square.and.arrow.up")
                 }
-                .disabled(store.entries.isEmpty)
+                .disabled(store.cachedEntries.isEmpty)
             }
         }
         .fileExporter(
@@ -79,6 +89,24 @@ internal struct SpecialPaymentListContentView: View {
         .onChange(of: allCategories) { _, newValue in
             store.categoryFilter.updateCategories(newValue)
         }
+        .onChange(of: store.dateRange) { _, _ in
+            Task { @MainActor in await store.refreshEntries() }
+        }
+        .onChange(of: store.searchText) { _, _ in
+            Task { @MainActor in await store.refreshEntries() }
+        }
+        .onChange(of: store.categoryFilter.selectedMajorCategoryId) { _, _ in
+            Task { @MainActor in await store.refreshEntries() }
+        }
+        .onChange(of: store.categoryFilter.selectedMinorCategoryId) { _, _ in
+            Task { @MainActor in await store.refreshEntries() }
+        }
+        .onChange(of: store.selectedStatus) { _, _ in
+            Task { @MainActor in await store.refreshEntries() }
+        }
+        .onChange(of: store.sortOrder) { _, _ in
+            Task { @MainActor in await store.refreshEntries() }
+        }
     }
 
     // MARK: - Export Helpers
@@ -87,7 +115,7 @@ internal struct SpecialPaymentListContentView: View {
         let exporter: CSVExporter = CSVExporter()
 
         do {
-            let result = try exporter.exportSpecialPaymentListEntries(store.entries)
+            let result = try exporter.exportSpecialPaymentListEntries(store.cachedEntries)
             csvDocument = DataFileDocument(data: result.data)
             isExportingCSV = true
         } catch {
@@ -210,7 +238,7 @@ private struct SpecialPaymentFilterToolbarView: View {
 
                 Spacer()
 
-                Text("\(store.entries.count)件")
+                Text("\(store.cachedEntries.count)件")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -227,7 +255,7 @@ private struct SpecialPaymentEntriesTableView: View {
     @Bindable internal var store: SpecialPaymentListStore
 
     internal var body: some View {
-        if store.entries.isEmpty {
+        if store.cachedEntries.isEmpty {
             ContentUnavailableView {
                 Label("特別支払いがありません", systemImage: "tray")
             } description: {
@@ -235,7 +263,7 @@ private struct SpecialPaymentEntriesTableView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            Table(store.entries) {
+            Table(store.cachedEntries) {
                 TableColumn("名称") { entry in
                     HStack(spacing: 6) {
                         Text(entry.name)

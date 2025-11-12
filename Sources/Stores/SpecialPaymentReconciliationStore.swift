@@ -3,6 +3,7 @@ import Observation
 import SwiftData
 
 @Observable
+@MainActor
 internal final class SpecialPaymentReconciliationStore {
     internal typealias OccurrenceRow = SpecialPaymentReconciliationPresenter.OccurrenceRow
     internal typealias TransactionCandidate = SpecialPaymentReconciliationPresenter.TransactionCandidate

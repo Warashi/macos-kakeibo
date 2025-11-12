@@ -32,6 +32,11 @@ internal final class SpecialPaymentListStore {
     /// ソート順
     internal var sortOrder: SortOrder = .dateAscending
 
+    // MARK: - Cached Data
+
+    /// キャッシュされたエントリ一覧（同期的アクセス用）
+    internal var cachedEntries: [SpecialPaymentListEntry] = []
+
     // MARK: - Initialization
 
     internal init(
@@ -79,6 +84,14 @@ internal final class SpecialPaymentListStore {
                 now: now,
             ),
         )
+    }
+
+    /// キャッシュを更新
+    internal func refreshEntries() async {
+        let newEntries = await entries()
+        await MainActor.run {
+            cachedEntries = newEntries
+        }
     }
 
     // MARK: - Actions
