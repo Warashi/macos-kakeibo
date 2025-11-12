@@ -117,7 +117,7 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
         try context.save()
 
         let summary = try repository.synchronize(
-            definition: definition,
+            definitionId: definition.id,
             horizonMonths: 12,
             referenceDate: referenceDate,
         )
@@ -147,7 +147,7 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
         try context.save()
 
         _ = try repository.synchronize(
-            definition: definition,
+            definitionId: definition.id,
             horizonMonths: 12,
             referenceDate: today,
         )
@@ -155,7 +155,7 @@ internal struct SwiftDataSpecialPaymentRepositoryTests {
         let occurrence = try #require(definition.occurrences.first)
 
         let summary = try repository.markOccurrenceCompleted(
-            occurrence,
+            occurrenceId: occurrence.id,
             input: OccurrenceCompletionInput(
                 actualDate: today,
                 actualAmount: 120_000,

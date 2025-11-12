@@ -168,9 +168,10 @@ internal struct BudgetCalculatorBasicTests {
         let budgetAmount: Decimal = 100_000
 
         // When & Then
+        let categoryDTO = CategoryDTO(from: category)
         // 超過しないケース
         let willExceed1 = calculator.willExceedBudget(
-            category: category,
+            category: categoryDTO,
             amount: 15000,
             currentExpense: currentExpense,
             budgetAmount: budgetAmount,
@@ -179,7 +180,7 @@ internal struct BudgetCalculatorBasicTests {
 
         // 超過するケース
         let willExceed2 = calculator.willExceedBudget(
-            category: category,
+            category: categoryDTO,
             amount: 25000,
             currentExpense: currentExpense,
             budgetAmount: budgetAmount,

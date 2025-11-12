@@ -210,9 +210,10 @@ internal struct SpecialPaymentReconciliationStoreTests {
         )
         let baseService = await DefaultSpecialPaymentOccurrencesService(repository: repository)
         let spyService = await SpySpecialPaymentOccurrencesService(wrapping: baseService)
+        let transactionRepository = await SwiftDataTransactionRepository(modelContext: context)
         let store = SpecialPaymentReconciliationStore(
             repository: repository,
-            transactionRepository: SwiftDataTransactionRepository(modelContext: context),
+            transactionRepository: transactionRepository,
             occurrencesService: spyService,
             horizonMonths: SpecialPaymentScheduleService.defaultHorizonMonths,
             currentDateProvider: { referenceDate },

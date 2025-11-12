@@ -33,7 +33,7 @@ internal struct BudgetStoreTestsAnnualConfig {
         #expect(createdConfig.allocations.count == 2)
 
         let allocationMap = Dictionary(uniqueKeysWithValues: createdConfig.allocations
-            .map { ($0.category.id, $0) })
+            .map { ($0.categoryId, $0) })
         #expect(allocationMap[food.id]?.amount == 200_000)
         #expect(allocationMap[travel.id]?.amount == 100_000)
         #expect(allocationMap[food.id]?.policyOverride == .automatic)
@@ -53,7 +53,7 @@ internal struct BudgetStoreTestsAnnualConfig {
         #expect(updatedConfig.totalAmount == 500_000)
         #expect(updatedConfig.policy == .disabled)
         #expect(updatedConfig.allocations.count == 1)
-        let updatedAllocation = updatedConfig.allocations.first { $0.category.id == travel.id }
+        let updatedAllocation = updatedConfig.allocations.first { $0.categoryId == travel.id }
         #expect(updatedAllocation?.amount == 300_000)
         #expect(updatedAllocation?.policyOverride == .manual)
     }
