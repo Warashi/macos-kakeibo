@@ -43,7 +43,9 @@ internal struct TransactionListContentView: View {
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button {
-                    store.refresh()
+                    Task {
+                        await store.refresh()
+                    }
                 } label: {
                     Label("再読み込み", systemImage: "arrow.clockwise")
                 }
