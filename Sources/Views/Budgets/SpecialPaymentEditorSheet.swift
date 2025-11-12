@@ -5,7 +5,7 @@ import SwiftUI
 /// 特別支払い定義の作成・編集を行うためのシートビュー。
 internal struct SpecialPaymentEditorSheet: View {
     @Binding internal var formState: SpecialPaymentFormState
-    internal let categories: [Category]
+    internal let categories: [CategoryDTO]
     internal let mode: SpecialPaymentEditorMode
     internal let errorMessage: String?
     internal let onCancel: () -> Void

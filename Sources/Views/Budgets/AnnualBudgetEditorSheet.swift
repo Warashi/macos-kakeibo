@@ -5,7 +5,7 @@ import SwiftUI
 /// 年次特別枠の設定を行うためのシートビュー。
 internal struct AnnualBudgetEditorSheet: View {
     @Binding internal var formState: AnnualBudgetFormState
-    internal let categories: [Category]
+    internal let categories: [CategoryDTO]
     internal let errorMessage: String?
     internal let onCancel: () -> Void
     internal let onSave: () -> Void

@@ -5,14 +5,14 @@ import SwiftUI
 /// 月次予算の作成・編集を行うためのシートビュー。
 internal struct BudgetEditorSheet: View {
     @Binding internal var formState: BudgetEditorFormState
-    internal let categories: [Category]
+    internal let categories: [CategoryDTO]
     internal let mode: BudgetEditorMode
     internal let errorMessage: String?
     internal let onCancel: () -> Void
     internal let onSave: () -> Void
 
-    private var categoryGrouping: CategoryHierarchyGrouping {
-        CategoryHierarchyGrouping(categories: categories)
+    private var categoryGrouping: CategoryDTOHierarchyGrouping {
+        CategoryDTOHierarchyGrouping(categories: categories)
     }
 
     private var majorSelectionBinding: Binding<UUID?> {
