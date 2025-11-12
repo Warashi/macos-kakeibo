@@ -234,13 +234,20 @@ internal struct SpecialPaymentReconciliationPresenter {
         self.calendar = calendar
     }
 
-    internal func makePresentation(
-        occurrences: [SpecialPaymentOccurrenceDTO],
-        definitions: [UUID: SpecialPaymentDefinitionDTO],
-        categories: [UUID: String],
-        transactions: [UUID: String],
-        referenceDate: Date,
-    ) -> Presentation {
+    internal struct PresentationInput {
+        internal let occurrences: [SpecialPaymentOccurrenceDTO]
+        internal let definitions: [UUID: SpecialPaymentDefinitionDTO]
+        internal let categories: [UUID: String]
+        internal let transactions: [UUID: String]
+        internal let referenceDate: Date
+    }
+
+    internal func makePresentation(input: PresentationInput) -> Presentation {
+        let occurrences = input.occurrences
+        let definitions = input.definitions
+        let categories = input.categories
+        let transactions = input.transactions
+        let referenceDate = input.referenceDate
         var rows: [OccurrenceRow] = []
         var occurrenceLookup: [UUID: SpecialPaymentOccurrenceDTO] = [:]
         var linkedTransactionLookup: [UUID: UUID] = [:]

@@ -60,25 +60,32 @@ internal struct BudgetCalculator: Sendable {
         )
     }
 
+    /// 月次予算計算の入力パラメータ
+    internal struct MonthlyBudgetInput {
+        internal let transactions: [TransactionDTO]
+        internal let budgets: [BudgetDTO]
+        internal let categories: [CategoryDTO]
+        internal let year: Int
+        internal let month: Int
+        internal let filter: AggregationFilter
+        internal let excludedCategoryIds: Set<UUID>
+    }
+
     /// 月次予算計算を実行
-    /// - Parameters:
-    ///   - transactions: 取引リスト
-    ///   - budgets: 予算リスト
-    ///   - year: 対象年
-    ///   - month: 対象月
-    ///   - filter: 集計フィルタ
+    /// - Parameter input: 計算に必要な入力パラメータ
     /// - Returns: 月次予算計算結果
-    internal func calculateMonthlyBudget(
-        transactions: [Transaction],
-        budgets: [Budget],
-        year: Int,
-        month: Int,
-        filter: AggregationFilter = .default,
-        excludedCategoryIds: Set<UUID> = [],
-    ) -> MonthlyBudgetCalculation {
+    internal func calculateMonthlyBudget(input: MonthlyBudgetInput) -> MonthlyBudgetCalculation {
+        let transactions = input.transactions
+        let budgets = input.budgets
+        let categories = input.categories
+        let year = input.year
+        let month = input.month
+        let filter = input.filter
+        let excludedCategoryIds = input.excludedCategoryIds
         let context = MonthlyBudgetComputationContext(
             transactions: transactions,
             budgets: budgets,
+            categories: categories,
             year: year,
             month: month,
             filter: filter,
@@ -98,6 +105,7 @@ internal struct BudgetCalculator: Sendable {
         )
         let categoryCalculations = categoryBudgetCalculations(
             monthlyBudgets: monthlyBudgets,
+            categories: context.categories,
             summary: monthlySummary,
         )
 
@@ -130,6 +138,7 @@ internal struct BudgetCalculator: Sendable {
     ) -> MonthlySummary {
         aggregator.aggregateMonthly(
             transactions: context.transactions,
+            categories: context.categories,
             year: context.year,
             month: context.month,
             filter: context.filter,
@@ -138,16 +147,16 @@ internal struct BudgetCalculator: Sendable {
 
     private func budgetsForMonth(
         context: MonthlyBudgetComputationContext,
-    ) -> [Budget] {
+    ) -> [BudgetDTO] {
         context.budgets.filter { $0.contains(year: context.year, month: context.month) }
     }
 
     private func overallMonthlyCalculation(
-        monthlyBudgets: [Budget],
+        monthlyBudgets: [BudgetDTO],
         summary: MonthlySummary,
         excludedCategoryIds: Set<UUID>,
     ) -> BudgetCalculation? {
-        guard let budget = monthlyBudgets.first(where: { $0.category == nil }) else {
+        guard let budget = monthlyBudgets.first(where: { $0.categoryId == nil }) else {
             return nil
         }
         let excludedExpense = excludedExpense(
@@ -175,33 +184,48 @@ internal struct BudgetCalculator: Sendable {
     }
 
     private func categoryBudgetCalculations(
-        monthlyBudgets: [Budget],
+        monthlyBudgets: [BudgetDTO],
+        categories: [CategoryDTO],
         summary: MonthlySummary,
     ) -> [CategoryBudgetCalculation] {
-        monthlyBudgets.compactMap { budget -> CategoryBudgetCalculation? in
-            guard let category = budget.category else { return nil }
+        let categoryMap = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
+
+        return monthlyBudgets.compactMap { budget -> CategoryBudgetCalculation? in
+            guard let categoryId = budget.categoryId,
+                  let category = categoryMap[categoryId] else { return nil }
             let categoryActual = categoryActualAmount(
                 for: category,
+                categories: categories,
                 summary: summary,
             )
             let calculation = calculate(
                 budgetAmount: budget.amount,
                 actualAmount: categoryActual,
             )
+
+            // フルネームを構築
+            let categoryName: String = if let parentId = category.parentId,
+                                          let parent = categoryMap[parentId] {
+                "\(parent.name) > \(category.name)"
+            } else {
+                category.name
+            }
+
             return CategoryBudgetCalculation(
                 categoryId: category.id,
-                categoryName: category.fullName,
+                categoryName: categoryName,
                 calculation: calculation,
             )
         }
     }
 
     private func categoryActualAmount(
-        for category: Category,
+        for category: CategoryDTO,
+        categories: [CategoryDTO],
         summary: MonthlySummary,
     ) -> Decimal {
         if category.isMajor {
-            let childCategoryIds = Set(category.children.map(\.id))
+            let childCategoryIds = Set(categories.filter { $0.parentId == category.id }.map(\.id))
             return summary.categorySummaries
                 .filter { summary in
                     summary.categoryId == category.id
@@ -215,8 +239,9 @@ internal struct BudgetCalculator: Sendable {
     }
 
     private struct MonthlyBudgetComputationContext {
-        let transactions: [Transaction]
-        let budgets: [Budget]
+        let transactions: [TransactionDTO]
+        let budgets: [BudgetDTO]
+        let categories: [CategoryDTO]
         let year: Int
         let month: Int
         let filter: AggregationFilter

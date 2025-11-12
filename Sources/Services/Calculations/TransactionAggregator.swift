@@ -132,12 +132,14 @@ internal struct TransactionAggregator: Sendable {
     /// 月次集計を実行
     /// - Parameters:
     ///   - transactions: 集計対象の取引リスト
+    ///   - categories: カテゴリリスト
     ///   - year: 対象年
     ///   - month: 対象月
     ///   - filter: フィルタオプション
     /// - Returns: 月次集計結果
     internal func aggregateMonthly(
-        transactions: [Transaction],
+        transactions: [TransactionDTO],
+        categories: [CategoryDTO],
         year: Int,
         month: Int,
         filter: AggregationFilter = .default,
@@ -154,7 +156,7 @@ internal struct TransactionAggregator: Sendable {
         }
 
         // カテゴリ別に集計
-        let categorySummaries = aggregateByCategory(transactions: filteredTransactions)
+        let categorySummaries = aggregateByCategory(transactions: filteredTransactions, categories: categories)
 
         // 全体の集計
         let totalIncome = filteredTransactions
@@ -179,11 +181,13 @@ internal struct TransactionAggregator: Sendable {
     /// 年次集計を実行
     /// - Parameters:
     ///   - transactions: 集計対象の取引リスト
+    ///   - categories: カテゴリリスト
     ///   - year: 対象年
     ///   - filter: フィルタオプション
     /// - Returns: 年次集計結果
     internal func aggregateAnnually(
-        transactions: [Transaction],
+        transactions: [TransactionDTO],
+        categories: [CategoryDTO],
         year: Int,
         filter: AggregationFilter = .default,
     ) -> AnnualSummary {
@@ -198,12 +202,13 @@ internal struct TransactionAggregator: Sendable {
         }
 
         // カテゴリ別に集計
-        let categorySummaries = aggregateByCategory(transactions: filteredTransactions)
+        let categorySummaries = aggregateByCategory(transactions: filteredTransactions, categories: categories)
 
         // 月別に集計
         let monthlySummaries = (1 ... 12).map { month in
             aggregateMonthly(
                 transactions: transactions,
+                categories: categories,
                 year: year,
                 month: month,
                 filter: filter,
@@ -231,25 +236,37 @@ internal struct TransactionAggregator: Sendable {
     }
 
     /// カテゴリ別集計を実行
-    /// - Parameter transactions: 集計対象の取引リスト
+    /// - Parameters:
+    ///   - transactions: 集計対象の取引リスト
+    ///   - categories: カテゴリリスト
     /// - Returns: カテゴリ別集計結果のリスト
     internal func aggregateByCategory(
-        transactions: [Transaction],
+        transactions: [TransactionDTO],
+        categories: [CategoryDTO],
     ) -> [CategorySummary] {
+        // カテゴリIDからカテゴリへのマップを作成
+        let categoryMap = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
+
         // カテゴリごとにグループ化
-        let groupedByCategory = Dictionary(grouping: transactions) { transaction -> String in
+        let groupedByCategory = Dictionary(grouping: transactions) { transaction -> (String, UUID?) in
             // 中項目があれば中項目のフルネーム、なければ大項目の名前、それもなければ「未分類」
-            if let minorCategory = transaction.minorCategory {
-                return minorCategory.fullName
-            } else if let majorCategory = transaction.majorCategory {
-                return majorCategory.name
+            if let minorCategoryId = transaction.minorCategoryId,
+               let minorCategory = categoryMap[minorCategoryId] {
+                // 親カテゴリ名を取得してフルネームを構築
+                let parentName = minorCategory.parentId.flatMap { categoryMap[$0]?.name } ?? ""
+                let fullName = parentName.isEmpty ? minorCategory.name : "\(parentName) > \(minorCategory.name)"
+                return (fullName, minorCategoryId)
+            } else if let majorCategoryId = transaction.majorCategoryId,
+                      let majorCategory = categoryMap[majorCategoryId] {
+                return (majorCategory.name, majorCategoryId)
             } else {
-                return "未分類"
+                return ("未分類", nil)
             }
         }
 
         // 各カテゴリの集計を計算
-        return groupedByCategory.map { categoryName, categoryTransactions in
+        return groupedByCategory.map { key, categoryTransactions in
+            let (categoryName, categoryId) = key
             let totalIncome = categoryTransactions
                 .filter(\.isIncome)
                 .reduce(Decimal.zero) { $0 + $1.amount }
@@ -257,10 +274,6 @@ internal struct TransactionAggregator: Sendable {
             let totalExpense = categoryTransactions
                 .filter(\.isExpense)
                 .reduce(Decimal.zero) { $0 + abs($1.amount) }
-
-            // カテゴリIDを取得（中項目 > 大項目の優先順位）
-            let categoryId = categoryTransactions.first?.minorCategory?.id
-                ?? categoryTransactions.first?.majorCategory?.id
 
             return CategorySummary(
                 categoryName: categoryName,
@@ -278,7 +291,7 @@ internal struct TransactionAggregator: Sendable {
 
     /// フィルタを適用
     private func applyFilter(
-        transaction: Transaction,
+        transaction: TransactionDTO,
         filter: AggregationFilter,
     ) -> Bool {
         // 計算対象チェック
@@ -293,15 +306,15 @@ internal struct TransactionAggregator: Sendable {
 
         // 金融機関チェック
         if let targetInstitutionId = filter.financialInstitutionId {
-            guard transaction.financialInstitution?.id == targetInstitutionId else {
+            guard transaction.financialInstitutionId == targetInstitutionId else {
                 return false
             }
         }
 
         // カテゴリチェック
         if let targetCategoryId = filter.categoryId {
-            let majorMatches = transaction.majorCategory?.id == targetCategoryId
-            let minorMatches = transaction.minorCategory?.id == targetCategoryId
+            let majorMatches = transaction.majorCategoryId == targetCategoryId
+            let minorMatches = transaction.minorCategoryId == targetCategoryId
             guard majorMatches || minorMatches else {
                 return false
             }

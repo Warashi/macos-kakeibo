@@ -23,14 +23,22 @@ internal struct SpecialPaymentListPresenter {
         self.calendar = calendar
     }
 
-    internal func entries(
-        occurrences: [SpecialPaymentOccurrenceDTO],
-        definitions: [UUID: SpecialPaymentDefinitionDTO],
-        balances: [UUID: SpecialPaymentSavingBalanceDTO],
-        categories: [UUID: String],
-        filter: SpecialPaymentListFilter,
-        now: Date,
-    ) -> [SpecialPaymentListEntry] {
+    internal struct EntriesInput {
+        internal let occurrences: [SpecialPaymentOccurrenceDTO]
+        internal let definitions: [UUID: SpecialPaymentDefinitionDTO]
+        internal let balances: [UUID: SpecialPaymentSavingBalanceDTO]
+        internal let categories: [UUID: String]
+        internal let filter: SpecialPaymentListFilter
+        internal let now: Date
+    }
+
+    internal func entries(input: EntriesInput) -> [SpecialPaymentListEntry] {
+        let occurrences = input.occurrences
+        let definitions = input.definitions
+        let balances = input.balances
+        let categories = input.categories
+        let filter = input.filter
+        let now = input.now
         let entries = occurrences.compactMap { occurrence -> SpecialPaymentListEntry? in
             guard let definition = definitions[occurrence.definitionId] else {
                 return nil
@@ -45,11 +53,13 @@ internal struct SpecialPaymentListPresenter {
             }
             let balance = balances[occurrence.definitionId]
             return entry(
-                occurrence: occurrence,
-                definition: definition,
-                categoryName: definition.categoryId.flatMap { categories[$0] },
-                balance: balance,
-                now: now,
+                input: EntryInput(
+                    occurrence: occurrence,
+                    definition: definition,
+                    categoryName: definition.categoryId.flatMap { categories[$0] },
+                    balance: balance,
+                    now: now,
+                ),
             )
         }
 
@@ -93,13 +103,20 @@ internal struct SpecialPaymentListPresenter {
         }
     }
 
-    internal func entry(
-        occurrence: SpecialPaymentOccurrenceDTO,
-        definition: SpecialPaymentDefinitionDTO,
-        categoryName: String?,
-        balance: SpecialPaymentSavingBalanceDTO?,
-        now: Date,
-    ) -> SpecialPaymentListEntry {
+    internal struct EntryInput {
+        internal let occurrence: SpecialPaymentOccurrenceDTO
+        internal let definition: SpecialPaymentDefinitionDTO
+        internal let categoryName: String?
+        internal let balance: SpecialPaymentSavingBalanceDTO?
+        internal let now: Date
+    }
+
+    internal func entry(input: EntryInput) -> SpecialPaymentListEntry {
+        let occurrence = input.occurrence
+        let definition = input.definition
+        let categoryName = input.categoryName
+        let balance = input.balance
+        let now = input.now
         let savingsBalance = balance?.balance ?? 0
 
         let savingsProgress: Double

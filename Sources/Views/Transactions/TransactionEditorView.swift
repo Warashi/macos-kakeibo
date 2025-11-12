@@ -93,7 +93,9 @@ internal struct TransactionEditorView: View {
                 Spacer()
 
                 Button("保存") {
-                    _ = store.saveCurrentForm()
+                    Task {
+                        _ = await store.saveCurrentForm()
+                    }
                 }
                 .buttonStyle(.borderedProminent)
             }

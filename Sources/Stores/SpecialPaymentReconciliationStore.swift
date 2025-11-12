@@ -76,9 +76,10 @@ internal final class SpecialPaymentReconciliationStore {
 
     // MARK: - Caches
 
-    private var occurrenceLookup: [UUID: SpecialPaymentOccurrence] = [:]
+    private var occurrenceLookup: [UUID: SpecialPaymentOccurrenceDTO] = [:]
+    private var definitionsLookup: [UUID: SpecialPaymentDefinitionDTO] = [:]
     private var linkedTransactionLookup: [UUID: UUID] = [:]
-    private var transactions: [Transaction] = []
+    private var transactions: [TransactionDTO] = []
 
     // MARK: - Initialization
 
@@ -101,31 +102,6 @@ internal final class SpecialPaymentReconciliationStore {
         self.horizonMonths = horizonMonths
     }
 
-    internal convenience init(
-        modelContext: ModelContext,
-        transactionRepository: TransactionRepository? = nil,
-        candidateSearchWindowDays: Int = 60,
-        candidateLimit: Int = 12,
-        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
-        currentDateProvider: @escaping () -> Date = { Date() },
-    ) {
-        let repository = SpecialPaymentRepositoryFactory.make(
-            modelContext: modelContext,
-            currentDateProvider: currentDateProvider,
-        )
-        let resolvedTransactionRepository = transactionRepository
-            ?? SwiftDataTransactionRepository(modelContext: modelContext)
-        self.init(
-            repository: repository,
-            transactionRepository: resolvedTransactionRepository,
-            occurrencesService: nil,
-            candidateSearchWindowDays: candidateSearchWindowDays,
-            candidateLimit: candidateLimit,
-            horizonMonths: horizonMonths,
-            currentDateProvider: currentDateProvider,
-        )
-    }
-
     // MARK: - Accessors
 
     internal var selectedRow: OccurrenceRow? {
@@ -137,22 +113,42 @@ internal final class SpecialPaymentReconciliationStore {
 // MARK: - Actions
 
 internal extension SpecialPaymentReconciliationStore {
-    func refresh() {
+    func refresh() async {
         errorMessage = nil
         statusMessage = nil
         isLoading = true
         defer { isLoading = false }
 
         do {
-            transactions = try transactionRepository.fetchAllTransactions()
+            transactions = try await transactionRepository.fetchAllTransactions()
 
-            let definitions = try repository.definitions(filter: nil)
+            let definitionDTOs = try await repository.definitions(filter: nil)
                 .sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
             let referenceDate = currentDateProvider()
 
+            let occurrenceDTOs = try await repository.occurrences(query: nil)
+
+            definitionsLookup = Dictionary(uniqueKeysWithValues: definitionDTOs.map { ($0.id, $0) })
+
+            var categoriesDict: [UUID: String] = [:]
+            for def in definitionDTOs {
+                if let categoryId = def.categoryId {
+                    if categoriesDict[categoryId] == nil {
+                        categoriesDict[categoryId] = def.name
+                    }
+                }
+            }
+
+            let transactionsDict = Dictionary(uniqueKeysWithValues: transactions.map { ($0.id, $0.title) })
+
             let presentation = presenter.makePresentation(
-                definitions: definitions,
-                referenceDate: referenceDate,
+                input: SpecialPaymentReconciliationPresenter.PresentationInput(
+                    occurrences: occurrenceDTOs,
+                    definitions: definitionsLookup,
+                    categories: categoriesDict,
+                    transactions: transactionsDict,
+                    referenceDate: referenceDate,
+                ),
             )
 
             rows = presentation.rows
@@ -188,8 +184,8 @@ internal extension SpecialPaymentReconciliationStore {
         actualDate = candidate.transaction.date
     }
 
-    func saveSelectedOccurrence() {
-        guard let occurrence = selectedOccurrence else {
+    func saveSelectedOccurrence() async {
+        guard let occurrenceId = selectedOccurrenceId else {
             errorMessage = "保存対象の特別支払いを選択してください。"
             return
         }
@@ -212,14 +208,14 @@ internal extension SpecialPaymentReconciliationStore {
                 actualAmount: amount,
                 transaction: transaction,
             )
-            try occurrencesService.markOccurrenceCompleted(
-                occurrence,
+            try await repository.markOccurrenceCompleted(
+                occurrenceId: occurrenceId,
                 input: input,
                 horizonMonths: horizonMonths,
             )
             statusMessage = "実績を保存しました。"
-            refresh()
-            selectedOccurrenceId = occurrence.id
+            await refresh()
+            selectedOccurrenceId = occurrenceId
         } catch let storeError as SpecialPaymentDomainError {
             switch storeError {
             case let .validationFailed(messages):
@@ -232,8 +228,8 @@ internal extension SpecialPaymentReconciliationStore {
         }
     }
 
-    func unlinkSelectedOccurrence() {
-        guard let occurrence = selectedOccurrence else {
+    func unlinkSelectedOccurrence() async {
+        guard let occurrenceId = selectedOccurrenceId else {
             errorMessage = "解除対象の特別支払いを選択してください。"
             return
         }
@@ -244,8 +240,8 @@ internal extension SpecialPaymentReconciliationStore {
         defer { isSaving = false }
 
         do {
-            try occurrencesService.updateOccurrence(
-                occurrence,
+            try await repository.updateOccurrence(
+                occurrenceId: occurrenceId,
                 input: OccurrenceUpdateInput(
                     status: .planned,
                     actualDate: nil,
@@ -255,8 +251,8 @@ internal extension SpecialPaymentReconciliationStore {
                 horizonMonths: horizonMonths,
             )
             statusMessage = "取引リンクを解除しました。"
-            refresh()
-            selectedOccurrenceId = occurrence.id
+            await refresh()
+            selectedOccurrenceId = occurrenceId
         } catch {
             errorMessage = "リンク解除に失敗しました: \(error.localizedDescription)"
         }
@@ -266,7 +262,7 @@ internal extension SpecialPaymentReconciliationStore {
         guard let occurrence = selectedOccurrence else { return }
         actualAmountText = occurrence.expectedAmount.plainString
         actualDate = occurrence.scheduledDate
-        selectedTransactionId = occurrence.transaction?.id
+        selectedTransactionId = occurrence.transactionId
     }
 
     func clearError() {
@@ -277,7 +273,7 @@ internal extension SpecialPaymentReconciliationStore {
 // MARK: - Private Helpers
 
 private extension SpecialPaymentReconciliationStore {
-    var selectedOccurrence: SpecialPaymentOccurrence? {
+    var selectedOccurrence: SpecialPaymentOccurrenceDTO? {
         guard let id = selectedOccurrenceId else { return nil }
         return occurrenceLookup[id]
     }
@@ -311,11 +307,16 @@ private extension SpecialPaymentReconciliationStore {
 
         actualAmountText = (occurrence.actualAmount ?? occurrence.expectedAmount).plainString
         actualDate = occurrence.actualDate ?? occurrence.scheduledDate
-        selectedTransactionId = occurrence.transaction?.id
+        selectedTransactionId = occurrence.transactionId
         recomputeCandidates(for: occurrence)
     }
 
-    private func recomputeCandidates(for occurrence: SpecialPaymentOccurrence) {
+    private func recomputeCandidates(for occurrence: SpecialPaymentOccurrenceDTO) {
+        guard let definition = definitionsLookup[occurrence.definitionId] else {
+            candidateTransactions = []
+            return
+        }
+
         let context = SpecialPaymentReconciliationPresenter.TransactionCandidateSearchContext(
             transactions: transactions,
             linkedTransactionLookup: linkedTransactionLookup,
@@ -324,6 +325,7 @@ private extension SpecialPaymentReconciliationStore {
         )
         candidateTransactions = presenter.transactionCandidates(
             for: occurrence,
+            definition: definition,
             context: context,
         )
     }
@@ -337,7 +339,7 @@ private extension SpecialPaymentReconciliationStore {
             ?? Decimal(string: normalized)
     }
 
-    private func transactionById(_ id: UUID) -> Transaction? {
+    private func transactionById(_ id: UUID) -> TransactionDTO? {
         transactions.first { $0.id == id }
     }
 }

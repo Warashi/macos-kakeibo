@@ -133,11 +133,11 @@ internal final class DashboardStore {
 
     /// 一括取得したデータ
     private struct FetchedData {
-        let monthlyTransactions: [Transaction]
-        let annualTransactions: [Transaction]
-        let budgets: [Budget]
-        let categories: [Category]
-        let config: AnnualBudgetConfig?
+        let monthlyTransactions: [TransactionDTO]
+        let annualTransactions: [TransactionDTO]
+        let budgets: [BudgetDTO]
+        let categories: [CategoryDTO]
+        let config: AnnualBudgetConfigDTO?
     }
 
     /// 指定した期間の取引を取得
@@ -191,11 +191,11 @@ internal final class DashboardStore {
         let config = getAnnualBudgetConfig(year: currentYear)
 
         return FetchedData(
-            monthlyTransactions: monthlyTransactions,
-            annualTransactions: annualTransactions,
-            budgets: budgets,
-            categories: categories,
-            config: config,
+            monthlyTransactions: monthlyTransactions.map { TransactionDTO(from: $0) },
+            annualTransactions: annualTransactions.map { TransactionDTO(from: $0) },
+            budgets: budgets.map { BudgetDTO(from: $0) },
+            categories: categories.map { CategoryDTO(from: $0) },
+            config: config.map { AnnualBudgetConfigDTO(from: $0) },
         )
     }
 

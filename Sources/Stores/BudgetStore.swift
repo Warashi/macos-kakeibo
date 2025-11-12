@@ -38,7 +38,7 @@ internal final class BudgetStore {
     internal var currentYear: Int {
         didSet {
             guard oldValue != currentYear else { return }
-            reloadSnapshot()
+            Task { await reloadSnapshot() }
         }
     }
 
@@ -100,21 +100,6 @@ internal final class BudgetStore {
 
     // MARK: - Initialization
 
-    internal convenience init(modelContext: ModelContext) {
-        let repository = SwiftDataBudgetRepository(modelContext: modelContext)
-        let monthlyUseCase = DefaultMonthlyBudgetUseCase()
-        let annualUseCase = DefaultAnnualBudgetUseCase()
-        let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase()
-        let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
-        self.init(
-            repository: repository,
-            monthlyUseCase: monthlyUseCase,
-            annualUseCase: annualUseCase,
-            specialPaymentUseCase: specialPaymentUseCase,
-            mutationUseCase: mutationUseCase,
-        )
-    }
-
     internal init(
         repository: BudgetRepository,
         monthlyUseCase: MonthlyBudgetUseCaseProtocol,
@@ -145,7 +130,7 @@ internal final class BudgetStore {
             categoryCalculations: [],
         )
 
-        reloadSnapshot()
+        Task { await reloadSnapshot() }
     }
 }
 
@@ -153,8 +138,8 @@ internal final class BudgetStore {
 
 internal extension BudgetStore {
     /// データを再取得
-    func refresh() {
-        reloadSnapshot()
+    func refresh() async {
+        await reloadSnapshot()
     }
 
     /// 計算結果を再計算
@@ -296,17 +281,17 @@ internal extension BudgetStore {
 internal extension BudgetStore {
     func addBudget(_ input: BudgetInput) async throws {
         try await mutationUseCase.addBudget(input: input)
-        reloadSnapshot()
+        await reloadSnapshot()
     }
 
     func updateBudget(budget: Budget, input: BudgetInput) async throws {
         try await mutationUseCase.updateBudget(budget, input: input)
-        reloadSnapshot()
+        await reloadSnapshot()
     }
 
     func deleteBudget(_ budget: Budget) async throws {
         try await mutationUseCase.deleteBudget(budget)
-        reloadSnapshot()
+        await reloadSnapshot()
     }
 
     func upsertAnnualBudgetConfig(
@@ -322,15 +307,15 @@ internal extension BudgetStore {
             allocations: allocations,
         )
         try await mutationUseCase.upsertAnnualBudgetConfig(input)
-        reloadSnapshot()
+        await reloadSnapshot()
     }
 }
 
 // MARK: - Private Helpers
 
 private extension BudgetStore {
-    func reloadSnapshot() {
-        snapshot = try? repository.fetchSnapshot(for: currentYear)
+    func reloadSnapshot() async {
+        snapshot = try? await repository.fetchSnapshot(for: currentYear)
     }
 
     private func updateNavigation(_ update: (inout BudgetNavigationState) -> Bool) {

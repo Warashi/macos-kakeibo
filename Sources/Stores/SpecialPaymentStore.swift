@@ -47,12 +47,12 @@ internal struct SpecialPaymentDefinitionInput {
 internal struct OccurrenceCompletionInput {
     internal let actualDate: Date
     internal let actualAmount: Decimal
-    internal let transaction: Transaction?
+    internal let transaction: TransactionDTO?
 
     internal init(
         actualDate: Date,
         actualAmount: Decimal,
-        transaction: Transaction? = nil,
+        transaction: TransactionDTO? = nil,
     ) {
         self.actualDate = actualDate
         self.actualAmount = actualAmount
@@ -65,13 +65,13 @@ internal struct OccurrenceUpdateInput {
     internal let status: SpecialPaymentStatus
     internal let actualDate: Date?
     internal let actualAmount: Decimal?
-    internal let transaction: Transaction?
+    internal let transaction: TransactionDTO?
 
     internal init(
         status: SpecialPaymentStatus,
         actualDate: Date? = nil,
         actualAmount: Decimal? = nil,
-        transaction: Transaction? = nil,
+        transaction: TransactionDTO? = nil,
     ) {
         self.status = status
         self.actualDate = actualDate

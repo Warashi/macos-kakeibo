@@ -184,7 +184,9 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
         occurrence.actualDate = input.actualDate
         occurrence.actualAmount = input.actualAmount
-        occurrence.transaction = input.transaction
+        occurrence.transaction = try input.transaction.map { dto in
+            try findTransaction(id: dto.id)
+        }
         occurrence.status = .completed
         occurrence.updatedAt = currentDateProvider()
 
@@ -216,7 +218,9 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         occurrence.status = input.status
         occurrence.actualDate = input.actualDate
         occurrence.actualAmount = input.actualAmount
-        occurrence.transaction = input.transaction
+        occurrence.transaction = try input.transaction.map { dto in
+            try findTransaction(id: dto.id)
+        }
         occurrence.updatedAt = now
 
         let errors = occurrence.validate()
@@ -263,6 +267,17 @@ private extension SwiftDataSpecialPaymentRepository {
             throw SpecialPaymentDomainError.occurrenceNotFound
         }
         return occurrence
+    }
+
+    func findTransaction(id: UUID) throws -> Transaction {
+        let predicate = #Predicate<Transaction> { transaction in
+            transaction.id == id
+        }
+        let descriptor = FetchDescriptor<Transaction>(predicate: predicate)
+        guard let transaction = try modelContext.fetch(descriptor).first else {
+            throw SpecialPaymentDomainError.validationFailed(["取引が見つかりません"])
+        }
+        return transaction
     }
 
     func definitionPredicate(

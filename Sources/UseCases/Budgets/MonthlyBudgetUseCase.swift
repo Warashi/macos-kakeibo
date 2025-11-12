@@ -47,12 +47,15 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
         month: Int,
     ) -> MonthlyBudgetCalculation {
         calculator.calculateMonthlyBudget(
-            transactions: snapshot.transactions,
-            budgets: snapshot.budgets,
-            year: year,
-            month: month,
-            filter: .default,
-            excludedCategoryIds: excludedCategoryIds(from: snapshot),
+            input: BudgetCalculator.MonthlyBudgetInput(
+                transactions: snapshot.transactions,
+                budgets: snapshot.budgets,
+                categories: snapshot.categories,
+                year: year,
+                month: month,
+                filter: .default,
+                excludedCategoryIds: excludedCategoryIds(from: snapshot),
+            ),
         )
     }
 
@@ -80,12 +83,11 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
                 )
 
                 let fullName = buildFullName(for: category, categories: snapshot.categories)
-                let parentOrder: Int
-                if let parentId = category.parentId,
-                   let parent = categoryMap[parentId] {
-                    parentOrder = parent.displayOrder
+                let parentOrder: Int = if let parentId = category.parentId,
+                                          let parent = categoryMap[parentId] {
+                    parent.displayOrder
                 } else {
-                    parentOrder = category.displayOrder
+                    category.displayOrder
                 }
 
                 return MonthlyBudgetEntry(

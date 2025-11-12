@@ -43,6 +43,7 @@ internal final class DashboardService {
 
         let monthlySummary = aggregator.aggregateMonthly(
             transactions: input.monthlyTransactions,
+            categories: input.categories,
             year: year,
             month: month,
             filter: .default,
@@ -50,17 +51,21 @@ internal final class DashboardService {
 
         let annualSummary = aggregator.aggregateAnnually(
             transactions: input.annualTransactions,
+            categories: input.categories,
             year: year,
             filter: .default,
         )
 
         let monthlyBudgetCalculation = budgetCalculator.calculateMonthlyBudget(
-            transactions: input.monthlyTransactions,
-            budgets: input.budgets,
-            year: year,
-            month: month,
-            filter: .default,
-            excludedCategoryIds: excludedCategoryIds,
+            input: BudgetCalculator.MonthlyBudgetInput(
+                transactions: input.monthlyTransactions,
+                budgets: input.budgets,
+                categories: input.categories,
+                year: year,
+                month: month,
+                filter: .default,
+                excludedCategoryIds: excludedCategoryIds,
+            ),
         )
 
         let (annualBudgetUsage, monthlyAllocation) = calculateAnnualBudgetAllocation(
@@ -113,11 +118,13 @@ internal final class DashboardService {
 
         let usage = annualBudgetAllocator.calculateAnnualBudgetUsage(
             params: params,
+            categories: input.categories,
             upToMonth: month,
         )
 
         let allocation = annualBudgetAllocator.calculateMonthlyAllocation(
             params: params,
+            categories: input.categories,
             year: year,
             month: month,
         )
@@ -144,6 +151,7 @@ internal final class DashboardService {
         let progressResult = annualBudgetProgressCalculator.calculate(
             budgets: input.budgets,
             transactions: input.annualTransactions,
+            categories: input.categories,
             year: year,
             filter: .default,
             excludedCategoryIds: excludedCategoryIds,
@@ -161,11 +169,11 @@ internal final class DashboardService {
 
 /// Dashboard calculation input
 internal struct DashboardInput {
-    internal let monthlyTransactions: [Transaction]
-    internal let annualTransactions: [Transaction]
-    internal let budgets: [Budget]
-    internal let categories: [Category]
-    internal let config: AnnualBudgetConfig?
+    internal let monthlyTransactions: [TransactionDTO]
+    internal let annualTransactions: [TransactionDTO]
+    internal let budgets: [BudgetDTO]
+    internal let categories: [CategoryDTO]
+    internal let config: AnnualBudgetConfigDTO?
 }
 
 /// Dashboard calculation result

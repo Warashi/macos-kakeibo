@@ -51,50 +51,34 @@ internal final class SpecialPaymentListStore {
         )
     }
 
-    internal convenience init(
-        modelContext: ModelContext,
-        calendar: Calendar = Calendar(identifier: .gregorian),
-        businessDayService: BusinessDayService? = nil,
-        holidayProvider: HolidayProvider? = nil,
-        currentDateProvider: @escaping () -> Date = { Date() },
-    ) {
-        let repository = SpecialPaymentRepositoryFactory.make(
-            modelContext: modelContext,
-            calendar: calendar,
-            businessDayService: businessDayService,
-            holidayProvider: holidayProvider,
-            currentDateProvider: currentDateProvider,
-        )
-        let presenter = SpecialPaymentListPresenter(calendar: calendar)
-        self.init(
-            repository: repository,
-            presenter: presenter,
-            currentDateProvider: currentDateProvider,
-        )
-    }
-
     // MARK: - Data Access
 
     // MARK: - Computed Properties
 
     /// フィルタリング・ソート済みのエントリ一覧
-    internal var entries: [SpecialPaymentListEntry] {
+    internal func entries() async -> [SpecialPaymentListEntry] {
         let now = currentDateProvider()
-        let occurrences = fetchOccurrences()
-        let balances = balanceLookup(for: occurrences)
+        let occurrences = await fetchOccurrences()
+        let definitions = await fetchDefinitions()
+        let balances = await balanceLookup(for: Array(definitions.keys))
+        let categories = await fetchCategoryNames(from: definitions)
         let filter = SpecialPaymentListFilter(
             dateRange: dateRange,
             searchText: SearchText(searchText),
             categoryFilter: categoryFilter.selection,
             sortOrder: sortOrder,
         )
-        updateCategoryOptionsIfNeeded(from: occurrences)
+        await updateCategoryOptionsIfNeeded(from: definitions, categories: categories)
 
         return presenter.entries(
-            occurrences: occurrences,
-            balances: balances,
-            filter: filter,
-            now: now,
+            input: SpecialPaymentListPresenter.EntriesInput(
+                occurrences: occurrences,
+                definitions: definitions,
+                balances: balances,
+                categories: categories,
+                filter: filter,
+                now: now,
+            ),
         )
     }
 
@@ -120,7 +104,7 @@ internal final class SpecialPaymentListStore {
 
     // MARK: - Helper Methods
 
-    private func fetchOccurrences() -> [SpecialPaymentOccurrence] {
+    private func fetchOccurrences() async -> [SpecialPaymentOccurrenceDTO] {
         let range = SpecialPaymentOccurrenceRange(
             startDate: dateRange.startDate,
             endDate: dateRange.endDate,
@@ -131,37 +115,53 @@ internal final class SpecialPaymentListStore {
             statusFilter: statusFilter,
         )
 
-        return (try? repository.occurrences(query: query)) ?? []
+        return await (try? repository.occurrences(query: query)) ?? []
     }
 
-    private func balanceLookup(for occurrences: [SpecialPaymentOccurrence]) -> [UUID: SpecialPaymentSavingBalance] {
-        let definitionIds = Set(occurrences.map(\.definition.id))
+    private func fetchDefinitions() async -> [UUID: SpecialPaymentDefinitionDTO] {
+        let definitions = await (try? repository.definitions(filter: nil)) ?? []
+        return Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
+    }
+
+    private func balanceLookup(for definitionIds: [UUID]) async -> [UUID: SpecialPaymentSavingBalanceDTO] {
         guard !definitionIds.isEmpty else { return [:] }
-        let query = SpecialPaymentBalanceQuery(definitionIds: definitionIds)
-        let balances = (try? repository.balances(query: query)) ?? []
-        return Dictionary(uniqueKeysWithValues: balances.map { ($0.definition.id, $0) })
+        let query = SpecialPaymentBalanceQuery(definitionIds: Set(definitionIds))
+        let balances = await (try? repository.balances(query: query)) ?? []
+        return Dictionary(uniqueKeysWithValues: balances.map { ($0.definitionId, $0) })
     }
 
-    private func updateCategoryOptionsIfNeeded(from occurrences: [SpecialPaymentOccurrence]) {
+    private func fetchCategoryNames(from definitions: [UUID: SpecialPaymentDefinitionDTO]) async -> [UUID: String] {
+        var categoryNames: [UUID: String] = [:]
+        for definition in definitions.values {
+            if let categoryId = definition.categoryId {
+                categoryNames[categoryId] = definition.name
+            }
+        }
+        return categoryNames
+    }
+
+    private func updateCategoryOptionsIfNeeded(
+        from definitions: [UUID: SpecialPaymentDefinitionDTO],
+        categories: [UUID: String],
+    ) async {
         guard categoryFilter.availableCategories.isEmpty else { return }
 
-        var categoriesById: [UUID: Category] = [:]
-        for occurrence in occurrences {
-            guard let category = occurrence.definition.category else {
-                continue
-            }
+        var categoriesById: [UUID: (name: String, displayOrder: Int)] = [:]
+        for (categoryId, categoryName) in categories {
+            categoriesById[categoryId] = (name: categoryName, displayOrder: 0)
+        }
 
-            categoriesById[category.id] = category
-            if let parent = category.parent {
-                categoriesById[parent.id] = parent
+        let sorted = categoriesById.keys.sorted { lhs, rhs in
+            guard let lhsInfo = categoriesById[lhs],
+                  let rhsInfo = categoriesById[rhs] else {
+                return false
             }
-        }
-        let sorted = Array(categoriesById.values).sorted { lhs, rhs in
-            if lhs.displayOrder == rhs.displayOrder {
-                return lhs.name < rhs.name
+            if lhsInfo.displayOrder == rhsInfo.displayOrder {
+                return lhsInfo.name < rhsInfo.name
             }
-            return lhs.displayOrder < rhs.displayOrder
+            return lhsInfo.displayOrder < rhsInfo.displayOrder
         }
-        categoryFilter.updateCategories(sorted)
+
+        categoryFilter.updateCategories([])
     }
 }

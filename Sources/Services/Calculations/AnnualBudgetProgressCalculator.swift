@@ -68,6 +68,7 @@ internal struct AnnualBudgetProgressCalculator {
 
         let annualSummary = aggregator.aggregateAnnually(
             transactions: transactions,
+            categories: categories,
             year: year,
             filter: filter,
         )
@@ -235,12 +236,11 @@ internal struct AnnualBudgetProgressCalculator {
     }
 
     private func createDisplayOrder(for category: CategoryDTO, categories: [CategoryDTO]) -> DisplayOrder {
-        let parentOrder: Int
-        if let parentId = category.parentId,
-           let parent = categories.first(where: { $0.id == parentId }) {
-            parentOrder = parent.displayOrder
+        let parentOrder: Int = if let parentId = category.parentId,
+                                  let parent = categories.first(where: { $0.id == parentId }) {
+            parent.displayOrder
         } else {
-            parentOrder = category.displayOrder
+            category.displayOrder
         }
         let ownOrder = category.displayOrder
         let fullName = buildFullName(for: category, categories: categories)

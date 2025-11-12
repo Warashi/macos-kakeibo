@@ -1,7 +1,7 @@
 import Foundation
 
 /// 取引のDTO（Sendable）
-internal struct TransactionDTO: Sendable {
+internal struct TransactionDTO: Sendable, Hashable, Equatable {
     internal let id: UUID
     internal let date: Date
     internal let title: String

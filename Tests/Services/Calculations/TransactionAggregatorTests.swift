@@ -11,13 +11,14 @@ internal struct TransactionAggregatorTests {
     @Test("月次集計：正常ケース")
     internal func monthlySummary_success() throws {
         // Given
-        let transactions = createSampleTransactions()
+        let (transactions, categories) = createSampleTransactionsWithCategories()
         let year = 2025
         let month = 11
 
         // When
         let result = aggregator.aggregateMonthly(
             transactions: transactions,
+            categories: categories,
             year: year,
             month: month,
             filter: .default,
@@ -34,12 +35,13 @@ internal struct TransactionAggregatorTests {
     @Test("年次集計：正常ケース")
     internal func annualSummary_success() throws {
         // Given
-        let transactions = createSampleTransactions()
+        let (transactions, categories) = createSampleTransactionsWithCategories()
         let year = 2025
 
         // When
         let result = aggregator.aggregateAnnually(
             transactions: transactions,
+            categories: categories,
             year: year,
             filter: .default,
         )
@@ -54,10 +56,10 @@ internal struct TransactionAggregatorTests {
     @Test("カテゴリ別集計：正常ケース")
     internal func aggregateByCategory_success() throws {
         // Given
-        let transactions = createSampleTransactions()
+        let (transactions, categories) = createSampleTransactionsWithCategories()
 
         // When
-        let result = aggregator.aggregateByCategory(transactions: transactions)
+        let result = aggregator.aggregateByCategory(transactions: transactions, categories: categories)
 
         // Then
         #expect(!result.isEmpty)
@@ -70,9 +72,9 @@ internal struct TransactionAggregatorTests {
     @Test("フィルタ：計算対象のみ")
     internal func filter_calculationTargetOnly() throws {
         // Given
-        var transactions = createSampleTransactions()
+        var (transactions, categories) = createSampleTransactionsWithCategories()
         // 計算対象外の取引を追加
-        let excludedTx = createTransaction(
+        let excludedTx = createTransactionDTO(
             amount: 10000,
             isIncludedInCalculation: false,
         )
@@ -86,6 +88,7 @@ internal struct TransactionAggregatorTests {
         // When
         let result = aggregator.aggregateMonthly(
             transactions: transactions,
+            categories: categories,
             year: 2025,
             month: 11,
             filter: filter,
@@ -99,9 +102,9 @@ internal struct TransactionAggregatorTests {
     @Test("フィルタ：振替除外")
     internal func filter_excludeTransfers() throws {
         // Given
-        var transactions = createSampleTransactions()
+        var (transactions, categories) = createSampleTransactionsWithCategories()
         // 振替取引を追加
-        let transferTx = createTransaction(
+        let transferTx = createTransactionDTO(
             amount: 5000,
             isTransfer: true,
         )
@@ -115,6 +118,7 @@ internal struct TransactionAggregatorTests {
         // When
         let result = aggregator.aggregateMonthly(
             transactions: transactions,
+            categories: categories,
             year: 2025,
             month: 11,
             filter: filter,
@@ -127,34 +131,49 @@ internal struct TransactionAggregatorTests {
 
     // MARK: - Helper Methods
 
-    private func createSampleTransactions() -> [Transaction] {
-        let category = Category(name: "食費")
-        let institution = FinancialInstitution(name: "銀行A")
+    private func createSampleTransactionsWithCategories() -> ([TransactionDTO], [CategoryDTO]) {
+        let categoryId = UUID()
+        let category = CategoryDTO(
+            id: categoryId,
+            name: "食費",
+            displayOrder: 0,
+            allowsAnnualBudget: false,
+            parentId: nil,
+            createdAt: Date(),
+            updatedAt: Date(),
+        )
 
-        return [
-            createTransaction(amount: 50000, category: category, institution: institution),
-            createTransaction(amount: -30000, category: category, institution: institution),
-            createTransaction(amount: -20000, category: category, institution: institution),
-            createTransaction(amount: 100_000, category: category, institution: institution),
-            createTransaction(amount: -15000, category: category, institution: institution),
+        let transactions = [
+            createTransactionDTO(amount: 50000, categoryId: categoryId),
+            createTransactionDTO(amount: -30000, categoryId: categoryId),
+            createTransactionDTO(amount: -20000, categoryId: categoryId),
+            createTransactionDTO(amount: 100_000, categoryId: categoryId),
+            createTransactionDTO(amount: -15000, categoryId: categoryId),
         ]
+
+        return (transactions, [category])
     }
 
-    private func createTransaction(
+    private func createTransactionDTO(
         amount: Decimal,
-        category: Kakeibo.Category? = nil,
-        institution: FinancialInstitution? = nil,
+        categoryId: UUID? = nil,
+        financialInstitutionId: UUID? = nil,
         isIncludedInCalculation: Bool = true,
         isTransfer: Bool = false,
-    ) -> Transaction {
-        Transaction(
+    ) -> TransactionDTO {
+        TransactionDTO(
+            id: UUID(),
             date: Date.from(year: 2025, month: 11) ?? Date(),
             title: "テスト取引",
             amount: amount,
+            memo: "",
             isIncludedInCalculation: isIncludedInCalculation,
             isTransfer: isTransfer,
-            financialInstitution: institution,
-            majorCategory: category,
+            financialInstitutionId: financialInstitutionId,
+            majorCategoryId: categoryId,
+            minorCategoryId: nil,
+            createdAt: Date(),
+            updatedAt: Date(),
         )
     }
 }

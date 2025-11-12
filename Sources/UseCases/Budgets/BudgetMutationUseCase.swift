@@ -23,7 +23,7 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
             endYear: input.endYear,
             endMonth: input.endMonth,
         )
-        let category = try await resolveCategory(id: input.categoryId)
+        let category = try resolveCategory(id: input.categoryId)
         let budget = Budget(
             amount: input.amount,
             category: category,
@@ -32,8 +32,8 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
             endYear: input.endYear,
             endMonth: input.endMonth,
         )
-        await repository.insertBudget(budget)
-        try await repository.saveChanges()
+        repository.insertBudget(budget)
+        try repository.saveChanges()
     }
 
     internal func updateBudget(_ budget: Budget, input: BudgetInput) async throws {
@@ -43,7 +43,7 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
             endYear: input.endYear,
             endMonth: input.endMonth,
         )
-        let category = try await resolveCategory(id: input.categoryId)
+        let category = try resolveCategory(id: input.categoryId)
         budget.amount = input.amount
         budget.category = category
         budget.startYear = input.startYear
@@ -51,12 +51,12 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
         budget.endYear = input.endYear
         budget.endMonth = input.endMonth
         budget.updatedAt = Date()
-        try await repository.saveChanges()
+        try repository.saveChanges()
     }
 
     internal func deleteBudget(_ budget: Budget) async throws {
-        await repository.deleteBudget(budget)
-        try await repository.saveChanges()
+        repository.deleteBudget(budget)
+        try repository.saveChanges()
     }
 
     internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) async throws {
@@ -64,24 +64,24 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
             config.totalAmount = input.totalAmount
             config.policy = input.policy
             config.updatedAt = Date()
-            try await syncAllocations(config: config, drafts: input.allocations)
+            try syncAllocations(config: config, drafts: input.allocations)
         } else {
             let config = AnnualBudgetConfig(
                 year: input.year,
                 totalAmount: input.totalAmount,
                 policy: input.policy,
             )
-            await repository.insertAnnualBudgetConfig(config)
-            try await syncAllocations(config: config, drafts: input.allocations)
+            repository.insertAnnualBudgetConfig(config)
+            try syncAllocations(config: config, drafts: input.allocations)
         }
-        try await repository.saveChanges()
+        try repository.saveChanges()
     }
 }
 
 private extension DefaultBudgetMutationUseCase {
-    func resolveCategory(id: UUID?) async throws -> Category? {
+    func resolveCategory(id: UUID?) throws -> Category? {
         guard let id else { return nil }
-        guard let category = try await repository.category(id: id) else {
+        guard let category = try repository.category(id: id) else {
             throw BudgetStoreError.categoryNotFound
         }
         return category
@@ -110,7 +110,7 @@ private extension DefaultBudgetMutationUseCase {
     func syncAllocations(
         config: AnnualBudgetConfig,
         drafts: [AnnualAllocationDraft],
-    ) async throws {
+    ) throws {
         let uniqueCategoryIds = Set(drafts.map(\.categoryId))
         guard uniqueCategoryIds.count == drafts.count else {
             throw BudgetStoreError.duplicateAnnualAllocationCategory
@@ -125,7 +125,7 @@ private extension DefaultBudgetMutationUseCase {
         let now = Date()
 
         for draft in drafts {
-            guard let category = try await resolveCategory(id: draft.categoryId) else {
+            guard let category = try resolveCategory(id: draft.categoryId) else {
                 throw BudgetStoreError.categoryNotFound
             }
 
@@ -156,7 +156,7 @@ private extension DefaultBudgetMutationUseCase {
             if let index = config.allocations.firstIndex(where: { $0.id == allocation.id }) {
                 config.allocations.remove(at: index)
             }
-            await repository.deleteAllocation(allocation)
+            repository.deleteAllocation(allocation)
         }
     }
 }
