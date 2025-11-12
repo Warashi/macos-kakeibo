@@ -13,10 +13,17 @@ internal struct SpecialPaymentReconciliationViewTests {
     }
 
     @Test("Content view can be initialized with store")
-    internal func contentViewInitialization() throws {
+    internal func contentViewInitialization() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let store = SpecialPaymentReconciliationStore(modelContext: context)
+        let specialPaymentRepository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
+        let transactionRepository = await SwiftDataTransactionRepository(modelContext: context)
+        let occurrencesService = await DefaultSpecialPaymentOccurrencesService(repository: specialPaymentRepository)
+        let store = SpecialPaymentReconciliationStore(
+            repository: specialPaymentRepository,
+            transactionRepository: transactionRepository,
+            occurrencesService: occurrencesService,
+        )
         let view = SpecialPaymentReconciliationContentView(store: store)
         let _: any View = view
     }

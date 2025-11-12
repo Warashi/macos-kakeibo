@@ -1,5 +1,6 @@
 import Foundation
 
+@DatabaseActor
 internal protocol SpecialPaymentOccurrencesService {
     @discardableResult
     func synchronizeOccurrences(
@@ -23,6 +24,7 @@ internal protocol SpecialPaymentOccurrencesService {
     ) throws -> SpecialPaymentSynchronizationSummary?
 }
 
+@DatabaseActor
 internal final class DefaultSpecialPaymentOccurrencesService: SpecialPaymentOccurrencesService {
     private let repository: SpecialPaymentRepository
 
@@ -44,7 +46,7 @@ internal final class DefaultSpecialPaymentOccurrencesService: SpecialPaymentOccu
         }
 
         return try repository.synchronize(
-            definition: definition,
+            definitionId: definition.id,
             horizonMonths: horizonMonths,
             referenceDate: referenceDate,
         )
@@ -56,7 +58,7 @@ internal final class DefaultSpecialPaymentOccurrencesService: SpecialPaymentOccu
         horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary {
         try repository.markOccurrenceCompleted(
-            occurrence,
+            occurrenceId: occurrence.id,
             input: input,
             horizonMonths: horizonMonths,
         )
@@ -68,7 +70,7 @@ internal final class DefaultSpecialPaymentOccurrencesService: SpecialPaymentOccu
         horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary? {
         try repository.updateOccurrence(
-            occurrence,
+            occurrenceId: occurrence.id,
             input: input,
             horizonMonths: horizonMonths,
         )

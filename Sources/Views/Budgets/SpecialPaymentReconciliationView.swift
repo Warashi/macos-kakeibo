@@ -24,9 +24,11 @@ internal struct SpecialPaymentReconciliationView: View {
         Task {
             let specialPaymentRepository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
             let transactionRepository = await SwiftDataTransactionRepository(modelContext: context)
+            let occurrencesService = await DefaultSpecialPaymentOccurrencesService(repository: specialPaymentRepository)
             let reconciliationStore = SpecialPaymentReconciliationStore(
                 repository: specialPaymentRepository,
                 transactionRepository: transactionRepository,
+                occurrencesService: occurrencesService,
             )
             await reconciliationStore.refresh()
             store = reconciliationStore

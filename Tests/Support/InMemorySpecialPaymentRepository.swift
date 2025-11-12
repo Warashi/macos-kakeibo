@@ -28,7 +28,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
         self.currentDateProvider = currentDateProvider
     }
 
-    internal func definitions(filter: SpecialPaymentDefinitionFilter?) throws -> [SpecialPaymentDefinition] {
+    internal func definitions(filter: SpecialPaymentDefinitionFilter?) throws -> [SpecialPaymentDefinitionDTO] {
         var results = Array(definitionsStorage.values)
         if let ids = filter?.ids {
             results = results.filter { ids.contains($0.id) }
@@ -44,10 +44,10 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
                 return categoryIds.contains(categoryId)
             }
         }
-        return results
+        return results.map { SpecialPaymentDefinitionDTO(from: $0) }
     }
 
-    internal func occurrences(query: SpecialPaymentOccurrenceQuery?) throws -> [SpecialPaymentOccurrence] {
+    internal func occurrences(query: SpecialPaymentOccurrenceQuery?) throws -> [SpecialPaymentOccurrenceDTO] {
         var results = definitionsStorage.values.flatMap(\.occurrences)
         if let ids = query?.definitionIds {
             results = results.filter { ids.contains($0.definition.id) }
@@ -58,19 +58,19 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
         if let statuses = query?.statusFilter, !statuses.isEmpty {
             results = results.filter { statuses.contains($0.status) }
         }
-        return results.sorted(by: { $0.scheduledDate < $1.scheduledDate })
+        return results.sorted(by: { $0.scheduledDate < $1.scheduledDate }).map { SpecialPaymentOccurrenceDTO(from: $0) }
     }
 
-    internal func balances(query: SpecialPaymentBalanceQuery?) throws -> [SpecialPaymentSavingBalance] {
+    internal func balances(query: SpecialPaymentBalanceQuery?) throws -> [SpecialPaymentSavingBalanceDTO] {
         var results = Array(balancesStorage.values)
         if let ids = query?.definitionIds {
             results = results.filter { ids.contains($0.definition.id) }
         }
-        return results
+        return results.map { SpecialPaymentSavingBalanceDTO(from: $0) }
     }
 
     @discardableResult
-    internal func createDefinition(_ input: SpecialPaymentDefinitionInput) throws -> SpecialPaymentDefinition {
+    internal func createDefinition(_ input: SpecialPaymentDefinitionInput) throws -> UUID {
         let category = try resolvedCategory(id: input.categoryId)
 
         let definition = SpecialPaymentDefinition(
@@ -96,13 +96,17 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
         if let category {
             categoryLookup[category.id] = category
         }
-        return definition
+        return definition.id
     }
 
     internal func updateDefinition(
-        _ definition: SpecialPaymentDefinition,
+        definitionId: UUID,
         input: SpecialPaymentDefinitionInput,
     ) throws {
+        guard let definition = definitionsStorage[definitionId] else {
+            throw SpecialPaymentDomainError.definitionNotFound
+        }
+
         let category = try resolvedCategory(id: input.categoryId)
 
         definition.name = input.name
@@ -129,17 +133,21 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
         }
     }
 
-    internal func deleteDefinition(_ definition: SpecialPaymentDefinition) throws {
-        definitionsStorage.removeValue(forKey: definition.id)
-        balancesStorage.removeValue(forKey: definition.id)
+    internal func deleteDefinition(definitionId: UUID) throws {
+        definitionsStorage.removeValue(forKey: definitionId)
+        balancesStorage.removeValue(forKey: definitionId)
     }
 
     @discardableResult
     internal func synchronize(
-        definition: SpecialPaymentDefinition,
+        definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
     ) throws -> SpecialPaymentSynchronizationSummary {
+        guard let definition = definitionsStorage[definitionId] else {
+            throw SpecialPaymentDomainError.definitionNotFound
+        }
+
         guard definition.recurrenceIntervalMonths > 0 else {
             throw SpecialPaymentDomainError.invalidRecurrence
         }
@@ -177,10 +185,14 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
 
     @discardableResult
     internal func markOccurrenceCompleted(
-        _ occurrence: SpecialPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary {
+        guard let occurrence = findOccurrence(id: occurrenceId) else {
+            throw SpecialPaymentDomainError.occurrenceNotFound
+        }
+
         occurrence.actualDate = input.actualDate
         occurrence.actualAmount = input.actualAmount
         occurrence.transaction = input.transaction
@@ -193,7 +205,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
         }
 
         return try synchronize(
-            definition: occurrence.definition,
+            definitionId: occurrence.definition.id,
             horizonMonths: horizonMonths,
             referenceDate: currentDateProvider(),
         )
@@ -201,10 +213,14 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
 
     @discardableResult
     internal func updateOccurrence(
-        _ occurrence: SpecialPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
     ) throws -> SpecialPaymentSynchronizationSummary? {
+        guard let occurrence = findOccurrence(id: occurrenceId) else {
+            throw SpecialPaymentDomainError.occurrenceNotFound
+        }
+
         let now = currentDateProvider()
         let wasCompleted = occurrence.status == .completed
         let willBeCompleted = input.status == .completed
@@ -225,7 +241,7 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
         }
 
         return try synchronize(
-            definition: occurrence.definition,
+            definitionId: occurrence.definition.id,
             horizonMonths: horizonMonths,
             referenceDate: now,
         )
@@ -241,5 +257,9 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
             throw SpecialPaymentDomainError.categoryNotFound
         }
         return category
+    }
+
+    private func findOccurrence(id: UUID) -> SpecialPaymentOccurrence? {
+        definitionsStorage.values.flatMap(\.occurrences).first { $0.id == id }
     }
 }

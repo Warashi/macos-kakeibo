@@ -3,7 +3,6 @@ import Observation
 import SwiftData
 
 @Observable
-@MainActor
 internal final class SpecialPaymentReconciliationStore {
     internal typealias OccurrenceRow = SpecialPaymentReconciliationPresenter.OccurrenceRow
     internal typealias TransactionCandidate = SpecialPaymentReconciliationPresenter.TransactionCandidate
@@ -86,7 +85,7 @@ internal final class SpecialPaymentReconciliationStore {
     internal init(
         repository: SpecialPaymentRepository,
         transactionRepository: TransactionRepository,
-        occurrencesService: SpecialPaymentOccurrencesService? = nil,
+        occurrencesService: SpecialPaymentOccurrencesService,
         candidateSearchWindowDays: Int = 60,
         candidateLimit: Int = 12,
         horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
@@ -94,7 +93,7 @@ internal final class SpecialPaymentReconciliationStore {
     ) {
         self.repository = repository
         self.transactionRepository = transactionRepository
-        self.occurrencesService = occurrencesService ?? DefaultSpecialPaymentOccurrencesService(repository: repository)
+        self.occurrencesService = occurrencesService
         self.presenter = SpecialPaymentReconciliationPresenter()
         self.candidateSearchWindowDays = candidateSearchWindowDays
         self.candidateLimit = candidateLimit

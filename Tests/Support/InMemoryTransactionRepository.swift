@@ -17,34 +17,46 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         self.categories = categories
     }
 
-    internal func fetchTransactions(query: TransactionQuery) throws -> [Transaction] {
+    internal func fetchTransactions(query: TransactionQuery) throws -> [TransactionDTO] {
         transactions.filter { transaction in
             matches(transaction: transaction, query: query)
-        }
+        }.map { TransactionDTO(from: $0) }
     }
 
-    internal func fetchAllTransactions() throws -> [Transaction] {
-        transactions
+    internal func fetchAllTransactions() throws -> [TransactionDTO] {
+        transactions.map { TransactionDTO(from: $0) }
     }
 
-    internal func fetchInstitutions() throws -> [FinancialInstitution] {
-        institutions
+    internal func fetchInstitutions() throws -> [FinancialInstitutionDTO] {
+        institutions.map { FinancialInstitutionDTO(from: $0) }
     }
 
-    internal func fetchCategories() throws -> [Kakeibo.Category] {
-        categories
+    internal func fetchCategories() throws -> [CategoryDTO] {
+        categories.map { CategoryDTO(from: $0) }
     }
 
     @discardableResult
     internal func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @MainActor ([Transaction]) -> Void,
+        onChange: @escaping @MainActor ([TransactionDTO]) -> Void,
     ) throws -> ObservationToken {
         let snapshot = try fetchTransactions(query: query)
         MainActor.assumeIsolated {
             onChange(snapshot)
         }
         return ObservationToken {}
+    }
+
+    internal func findTransaction(id: UUID) throws -> Transaction? {
+        transactions.first { $0.id == id }
+    }
+
+    internal func findInstitution(id: UUID) throws -> FinancialInstitution? {
+        institutions.first { $0.id == id }
+    }
+
+    internal func findCategory(id: UUID) throws -> Category? {
+        categories.first { $0.id == id }
     }
 
     internal func insert(_ transaction: Transaction) {
