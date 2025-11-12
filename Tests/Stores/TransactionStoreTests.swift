@@ -109,8 +109,12 @@ internal struct TransactionStoreTests {
         let formUseCase = await TransactionFormUseCaseStub()
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
 
+        // 初期化Task の完了を待つ
+        try? await Task.sleep(for: .milliseconds(10))
         await store.refresh()
         let result = await store.deleteTransaction(transaction.id)
+        // deleteTransaction内でrefresh()が呼ばれるので、その完了を待つ
+        try? await Task.sleep(for: .milliseconds(100))
 
         #expect(result)
         let deletedIds = await Task { @DatabaseActor in

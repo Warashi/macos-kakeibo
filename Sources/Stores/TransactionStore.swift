@@ -289,6 +289,7 @@ internal extension TransactionStore {
         do {
             try await formUseCase.delete(transactionId: transactionId)
             formErrors = []
+            await reloadTransactions()
             await refresh()
             return true
         } catch let error as TransactionFormError {
