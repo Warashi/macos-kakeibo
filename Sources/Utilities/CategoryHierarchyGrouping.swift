@@ -32,3 +32,36 @@ internal struct CategoryHierarchyGrouping {
         return minorCategoriesByParent[id] ?? []
     }
 }
+
+/// CategoryDTO版のカテゴリ階層グルーピング
+internal struct CategoryDTOHierarchyGrouping {
+    internal let majorCategories: [CategoryDTO]
+    internal let minorCategories: [CategoryDTO]
+    internal let minorCategoriesByParent: [UUID: [CategoryDTO]]
+
+    internal init(categories: [CategoryDTO]) {
+        var majors: [CategoryDTO] = []
+        var minors: [CategoryDTO] = []
+        var minorsByParent: [UUID: [CategoryDTO]] = [:]
+
+        for category in categories {
+            if category.isMajor {
+                majors.append(category)
+            } else {
+                minors.append(category)
+                if let parentId = category.parentId {
+                    minorsByParent[parentId, default: []].append(category)
+                }
+            }
+        }
+
+        self.majorCategories = majors
+        self.minorCategories = minors
+        self.minorCategoriesByParent = minorsByParent
+    }
+
+    internal func minorCategories(forMajorId id: UUID?) -> [CategoryDTO] {
+        guard let id else { return [] }
+        return minorCategoriesByParent[id] ?? []
+    }
+}
