@@ -6,6 +6,7 @@ import SwiftData
 
 /// 特別支払い一覧表示用のストア
 @Observable
+@MainActor
 internal final class SpecialPaymentListStore {
     internal typealias SortOrder = SpecialPaymentListSortOrder
 
@@ -88,10 +89,7 @@ internal final class SpecialPaymentListStore {
 
     /// キャッシュを更新
     internal func refreshEntries() async {
-        let newEntries = await entries()
-        await MainActor.run {
-            cachedEntries = newEntries
-        }
+        cachedEntries = await entries()
     }
 
     // MARK: - Actions
