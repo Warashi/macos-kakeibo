@@ -18,18 +18,18 @@ internal struct BudgetCalculatorCacheTests {
             majorCategory: category,
         )
 
-        _ = calculator.calculateMonthlyBudget(
-            transactions: [transaction],
-            budgets: [budget],
+        let input = BudgetCalculator.MonthlyBudgetInput(
+            transactions: [TransactionDTO(from: transaction)],
+            budgets: [BudgetDTO(from: budget)],
+            categories: [CategoryDTO(from: category)],
             year: 2025,
             month: 1,
+            filter: .default,
+            excludedCategoryIds: [],
         )
-        _ = calculator.calculateMonthlyBudget(
-            transactions: [transaction],
-            budgets: [budget],
-            year: 2025,
-            month: 1,
-        )
+
+        _ = calculator.calculateMonthlyBudget(input: input)
+        _ = calculator.calculateMonthlyBudget(input: input)
 
         let metrics = calculator.cacheMetrics()
         #expect(metrics.monthlyBudgetHits == 1)
@@ -48,26 +48,32 @@ internal struct BudgetCalculatorCacheTests {
             majorCategory: category,
         )
 
-        _ = calculator.calculateMonthlyBudget(
-            transactions: [transaction],
-            budgets: [budget],
+        let input1 = BudgetCalculator.MonthlyBudgetInput(
+            transactions: [TransactionDTO(from: transaction)],
+            budgets: [BudgetDTO(from: budget)],
+            categories: [CategoryDTO(from: category)],
             year: 2025,
             month: 2,
-        )
-        _ = calculator.calculateMonthlyBudget(
-            transactions: [transaction],
-            budgets: [budget],
-            year: 2025,
-            month: 2,
+            filter: .default,
+            excludedCategoryIds: [],
         )
 
+        _ = calculator.calculateMonthlyBudget(input: input1)
+        _ = calculator.calculateMonthlyBudget(input: input1)
+
         transaction.updatedAt = Date().addingTimeInterval(60)
-        _ = calculator.calculateMonthlyBudget(
-            transactions: [transaction],
-            budgets: [budget],
+
+        let input2 = BudgetCalculator.MonthlyBudgetInput(
+            transactions: [TransactionDTO(from: transaction)],
+            budgets: [BudgetDTO(from: budget)],
+            categories: [CategoryDTO(from: category)],
             year: 2025,
             month: 2,
+            filter: .default,
+            excludedCategoryIds: [],
         )
+
+        _ = calculator.calculateMonthlyBudget(input: input2)
 
         let metrics = calculator.cacheMetrics()
         #expect(metrics.monthlyBudgetMisses == 2)
@@ -90,18 +96,16 @@ internal struct BudgetCalculatorCacheTests {
             lastUpdatedMonth: 12,
         )
 
-        _ = calculator.calculateSpecialPaymentSavings(
-            definitions: [definition],
-            balances: [balance],
+        let input = SpecialPaymentSavingsCalculationInput(
+            definitions: [SpecialPaymentDefinitionDTO(from: definition)],
+            balances: [SpecialPaymentSavingBalanceDTO(from: balance)],
+            occurrences: [],
             year: 2025,
             month: 4,
         )
-        _ = calculator.calculateSpecialPaymentSavings(
-            definitions: [definition],
-            balances: [balance],
-            year: 2025,
-            month: 4,
-        )
+
+        _ = calculator.calculateSpecialPaymentSavings(input)
+        _ = calculator.calculateSpecialPaymentSavings(input)
 
         let metrics = calculator.cacheMetrics()
         #expect(metrics.specialPaymentHits == 1)
@@ -125,21 +129,27 @@ internal struct BudgetCalculatorCacheTests {
             lastUpdatedMonth: 12,
         )
 
-        _ = calculator.calculateSpecialPaymentSavings(
-            definitions: [definition],
-            balances: [balance],
+        let input1 = SpecialPaymentSavingsCalculationInput(
+            definitions: [SpecialPaymentDefinitionDTO(from: definition)],
+            balances: [SpecialPaymentSavingBalanceDTO(from: balance)],
+            occurrences: [],
             year: 2025,
             month: 1,
         )
+
+        _ = calculator.calculateSpecialPaymentSavings(input1)
 
         balance.updatedAt = Date().addingTimeInterval(120)
 
-        _ = calculator.calculateSpecialPaymentSavings(
-            definitions: [definition],
-            balances: [balance],
+        let input2 = SpecialPaymentSavingsCalculationInput(
+            definitions: [SpecialPaymentDefinitionDTO(from: definition)],
+            balances: [SpecialPaymentSavingBalanceDTO(from: balance)],
+            occurrences: [],
             year: 2025,
             month: 1,
         )
+
+        _ = calculator.calculateSpecialPaymentSavings(input2)
 
         let metrics = calculator.cacheMetrics()
         #expect(metrics.specialPaymentMisses == 2)
