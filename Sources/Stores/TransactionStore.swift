@@ -166,7 +166,7 @@ internal extension TransactionStore {
     /// セクション化された取引
     var sections: [TransactionSection] {
         var order: [Date] = []
-        var grouped: [Date: [Transaction]] = [:]
+        var grouped: [Date: [TransactionDTO]] = [:]
         for transaction in transactions {
             let day = Calendar.current.startOfDay(for: transaction.date)
             if grouped[day] == nil {

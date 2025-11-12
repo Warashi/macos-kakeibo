@@ -3,7 +3,7 @@ import SwiftUI
 internal struct TransactionEditorView: View {
     @Bindable internal var store: TransactionStore
 
-    private var institutions: [FinancialInstitution] {
+    private var institutions: [FinancialInstitutionDTO] {
         store.availableInstitutions.sorted { lhs, rhs in
             if lhs.displayOrder == rhs.displayOrder {
                 return lhs.name < rhs.name
@@ -12,13 +12,13 @@ internal struct TransactionEditorView: View {
         }
     }
 
-    private var minorCategories: [Category] {
+    private var minorCategories: [CategoryDTO] {
         store.minorCategories(for: store.formState.majorCategoryId)
     }
 
     internal var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(store.editingTransaction == nil ? "取引を追加" : "取引を編集")
+            Text(store.editingTransactionId == nil ? "取引を追加" : "取引を編集")
                 .font(.title2.bold())
 
             Form {
