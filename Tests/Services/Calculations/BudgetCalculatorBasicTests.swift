@@ -78,10 +78,15 @@ internal struct BudgetCalculatorBasicTests {
 
         // When
         let result = calculator.calculateMonthlyBudget(
-            transactions: transactions,
-            budgets: budgets,
-            year: 2025,
-            month: 11,
+            input: BudgetCalculator.MonthlyBudgetInput(
+                transactions: transactions.map { TransactionDTO(from: $0) },
+                budgets: budgets.map { BudgetDTO(from: $0) },
+                categories: [CategoryDTO(from: category)],
+                year: 2025,
+                month: 11,
+                filter: .default,
+                excludedCategoryIds: [],
+            ),
         )
 
         // Then
@@ -106,10 +111,15 @@ internal struct BudgetCalculatorBasicTests {
         ]
 
         let result = calculator.calculateMonthlyBudget(
-            transactions: transactions,
-            budgets: budgets,
-            year: 2025,
-            month: 11,
+            input: BudgetCalculator.MonthlyBudgetInput(
+                transactions: transactions.map { TransactionDTO(from: $0) },
+                budgets: budgets.map { BudgetDTO(from: $0) },
+                categories: [CategoryDTO(from: category)],
+                year: 2025,
+                month: 11,
+                filter: .default,
+                excludedCategoryIds: [],
+            ),
         )
 
         let overall = try #require(result.overallCalculation)
@@ -135,11 +145,15 @@ internal struct BudgetCalculatorBasicTests {
         let excludedIds: Set<UUID> = [special.id, travel.id]
 
         let result = calculator.calculateMonthlyBudget(
-            transactions: transactions,
-            budgets: budgets,
-            year: 2025,
-            month: 11,
-            excludedCategoryIds: excludedIds,
+            input: BudgetCalculator.MonthlyBudgetInput(
+                transactions: transactions.map { TransactionDTO(from: $0) },
+                budgets: budgets.map { BudgetDTO(from: $0) },
+                categories: [special, travel, general].map { CategoryDTO(from: $0) },
+                year: 2025,
+                month: 11,
+                filter: .default,
+                excludedCategoryIds: excludedIds,
+            ),
         )
 
         let overall = try #require(result.overallCalculation)
@@ -196,10 +210,15 @@ internal struct BudgetCalculatorBasicTests {
 
         // When: 月次予算計算を実行
         let result = calculator.calculateMonthlyBudget(
-            transactions: transactions,
-            budgets: budgets,
-            year: 2025,
-            month: 11,
+            input: BudgetCalculator.MonthlyBudgetInput(
+                transactions: transactions.map { TransactionDTO(from: $0) },
+                budgets: budgets.map { BudgetDTO(from: $0) },
+                categories: [majorCategory, minorCategory].map { CategoryDTO(from: $0) },
+                year: 2025,
+                month: 11,
+                filter: .default,
+                excludedCategoryIds: [],
+            ),
         )
 
         // Then: 大項目の予算には、大項目のみの取引と中項目を持つ取引の両方が含まれるべき
