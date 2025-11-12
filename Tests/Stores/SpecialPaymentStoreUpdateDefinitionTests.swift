@@ -83,8 +83,9 @@ internal struct SpecialPaymentStoreUpdateDefinitionTests {
     private func makeStore(referenceDate: Date) throws -> (SpecialPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
+        let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
         let store = SpecialPaymentStore(
-            modelContext: context,
+            repository: repository,
             currentDateProvider: { referenceDate },
         )
         return (store, context)
