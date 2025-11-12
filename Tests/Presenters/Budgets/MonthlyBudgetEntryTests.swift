@@ -19,7 +19,7 @@ internal struct MonthlyBudgetEntryTests {
         )
 
         let entry = MonthlyBudgetEntry(
-            budget: budget,
+            budget: BudgetDTO(from: budget),
             title: child.fullName,
             calculation: BudgetCalculation(
                 budgetAmount: 80000,
@@ -28,6 +28,8 @@ internal struct MonthlyBudgetEntryTests {
                 usageRate: 0,
                 isOverBudget: false,
             ),
+            categoryDisplayOrder: child.displayOrder,
+            parentCategoryDisplayOrder: parent.displayOrder,
         )
 
         let key = entry.displayOrderKey
@@ -46,7 +48,7 @@ internal struct MonthlyBudgetEntryTests {
         )
 
         let entry = MonthlyBudgetEntry(
-            budget: budget,
+            budget: BudgetDTO(from: budget),
             title: "全体予算",
             calculation: BudgetCalculation(
                 budgetAmount: 100_000,
@@ -55,6 +57,8 @@ internal struct MonthlyBudgetEntryTests {
                 usageRate: 0.2,
                 isOverBudget: false,
             ),
+            categoryDisplayOrder: 0,
+            parentCategoryDisplayOrder: 0,
         )
 
         #expect(entry.isOverallBudget)
