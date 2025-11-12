@@ -17,6 +17,7 @@ internal struct KakeiboApp: App {
         WindowGroup {
             ContentView()
         }
+        .environment(\.appModelContainer, modelContainer)
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
         .modelContainer(modelContainer)

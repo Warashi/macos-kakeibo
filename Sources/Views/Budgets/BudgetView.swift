@@ -5,7 +5,7 @@ import SwiftUI
 ///
 /// 月次予算と年次特別枠を編集・確認するための画面。
 internal struct BudgetView: View {
-    @Environment(\.modelContext) private var modelContext: ModelContext
+    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
     @State private var store: BudgetStore?
 
     @State private var isPresentingBudgetEditor: Bool = false
@@ -187,20 +187,29 @@ internal struct BudgetView: View {
 private extension BudgetView {
     func prepareStore() {
         guard store == nil else { return }
-        Task { @MainActor in
-            guard store == nil else { return }
-            let repository = await SwiftDataBudgetRepository(modelContext: modelContext)
+        Task { @DatabaseActor in
+            guard await MainActor.run(body: { store == nil }) else { return }
+            guard let container = await MainActor.run(body: { modelContainer }) else {
+                assertionFailure("ModelContainer is unavailable")
+                return
+            }
+            let context = ModelContext(container)
+            let repository = SwiftDataBudgetRepository(modelContext: context)
             let monthlyUseCase = DefaultMonthlyBudgetUseCase()
             let annualUseCase = DefaultAnnualBudgetUseCase()
             let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase()
-            let mutationUseCase = await DefaultBudgetMutationUseCase(repository: repository)
-            store = BudgetStore(
+            let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
+            let budgetStore = BudgetStore(
                 repository: repository,
                 monthlyUseCase: monthlyUseCase,
                 annualUseCase: annualUseCase,
                 specialPaymentUseCase: specialPaymentUseCase,
                 mutationUseCase: mutationUseCase,
             )
+            await MainActor.run {
+                guard store == nil else { return }
+                store = budgetStore
+            }
         }
     }
 }
@@ -373,49 +382,63 @@ private extension BudgetView {
         isPresentingSpecialPaymentEditor = false
     }
 
+    @MainActor
     func saveSpecialPayment() {
         guard specialPaymentFormState.isValid else {
             specialPaymentFormError = "入力内容を確認してください"
             return
         }
 
-        Task { @MainActor in
-            let repository = await SwiftDataSpecialPaymentRepository(modelContext: modelContext)
+        guard let amount = specialPaymentFormState.decimalAmount else {
+            specialPaymentFormError = "金額を正しく入力してください"
+            return
+        }
+
+        let input = SpecialPaymentDefinitionInput(
+            name: specialPaymentFormState.nameText.trimmingCharacters(in: .whitespacesAndNewlines),
+            notes: specialPaymentFormState.notesText,
+            amount: amount,
+            recurrenceIntervalMonths: specialPaymentFormState.recurrenceIntervalMonths,
+            firstOccurrenceDate: specialPaymentFormState.firstOccurrenceDate,
+            leadTimeMonths: specialPaymentFormState.leadTimeMonths,
+            categoryId: specialPaymentFormState.selectedCategoryId,
+            savingStrategy: specialPaymentFormState.savingStrategy,
+            customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
+            dateAdjustmentPolicy: specialPaymentFormState.dateAdjustmentPolicy,
+            recurrenceDayPattern: specialPaymentFormState.recurrenceDayPattern,
+        )
+        Task { @DatabaseActor in
+            guard let container = await MainActor.run(body: { modelContainer }) else {
+                assertionFailure("ModelContainer is unavailable")
+                return
+            }
+            let context = ModelContext(container)
+            let mode = await MainActor.run { specialPaymentEditorMode }
+            let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
             let specialPaymentStore = SpecialPaymentStore(repository: repository)
 
             do {
-                guard let amount = specialPaymentFormState.decimalAmount else {
-                    specialPaymentFormError = "金額を正しく入力してください"
-                    return
-                }
-
-                let input = SpecialPaymentDefinitionInput(
-                    name: specialPaymentFormState.nameText.trimmingCharacters(in: .whitespacesAndNewlines),
-                    notes: specialPaymentFormState.notesText,
-                    amount: amount,
-                    recurrenceIntervalMonths: specialPaymentFormState.recurrenceIntervalMonths,
-                    firstOccurrenceDate: specialPaymentFormState.firstOccurrenceDate,
-                    leadTimeMonths: specialPaymentFormState.leadTimeMonths,
-                    categoryId: specialPaymentFormState.selectedCategoryId,
-                    savingStrategy: specialPaymentFormState.savingStrategy,
-                    customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
-                    dateAdjustmentPolicy: specialPaymentFormState.dateAdjustmentPolicy,
-                    recurrenceDayPattern: specialPaymentFormState.recurrenceDayPattern,
-                )
-
-                switch specialPaymentEditorMode {
+                switch mode {
                 case .create:
                     try await specialPaymentStore.createDefinition(input)
                 case let .edit(definition):
                     try await specialPaymentStore.updateDefinition(definitionId: definition.id, input: input)
                 }
-                isPresentingSpecialPaymentEditor = false
+                await MainActor.run {
+                    isPresentingSpecialPaymentEditor = false
+                }
             } catch SpecialPaymentDomainError.categoryNotFound {
-                specialPaymentFormError = "選択したカテゴリが見つかりませんでした"
+                await MainActor.run {
+                    specialPaymentFormError = "選択したカテゴリが見つかりませんでした"
+                }
             } catch let SpecialPaymentDomainError.validationFailed(errors) {
-                specialPaymentFormError = errors.joined(separator: "\n")
+                await MainActor.run {
+                    specialPaymentFormError = errors.joined(separator: "\n")
+                }
             } catch {
-                showError(message: "特別支払いの保存に失敗しました: \(error.localizedDescription)")
+                await MainActor.run {
+                    showError(message: "特別支払いの保存に失敗しました: \(error.localizedDescription)")
+                }
             }
         }
     }
@@ -436,17 +459,27 @@ private extension BudgetView {
         }
     }
 
+    @MainActor
     func deletePendingSpecialPayment() {
         guard let definition = specialPaymentPendingDeletion else { return }
-        Task { @MainActor in
-            let repository = await SwiftDataSpecialPaymentRepository(modelContext: modelContext)
+        Task { @DatabaseActor in
+            guard let container = await MainActor.run(body: { modelContainer }) else {
+                assertionFailure("ModelContainer is unavailable")
+                return
+            }
+            let context = ModelContext(container)
+            let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
             let specialPaymentStore = SpecialPaymentStore(repository: repository)
             do {
                 try await specialPaymentStore.deleteDefinition(definitionId: definition.id)
             } catch {
-                showError(message: "特別支払いの削除に失敗しました: \(error.localizedDescription)")
+                await MainActor.run {
+                    showError(message: "特別支払いの削除に失敗しました: \(error.localizedDescription)")
+                }
             }
-            specialPaymentPendingDeletion = nil
+            await MainActor.run {
+                specialPaymentPendingDeletion = nil
+            }
         }
     }
 }
