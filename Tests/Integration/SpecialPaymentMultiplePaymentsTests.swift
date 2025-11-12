@@ -11,7 +11,8 @@ internal struct SpecialPaymentMultiplePaymentsTests {
     private let balanceService: SpecialPaymentBalanceService = SpecialPaymentBalanceService()
 
     @Test("複数回支払い：2回目、3回目の支払い")
-    internal func multiplePaymentsScenario() throws {
+    @DatabaseActor
+    internal func multiplePaymentsScenario() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -54,6 +55,7 @@ internal struct SpecialPaymentMultiplePaymentsTests {
     }
 
     /// 1回目のサイクルを実行
+    @DatabaseActor
     private func performFirstCycle(
         definition: SpecialPaymentDefinition,
         balance: SpecialPaymentSavingBalance?,
@@ -83,6 +85,7 @@ internal struct SpecialPaymentMultiplePaymentsTests {
     }
 
     /// 2回目のサイクルを実行
+    @DatabaseActor
     private func performSecondCycle(
         definition: SpecialPaymentDefinition,
         balance: SpecialPaymentSavingBalance?,
@@ -112,6 +115,7 @@ internal struct SpecialPaymentMultiplePaymentsTests {
     }
 
     /// 3回目のサイクルを実行
+    @DatabaseActor
     private func performThirdCycle(
         definition: SpecialPaymentDefinition,
         balance: SpecialPaymentSavingBalance?,
@@ -139,6 +143,7 @@ internal struct SpecialPaymentMultiplePaymentsTests {
     }
 
     /// 指定範囲の月次積立を実行するヘルパー関数
+    @DatabaseActor
     private func performSavingCycle(
         definition: SpecialPaymentDefinition,
         balance: SpecialPaymentSavingBalance?,
@@ -161,6 +166,7 @@ internal struct SpecialPaymentMultiplePaymentsTests {
     }
 
     /// 支払い実績を作成するヘルパー関数
+    @DatabaseActor
     private func createOccurrence(
         definition: SpecialPaymentDefinition,
         params: CycleParams,
