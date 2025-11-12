@@ -35,7 +35,7 @@ internal struct AnnualBudgetAllocationEngineTests {
             year: 2025,
             endMonth: 2,
             policy: .automatic,
-            annualBudgetConfig: config,
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
         let categories = [CategoryDTO(from: category)]
