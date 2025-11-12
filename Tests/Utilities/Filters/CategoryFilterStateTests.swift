@@ -52,9 +52,14 @@ internal struct CategoryFilterStateTests {
 
     @Test("Selection.matches は大項目→中項目の判定を共通化する")
     internal func selectionMatchesUsesHierarchy() {
+        let parentMap: [UUID: UUID] = [
+            minorFood.id: major.id,
+            minorDaily.id: major.id,
+        ]
         let selectionMinor = CategoryFilterState.Selection(
             majorCategoryId: major.id,
             minorCategoryId: minorFood.id,
+            categoryParentMap: parentMap
         )
         #expect(selectionMinor.matches(category: minorFood))
         #expect(!selectionMinor.matches(category: minorDaily))
@@ -62,6 +67,7 @@ internal struct CategoryFilterStateTests {
         let selectionMajor = CategoryFilterState.Selection(
             majorCategoryId: major.id,
             minorCategoryId: nil,
+            categoryParentMap: parentMap
         )
         #expect(selectionMajor.matches(category: minorFood))
         #expect(selectionMajor.matches(category: major))

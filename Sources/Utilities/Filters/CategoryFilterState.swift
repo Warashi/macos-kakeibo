@@ -5,6 +5,8 @@ internal struct CategoryFilterState: Equatable {
     internal struct Selection: Equatable, Sendable {
         internal let majorCategoryId: UUID?
         internal let minorCategoryId: UUID?
+        /// カテゴリID -> 親カテゴリIDのマッピング
+        internal let categoryParentMap: [UUID: UUID]
 
         internal func matches(category: Category?) -> Bool {
             guard let category else { return majorCategoryId == nil && minorCategoryId == nil }
@@ -50,7 +52,11 @@ internal struct CategoryFilterState: Equatable {
             }
 
             guard let majorCategoryId else { return true }
-            return categoryId == majorCategoryId
+            // 大項目自体か、または大項目を親に持つ中項目であればマッチ
+            if categoryId == majorCategoryId {
+                return true
+            }
+            return categoryParentMap[categoryId] == majorCategoryId
         }
     }
 
@@ -93,9 +99,17 @@ internal struct CategoryFilterState: Equatable {
     }
 
     internal var selection: Selection {
-        Selection(
+        let parentMap = Dictionary(
+            uniqueKeysWithValues: availableCategories
+                .compactMap { category -> (UUID, UUID)? in
+                    guard let parentId = category.parent?.id else { return nil }
+                    return (category.id, parentId)
+                },
+        )
+        return Selection(
             majorCategoryId: selectedMajorCategoryId,
             minorCategoryId: selectedMinorCategoryId,
+            categoryParentMap: parentMap,
         )
     }
 

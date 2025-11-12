@@ -89,7 +89,7 @@ private extension TransactionListUseCaseTests {
             searchText: SearchText(),
             filterKind: .all,
             institutionId: nil,
-            categoryFilter: .init(majorCategoryId: nil, minorCategoryId: nil),
+            categoryFilter: .init(majorCategoryId: nil, minorCategoryId: nil, categoryParentMap: [:]),
             includeOnlyCalculationTarget: true,
             excludeTransfers: true,
             sortOption: .dateDescending,
