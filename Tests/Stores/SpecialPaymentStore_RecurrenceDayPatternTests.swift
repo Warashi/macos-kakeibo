@@ -86,7 +86,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 6)
+        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 6)
 
         // パターンを月末に変更
         let input = SpecialPaymentDefinitionInput(
@@ -126,7 +126,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 6)
+        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 6)
 
         // ポリシーを変更
         let input = SpecialPaymentDefinitionInput(
@@ -153,8 +153,9 @@ internal struct SpecialPaymentStoreDayPatternTests {
     private func makeStore(referenceDate: Date) throws -> (SpecialPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
+        let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
         let store = SpecialPaymentStore(
-            modelContext: context,
+            repository: repository,
             currentDateProvider: { referenceDate },
         )
         return (store, context)
