@@ -22,7 +22,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 12)
+        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
 
         let actualDate = try #require(Date.from(year: 2025, month: 3, day: 16))
@@ -33,7 +33,7 @@ internal struct SpecialPaymentStoreUpdateTests {
             transaction: nil,
         )
         try store.updateOccurrence(
-            occurrence,
+            occurrenceId: occurrence.id,
             input: input,
         )
 
@@ -57,7 +57,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 12)
+        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
         #expect(definition.occurrences.count == 2)
 
@@ -67,7 +67,7 @@ internal struct SpecialPaymentStoreUpdateTests {
             actualAmount: 50000,
         )
         try store.markOccurrenceCompleted(
-            occurrence,
+            occurrenceId: occurrence.id,
             input: completionInput,
             horizonMonths: 24,
         )
@@ -82,7 +82,7 @@ internal struct SpecialPaymentStoreUpdateTests {
             transaction: nil,
         )
         try store.updateOccurrence(
-            occurrence,
+            occurrenceId: occurrence.id,
             input: updateInput,
             horizonMonths: 12,
         )
@@ -109,7 +109,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 12)
+        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
         let occurrenceCountBefore = definition.occurrences.count
 
@@ -121,7 +121,7 @@ internal struct SpecialPaymentStoreUpdateTests {
             transaction: nil,
         )
         try store.updateOccurrence(
-            occurrence,
+            occurrenceId: occurrence.id,
             input: input,
         )
 
@@ -145,7 +145,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 12)
+        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
 
         let actualDate1 = try #require(Date.from(year: 2025, month: 3, day: 16))
@@ -154,7 +154,7 @@ internal struct SpecialPaymentStoreUpdateTests {
             actualAmount: 50000,
         )
         try store.markOccurrenceCompleted(
-            occurrence,
+            occurrenceId: occurrence.id,
             input: completionInput,
         )
 
@@ -168,7 +168,7 @@ internal struct SpecialPaymentStoreUpdateTests {
             transaction: nil,
         )
         try store.updateOccurrence(
-            occurrence,
+            occurrenceId: occurrence.id,
             input: updateInput,
         )
 
@@ -192,7 +192,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 12)
+        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
 
         #expect(throws: SpecialPaymentDomainError.self) {
@@ -203,7 +203,7 @@ internal struct SpecialPaymentStoreUpdateTests {
                 transaction: nil,
             )
             try store.updateOccurrence(
-                occurrence,
+                occurrenceId: occurrence.id,
                 input: input,
             )
         }
@@ -224,7 +224,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 12)
+        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
 
         let farActualDate = try #require(Date.from(year: 2025, month: 7, day: 1))
@@ -237,7 +237,7 @@ internal struct SpecialPaymentStoreUpdateTests {
                 transaction: nil,
             )
             try store.updateOccurrence(
-                occurrence,
+                occurrenceId: occurrence.id,
                 input: input,
             )
         }
@@ -248,8 +248,9 @@ internal struct SpecialPaymentStoreUpdateTests {
     private func makeStore(referenceDate: Date) throws -> (SpecialPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
+        let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
         let store = SpecialPaymentStore(
-            modelContext: context,
+            repository: repository,
             currentDateProvider: { referenceDate },
         )
         return (store, context)
