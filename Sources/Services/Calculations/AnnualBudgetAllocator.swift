@@ -24,6 +24,7 @@ internal struct AnnualBudgetAllocator: Sendable {
     /// 年次特別枠の使用状況を計算
     internal func calculateAnnualBudgetUsage(
         params: AllocationCalculationParams,
+        categories: [CategoryDTO],
         upToMonth: Int? = nil,
     ) -> AnnualBudgetUsage {
         let context = validator.makeContext(
@@ -41,6 +42,7 @@ internal struct AnnualBudgetAllocator: Sendable {
         let accumulationResult = engine.accumulateCategoryAllocations(
             accumulationParams: context.accumulationParams,
             policyOverrides: context.policyOverrides,
+            categories: categories,
         )
 
         return resultFormatter.makeUsage(
@@ -52,6 +54,7 @@ internal struct AnnualBudgetAllocator: Sendable {
     /// 月次の年次特別枠充当を計算
     internal func calculateMonthlyAllocation(
         params: AllocationCalculationParams,
+        categories: [CategoryDTO],
         year: Int,
         month: Int,
     ) -> MonthlyAllocation {
@@ -68,11 +71,13 @@ internal struct AnnualBudgetAllocator: Sendable {
                 policy: context.policy,
                 policyOverrides: context.policyOverrides,
             ),
+            categories: categories,
         )
 
         let accumulationResult = engine.accumulateCategoryAllocations(
             accumulationParams: context.accumulationParams,
             policyOverrides: context.policyOverrides,
+            categories: categories,
         )
 
         let annualUsage = resultFormatter.makeUsage(

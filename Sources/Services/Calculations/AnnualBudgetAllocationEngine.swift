@@ -18,15 +18,19 @@ internal struct AnnualBudgetAllocationEngine: Sendable {
     internal func accumulateCategoryAllocations(
         accumulationParams: AccumulationParams,
         policyOverrides: [UUID: AnnualBudgetPolicy],
+        categories: [CategoryDTO],
     ) -> AccumulationResult {
         var totalUsed: Decimal = 0
         var categoryAccumulator: [UUID: CategoryAllocationAccumulator] = [:]
+        let categoryMap = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
 
         for allocation in accumulationParams.annualBudgetConfig.allocations {
-            let category = allocation.category
-            categoryAccumulator[category.id] = CategoryAllocationAccumulator(
-                categoryId: category.id,
-                categoryName: category.fullName,
+            let categoryId = allocation.categoryId
+            guard let category = categoryMap[categoryId] else { continue }
+            let categoryName = buildCategoryName(category: category, categories: categories)
+            categoryAccumulator[categoryId] = CategoryAllocationAccumulator(
+                categoryId: categoryId,
+                categoryName: categoryName,
                 annualBudgetAmount: allocation.amount,
                 monthlyBudgetAmount: 0,
                 actualAmount: 0,
@@ -46,6 +50,7 @@ internal struct AnnualBudgetAllocationEngine: Sendable {
             )
             let monthlyCategoryAllocations = categoryCalculator.calculateCategoryAllocations(
                 request: request,
+                categories: categories,
             )
 
             let monthlyUsed = monthlyCategoryAllocations.reduce(Decimal.zero) { $0 + $1.allocatableAmount }
@@ -80,8 +85,17 @@ internal struct AnnualBudgetAllocationEngine: Sendable {
 
     internal func calculateCategoryAllocations(
         request: MonthlyCategoryAllocationRequest,
+        categories: [CategoryDTO],
     ) -> [CategoryAllocation] {
-        categoryCalculator.calculateCategoryAllocations(request: request)
+        categoryCalculator.calculateCategoryAllocations(request: request, categories: categories)
+    }
+
+    private func buildCategoryName(category: CategoryDTO, categories: [CategoryDTO]) -> String {
+        if let parentId = category.parentId,
+           let parent = categories.first(where: { $0.id == parentId }) {
+            return "\(parent.name) > \(category.name)"
+        }
+        return category.name
     }
 
     private func accumulateCategory(

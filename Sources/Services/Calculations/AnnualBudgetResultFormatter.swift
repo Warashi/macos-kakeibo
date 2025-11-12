@@ -4,7 +4,7 @@ import Foundation
 internal struct AnnualBudgetResultFormatter: Sendable {
     internal func makeUsage(
         accumulationResult: AnnualBudgetAllocationEngine.AccumulationResult,
-        config: AnnualBudgetConfig,
+        config: AnnualBudgetConfigDTO,
     ) -> AnnualBudgetUsage {
         let remaining = config.totalAmount - accumulationResult.totalUsed
         let usageRate: Double = if config.totalAmount > 0 {
@@ -24,7 +24,7 @@ internal struct AnnualBudgetResultFormatter: Sendable {
         )
     }
 
-    internal func makeDisabledUsage(year: Int, config: AnnualBudgetConfig) -> AnnualBudgetUsage {
+    internal func makeDisabledUsage(year: Int, config: AnnualBudgetConfigDTO) -> AnnualBudgetUsage {
         AnnualBudgetUsage(
             year: year,
             totalAmount: config.totalAmount,

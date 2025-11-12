@@ -25,10 +25,10 @@ internal struct AnnualBudgetAllocationValidator: Sendable {
         return min(max(rawValue, 1), 12)
     }
 
-    private func buildPolicyOverrideMap(from config: AnnualBudgetConfig) -> [UUID: AnnualBudgetPolicy] {
+    private func buildPolicyOverrideMap(from config: AnnualBudgetConfigDTO) -> [UUID: AnnualBudgetPolicy] {
         config.allocations.reduce(into: [:]) { partialResult, allocation in
             guard let override = allocation.policyOverride else { return }
-            partialResult[allocation.category.id] = override
+            partialResult[allocation.categoryId] = override
         }
     }
 }
@@ -42,7 +42,7 @@ internal struct ValidatedAllocationContext {
         accumulationParams.policy
     }
 
-    internal var annualBudgetConfig: AnnualBudgetConfig {
+    internal var annualBudgetConfig: AnnualBudgetConfigDTO {
         accumulationParams.annualBudgetConfig
     }
 
@@ -57,5 +57,5 @@ internal struct AccumulationParams {
     internal let year: Int
     internal let endMonth: Int
     internal let policy: AnnualBudgetPolicy
-    internal let annualBudgetConfig: AnnualBudgetConfig
+    internal let annualBudgetConfig: AnnualBudgetConfigDTO
 }
