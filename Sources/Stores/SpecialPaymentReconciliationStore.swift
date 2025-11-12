@@ -208,11 +208,17 @@ internal extension SpecialPaymentReconciliationStore {
                 actualAmount: amount,
                 transaction: transaction,
             )
-            try await repository.markOccurrenceCompleted(
-                occurrenceId: occurrenceId,
-                input: input,
-                horizonMonths: horizonMonths,
-            )
+            let repo = repository
+            let service = occurrencesService
+            let horizon = horizonMonths
+            try await Task { @DatabaseActor in
+                let occurrence = try repo.findOccurrence(id: occurrenceId)
+                try service.markOccurrenceCompleted(
+                    occurrence,
+                    input: input,
+                    horizonMonths: horizon,
+                )
+            }.value
             statusMessage = "実績を保存しました。"
             await refresh()
             selectedOccurrenceId = occurrenceId
@@ -240,16 +246,22 @@ internal extension SpecialPaymentReconciliationStore {
         defer { isSaving = false }
 
         do {
-            try await repository.updateOccurrence(
-                occurrenceId: occurrenceId,
-                input: OccurrenceUpdateInput(
-                    status: .planned,
-                    actualDate: nil,
-                    actualAmount: nil,
-                    transaction: nil,
-                ),
-                horizonMonths: horizonMonths,
-            )
+            let repo = repository
+            let service = occurrencesService
+            let horizon = horizonMonths
+            try await Task { @DatabaseActor in
+                let occurrence = try repo.findOccurrence(id: occurrenceId)
+                try service.updateOccurrence(
+                    occurrence,
+                    input: OccurrenceUpdateInput(
+                        status: .planned,
+                        actualDate: nil,
+                        actualAmount: nil,
+                        transaction: nil,
+                    ),
+                    horizonMonths: horizon,
+                )
+            }.value
             statusMessage = "取引リンクを解除しました。"
             await refresh()
             selectedOccurrenceId = occurrenceId

@@ -1,7 +1,7 @@
 import Foundation
 
 @DatabaseActor
-internal protocol SpecialPaymentOccurrencesService {
+internal protocol SpecialPaymentOccurrencesService: Sendable {
     @discardableResult
     func synchronizeOccurrences(
         for definition: SpecialPaymentDefinition,
