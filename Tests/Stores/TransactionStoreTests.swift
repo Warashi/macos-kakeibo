@@ -59,16 +59,17 @@ internal struct TransactionStoreTests {
     }
 
     @Test("削除成功時に再読込が走る")
-    internal func deleteTransactionRefreshesList() {
+    internal func deleteTransactionRefreshesList() async {
         let transaction = Transaction(date: sampleMonth(), title: "外食", amount: -5000)
         let listUseCase = TransactionListUseCaseStub(transactions: [transaction])
         let formUseCase = TransactionFormUseCaseStub()
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
 
-        let result = store.deleteTransaction(transaction)
+        let transactionDTO = TransactionDTO(from: transaction)
+        let result = await store.deleteTransaction(transactionDTO.id)
 
         #expect(result)
-        #expect(formUseCase.deletedTransactions.contains { $0.id == transaction.id })
+        #expect(formUseCase.deletedTransactionIds.contains(transaction.id))
         #expect(listUseCase.observedFilters.count == 4)
     }
 }
@@ -83,62 +84,64 @@ private extension TransactionStoreTests {
 
 // MARK: - Stubs
 
-private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol {
-    internal var transactions: [Transaction]
+private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol, @unchecked Sendable {
+    internal var transactions: [TransactionDTO]
     internal var referenceData: TransactionReferenceData
     internal private(set) var receivedFilters: [TransactionListFilter] = []
     internal private(set) var observedFilters: [TransactionListFilter] = []
 
     internal init(transactions: [Transaction]) {
-        self.transactions = transactions
+        self.transactions = transactions.map { TransactionDTO(from: $0) }
         let institution = FinancialInstitution(name: "メイン銀行")
         let major = Category(name: "食費", displayOrder: 1)
         let minor = Category(name: "外食", parent: major, displayOrder: 1)
-        self.referenceData = TransactionReferenceData(institutions: [institution], categories: [major, minor])
+        self.referenceData = TransactionReferenceData(
+            institutions: [FinancialInstitutionDTO(from: institution)],
+            categories: [CategoryDTO(from: major), CategoryDTO(from: minor)],
+        )
     }
 
-    internal func loadReferenceData() throws -> TransactionReferenceData {
+    internal func loadReferenceData() async throws -> TransactionReferenceData {
         referenceData
     }
 
-    internal func loadTransactions(filter: TransactionListFilter) throws -> [Transaction] {
+    internal func loadTransactions(filter: TransactionListFilter) async throws -> [TransactionDTO] {
         receivedFilters.append(filter)
         return transactions
     }
 
     @discardableResult
-    @MainActor
     internal func observeTransactions(
         filter: TransactionListFilter,
-        onChange: @escaping @MainActor ([Transaction]) -> Void,
-    ) throws -> ObservationToken {
+        onChange: @escaping @MainActor ([TransactionDTO]) -> Void,
+    ) async throws -> ObservationToken {
         observedFilters.append(filter)
-        onChange(transactions)
+        await onChange(transactions)
         return ObservationToken {}
     }
 }
 
-private final class TransactionFormUseCaseStub: TransactionFormUseCaseProtocol {
+private final class TransactionFormUseCaseStub: TransactionFormUseCaseProtocol, @unchecked Sendable {
     internal var saveError: Error?
     internal var deleteError: Error?
     internal private(set) var savedStates: [TransactionFormState] = []
-    internal private(set) var deletedTransactions: [Transaction] = []
+    internal private(set) var deletedTransactionIds: [UUID] = []
 
     internal func save(
         state: TransactionFormState,
-        editingTransaction: Transaction?,
+        editingTransactionId: UUID?,
         referenceData: TransactionReferenceData,
-    ) throws {
+    ) async throws {
         if let saveError {
             throw saveError
         }
         savedStates.append(state)
     }
 
-    internal func delete(transaction: Transaction) throws {
+    internal func delete(transactionId: UUID) async throws {
         if let deleteError {
             throw deleteError
         }
-        deletedTransactions.append(transaction)
+        deletedTransactionIds.append(transactionId)
     }
 }
