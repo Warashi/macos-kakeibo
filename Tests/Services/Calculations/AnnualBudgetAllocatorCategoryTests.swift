@@ -30,8 +30,10 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         )
 
         // When
+        let categories = [CategoryDTO(from: category1), CategoryDTO(from: category2)]
         let result = allocator.calculateAnnualBudgetUsage(
             params: params,
+            categories: categories,
             upToMonth: 11,
         )
 
@@ -78,8 +80,10 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         )
 
         // When
+        let categories = [CategoryDTO(from: category)]
         let result = allocator.calculateAnnualBudgetUsage(
             params: params,
+            categories: categories,
             upToMonth: 2,
         )
         let allocation = try #require(result.categoryAllocations.first { $0.categoryId == category.id })
@@ -115,8 +119,10 @@ internal struct AnnualBudgetAllocatorCategoryTests {
             annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
+        let categories = [CategoryDTO(from: major), CategoryDTO(from: minor)]
         let result = allocator.calculateAnnualBudgetUsage(
             params: params,
+            categories: categories,
             upToMonth: 11,
         )
 
