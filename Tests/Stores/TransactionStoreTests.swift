@@ -25,6 +25,9 @@ internal struct TransactionStoreTests {
         let formUseCase = await TransactionFormUseCaseStub()
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
 
+        // 初期化の完了を待つ
+        await store.refresh()
+
         #expect(store.transactions.count == 1)
         #expect(store.availableInstitutions.count == 1)
         #expect(store.availableCategories.count == 2)
@@ -41,7 +44,10 @@ internal struct TransactionStoreTests {
         let formUseCase = await TransactionFormUseCaseStub()
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
 
+        await store.refresh()
         store.selectedFilterKind = .income
+        // フィルタ変更後の非同期処理の完了を待つ
+        try? await Task.sleep(for: .milliseconds(10))
 
         let filters = await Task { @DatabaseActor in
             listUseCase.observedFilters
@@ -103,6 +109,7 @@ internal struct TransactionStoreTests {
         let formUseCase = await TransactionFormUseCaseStub()
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
 
+        await store.refresh()
         let result = await store.deleteTransaction(transaction.id)
 
         #expect(result)

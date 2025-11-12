@@ -85,7 +85,7 @@ internal struct SpecialPaymentStoreUpdateDefinitionTests {
         let context = ModelContext(container)
         let repository = await SwiftDataSpecialPaymentRepository(
             modelContext: context,
-            currentDateProvider: { referenceDate }
+            currentDateProvider: { referenceDate },
         )
         let store = SpecialPaymentStore(
             repository: repository,
