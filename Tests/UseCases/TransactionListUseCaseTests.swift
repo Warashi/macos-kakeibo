@@ -3,9 +3,10 @@ import Foundation
 import Testing
 
 @Suite(.serialized)
+@DatabaseActor
 internal struct TransactionListUseCaseTests {
     @Test("指定した月の取引のみ取得する")
-    internal func fetchesOnlySelectedMonth() throws {
+    internal func fetchesOnlySelectedMonth() async throws {
         let targetMonth = Date.from(year: 2025, month: 11) ?? Date()
         let previousMonth = Calendar.current.date(byAdding: .month, value: -1, to: targetMonth) ?? targetMonth
         let repository = InMemoryTransactionRepository(
@@ -16,14 +17,14 @@ internal struct TransactionListUseCaseTests {
         )
         let useCase = DefaultTransactionListUseCase(repository: repository)
 
-        let result = try useCase.loadTransactions(filter: makeFilter(month: targetMonth))
+        let result = try await useCase.loadTransactions(filter: makeFilter(month: targetMonth))
 
         #expect(result.count == 1)
         #expect(result.first?.title == "今月のランチ")
     }
 
     @Test("収入種別で絞り込める")
-    internal func filtersByTransactionKind() throws {
+    internal func filtersByTransactionKind() async throws {
         let targetMonth = Date.from(year: 2025, month: 11) ?? Date()
         let repository = InMemoryTransactionRepository(
             transactions: [
@@ -36,14 +37,14 @@ internal struct TransactionListUseCaseTests {
         var filter = makeFilter(month: targetMonth)
         filter.filterKind = .income
 
-        let result = try useCase.loadTransactions(filter: filter)
+        let result = try await useCase.loadTransactions(filter: filter)
 
         #expect(result.count == 1)
         #expect(result.first?.title == "給与")
     }
 
     @Test("検索キーワードでタイトルとメモを対象に絞り込める")
-    internal func filtersByKeyword() throws {
+    internal func filtersByKeyword() async throws {
         let targetMonth = Date.from(year: 2025, month: 11) ?? Date()
         let repository = InMemoryTransactionRepository(
             transactions: [
@@ -56,14 +57,14 @@ internal struct TransactionListUseCaseTests {
         var filter = makeFilter(month: targetMonth)
         filter.searchText = SearchText("カフェ")
 
-        let result = try useCase.loadTransactions(filter: filter)
+        let result = try await useCase.loadTransactions(filter: filter)
 
         #expect(result.count == 1)
         #expect(result.first?.title == "スタバ")
     }
 
     @Test("参照データをまとめて取得できる")
-    internal func loadsReferenceData() throws {
+    internal func loadsReferenceData() async throws {
         let institution = FinancialInstitution(name: "メイン銀行")
         let major = Category(name: "食費", displayOrder: 1)
         let minor = Category(name: "外食", parent: major, displayOrder: 1)
@@ -73,7 +74,7 @@ internal struct TransactionListUseCaseTests {
         )
         let useCase = DefaultTransactionListUseCase(repository: repository)
 
-        let reference = try useCase.loadReferenceData()
+        let reference = try await useCase.loadReferenceData()
 
         #expect(reference.institutions.count == 1)
         #expect(reference.categories.count == 2)
