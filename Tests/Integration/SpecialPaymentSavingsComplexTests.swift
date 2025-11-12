@@ -33,8 +33,9 @@ internal struct SpecialPaymentSavingsComplexTests {
         try context.save()
 
         // When: 月次積立金額を計算
+        let definitionDTOs = definitions.map { SpecialPaymentDefinitionDTO(from: $0) }
         let totalAllocation = calculator.calculateMonthlySavingsAllocation(
-            definitions: definitions,
+            definitions: definitionDTOs,
             year: 2025,
             month: 11,
         )
@@ -46,7 +47,7 @@ internal struct SpecialPaymentSavingsComplexTests {
 
         // カテゴリ別積立金額を計算
         let categoryAllocations = calculator.calculateCategorySavingsAllocation(
-            definitions: definitions,
+            definitions: definitionDTOs,
             year: 2025,
             month: 11,
         )
@@ -66,12 +67,15 @@ internal struct SpecialPaymentSavingsComplexTests {
             context: context,
         )
 
-        let savingsCalculations = calculator.calculateSpecialPaymentSavings(
-            definitions: definitions,
-            balances: balances,
+        let balanceDTOs = balances.map { SpecialPaymentSavingBalanceDTO(from: $0) }
+        let savingsInput = SpecialPaymentSavingsCalculationInput(
+            definitions: definitionDTOs,
+            balances: balanceDTOs,
+            occurrences: [],
             year: 2025,
             month: 6,
         )
+        let savingsCalculations = calculator.calculateSpecialPaymentSavings(savingsInput)
 
         // Then: 各定義の積立状況が正しい
         #expect(savingsCalculations.count == 4)
