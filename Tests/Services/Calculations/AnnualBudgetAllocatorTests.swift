@@ -23,9 +23,9 @@ internal struct AnnualBudgetAllocatorUsageTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions,
-            budgets: budgets,
-            annualBudgetConfig: config,
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            budgets: budgets.map { BudgetDTO(from: $0) },
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
         // When
@@ -59,9 +59,9 @@ internal struct AnnualBudgetAllocatorUsageTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions,
-            budgets: budgets,
-            annualBudgetConfig: config,
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            budgets: budgets.map { BudgetDTO(from: $0) },
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
         // When
@@ -156,9 +156,9 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions,
-            budgets: budgets,
-            annualBudgetConfig: config,
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            budgets: budgets.map { BudgetDTO(from: $0) },
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
         // When
@@ -192,9 +192,9 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions,
-            budgets: budgets,
-            annualBudgetConfig: config,
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            budgets: budgets.map { BudgetDTO(from: $0) },
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
         // When
@@ -228,9 +228,9 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions,
-            budgets: budgets,
-            annualBudgetConfig: config,
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            budgets: budgets.map { BudgetDTO(from: $0) },
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
         // When
@@ -268,9 +268,9 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions,
-            budgets: budgets,
-            annualBudgetConfig: config,
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            budgets: budgets.map { BudgetDTO(from: $0) },
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
         // When
@@ -307,9 +307,9 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions,
-            budgets: budgets,
-            annualBudgetConfig: config,
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            budgets: budgets.map { BudgetDTO(from: $0) },
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
         // When
@@ -346,9 +346,9 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions,
-            budgets: budgets,
-            annualBudgetConfig: config,
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            budgets: budgets.map { BudgetDTO(from: $0) },
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
         // When
@@ -381,9 +381,9 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions,
+            transactions: transactions.map { TransactionDTO(from: $0) },
             budgets: [],
-            annualBudgetConfig: config,
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
         // When
@@ -416,9 +416,9 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions,
+            transactions: transactions.map { TransactionDTO(from: $0) },
             budgets: [],
-            annualBudgetConfig: config,
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
         // When
@@ -453,9 +453,9 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions,
-            budgets: budgets,
-            annualBudgetConfig: config,
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            budgets: budgets.map { BudgetDTO(from: $0) },
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
         // When
