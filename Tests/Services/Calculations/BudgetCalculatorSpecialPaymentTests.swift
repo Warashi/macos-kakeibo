@@ -50,10 +50,19 @@ internal struct BudgetCalculatorSpecialPaymentTests {
 
         // When
         let results = calculator.calculateSpecialPaymentSavings(
-            definitions: [definition1, definition2],
-            balances: [balance1, balance2],
-            year: 2025,
-            month: 11,
+            SpecialPaymentSavingsCalculationInput(
+                definitions: [
+                    SpecialPaymentDefinitionDTO(from: definition1),
+                    SpecialPaymentDefinitionDTO(from: definition2),
+                ],
+                balances: [
+                    SpecialPaymentSavingBalanceDTO(from: balance1),
+                    SpecialPaymentSavingBalanceDTO(from: balance2),
+                ],
+                occurrences: [],
+                year: 2025,
+                month: 11,
+            ),
         )
 
         // Then
@@ -85,10 +94,13 @@ internal struct BudgetCalculatorSpecialPaymentTests {
 
         // When
         let results = calculator.calculateSpecialPaymentSavings(
-            definitions: [definition],
-            balances: [], // 残高なし
-            year: 2025,
-            month: 11,
+            SpecialPaymentSavingsCalculationInput(
+                definitions: [SpecialPaymentDefinitionDTO(from: definition)],
+                balances: [], // 残高なし
+                occurrences: [],
+                year: 2025,
+                month: 11,
+            ),
         )
 
         // Then
@@ -127,7 +139,11 @@ internal struct BudgetCalculatorSpecialPaymentTests {
 
         // When
         let total = calculator.calculateMonthlySavingsAllocation(
-            definitions: [definition1, definition2, definition3],
+            definitions: [
+                SpecialPaymentDefinitionDTO(from: definition1),
+                SpecialPaymentDefinitionDTO(from: definition2),
+                SpecialPaymentDefinitionDTO(from: definition3),
+            ],
             year: 2025,
             month: 11,
         )
@@ -178,7 +194,12 @@ internal struct BudgetCalculatorSpecialPaymentTests {
 
         // When
         let allocations = calculator.calculateCategorySavingsAllocation(
-            definitions: [definition1, definition2, definition3, definition4],
+            definitions: [
+                SpecialPaymentDefinitionDTO(from: definition1),
+                SpecialPaymentDefinitionDTO(from: definition2),
+                SpecialPaymentDefinitionDTO(from: definition3),
+                SpecialPaymentDefinitionDTO(from: definition4),
+            ],
             year: 2025,
             month: 11,
         )
