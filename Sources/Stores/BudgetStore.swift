@@ -284,12 +284,12 @@ internal extension BudgetStore {
         await reloadSnapshot()
     }
 
-    func updateBudget(budget: Budget, input: BudgetInput) async throws {
+    func updateBudget(budget: BudgetDTO, input: BudgetInput) async throws {
         try await mutationUseCase.updateBudget(budget, input: input)
         await reloadSnapshot()
     }
 
-    func deleteBudget(_ budget: Budget) async throws {
+    func deleteBudget(_ budget: BudgetDTO) async throws {
         try await mutationUseCase.deleteBudget(budget)
         await reloadSnapshot()
     }

@@ -23,7 +23,7 @@ internal struct BudgetView: View {
     @State private var annualFormError: String?
     @State private var specialPaymentFormError: String?
 
-    @State private var budgetPendingDeletion: Budget?
+    @State private var budgetPendingDeletion: BudgetDTO?
     @State private var specialPaymentPendingDeletion: SpecialPaymentDefinition?
     @State private var errorMessage: String?
     @State private var isShowingErrorAlert: Bool = false
@@ -192,7 +192,7 @@ private extension BudgetView {
 // MARK: - Budget Editor
 
 private extension BudgetView {
-    func presentBudgetEditor(for budget: Budget?) {
+    func presentBudgetEditor(for budget: BudgetDTO?) {
         guard let store else { return }
         budgetFormError = nil
         if let budget {
@@ -231,29 +231,31 @@ private extension BudgetView {
         let endYear = normalizedEnd.year
         let endMonth = normalizedEnd.month
 
-        do {
-            let input = BudgetInput(
-                amount: amount,
-                categoryId: budgetFormState.selectedCategoryId,
-                startYear: startYear,
-                startMonth: startMonth,
-                endYear: endYear,
-                endMonth: endMonth,
-            )
+        let input = BudgetInput(
+            amount: amount,
+            categoryId: budgetFormState.selectedCategoryId,
+            startYear: startYear,
+            startMonth: startMonth,
+            endYear: endYear,
+            endMonth: endMonth,
+        )
 
-            switch budgetEditorMode {
-            case .create:
-                try store.addBudget(input)
-            case let .edit(budget):
-                try store.updateBudget(budget: budget, input: input)
+        Task {
+            do {
+                switch budgetEditorMode {
+                case .create:
+                    try await store.addBudget(input)
+                case let .edit(budget):
+                    try await store.updateBudget(budget: budget, input: input)
+                }
+                isPresentingBudgetEditor = false
+            } catch BudgetStoreError.categoryNotFound {
+                budgetFormError = "選択したカテゴリが見つかりませんでした"
+            } catch BudgetStoreError.invalidPeriod {
+                budgetFormError = "期間が不正です。終了月は開始月以降を選択してください"
+            } catch {
+                showError(message: "予算の保存に失敗しました: \(error.localizedDescription)")
             }
-            isPresentingBudgetEditor = false
-        } catch BudgetStoreError.categoryNotFound {
-            budgetFormError = "選択したカテゴリが見つかりませんでした"
-        } catch BudgetStoreError.invalidPeriod {
-            budgetFormError = "期間が不正です。終了月は開始月以降を選択してください"
-        } catch {
-            showError(message: "予算の保存に失敗しました: \(error.localizedDescription)")
         }
     }
 }
@@ -402,12 +404,14 @@ private extension BudgetView {
 private extension BudgetView {
     func deletePendingBudget() {
         guard let store, let budget = budgetPendingDeletion else { return }
-        do {
-            try store.deleteBudget(budget)
-        } catch {
-            showError(message: "予算の削除に失敗しました: \(error.localizedDescription)")
+        Task {
+            do {
+                try await store.deleteBudget(budget)
+            } catch {
+                showError(message: "予算の削除に失敗しました: \(error.localizedDescription)")
+            }
+            budgetPendingDeletion = nil
         }
-        budgetPendingDeletion = nil
     }
 
     func deletePendingSpecialPayment() {

@@ -3,8 +3,8 @@ import Foundation
 @DatabaseActor
 internal protocol BudgetMutationUseCaseProtocol {
     func addBudget(input: BudgetInput) async throws
-    func updateBudget(_ budget: Budget, input: BudgetInput) async throws
-    func deleteBudget(_ budget: Budget) async throws
+    func updateBudget(_ budget: BudgetDTO, input: BudgetInput) async throws
+    func deleteBudget(_ budget: BudgetDTO) async throws
     func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) async throws
 }
 
@@ -36,7 +36,7 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
         try repository.saveChanges()
     }
 
-    internal func updateBudget(_ budget: Budget, input: BudgetInput) async throws {
+    internal func updateBudget(_ budget: BudgetDTO, input: BudgetInput) async throws {
         try validatePeriod(
             startYear: input.startYear,
             startMonth: input.startMonth,
@@ -44,18 +44,20 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
             endMonth: input.endMonth,
         )
         let category = try resolveCategory(id: input.categoryId)
-        budget.amount = input.amount
-        budget.category = category
-        budget.startYear = input.startYear
-        budget.startMonth = input.startMonth
-        budget.endYear = input.endYear
-        budget.endMonth = input.endMonth
-        budget.updatedAt = Date()
+        try repository.updateBudget(
+            id: budget.id,
+            amount: input.amount,
+            category: category,
+            startYear: input.startYear,
+            startMonth: input.startMonth,
+            endYear: input.endYear,
+            endMonth: input.endMonth,
+        )
         try repository.saveChanges()
     }
 
-    internal func deleteBudget(_ budget: Budget) async throws {
-        repository.deleteBudget(budget)
+    internal func deleteBudget(_ budget: BudgetDTO) async throws {
+        try repository.deleteBudget(id: budget.id)
         try repository.saveChanges()
     }
 

@@ -95,6 +95,8 @@ internal struct BudgetStoreTestsBasic {
         context.insert(budget)
         try context.save()
 
+        let budgetDTO = BudgetDTO(from: budget)
+
         let input = BudgetInput(
             amount: 12000,
             categoryId: transport.id,
@@ -103,7 +105,7 @@ internal struct BudgetStoreTestsBasic {
             endYear: store.currentYear,
             endMonth: store.currentMonth + 1,
         )
-        try store.updateBudget(budget: budget, input: input)
+        try store.updateBudget(budget: budgetDTO, input: input)
 
         #expect(budget.amount == 12000)
         #expect(budget.category?.id == transport.id)
@@ -121,7 +123,8 @@ internal struct BudgetStoreTestsBasic {
         context.insert(budget)
         try context.save()
 
-        try store.deleteBudget(budget)
+        let budgetDTO = BudgetDTO(from: budget)
+        try store.deleteBudget(budgetDTO)
 
         #expect(store.monthlyBudgets.isEmpty)
     }

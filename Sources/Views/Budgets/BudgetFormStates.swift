@@ -14,22 +14,12 @@ internal struct BudgetEditorFormState {
         selectedMinorCategoryId ?? selectedMajorCategoryId
     }
 
-    internal mutating func load(from budget: Budget) {
+    internal mutating func load(from budget: BudgetDTO) {
         amountText = budget.amount.plainString
         startDate = budget.targetDate
         endDate = budget.endDate
-        if let category = budget.category {
-            if category.isMajor {
-                selectedMajorCategoryId = category.id
-                selectedMinorCategoryId = nil
-            } else {
-                selectedMajorCategoryId = category.parent?.id
-                selectedMinorCategoryId = category.id
-            }
-        } else {
-            selectedMajorCategoryId = nil
-            selectedMinorCategoryId = nil
-        }
+        selectedMajorCategoryId = nil
+        selectedMinorCategoryId = budget.categoryId
     }
 
     internal mutating func reset(defaultYear: Int, defaultMonth: Int) {
@@ -229,7 +219,7 @@ internal struct AnnualBudgetAllocationRowState: Identifiable {
 
 internal enum BudgetEditorMode {
     case create
-    case edit(Budget)
+    case edit(BudgetDTO)
 
     internal var title: String {
         switch self {

@@ -42,4 +42,11 @@ internal enum BudgetQueries {
             ],
         )
     }
+
+    internal static func byId(_ id: UUID) -> ModelFetchRequest<Budget> {
+        ModelFetchFactory.make(
+            predicate: #Predicate { $0.id == id },
+            fetchLimit: 1,
+        )
+    }
 }
