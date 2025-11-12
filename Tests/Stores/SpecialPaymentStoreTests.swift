@@ -83,7 +83,7 @@ internal struct SpecialPaymentStoreTests {
         try context.save()
 
         try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 36)
-        let occurrence = try #require(definition.occurrences.first)
+        let occurrence = try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
 
         let actualDate = try #require(Date.from(year: 2024, month: 1, day: 16))
         let input = OccurrenceCompletionInput(
@@ -106,7 +106,10 @@ internal struct SpecialPaymentStoreTests {
     private func makeStore(referenceDate: Date) async throws -> (SpecialPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await SwiftDataSpecialPaymentRepository(modelContext: context)
+        let repository = await SwiftDataSpecialPaymentRepository(
+            modelContext: context,
+            currentDateProvider: { referenceDate }
+        )
         let store = SpecialPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },

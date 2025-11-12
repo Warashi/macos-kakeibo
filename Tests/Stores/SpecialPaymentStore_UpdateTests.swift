@@ -23,7 +23,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         try context.save()
 
         try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
-        let occurrence = try #require(definition.occurrences.first)
+        let occurrence = try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
 
         let actualDate = try #require(Date.from(year: 2025, month: 3, day: 16))
         let input = OccurrenceUpdateInput(
@@ -58,7 +58,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         try context.save()
 
         try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
-        let occurrence = try #require(definition.occurrences.first)
+        let occurrence = try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
         #expect(definition.occurrences.count == 2)
 
         let actualDate = try #require(Date.from(year: 2025, month: 3, day: 16))
@@ -110,7 +110,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         try context.save()
 
         try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
-        let occurrence = try #require(definition.occurrences.first)
+        let occurrence = try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
         let occurrenceCountBefore = definition.occurrences.count
 
         let actualDate = try #require(Date.from(year: 2025, month: 3, day: 16))
@@ -146,7 +146,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         try context.save()
 
         try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
-        let occurrence = try #require(definition.occurrences.first)
+        let occurrence = try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
 
         let actualDate1 = try #require(Date.from(year: 2025, month: 3, day: 16))
         let completionInput = OccurrenceCompletionInput(
@@ -248,7 +248,10 @@ internal struct SpecialPaymentStoreUpdateTests {
     private func makeStore(referenceDate: Date) async throws -> (SpecialPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await SwiftDataSpecialPaymentRepository(modelContext: context)
+        let repository = await SwiftDataSpecialPaymentRepository(
+            modelContext: context,
+            currentDateProvider: { referenceDate }
+        )
         let store = SpecialPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },
