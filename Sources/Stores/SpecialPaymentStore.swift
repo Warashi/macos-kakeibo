@@ -3,7 +3,7 @@ import Observation
 import SwiftData
 
 /// 特別支払い定義の入力パラメータ
-internal struct SpecialPaymentDefinitionInput {
+internal struct SpecialPaymentDefinitionInput: Sendable {
     internal let name: String
     internal let notes: String
     internal let amount: Decimal
@@ -44,7 +44,7 @@ internal struct SpecialPaymentDefinitionInput {
 }
 
 /// 特別支払いOccurrence完了時の入力パラメータ
-internal struct OccurrenceCompletionInput {
+internal struct OccurrenceCompletionInput: Sendable {
     internal let actualDate: Date
     internal let actualAmount: Decimal
     internal let transaction: TransactionDTO?
@@ -61,7 +61,7 @@ internal struct OccurrenceCompletionInput {
 }
 
 /// 特別支払いOccurrence更新時の入力パラメータ
-internal struct OccurrenceUpdateInput {
+internal struct OccurrenceUpdateInput: Sendable {
     internal let status: SpecialPaymentStatus
     internal let actualDate: Date?
     internal let actualAmount: Decimal?

@@ -199,16 +199,15 @@ private extension BudgetView {
             let annualUseCase = DefaultAnnualBudgetUseCase()
             let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase()
             let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
-            let budgetStore = BudgetStore(
-                repository: repository,
-                monthlyUseCase: monthlyUseCase,
-                annualUseCase: annualUseCase,
-                specialPaymentUseCase: specialPaymentUseCase,
-                mutationUseCase: mutationUseCase,
-            )
             await MainActor.run {
                 guard store == nil else { return }
-                store = budgetStore
+                store = BudgetStore(
+                    repository: repository,
+                    monthlyUseCase: monthlyUseCase,
+                    annualUseCase: annualUseCase,
+                    specialPaymentUseCase: specialPaymentUseCase,
+                    mutationUseCase: mutationUseCase,
+                )
             }
         }
     }
@@ -407,22 +406,38 @@ private extension BudgetView {
             dateAdjustmentPolicy: specialPaymentFormState.dateAdjustmentPolicy,
             recurrenceDayPattern: specialPaymentFormState.recurrenceDayPattern,
         )
+        let editorMode = specialPaymentEditorMode
+        let editDefinitionId: UUID? = {
+            if case let .edit(definition) = editorMode {
+                return definition.id
+            }
+            return nil
+        }()
+        let isCreateMode = {
+            if case .create = editorMode {
+                return true
+            }
+            return false
+        }()
         Task { @DatabaseActor in
             guard let container = await MainActor.run(body: { modelContainer }) else {
                 assertionFailure("ModelContainer is unavailable")
                 return
             }
             let context = ModelContext(container)
-            let mode = await MainActor.run { specialPaymentEditorMode }
             let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
             let specialPaymentStore = SpecialPaymentStore(repository: repository)
 
             do {
-                switch mode {
-                case .create:
+                if isCreateMode {
                     try await specialPaymentStore.createDefinition(input)
-                case let .edit(definition):
-                    try await specialPaymentStore.updateDefinition(definitionId: definition.id, input: input)
+                } else if let definitionId = editDefinitionId {
+                    try await specialPaymentStore.updateDefinition(definitionId: definitionId, input: input)
+                } else {
+                    await MainActor.run {
+                        specialPaymentFormError = "編集対象が不明です"
+                    }
+                    return
                 }
                 await MainActor.run {
                     isPresentingSpecialPaymentEditor = false
@@ -462,6 +477,7 @@ private extension BudgetView {
     @MainActor
     func deletePendingSpecialPayment() {
         guard let definition = specialPaymentPendingDeletion else { return }
+        let definitionId = definition.id
         Task { @DatabaseActor in
             guard let container = await MainActor.run(body: { modelContainer }) else {
                 assertionFailure("ModelContainer is unavailable")
@@ -471,7 +487,7 @@ private extension BudgetView {
             let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
             let specialPaymentStore = SpecialPaymentStore(repository: repository)
             do {
-                try await specialPaymentStore.deleteDefinition(definitionId: definition.id)
+                try await specialPaymentStore.deleteDefinition(definitionId: definitionId)
             } catch {
                 await MainActor.run {
                     showError(message: "特別支払いの削除に失敗しました: \(error.localizedDescription)")

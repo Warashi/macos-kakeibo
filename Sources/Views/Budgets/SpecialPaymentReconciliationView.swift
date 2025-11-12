@@ -2,7 +2,7 @@ import SwiftData
 import SwiftUI
 
 internal struct SpecialPaymentReconciliationView: View {
-    @Environment(\.modelContext) private var modelContext: ModelContext
+    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
     @State private var store: SpecialPaymentReconciliationStore?
 
     internal var body: some View {
@@ -24,16 +24,30 @@ internal struct SpecialPaymentReconciliationView: View {
     @MainActor
     private func prepareStore() async {
         guard store == nil else { return }
-        let specialPaymentRepository = await SpecialPaymentRepositoryFactory.make(modelContext: modelContext)
-        let transactionRepository = await SwiftDataTransactionRepository(modelContext: modelContext)
-        let occurrencesService = await DefaultSpecialPaymentOccurrencesService(repository: specialPaymentRepository)
+        guard let container = modelContainer else {
+            assertionFailure("ModelContainer is unavailable")
+            return
+        }
+
+        let dependencies = await Task { @DatabaseActor () -> (
+            SpecialPaymentRepository,
+            TransactionRepository,
+            SpecialPaymentOccurrencesService
+        ) in
+            let context = ModelContext(container)
+            let specialPaymentRepository = SpecialPaymentRepositoryFactory.make(modelContext: context)
+            let transactionRepository = SwiftDataTransactionRepository(modelContext: context)
+            let occurrencesService = DefaultSpecialPaymentOccurrencesService(repository: specialPaymentRepository)
+            return (specialPaymentRepository, transactionRepository, occurrencesService)
+        }.value
+
         let reconciliationStore = SpecialPaymentReconciliationStore(
-            repository: specialPaymentRepository,
-            transactionRepository: transactionRepository,
-            occurrencesService: occurrencesService,
+            repository: dependencies.0,
+            transactionRepository: dependencies.1,
+            occurrencesService: dependencies.2,
         )
-        await reconciliationStore.refresh()
         store = reconciliationStore
+        await reconciliationStore.refresh()
     }
 }
 
