@@ -50,7 +50,7 @@ internal struct SpecialPaymentStoreDeleteDefinitionTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 24)
+        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 24)
         #expect(!definition.occurrences.isEmpty)
 
         // Occurrence数を記録
@@ -70,8 +70,9 @@ internal struct SpecialPaymentStoreDeleteDefinitionTests {
     private func makeStore(referenceDate: Date) throws -> (SpecialPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
+        let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
         let store = SpecialPaymentStore(
-            modelContext: context,
+            repository: repository,
             currentDateProvider: { referenceDate },
         )
         return (store, context)
