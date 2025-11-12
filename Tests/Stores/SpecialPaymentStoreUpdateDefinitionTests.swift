@@ -8,9 +8,9 @@ import Testing
 @MainActor
 internal struct SpecialPaymentStoreUpdateDefinitionTests {
     @Test("定義更新：正常系で定義が更新される")
-    internal func updateDefinition_success() throws {
+    internal func updateDefinition_success() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         let definition = SpecialPaymentDefinition(
@@ -35,7 +35,7 @@ internal struct SpecialPaymentStoreUpdateDefinitionTests {
             dateAdjustmentPolicy: .none,
             recurrenceDayPattern: nil,
         )
-        try store.updateDefinition(definition, input: input)
+        try await store.updateDefinition(definitionId: definition.id, input: input)
 
         #expect(definition.name == "自動車税（更新）")
         #expect(definition.notes == "メモを追加")
@@ -46,9 +46,9 @@ internal struct SpecialPaymentStoreUpdateDefinitionTests {
     }
 
     @Test("定義更新：バリデーションエラー")
-    internal func updateDefinition_validationError() throws {
+    internal func updateDefinition_validationError() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         let definition = SpecialPaymentDefinition(
@@ -60,7 +60,7 @@ internal struct SpecialPaymentStoreUpdateDefinitionTests {
         context.insert(definition)
         try context.save()
 
-        #expect(throws: SpecialPaymentDomainError.self) {
+        await #expect(throws: SpecialPaymentDomainError.self) {
             let input = SpecialPaymentDefinitionInput(
                 name: "",
                 notes: "",
@@ -74,16 +74,16 @@ internal struct SpecialPaymentStoreUpdateDefinitionTests {
                 dateAdjustmentPolicy: .none,
                 recurrenceDayPattern: nil,
             )
-            try store.updateDefinition(definition, input: input)
+            try await store.updateDefinition(definitionId: definition.id, input: input)
         }
     }
 
     // MARK: - Helpers
 
-    private func makeStore(referenceDate: Date) throws -> (SpecialPaymentStore, ModelContext) {
+    private func makeStore(referenceDate: Date) async throws -> (SpecialPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
+        let repository = await SwiftDataSpecialPaymentRepository(modelContext: context)
         let store = SpecialPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },

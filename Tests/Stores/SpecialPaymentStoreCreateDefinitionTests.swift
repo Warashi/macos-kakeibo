@@ -8,9 +8,9 @@ import Testing
 @MainActor
 internal struct SpecialPaymentStoreCreateDefinitionTests {
     @Test("定義作成：正常系で定義とOccurrenceが作成される")
-    internal func createDefinition_success() throws {
+    internal func createDefinition_success() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         let input = SpecialPaymentDefinitionInput(
@@ -26,7 +26,7 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
             dateAdjustmentPolicy: .none,
             recurrenceDayPattern: nil,
         )
-        try store.createDefinition(input, horizonMonths: 24)
+        try await store.createDefinition(input, horizonMonths: 24)
 
         let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
@@ -44,9 +44,9 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
     }
 
     @Test("定義作成：カテゴリ付きで作成")
-    internal func createDefinition_withCategory() throws {
+    internal func createDefinition_withCategory() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let category = Category(name: "税金", displayOrder: 0)
         context.insert(category)
@@ -60,7 +60,7 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
             firstOccurrenceDate: firstOccurrence,
             categoryId: category.id,
         )
-        try store.createDefinition(input)
+        try await store.createDefinition(input)
 
         let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
@@ -71,65 +71,65 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
     }
 
     @Test("定義作成：バリデーションエラー（名前が空）")
-    internal func createDefinition_validationError_emptyName() throws {
+    internal func createDefinition_validationError_emptyName() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, _) = try makeStore(referenceDate: referenceDate)
+        let (store, _) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        #expect(throws: SpecialPaymentDomainError.self) {
+        await #expect(throws: SpecialPaymentDomainError.self) {
             let input = SpecialPaymentDefinitionInput(
                 name: "",
                 amount: 50000,
                 recurrenceIntervalMonths: 12,
                 firstOccurrenceDate: firstOccurrence,
             )
-            try store.createDefinition(input)
+            try await store.createDefinition(input)
         }
     }
 
     @Test("定義作成：バリデーションエラー（金額が0以下）")
-    internal func createDefinition_validationError_invalidAmount() throws {
+    internal func createDefinition_validationError_invalidAmount() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, _) = try makeStore(referenceDate: referenceDate)
+        let (store, _) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        #expect(throws: SpecialPaymentDomainError.self) {
+        await #expect(throws: SpecialPaymentDomainError.self) {
             let input = SpecialPaymentDefinitionInput(
                 name: "テスト",
                 amount: 0,
                 recurrenceIntervalMonths: 12,
                 firstOccurrenceDate: firstOccurrence,
             )
-            try store.createDefinition(input)
+            try await store.createDefinition(input)
         }
     }
 
     @Test("定義作成：バリデーションエラー（周期が0以下）")
-    internal func createDefinition_validationError_invalidRecurrence() throws {
+    internal func createDefinition_validationError_invalidRecurrence() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, _) = try makeStore(referenceDate: referenceDate)
+        let (store, _) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        #expect(throws: SpecialPaymentDomainError.self) {
+        await #expect(throws: SpecialPaymentDomainError.self) {
             let input = SpecialPaymentDefinitionInput(
                 name: "テスト",
                 amount: 50000,
                 recurrenceIntervalMonths: 0,
                 firstOccurrenceDate: firstOccurrence,
             )
-            try store.createDefinition(input)
+            try await store.createDefinition(input)
         }
     }
 
     @Test("定義作成：カテゴリが見つからない")
-    internal func createDefinition_categoryNotFound() throws {
+    internal func createDefinition_categoryNotFound() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, _) = try makeStore(referenceDate: referenceDate)
+        let (store, _) = try await makeStore(referenceDate: referenceDate)
 
         let nonExistentCategoryId = UUID()
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
 
-        #expect(throws: SpecialPaymentDomainError.categoryNotFound) {
+        await #expect(throws: SpecialPaymentDomainError.categoryNotFound) {
             let input = SpecialPaymentDefinitionInput(
                 name: "テスト",
                 amount: 50000,
@@ -137,16 +137,16 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
                 firstOccurrenceDate: firstOccurrence,
                 categoryId: nonExistentCategoryId,
             )
-            try store.createDefinition(input)
+            try await store.createDefinition(input)
         }
     }
 
     // MARK: - Helpers
 
-    private func makeStore(referenceDate: Date) throws -> (SpecialPaymentStore, ModelContext) {
+    private func makeStore(referenceDate: Date) async throws -> (SpecialPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
+        let repository = await SwiftDataSpecialPaymentRepository(modelContext: context)
         let store = SpecialPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },

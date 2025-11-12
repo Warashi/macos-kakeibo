@@ -8,9 +8,9 @@ import Testing
 @MainActor
 internal struct SpecialPaymentStoreDeleteDefinitionTests {
     @Test("定義削除：正常系で定義が削除される")
-    internal func deleteDefinition_success() throws {
+    internal func deleteDefinition_success() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         let definition = SpecialPaymentDefinition(
@@ -27,7 +27,7 @@ internal struct SpecialPaymentStoreDeleteDefinitionTests {
         var definitions = try context.fetch(descriptor)
         #expect(definitions.count == 1)
 
-        try store.deleteDefinition(definition)
+        try await store.deleteDefinition(definitionId: definition.id)
 
         // 削除後の確認
         descriptor = ModelFetchFactory.make()
@@ -36,9 +36,9 @@ internal struct SpecialPaymentStoreDeleteDefinitionTests {
     }
 
     @Test("定義削除：Occurrenceもカスケード削除される")
-    internal func deleteDefinition_cascadeDeletesOccurrences() throws {
+    internal func deleteDefinition_cascadeDeletesOccurrences() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         let definition = SpecialPaymentDefinition(
@@ -50,13 +50,13 @@ internal struct SpecialPaymentStoreDeleteDefinitionTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 24)
+        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 24)
         #expect(!definition.occurrences.isEmpty)
 
         // Occurrence数を記録
         let occurrenceCountBefore = definition.occurrences.count
 
-        try store.deleteDefinition(definition)
+        try await store.deleteDefinition(definitionId: definition.id)
 
         // Occurrenceも削除されていることを確認
         let descriptor: ModelFetchRequest<SpecialPaymentOccurrence> = ModelFetchFactory.make()
@@ -67,10 +67,10 @@ internal struct SpecialPaymentStoreDeleteDefinitionTests {
 
     // MARK: - Helpers
 
-    private func makeStore(referenceDate: Date) throws -> (SpecialPaymentStore, ModelContext) {
+    private func makeStore(referenceDate: Date) async throws -> (SpecialPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
+        let repository = await SwiftDataSpecialPaymentRepository(modelContext: context)
         let store = SpecialPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },

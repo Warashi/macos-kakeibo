@@ -8,9 +8,9 @@ import Testing
 @MainActor
 internal struct SpecialPaymentStoreDayPatternTests {
     @Test("定義作成：recurrenceDayPatternを指定して作成")
-    internal func createDefinition_withRecurrenceDayPattern() throws {
+    internal func createDefinition_withRecurrenceDayPattern() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         let input = SpecialPaymentDefinitionInput(
@@ -26,7 +26,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
             dateAdjustmentPolicy: .none,
             recurrenceDayPattern: .endOfMonth,
         )
-        try store.createDefinition(input, horizonMonths: 6)
+        try await store.createDefinition(input, horizonMonths: 6)
 
         let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
@@ -41,9 +41,9 @@ internal struct SpecialPaymentStoreDayPatternTests {
     }
 
     @Test("定義作成：dateAdjustmentPolicyを指定して作成")
-    internal func createDefinition_withDateAdjustmentPolicy() throws {
+    internal func createDefinition_withDateAdjustmentPolicy() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         let input = SpecialPaymentDefinitionInput(
@@ -59,7 +59,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
             dateAdjustmentPolicy: .moveToPreviousBusinessDay,
             recurrenceDayPattern: nil,
         )
-        try store.createDefinition(input, horizonMonths: 6)
+        try await store.createDefinition(input, horizonMonths: 6)
 
         let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
@@ -71,9 +71,9 @@ internal struct SpecialPaymentStoreDayPatternTests {
     }
 
     @Test("定義更新：recurrenceDayPatternを変更")
-    internal func updateDefinition_changesRecurrenceDayPattern() throws {
+    internal func updateDefinition_changesRecurrenceDayPattern() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         let definition = SpecialPaymentDefinition(
@@ -86,7 +86,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 6)
+        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 6)
 
         // パターンを月末に変更
         let input = SpecialPaymentDefinitionInput(
@@ -102,7 +102,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
             dateAdjustmentPolicy: .none,
             recurrenceDayPattern: .endOfMonth,
         )
-        try store.updateDefinition(definition, input: input, horizonMonths: 6)
+        try await store.updateDefinition(definitionId: definition.id, input: input, horizonMonths: 6)
 
         #expect(definition.recurrenceDayPattern == .endOfMonth)
         #expect(definition.notes == "月末払いに変更")
@@ -111,9 +111,9 @@ internal struct SpecialPaymentStoreDayPatternTests {
     }
 
     @Test("定義更新：dateAdjustmentPolicyを変更")
-    internal func updateDefinition_changesDateAdjustmentPolicy() throws {
+    internal func updateDefinition_changesDateAdjustmentPolicy() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         let definition = SpecialPaymentDefinition(
@@ -126,7 +126,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 6)
+        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 6)
 
         // ポリシーを変更
         let input = SpecialPaymentDefinitionInput(
@@ -142,7 +142,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
             dateAdjustmentPolicy: .moveToNextBusinessDay,
             recurrenceDayPattern: nil,
         )
-        try store.updateDefinition(definition, input: input, horizonMonths: 6)
+        try await store.updateDefinition(definitionId: definition.id, input: input, horizonMonths: 6)
 
         #expect(definition.dateAdjustmentPolicy == .moveToNextBusinessDay)
         #expect(definition.notes == "休日の場合は翌営業日払い")
@@ -150,10 +150,10 @@ internal struct SpecialPaymentStoreDayPatternTests {
 
     // MARK: - Helpers
 
-    private func makeStore(referenceDate: Date) throws -> (SpecialPaymentStore, ModelContext) {
+    private func makeStore(referenceDate: Date) async throws -> (SpecialPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
+        let repository = await SwiftDataSpecialPaymentRepository(modelContext: context)
         let store = SpecialPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },

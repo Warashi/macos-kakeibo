@@ -21,8 +21,8 @@ internal struct TransactionStoreTests {
             createdAt: Date(),
             updatedAt: Date(),
         )
-        let listUseCase = TransactionListUseCaseStub(transactions: [transaction])
-        let formUseCase = TransactionFormUseCaseStub()
+        let listUseCase = await TransactionListUseCaseStub(transactions: [transaction])
+        let formUseCase = await TransactionFormUseCaseStub()
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
 
         #expect(store.transactions.count == 1)
@@ -37,8 +37,8 @@ internal struct TransactionStoreTests {
 
     @Test("フィルタ変更でUseCaseが再実行される")
     internal func changingFiltersReloadsTransactions() async {
-        let listUseCase = TransactionListUseCaseStub(transactions: [])
-        let formUseCase = TransactionFormUseCaseStub()
+        let listUseCase = await TransactionListUseCaseStub(transactions: [])
+        let formUseCase = await TransactionFormUseCaseStub()
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
 
         store.selectedFilterKind = .income
@@ -52,8 +52,8 @@ internal struct TransactionStoreTests {
 
     @Test("新規作成準備でフォームが初期化される")
     internal func prepareForNewTransactionInitializesForm() async {
-        let listUseCase = TransactionListUseCaseStub(transactions: [])
-        let formUseCase = TransactionFormUseCaseStub()
+        let listUseCase = await TransactionListUseCaseStub(transactions: [])
+        let formUseCase = await TransactionFormUseCaseStub()
         let today = Date.from(year: 2025, month: 11, day: 15) ?? Date()
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { today })
 
@@ -66,8 +66,8 @@ internal struct TransactionStoreTests {
 
     @Test("保存失敗時はエラーメッセージが表示される")
     internal func saveFailureUpdatesFormErrors() async {
-        let listUseCase = TransactionListUseCaseStub(transactions: [])
-        let formUseCase = TransactionFormUseCaseStub()
+        let listUseCase = await TransactionListUseCaseStub(transactions: [])
+        let formUseCase = await TransactionFormUseCaseStub()
         await Task { @DatabaseActor in
             formUseCase.saveError = TransactionFormError.validationFailed(["テストエラー"])
         }.value
@@ -99,8 +99,8 @@ internal struct TransactionStoreTests {
             createdAt: Date(),
             updatedAt: Date(),
         )
-        let listUseCase = TransactionListUseCaseStub(transactions: [transaction])
-        let formUseCase = TransactionFormUseCaseStub()
+        let listUseCase = await TransactionListUseCaseStub(transactions: [transaction])
+        let formUseCase = await TransactionFormUseCaseStub()
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
 
         let result = await store.deleteTransaction(transaction.id)

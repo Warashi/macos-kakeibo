@@ -57,7 +57,15 @@ internal struct EntryAmountPropertiesTests {
         )
 
         let presenter = SpecialPaymentListPresenter()
-        let entry = presenter.entry(occurrence: occurrence, balance: nil, now: Date())
+        let entry = presenter.entry(
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: nil,
+                now: Date(),
+            ),
+        )
 
         #expect(entry.discrepancyAmount == 10000)
     }
