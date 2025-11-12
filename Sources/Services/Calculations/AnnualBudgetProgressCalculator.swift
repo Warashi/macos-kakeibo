@@ -25,7 +25,7 @@ internal struct AnnualBudgetEntry: Identifiable {
     }
 
     internal let id: EntryID
-    internal let budget: Budget
+    internal let budget: BudgetDTO
     internal let title: String
     internal let calculation: BudgetCalculation
     internal let isOverallBudget: Bool
@@ -50,8 +50,9 @@ internal struct AnnualBudgetProgressCalculator {
     }
 
     internal func calculate(
-        budgets: [Budget],
-        transactions: [Transaction],
+        budgets: [BudgetDTO],
+        transactions: [TransactionDTO],
+        categories: [CategoryDTO],
         year: Int,
         filter: AggregationFilter = .default,
         excludedCategoryIds: Set<UUID> = [],
@@ -88,6 +89,7 @@ internal struct AnnualBudgetProgressCalculator {
         let categoryEntries = makeCategoryEntries(
             year: year,
             budgets: annualBudgets,
+            categories: categories,
             actualMap: actualMap,
         )
 
@@ -116,11 +118,11 @@ internal struct AnnualBudgetProgressCalculator {
 
     private func makeOverallEntry(
         year: Int,
-        budgets: [Budget],
+        budgets: [BudgetDTO],
         annualSummary: AnnualSummary,
         excludedCategoryIds: Set<UUID>,
     ) -> AnnualBudgetEntry? {
-        let items = budgets.filter { $0.category == nil }
+        let items = budgets.filter { $0.categoryId == nil }
         guard let budget = items.first else { return nil }
 
         let totalAmount = items.reduce(Decimal.zero) { partial, budget in
@@ -156,11 +158,15 @@ internal struct AnnualBudgetProgressCalculator {
 
     private func makeCategoryEntries(
         year: Int,
-        budgets: [Budget],
+        budgets: [BudgetDTO],
+        categories: [CategoryDTO],
         actualMap: [UUID: Decimal],
     ) -> [AnnualBudgetEntry] {
-        let categoryBudgets = budgets.compactMap { budget -> (Category, Budget)? in
-            guard let category = budget.category else { return nil }
+        let categoryMap = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
+
+        let categoryBudgets = budgets.compactMap { budget -> (CategoryDTO, BudgetDTO)? in
+            guard let categoryId = budget.categoryId,
+                  let category = categoryMap[categoryId] else { return nil }
             return (category, budget)
         }
 
@@ -172,7 +178,11 @@ internal struct AnnualBudgetProgressCalculator {
             let totalAmount = pairedItems.reduce(Decimal.zero) { $0 + $1.1.annualBudgetAmount(for: year) }
 
             // 実績額を計算：カテゴリ自身の実績 + 子カテゴリの実績
-            let actualAmount = calculateActualAmount(for: category, from: actualMap)
+            let actualAmount = calculateActualAmount(
+                for: category,
+                categories: categories,
+                from: actualMap,
+            )
 
             let calculation = budgetCalculator.calculate(
                 budgetAmount: totalAmount,
@@ -181,13 +191,15 @@ internal struct AnnualBudgetProgressCalculator {
 
             guard let budget = pairedItems.first?.1 else { return nil }
 
+            let fullName = buildFullName(for: category, categories: categories)
+
             return AnnualBudgetEntry(
                 id: .category(categoryId),
                 budget: budget,
-                title: category.fullName,
+                title: fullName,
                 calculation: calculation,
                 isOverallBudget: false,
-                displayOrder: createDisplayOrder(for: category),
+                displayOrder: createDisplayOrder(for: category, categories: categories),
             )
         }
         .sorted { lhs, rhs in
@@ -197,14 +209,16 @@ internal struct AnnualBudgetProgressCalculator {
 
     /// カテゴリの実績額を計算（子カテゴリの実績も含む）
     private func calculateActualAmount(
-        for category: Category,
+        for category: CategoryDTO,
+        categories: [CategoryDTO],
         from actualMap: [UUID: Decimal],
     ) -> Decimal {
         var total = actualMap[category.id] ?? 0
 
         // 大項目の場合、子カテゴリ（中項目）の実績も合算
         if category.isMajor {
-            for child in category.children {
+            let children = categories.filter { $0.parentId == category.id }
+            for child in children {
                 total += actualMap[child.id] ?? 0
             }
         }
@@ -212,9 +226,24 @@ internal struct AnnualBudgetProgressCalculator {
         return total
     }
 
-    private func createDisplayOrder(for category: Category) -> DisplayOrder {
-        let parentOrder = category.parent?.displayOrder ?? category.displayOrder
+    private func buildFullName(for category: CategoryDTO, categories: [CategoryDTO]) -> String {
+        guard let parentId = category.parentId,
+              let parent = categories.first(where: { $0.id == parentId }) else {
+            return category.name
+        }
+        return "\(parent.name) > \(category.name)"
+    }
+
+    private func createDisplayOrder(for category: CategoryDTO, categories: [CategoryDTO]) -> DisplayOrder {
+        let parentOrder: Int
+        if let parentId = category.parentId,
+           let parent = categories.first(where: { $0.id == parentId }) {
+            parentOrder = parent.displayOrder
+        } else {
+            parentOrder = category.displayOrder
+        }
         let ownOrder = category.displayOrder
-        return DisplayOrder(parentOrder: parentOrder, ownOrder: ownOrder, name: category.fullName)
+        let fullName = buildFullName(for: category, categories: categories)
+        return DisplayOrder(parentOrder: parentOrder, ownOrder: ownOrder, name: fullName)
     }
 }

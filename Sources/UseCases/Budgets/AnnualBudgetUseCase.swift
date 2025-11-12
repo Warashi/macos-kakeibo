@@ -65,6 +65,7 @@ private extension DefaultAnnualBudgetUseCase {
         progressCalculator.calculate(
             budgets: snapshot.budgets,
             transactions: snapshot.transactions,
+            categories: snapshot.categories,
             year: year,
             filter: .default,
             excludedCategoryIds: snapshot.annualBudgetConfig?.fullCoverageCategoryIDs(

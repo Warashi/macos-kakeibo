@@ -5,7 +5,7 @@ internal protocol MonthlyBudgetUseCaseProtocol {
         snapshot: BudgetSnapshot,
         year: Int,
         month: Int,
-    ) -> [Budget]
+    ) -> [BudgetDTO]
 
     func monthlyCalculation(
         snapshot: BudgetSnapshot,
@@ -37,7 +37,7 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
         snapshot: BudgetSnapshot,
         year: Int,
         month: Int,
-    ) -> [Budget] {
+    ) -> [BudgetDTO] {
         snapshot.budgets.filter { $0.contains(year: year, month: month) }
     }
 
@@ -68,17 +68,32 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
             },
         )
 
+        let categoryMap = Dictionary(uniqueKeysWithValues: snapshot.categories.map { ($0.id, $0) })
+
         return monthlyBudgets(snapshot: snapshot, year: year, month: month)
             .compactMap { budget -> MonthlyBudgetEntry? in
-                guard let category = budget.category else { return nil }
+                guard let categoryId = budget.categoryId,
+                      let category = categoryMap[categoryId] else { return nil }
                 let calc = calculationMap[category.id] ?? calculator.calculate(
                     budgetAmount: budget.amount,
                     actualAmount: 0,
                 )
+
+                let fullName = buildFullName(for: category, categories: snapshot.categories)
+                let parentOrder: Int
+                if let parentId = category.parentId,
+                   let parent = categoryMap[parentId] {
+                    parentOrder = parent.displayOrder
+                } else {
+                    parentOrder = category.displayOrder
+                }
+
                 return MonthlyBudgetEntry(
                     budget: budget,
-                    title: category.fullName,
+                    title: fullName,
                     calculation: calc,
+                    categoryDisplayOrder: category.displayOrder,
+                    parentCategoryDisplayOrder: parentOrder,
                 )
             }
             .sorted { lhs, rhs in
@@ -92,7 +107,7 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
         month: Int,
     ) -> MonthlyBudgetEntry? {
         guard let budget = monthlyBudgets(snapshot: snapshot, year: year, month: month)
-            .first(where: { $0.category == nil }) else {
+            .first(where: { $0.categoryId == nil }) else {
             return nil
         }
 
@@ -105,7 +120,17 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
             budget: budget,
             title: "全体予算",
             calculation: calculation,
+            categoryDisplayOrder: 0,
+            parentCategoryDisplayOrder: 0,
         )
+    }
+
+    private func buildFullName(for category: CategoryDTO, categories: [CategoryDTO]) -> String {
+        guard let parentId = category.parentId,
+              let parent = categories.first(where: { $0.id == parentId }) else {
+            return category.name
+        }
+        return "\(parent.name) > \(category.name)"
     }
 }
 
