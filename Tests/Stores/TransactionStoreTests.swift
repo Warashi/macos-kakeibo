@@ -19,7 +19,7 @@ internal struct TransactionStoreTests {
             majorCategoryId: nil,
             minorCategoryId: nil,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
         let listUseCase = TransactionListUseCaseStub(transactions: [transaction])
         let formUseCase = TransactionFormUseCaseStub()
@@ -97,7 +97,7 @@ internal struct TransactionStoreTests {
             majorCategoryId: nil,
             minorCategoryId: nil,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
         let listUseCase = TransactionListUseCaseStub(transactions: [transaction])
         let formUseCase = TransactionFormUseCaseStub()
@@ -167,8 +167,8 @@ private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol, 
 
 @DatabaseActor
 private final class TransactionFormUseCaseStub: TransactionFormUseCaseProtocol, @unchecked Sendable {
-    internal var saveError: (Error)?
-    internal var deleteError: (Error)?
+    internal var saveError: Error?
+    internal var deleteError: Error?
     internal var savedStates: [TransactionFormState] = []
     internal var deletedTransactionIds: [UUID] = []
 
