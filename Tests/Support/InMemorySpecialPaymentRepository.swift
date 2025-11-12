@@ -69,6 +69,15 @@ internal final class InMemorySpecialPaymentRepository: SpecialPaymentRepository 
         return results.map { SpecialPaymentSavingBalanceDTO(from: $0) }
     }
 
+    internal func findOccurrence(id: UUID) throws -> SpecialPaymentOccurrence {
+        for definition in definitionsStorage.values {
+            if let occurrence = definition.occurrences.first(where: { $0.id == id }) {
+                return occurrence
+            }
+        }
+        throw SpecialPaymentDomainError.occurrenceNotFound
+    }
+
     @discardableResult
     internal func createDefinition(_ input: SpecialPaymentDefinitionInput) throws -> UUID {
         let category = try resolvedCategory(id: input.categoryId)

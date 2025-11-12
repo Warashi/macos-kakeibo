@@ -244,6 +244,17 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
     internal func saveChanges() throws {
         try modelContext.save()
     }
+
+    internal func findOccurrence(id: UUID) throws -> SpecialPaymentOccurrence {
+        let predicate = #Predicate<SpecialPaymentOccurrence> { occurrence in
+            occurrence.id == id
+        }
+        let descriptor = SpecialPaymentQueries.occurrences(predicate: predicate)
+        guard let occurrence = try modelContext.fetch(descriptor).first else {
+            throw SpecialPaymentDomainError.occurrenceNotFound
+        }
+        return occurrence
+    }
 }
 
 private extension SwiftDataSpecialPaymentRepository {
@@ -256,17 +267,6 @@ private extension SwiftDataSpecialPaymentRepository {
             throw SpecialPaymentDomainError.definitionNotFound
         }
         return definition
-    }
-
-    func findOccurrence(id: UUID) throws -> SpecialPaymentOccurrence {
-        let predicate = #Predicate<SpecialPaymentOccurrence> { occurrence in
-            occurrence.id == id
-        }
-        let descriptor = SpecialPaymentQueries.occurrences(predicate: predicate)
-        guard let occurrence = try modelContext.fetch(descriptor).first else {
-            throw SpecialPaymentDomainError.occurrenceNotFound
-        }
-        return occurrence
     }
 
     func findTransaction(id: UUID) throws -> Transaction {

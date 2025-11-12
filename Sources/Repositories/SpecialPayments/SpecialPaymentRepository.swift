@@ -79,6 +79,8 @@ internal protocol SpecialPaymentRepository: Sendable {
         referenceDate: Date?,
     ) throws -> SpecialPaymentSynchronizationSummary
 
+    func findOccurrence(id: UUID) throws -> SpecialPaymentOccurrence
+
     @discardableResult
     func markOccurrenceCompleted(
         occurrenceId: UUID,
