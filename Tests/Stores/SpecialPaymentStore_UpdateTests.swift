@@ -8,9 +8,9 @@ import Testing
 @MainActor
 internal struct SpecialPaymentStoreUpdateTests {
     @Test("実績更新：実績データを更新できる")
-    internal func updateOccurrence_updatesActualData() throws {
+    internal func updateOccurrence_updatesActualData() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
         let definition = SpecialPaymentDefinition(
@@ -22,7 +22,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
+        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
 
         let actualDate = try #require(Date.from(year: 2025, month: 3, day: 16))
@@ -32,7 +32,7 @@ internal struct SpecialPaymentStoreUpdateTests {
             actualAmount: 48000,
             transaction: nil,
         )
-        try store.updateOccurrence(
+        try await store.updateOccurrence(
             occurrenceId: occurrence.id,
             input: input,
         )
@@ -43,9 +43,9 @@ internal struct SpecialPaymentStoreUpdateTests {
     }
 
     @Test("実績更新：completedからplannedに戻すとスケジュール再計算される")
-    internal func updateOccurrence_resyncsWhenStatusChangesFromCompleted() throws {
+    internal func updateOccurrence_resyncsWhenStatusChangesFromCompleted() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
         let definition = SpecialPaymentDefinition(
@@ -57,7 +57,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
+        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
         #expect(definition.occurrences.count == 2)
 
@@ -66,7 +66,7 @@ internal struct SpecialPaymentStoreUpdateTests {
             actualDate: actualDate,
             actualAmount: 50000,
         )
-        try store.markOccurrenceCompleted(
+        try await store.markOccurrenceCompleted(
             occurrenceId: occurrence.id,
             input: completionInput,
             horizonMonths: 24,
@@ -81,7 +81,7 @@ internal struct SpecialPaymentStoreUpdateTests {
             actualAmount: nil,
             transaction: nil,
         )
-        try store.updateOccurrence(
+        try await store.updateOccurrence(
             occurrenceId: occurrence.id,
             input: updateInput,
             horizonMonths: 12,
@@ -95,9 +95,9 @@ internal struct SpecialPaymentStoreUpdateTests {
     }
 
     @Test("実績更新：plannedからcompletedに変更するとスケジュール再計算される")
-    internal func updateOccurrence_resyncsWhenStatusChangesToCompleted() throws {
+    internal func updateOccurrence_resyncsWhenStatusChangesToCompleted() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
         let definition = SpecialPaymentDefinition(
@@ -109,7 +109,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
+        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
         let occurrenceCountBefore = definition.occurrences.count
 
@@ -120,7 +120,7 @@ internal struct SpecialPaymentStoreUpdateTests {
             actualAmount: 48000,
             transaction: nil,
         )
-        try store.updateOccurrence(
+        try await store.updateOccurrence(
             occurrenceId: occurrence.id,
             input: input,
         )
@@ -131,9 +131,9 @@ internal struct SpecialPaymentStoreUpdateTests {
     }
 
     @Test("実績更新：completedのまま実績データだけ変更する場合はスケジュール再計算されない")
-    internal func updateOccurrence_noResyncWhenOnlyActualDataChanges() throws {
+    internal func updateOccurrence_noResyncWhenOnlyActualDataChanges() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
         let definition = SpecialPaymentDefinition(
@@ -145,7 +145,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
+        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
 
         let actualDate1 = try #require(Date.from(year: 2025, month: 3, day: 16))
@@ -153,7 +153,7 @@ internal struct SpecialPaymentStoreUpdateTests {
             actualDate: actualDate1,
             actualAmount: 50000,
         )
-        try store.markOccurrenceCompleted(
+        try await store.markOccurrenceCompleted(
             occurrenceId: occurrence.id,
             input: completionInput,
         )
@@ -167,7 +167,7 @@ internal struct SpecialPaymentStoreUpdateTests {
             actualAmount: 48000,
             transaction: nil,
         )
-        try store.updateOccurrence(
+        try await store.updateOccurrence(
             occurrenceId: occurrence.id,
             input: updateInput,
         )
@@ -178,9 +178,9 @@ internal struct SpecialPaymentStoreUpdateTests {
     }
 
     @Test("実績更新：バリデーションエラー（完了状態で実績日なし）")
-    internal func updateOccurrence_validationError_completedWithoutActualDate() throws {
+    internal func updateOccurrence_validationError_completedWithoutActualDate() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
         let definition = SpecialPaymentDefinition(
@@ -192,17 +192,17 @@ internal struct SpecialPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
+        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
 
-        #expect(throws: SpecialPaymentDomainError.self) {
+        await #expect(throws: SpecialPaymentDomainError.self) {
             let input = OccurrenceUpdateInput(
                 status: .completed,
                 actualDate: nil,
                 actualAmount: 50000,
                 transaction: nil,
             )
-            try store.updateOccurrence(
+            try await store.updateOccurrence(
                 occurrenceId: occurrence.id,
                 input: input,
             )
@@ -210,9 +210,9 @@ internal struct SpecialPaymentStoreUpdateTests {
     }
 
     @Test("実績更新：実績日が予定日から90日以上ずれている場合の警告")
-    internal func updateOccurrence_validationWarning_actualDateTooFarFromScheduled() throws {
+    internal func updateOccurrence_validationWarning_actualDateTooFarFromScheduled() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try makeStore(referenceDate: referenceDate)
+        let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let scheduledDate = try #require(Date.from(year: 2025, month: 3, day: 15))
         let definition = SpecialPaymentDefinition(
@@ -224,19 +224,19 @@ internal struct SpecialPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
+        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
 
         let farActualDate = try #require(Date.from(year: 2025, month: 7, day: 1))
 
-        #expect(throws: SpecialPaymentDomainError.self) {
+        await #expect(throws: SpecialPaymentDomainError.self) {
             let input = OccurrenceUpdateInput(
                 status: .completed,
                 actualDate: farActualDate,
                 actualAmount: 50000,
                 transaction: nil,
             )
-            try store.updateOccurrence(
+            try await store.updateOccurrence(
                 occurrenceId: occurrence.id,
                 input: input,
             )
@@ -245,10 +245,10 @@ internal struct SpecialPaymentStoreUpdateTests {
 
     // MARK: - Helpers
 
-    private func makeStore(referenceDate: Date) throws -> (SpecialPaymentStore, ModelContext) {
+    private func makeStore(referenceDate: Date) async throws -> (SpecialPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
+        let repository = await SwiftDataSpecialPaymentRepository(modelContext: context)
         let store = SpecialPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },
