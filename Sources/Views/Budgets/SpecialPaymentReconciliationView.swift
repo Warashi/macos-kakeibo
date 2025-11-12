@@ -30,8 +30,8 @@ internal struct SpecialPaymentReconciliationView: View {
                 transactionRepository: transactionRepository,
                 occurrencesService: occurrencesService,
             )
-            await reconciliationStore.refresh()
             store = reconciliationStore
+            await store?.refresh()
         }
     }
 }
