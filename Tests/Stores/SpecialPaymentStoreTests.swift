@@ -24,7 +24,7 @@ internal struct SpecialPaymentStoreTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 24)
+        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 24)
 
         #expect(definition.occurrences.count == 2)
         let first = try #require(definition.occurrences.first)
@@ -50,13 +50,13 @@ internal struct SpecialPaymentStoreTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 18)
+        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 18)
         #expect(definition.occurrences.count == 2)
 
         definition.recurrenceIntervalMonths = 6
         definition.amount = 240_000
 
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 18)
+        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 18)
 
         #expect(definition.occurrences.count == 4)
         #expect(definition.occurrences.allSatisfy { $0.expectedAmount == 240_000 })
@@ -82,7 +82,7 @@ internal struct SpecialPaymentStoreTests {
         context.insert(definition)
         try context.save()
 
-        try store.synchronizeOccurrences(for: definition, horizonMonths: 36)
+        try store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 36)
         let occurrence = try #require(definition.occurrences.first)
 
         let actualDate = try #require(Date.from(year: 2024, month: 1, day: 16))
@@ -91,7 +91,7 @@ internal struct SpecialPaymentStoreTests {
             actualAmount: 98000,
         )
         try store.markOccurrenceCompleted(
-            occurrence,
+            occurrenceId: occurrence.id,
             input: input,
         )
 
@@ -106,8 +106,9 @@ internal struct SpecialPaymentStoreTests {
     private func makeStore(referenceDate: Date) throws -> (SpecialPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
+        let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
         let store = SpecialPaymentStore(
-            modelContext: context,
+            repository: repository,
             currentDateProvider: { referenceDate },
         )
         return (store, context)
