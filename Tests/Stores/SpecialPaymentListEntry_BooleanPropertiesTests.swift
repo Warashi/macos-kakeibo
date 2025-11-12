@@ -24,7 +24,15 @@ internal struct EntryBooleanPropertiesTests {
 
         let now = Date.from(year: 2025, month: 11, day: 15) ?? Date()
         let presenter = SpecialPaymentListPresenter()
-        let entry = presenter.entry(occurrence: occurrence, balance: nil, now: now)
+        let entry = presenter.entry(
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: nil,
+                now: now,
+            ),
+        )
 
         #expect(entry.isOverdue == true)
     }
@@ -49,7 +57,15 @@ internal struct EntryBooleanPropertiesTests {
 
         let now = Date.from(year: 2025, month: 11, day: 15) ?? Date()
         let presenter = SpecialPaymentListPresenter()
-        let entry = presenter.entry(occurrence: occurrence, balance: nil, now: now)
+        let entry = presenter.entry(
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: nil,
+                now: now,
+            ),
+        )
 
         #expect(entry.isOverdue == false)
     }
@@ -79,7 +95,15 @@ internal struct EntryBooleanPropertiesTests {
         )
 
         let presenter = SpecialPaymentListPresenter()
-        let entry = presenter.entry(occurrence: occurrence, balance: balance, now: Date())
+        let entry = presenter.entry(
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: SpecialPaymentSavingBalanceDTO(from: balance),
+                now: Date(),
+            ),
+        )
 
         #expect(entry.isFullySaved == true)
     }
@@ -109,7 +133,15 @@ internal struct EntryBooleanPropertiesTests {
         )
 
         let presenter = SpecialPaymentListPresenter()
-        let entry = presenter.entry(occurrence: occurrence, balance: balance, now: Date())
+        let entry = presenter.entry(
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: SpecialPaymentSavingBalanceDTO(from: balance),
+                now: Date(),
+            ),
+        )
 
         #expect(entry.isFullySaved == false)
     }

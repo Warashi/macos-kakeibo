@@ -8,8 +8,8 @@ import Testing
 @MainActor
 internal struct SpecialPaymentListStoreFilterTests {
     @Test("entries: 期間フィルタが適用される")
-    internal func entries_periodFilter() throws {
-        let (store, context) = try makeStore()
+    internal func entries_periodFilter() async throws {
+        let (store, context) = try await makeStore()
 
         let definition = SpecialPaymentDefinition(
             name: "自動車税",
@@ -53,13 +53,14 @@ internal struct SpecialPaymentListStoreFilterTests {
         store.dateRange.endDate = Date.from(year: 2026, month: 6) ?? Date()
 
         // Then
-        #expect(store.entries.count == 1)
-        #expect(store.entries.first?.scheduledDate == occurrence1.scheduledDate)
+        let entries = await store.entries()
+        #expect(entries.count == 1)
+        #expect(entries.first?.scheduledDate == occurrence1.scheduledDate)
     }
 
     @Test("entries: 検索テキストフィルタが適用される")
-    internal func entries_searchTextFilter() throws {
-        let (store, context) = try makeStore()
+    internal func entries_searchTextFilter() async throws {
+        let (store, context) = try await makeStore()
 
         let definition1 = SpecialPaymentDefinition(
             name: "自動車税",
@@ -102,13 +103,14 @@ internal struct SpecialPaymentListStoreFilterTests {
         store.searchText = "自動車"
 
         // Then
-        #expect(store.entries.count == 1)
-        #expect(store.entries.first?.name == "自動車税")
+        let entries = await store.entries()
+        #expect(entries.count == 1)
+        #expect(entries.first?.name == "自動車税")
     }
 
     @Test("entries: ステータスフィルタが適用される")
-    internal func entries_statusFilter() throws {
-        let (store, context) = try makeStore()
+    internal func entries_statusFilter() async throws {
+        let (store, context) = try await makeStore()
 
         let definition = SpecialPaymentDefinition(
             name: "テスト",
@@ -145,13 +147,14 @@ internal struct SpecialPaymentListStoreFilterTests {
         store.selectedStatus = .completed
 
         // Then
-        #expect(store.entries.count == 1)
-        #expect(store.entries.first?.status == .completed)
+        let entries = await store.entries()
+        #expect(entries.count == 1)
+        #expect(entries.first?.status == SpecialPaymentStatus.completed)
     }
 
     @Test("entries: 大項目フィルタで配下の中項目も含まれる")
-    internal func entries_majorCategoryFilterIncludesChildren() throws {
-        let (store, context) = try makeStore()
+    internal func entries_majorCategoryFilterIncludesChildren() async throws {
+        let (store, context) = try await makeStore()
 
         let major = Category(name: "生活費")
         let minor = Category(name: "食費", parent: major)
@@ -219,15 +222,16 @@ internal struct SpecialPaymentListStoreFilterTests {
         store.categoryFilter.updateCategories([major, minor, otherMajor])
         store.categoryFilter.selectedMajorCategoryId = major.id
 
-        let filteredDefinitions = Set(store.entries.map(\.definitionId))
+        let entries = await store.entries()
+        let filteredDefinitions = Set(entries.map(\.definitionId))
         #expect(filteredDefinitions.contains(definitionMajor.id))
         #expect(filteredDefinitions.contains(definitionMinor.id))
         #expect(!filteredDefinitions.contains(definitionOther.id))
     }
 
     @Test("entries: 中項目フィルタは該当カテゴリのみを対象にする")
-    internal func entries_minorCategoryFilterIsPrecise() throws {
-        let (store, context) = try makeStore()
+    internal func entries_minorCategoryFilterIsPrecise() async throws {
+        let (store, context) = try await makeStore()
 
         let major = Category(name: "生活費")
         let minor = Category(name: "食費", parent: major)
@@ -279,13 +283,14 @@ internal struct SpecialPaymentListStoreFilterTests {
         store.categoryFilter.selectedMajorCategoryId = major.id
         store.categoryFilter.selectedMinorCategoryId = minor.id
 
-        let filteredDefinitions = Set(store.entries.map(\.definitionId))
+        let entries = await store.entries()
+        let filteredDefinitions = Set(entries.map(\.definitionId))
         #expect(filteredDefinitions == Set([definitionMinor.id]))
     }
 
     @Test("resetFilters: フィルタがリセットされる")
-    internal func resetFilters_clearsAllFilters() throws {
-        let (store, _) = try makeStore()
+    internal func resetFilters_clearsAllFilters() async throws {
+        let (store, _) = try await makeStore()
 
         // Given
         store.searchText = "テスト"
@@ -311,10 +316,11 @@ internal struct SpecialPaymentListStoreFilterTests {
 
     // MARK: - Helpers
 
-    private func makeStore() throws -> (SpecialPaymentListStore, ModelContext) {
+    private func makeStore() async throws -> (SpecialPaymentListStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let store = SpecialPaymentListStore(modelContext: context)
+        let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
+        let store = SpecialPaymentListStore(repository: repository)
         return (store, context)
     }
 }

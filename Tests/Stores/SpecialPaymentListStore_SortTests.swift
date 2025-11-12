@@ -8,8 +8,8 @@ import Testing
 @MainActor
 internal struct SpecialPaymentListStoreSortTests {
     @Test("entries: 日付昇順ソート")
-    internal func entries_sortByDateAscending() throws {
-        let (store, context) = try makeStore()
+    internal func entries_sortByDateAscending() async throws {
+        let (store, context) = try await makeStore()
 
         let definition = SpecialPaymentDefinition(
             name: "テスト",
@@ -44,14 +44,14 @@ internal struct SpecialPaymentListStoreSortTests {
         store.sortOrder = .dateAscending
 
         // Then
-        let entries = store.entries
+        let entries = await store.entries()
         #expect(entries.count == 2)
         #expect(entries[0].scheduledDate < entries[1].scheduledDate)
     }
 
     @Test("entries: 名称昇順ソート")
-    internal func entries_sortByNameAscending() throws {
-        let (store, context) = try makeStore()
+    internal func entries_sortByNameAscending() async throws {
+        let (store, context) = try await makeStore()
 
         let definition1 = SpecialPaymentDefinition(
             name: "車検",
@@ -94,7 +94,7 @@ internal struct SpecialPaymentListStoreSortTests {
         store.sortOrder = .nameAscending
 
         // Then
-        let entries = store.entries
+        let entries = await store.entries()
         #expect(entries.count == 2)
         #expect(entries[0].name == "自動車税")
         #expect(entries[1].name == "車検")
@@ -102,10 +102,11 @@ internal struct SpecialPaymentListStoreSortTests {
 
     // MARK: - Helpers
 
-    private func makeStore() throws -> (SpecialPaymentListStore, ModelContext) {
+    private func makeStore() async throws -> (SpecialPaymentListStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let store = SpecialPaymentListStore(modelContext: context)
+        let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
+        let store = SpecialPaymentListStore(repository: repository)
         return (store, context)
     }
 }

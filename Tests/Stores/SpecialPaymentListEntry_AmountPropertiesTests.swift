@@ -25,7 +25,15 @@ internal struct EntryAmountPropertiesTests {
         )
 
         let presenter = SpecialPaymentListPresenter()
-        let entry = presenter.entry(occurrence: occurrence, balance: nil, now: Date())
+        let entry = presenter.entry(
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: nil,
+                now: Date(),
+            ),
+        )
 
         #expect(entry.discrepancyAmount == nil)
     }
@@ -73,7 +81,15 @@ internal struct EntryAmountPropertiesTests {
         )
 
         let presenter = SpecialPaymentListPresenter()
-        let entry = presenter.entry(occurrence: occurrence, balance: nil, now: Date())
+        let entry = presenter.entry(
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: nil,
+                now: Date(),
+            ),
+        )
 
         #expect(entry.discrepancyAmount == -10000)
     }
@@ -95,7 +111,15 @@ internal struct EntryAmountPropertiesTests {
         )
 
         let presenter = SpecialPaymentListPresenter()
-        let entry = presenter.entry(occurrence: occurrence, balance: nil, now: Date())
+        let entry = presenter.entry(
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: nil,
+                now: Date(),
+            ),
+        )
 
         #expect(entry.discrepancyAmount == nil)
     }
@@ -125,7 +149,15 @@ internal struct EntryAmountPropertiesTests {
         )
 
         let presenter = SpecialPaymentListPresenter()
-        let entry = presenter.entry(occurrence: occurrence, balance: balance, now: Date())
+        let entry = presenter.entry(
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: SpecialPaymentSavingBalanceDTO(from: balance),
+                now: Date(),
+            ),
+        )
 
         #expect(entry.savingsProgress == 0.0)
     }
@@ -155,7 +187,15 @@ internal struct EntryAmountPropertiesTests {
         )
 
         let presenter = SpecialPaymentListPresenter()
-        let entry = presenter.entry(occurrence: occurrence, balance: balance, now: Date())
+        let entry = presenter.entry(
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: SpecialPaymentSavingBalanceDTO(from: balance),
+                now: Date(),
+            ),
+        )
 
         #expect(entry.savingsProgress == 0.5)
     }
@@ -185,7 +225,15 @@ internal struct EntryAmountPropertiesTests {
         )
 
         let presenter = SpecialPaymentListPresenter()
-        let entry = presenter.entry(occurrence: occurrence, balance: balance, now: Date())
+        let entry = presenter.entry(
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: SpecialPaymentSavingBalanceDTO(from: balance),
+                now: Date(),
+            ),
+        )
 
         #expect(entry.savingsProgress == 1.0)
     }
@@ -215,7 +263,15 @@ internal struct EntryAmountPropertiesTests {
         )
 
         let presenter = SpecialPaymentListPresenter()
-        let entry = presenter.entry(occurrence: occurrence, balance: balance, now: Date())
+        let entry = presenter.entry(
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: SpecialPaymentSavingBalanceDTO(from: balance),
+                now: Date(),
+            ),
+        )
 
         #expect(entry.savingsProgress == 1.0)
     }

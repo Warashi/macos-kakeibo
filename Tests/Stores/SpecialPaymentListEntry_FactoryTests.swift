@@ -41,9 +41,13 @@ internal struct SpecialPaymentListEntryFactoryTests {
         let now = Date.from(year: 2025, month: 11, day: 15) ?? Date()
         let presenter = SpecialPaymentListPresenter()
         let entry = presenter.entry(
-            occurrence: occurrence,
-            balance: balance,
-            now: now,
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: SpecialPaymentSavingBalanceDTO(from: balance),
+                now: now,
+            ),
         )
 
         // Then
@@ -86,9 +90,13 @@ internal struct SpecialPaymentListEntryFactoryTests {
         // When
         let presenter = SpecialPaymentListPresenter()
         let entry = presenter.entry(
-            occurrence: occurrence,
-            balance: nil,
-            now: Date(),
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: nil,
+                now: Date(),
+            ),
         )
 
         // Then
@@ -123,9 +131,13 @@ internal struct SpecialPaymentListEntryFactoryTests {
         // When
         let presenter = SpecialPaymentListPresenter()
         let entry = presenter.entry(
-            occurrence: occurrence,
-            balance: nil,
-            now: Date(),
+            input: SpecialPaymentListPresenter.EntryInput(
+                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
+                definition: SpecialPaymentDefinitionDTO(from: definition),
+                categoryName: definition.category?.name,
+                balance: nil,
+                now: Date(),
+            ),
         )
 
         // Then
