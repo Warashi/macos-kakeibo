@@ -184,7 +184,7 @@ private struct SpecialPaymentFilterToolbarView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     CategoryHierarchyPicker(
-                        categories: store.categoryFilter.availableCategories,
+                        categories: store.categoryFilter.availableCategories.map { CategoryDTO(from: $0) },
                         selectedMajorCategoryId: $store.categoryFilter.selectedMajorCategoryId,
                         selectedMinorCategoryId: $store.categoryFilter.selectedMinorCategoryId,
                         majorPlaceholder: "すべて",

@@ -55,6 +55,7 @@ internal struct BudgetView: View {
                                     year: store.currentYear,
                                     config: store.annualBudgetConfig,
                                     usage: store.annualBudgetUsage,
+                                    categories: store.selectableCategories,
                                     onEdit: presentAnnualEditor,
                                 )
 
@@ -75,6 +76,7 @@ internal struct BudgetView: View {
                                     year: store.currentYear,
                                     config: store.annualBudgetConfig,
                                     usage: store.annualBudgetUsage,
+                                    categories: store.selectableCategories,
                                     onEdit: presentAnnualEditor,
                                 )
 
@@ -185,13 +187,16 @@ internal struct BudgetView: View {
 private extension BudgetView {
     func prepareStore() {
         guard store == nil else { return }
+        // ModelContext is MainActor-isolated but needs to be passed to DatabaseActor functions.
+        // This is safe because ModelContext is designed for this usage pattern in SwiftData.
+        nonisolated(unsafe) let context = modelContext
         Task {
-            let repository = await SwiftDataBudgetRepository(modelContext: modelContext)
-            let monthlyUseCase = await DefaultMonthlyBudgetUseCase()
-            let annualUseCase = await DefaultAnnualBudgetUseCase()
-            let specialPaymentUseCase = await DefaultSpecialPaymentSavingsUseCase()
+            let repository = await SwiftDataBudgetRepository(modelContext: context)
+            let monthlyUseCase = DefaultMonthlyBudgetUseCase()
+            let annualUseCase = DefaultAnnualBudgetUseCase()
+            let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase()
             let mutationUseCase = await DefaultBudgetMutationUseCase(repository: repository)
-            store = await BudgetStore(
+            store = BudgetStore(
                 repository: repository,
                 monthlyUseCase: monthlyUseCase,
                 annualUseCase: annualUseCase,
@@ -277,9 +282,10 @@ private extension BudgetView {
 
 private extension BudgetView {
     func presentAnnualEditor() {
+        guard let store else { return }
         annualFormError = nil
-        if let config = store?.annualBudgetConfig {
-            annualFormState.load(from: config)
+        if let config = store.annualBudgetConfig {
+            annualFormState.load(from: config, categories: store.selectableCategories)
         } else {
             annualFormState.reset()
             annualFormState.ensureInitialRow()
@@ -375,8 +381,11 @@ private extension BudgetView {
             return
         }
 
+        // ModelContext is MainActor-isolated but needs to be passed to DatabaseActor functions.
+        // This is safe because ModelContext is designed for this usage pattern in SwiftData.
+        nonisolated(unsafe) let context = modelContext
         Task {
-            let repository = await SwiftDataSpecialPaymentRepository(modelContext: modelContext)
+            let repository = await SwiftDataSpecialPaymentRepository(modelContext: context)
             let specialPaymentStore = SpecialPaymentStore(repository: repository)
 
             do {
@@ -434,8 +443,11 @@ private extension BudgetView {
 
     func deletePendingSpecialPayment() {
         guard let definition = specialPaymentPendingDeletion else { return }
+        // ModelContext is MainActor-isolated but needs to be passed to DatabaseActor functions.
+        // This is safe because ModelContext is designed for this usage pattern in SwiftData.
+        nonisolated(unsafe) let context = modelContext
         Task {
-            let repository = await SwiftDataSpecialPaymentRepository(modelContext: modelContext)
+            let repository = await SwiftDataSpecialPaymentRepository(modelContext: context)
             let specialPaymentStore = SpecialPaymentStore(repository: repository)
             do {
                 try await specialPaymentStore.deleteDefinition(definitionId: definition.id)

@@ -6,8 +6,9 @@ import SwiftUI
 /// 対象年の設定と使用状況を表示します。
 internal struct AnnualBudgetPanel: View {
     internal let year: Int
-    internal let config: AnnualBudgetConfig?
+    internal let config: AnnualBudgetConfigDTO?
     internal let usage: AnnualBudgetUsage?
+    internal let categories: [CategoryDTO]
     internal let onEdit: () -> Void
 
     internal var body: some View {
@@ -122,6 +123,7 @@ internal struct AnnualBudgetPanel: View {
         return AnnualBudgetPanelContentBuilder.build(
             config: config,
             usage: usage,
+            categories: categories,
         )
     }
 }
@@ -158,9 +160,11 @@ internal struct AnnualBudgetPanelRow: Identifiable {
 
 internal enum AnnualBudgetPanelContentBuilder {
     internal static func build(
-        config: AnnualBudgetConfig,
+        config: AnnualBudgetConfigDTO,
         usage: AnnualBudgetUsage?,
+        categories: [CategoryDTO],
     ) -> AnnualBudgetPanelContent {
+        let categoryLookup = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
         let usedAmount = usage?.usedAmount ?? 0
         let remainingAmount = usage?.remainingAmount ?? (config.totalAmount - usedAmount)
         let summary = AnnualBudgetPanelSummary(
@@ -185,13 +189,15 @@ internal enum AnnualBudgetPanelContentBuilder {
             isOverall: true,
         )
 
-        let allocationRows = sortedAllocations(config.allocations).map { allocation in
-            let allocationUsage = usage?.categoryAllocations.first { $0.categoryId == allocation.category.id }
+        let allocationRows = sortedAllocations(config.allocations, categoryLookup: categoryLookup).map { allocation in
+            let allocationUsage = usage?.categoryAllocations.first { $0.categoryId == allocation.categoryId }
             let actualAmount = allocationUsage?.allocatableAmount ?? 0
             let remainingAmount = allocationUsage?.annualBudgetRemainingAmount ?? (allocation.amount - actualAmount)
+            let category = categoryLookup[allocation.categoryId]
+            let categoryName = fullName(for: category, categoryLookup: categoryLookup)
             return AnnualBudgetPanelRow(
                 id: allocation.id,
-                title: allocation.category.fullName,
+                title: categoryName,
                 policyDisplayName: (allocation.policyOverride ?? config.policy).displayName,
                 budgetAmount: allocation.amount,
                 actualAmount: actualAmount,
@@ -209,21 +215,34 @@ internal enum AnnualBudgetPanelContentBuilder {
     }
 
     private static func sortedAllocations(
-        _ allocations: [AnnualBudgetAllocation],
-    ) -> [AnnualBudgetAllocation] {
+        _ allocations: [AnnualBudgetAllocationDTO],
+        categoryLookup: [UUID: CategoryDTO],
+    ) -> [AnnualBudgetAllocationDTO] {
         allocations.sorted { lhs, rhs in
+            guard let lhsCategory = categoryLookup[lhs.categoryId],
+                  let rhsCategory = categoryLookup[rhs.categoryId] else {
+                return false
+            }
             let lhsOrder = (
-                lhs.category.parent?.displayOrder ?? lhs.category.displayOrder,
-                lhs.category.displayOrder,
-                lhs.category.fullName,
+                lhsCategory.parentId.flatMap { categoryLookup[$0]?.displayOrder } ?? lhsCategory.displayOrder,
+                lhsCategory.displayOrder,
+                fullName(for: lhsCategory, categoryLookup: categoryLookup),
             )
             let rhsOrder = (
-                rhs.category.parent?.displayOrder ?? rhs.category.displayOrder,
-                rhs.category.displayOrder,
-                rhs.category.fullName,
+                rhsCategory.parentId.flatMap { categoryLookup[$0]?.displayOrder } ?? rhsCategory.displayOrder,
+                rhsCategory.displayOrder,
+                fullName(for: rhsCategory, categoryLookup: categoryLookup),
             )
             return lhsOrder < rhsOrder
         }
+    }
+
+    private static func fullName(for category: CategoryDTO?, categoryLookup: [UUID: CategoryDTO]) -> String {
+        guard let category else { return "不明なカテゴリ" }
+        if let parentId = category.parentId, let parent = categoryLookup[parentId] {
+            return "\(parent.name) > \(category.name)"
+        }
+        return category.name
     }
 
     private static func decimalUsageRate(

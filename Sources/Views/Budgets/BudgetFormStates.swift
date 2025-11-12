@@ -97,6 +97,30 @@ internal struct AnnualBudgetFormState {
         ensureInitialRow()
     }
 
+    internal mutating func load(from config: AnnualBudgetConfigDTO, categories: [CategoryDTO]) {
+        totalAmountText = config.totalAmount.plainString
+        policy = config.policy
+        let categoryLookup = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
+        allocationRows = config.allocations.map { allocation in
+            var row = AnnualBudgetAllocationRowState(
+                id: allocation.id,
+                amountText: allocation.amount.plainString,
+                selectedPolicyOverride: allocation.policyOverride,
+            )
+            if let category = categoryLookup[allocation.categoryId] {
+                if category.isMajor {
+                    row.selectedMajorCategoryId = category.id
+                    row.selectedMinorCategoryId = nil
+                } else {
+                    row.selectedMajorCategoryId = category.parentId
+                    row.selectedMinorCategoryId = category.id
+                }
+            }
+            return row
+        }
+        ensureInitialRow()
+    }
+
     internal mutating func reset() {
         totalAmountText = ""
         policy = .automatic
