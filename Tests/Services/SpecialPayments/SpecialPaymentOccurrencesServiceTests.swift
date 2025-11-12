@@ -6,7 +6,8 @@ import Testing
 @Suite(.serialized)
 internal struct SpecialPaymentOccurrencesServiceTests {
     @Test("同期で不正な周期を検出する")
-    internal func synchronizeValidatesRecurrence() throws {
+    @DatabaseActor
+    internal func synchronizeValidatesRecurrence() async throws {
         let definition = SpecialPaymentDefinition(
             name: "不正定義",
             amount: 10000,
@@ -26,7 +27,8 @@ internal struct SpecialPaymentOccurrencesServiceTests {
     }
 
     @Test("完了処理でOccurrenceが更新され再同期が走る")
-    internal func markOccurrenceCompletedUpdatesModel() throws {
+    @DatabaseActor
+    internal func markOccurrenceCompletedUpdatesModel() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 3, day: 1))
         let occurrence = SpecialPaymentOccurrence(
             definition: SpecialPaymentDefinition(
@@ -48,7 +50,7 @@ internal struct SpecialPaymentOccurrencesServiceTests {
         )
         let service = DefaultSpecialPaymentOccurrencesService(repository: repository)
 
-        let result = try service.markOccurrenceCompleted(
+        let result = try await service.markOccurrenceCompleted(
             occurrence,
             input: OccurrenceCompletionInput(
                 actualDate: referenceDate,
@@ -64,7 +66,8 @@ internal struct SpecialPaymentOccurrencesServiceTests {
     }
 
     @Test("updateOccurrenceはステータスが変わらなければ同期をスキップする")
-    internal func updateOccurrenceSkipsSyncWhenStatusUnchanged() throws {
+    @DatabaseActor
+    internal func updateOccurrenceSkipsSyncWhenStatusUnchanged() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 7, day: 15))
         let occurrence = SpecialPaymentOccurrence(
             definition: SpecialPaymentDefinition(
@@ -86,7 +89,7 @@ internal struct SpecialPaymentOccurrencesServiceTests {
         )
         let service = DefaultSpecialPaymentOccurrencesService(repository: repository)
 
-        let summary = try service.updateOccurrence(
+        let summary = try await service.updateOccurrence(
             occurrence,
             input: OccurrenceUpdateInput(
                 status: .planned,
