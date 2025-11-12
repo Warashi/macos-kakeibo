@@ -12,9 +12,9 @@ internal struct MonthlyBudgetUseCaseTests {
             Budget(amount: 6000, category: category, year: 2025, month: 12),
         ]
         let snapshot = BudgetSnapshot(
-            budgets: budgets,
+            budgets: budgets.map { BudgetDTO(from: $0) },
             transactions: [],
-            categories: [category],
+            categories: [CategoryDTO(from: category)],
             annualBudgetConfig: nil,
             specialPaymentDefinitions: [],
             specialPaymentBalances: [],
@@ -39,9 +39,9 @@ internal struct MonthlyBudgetUseCaseTests {
             majorCategory: category,
         )
         let snapshot = BudgetSnapshot(
-            budgets: [budget],
-            transactions: [transaction],
-            categories: [category],
+            budgets: [BudgetDTO(from: budget)],
+            transactions: [TransactionDTO(from: transaction)],
+            categories: [CategoryDTO(from: category)],
             annualBudgetConfig: nil,
             specialPaymentDefinitions: [],
             specialPaymentBalances: [],
@@ -59,15 +59,14 @@ internal struct MonthlyBudgetUseCaseTests {
     @Test("全体予算エントリを計算する")
     internal func overallEntryCalculatesTotals() {
         let overallBudget = Budget(amount: 10000, year: 2025, month: 11)
+        let transaction = Transaction(
+            date: Date.from(year: 2025, month: 11, day: 1) ?? Date(),
+            title: "家賃",
+            amount: -8000,
+        )
         let snapshot = BudgetSnapshot(
-            budgets: [overallBudget],
-            transactions: [
-                Transaction(
-                    date: Date.from(year: 2025, month: 11, day: 1) ?? Date(),
-                    title: "家賃",
-                    amount: -8000,
-                ),
-            ],
+            budgets: [BudgetDTO(from: overallBudget)],
+            transactions: [TransactionDTO(from: transaction)],
             categories: [],
             annualBudgetConfig: nil,
             specialPaymentDefinitions: [],
