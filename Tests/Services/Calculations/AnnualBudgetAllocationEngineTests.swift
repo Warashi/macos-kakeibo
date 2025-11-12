@@ -20,13 +20,14 @@ internal struct AnnualBudgetAllocationEngineTests {
             Budget(amount: 50000, category: category, year: 2025, month: 1),
             Budget(amount: 50000, category: category, year: 2025, month: 2),
         ]
+        let transactions = [
+            makeTransaction(amount: -80000, year: 2025, month: 1, category: category),
+            makeTransaction(amount: -60000, year: 2025, month: 2, category: category),
+        ]
         let params = AllocationCalculationParams(
-            transactions: [
-                makeTransaction(amount: -80000, year: 2025, month: 1, category: category),
-                makeTransaction(amount: -60000, year: 2025, month: 2, category: category),
-            ],
-            budgets: budgets,
-            annualBudgetConfig: config,
+            transactions: transactions.map { TransactionDTO(from: $0) },
+            budgets: budgets.map { BudgetDTO(from: $0) },
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
         let accumulationParams = AccumulationParams(
@@ -37,9 +38,11 @@ internal struct AnnualBudgetAllocationEngineTests {
             annualBudgetConfig: config,
         )
 
+        let categories = [CategoryDTO(from: category)]
         let result = engine.accumulateCategoryAllocations(
             accumulationParams: accumulationParams,
             policyOverrides: [:],
+            categories: categories,
         )
 
         #expect(result.totalUsed == 40000)
@@ -61,14 +64,16 @@ internal struct AnnualBudgetAllocationEngineTests {
             ],
         )
 
+        let transactions = [
+            makeTransaction(amount: -30000, year: 2025, month: 3, category: major, minorCategory: minor),
+        ]
         let params = AllocationCalculationParams(
-            transactions: [
-                makeTransaction(amount: -30000, year: 2025, month: 3, category: major, minorCategory: minor),
-            ],
+            transactions: transactions.map { TransactionDTO(from: $0) },
             budgets: [],
-            annualBudgetConfig: config,
+            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
+        let categories = [CategoryDTO(from: major), CategoryDTO(from: minor)]
         let allocations = engine.calculateCategoryAllocations(
             request: MonthlyCategoryAllocationRequest(
                 params: params,
@@ -77,6 +82,7 @@ internal struct AnnualBudgetAllocationEngineTests {
                 policy: AnnualBudgetPolicy.disabled,
                 policyOverrides: [minor.id: AnnualBudgetPolicy.fullCoverage],
             ),
+            categories: categories,
         )
 
         let allocation = try #require(allocations.first)
