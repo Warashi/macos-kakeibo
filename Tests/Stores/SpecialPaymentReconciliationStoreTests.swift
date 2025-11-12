@@ -8,9 +8,9 @@ import Testing
 @MainActor
 internal struct SpecialPaymentReconciliationStoreTests {
     @Test("読み込み時に未完了のOccurrenceが優先される")
-    internal func refreshPrioritizesPendingOccurrences() throws {
+    internal func refreshPrioritizesPendingOccurrences() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let harness = try makeStore(referenceDate: referenceDate)
+        let harness = try await makeStore(referenceDate: referenceDate)
         let store = harness.store
         let context = harness.context
 
@@ -39,7 +39,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         definition.occurrences = [pending, completed]
         try context.save()
 
-        store.refresh()
+        await store.refresh()
         store.filter = .all
 
         let rows = store.filteredRows
@@ -51,9 +51,9 @@ internal struct SpecialPaymentReconciliationStoreTests {
     }
 
     @Test("候補スコアリングは金額と日付が近い取引を優先する")
-    internal func candidateScoringPrefersCloseMatches() throws {
+    internal func candidateScoringPrefersCloseMatches() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 4, day: 10))
-        let harness = try makeStore(referenceDate: referenceDate)
+        let harness = try await makeStore(referenceDate: referenceDate)
         let store = harness.store
         let context = harness.context
 
@@ -91,7 +91,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         context.insert(farMatch)
         try context.save()
 
-        store.refresh()
+        await store.refresh()
         store.selectedOccurrenceId = occurrence.id
 
         let candidates = store.candidateTransactions
@@ -101,9 +101,9 @@ internal struct SpecialPaymentReconciliationStoreTests {
     }
 
     @Test("実績保存で取引が紐付けられ完了状態になる")
-    internal func saveSelectedOccurrenceLinksTransaction() throws {
+    internal func saveSelectedOccurrenceLinksTransaction() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 2, day: 15))
-        let harness = try makeStore(referenceDate: referenceDate)
+        let harness = try await makeStore(referenceDate: referenceDate)
         let store = harness.store
         let context = harness.context
         let spy = harness.occurrencesService
@@ -133,25 +133,26 @@ internal struct SpecialPaymentReconciliationStoreTests {
         context.insert(transaction)
         try context.save()
 
-        store.refresh()
+        await store.refresh()
         store.selectedOccurrenceId = occurrence.id
         store.selectCandidate(transaction.id)
         store.actualAmountText = transaction.absoluteAmount.plainString
         store.actualDate = referenceDate
 
-        store.saveSelectedOccurrence()
+        await store.saveSelectedOccurrence()
 
         #expect(occurrence.status == .completed)
         #expect(occurrence.transaction?.id == transaction.id)
         #expect(occurrence.actualAmount == transaction.absoluteAmount)
         #expect(store.errorMessage == nil)
-        #expect(spy.markCompletionCalls.count == 1)
+        let markCompletionCalls = await spy.markCompletionCalls
+        #expect(markCompletionCalls.count == 1)
     }
 
     @Test("リンク解除で未完了に戻りサービス経由で更新される")
-    internal func unlinkSelectedOccurrenceResetsActuals() throws {
+    internal func unlinkSelectedOccurrenceResetsActuals() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let harness = try makeStore(referenceDate: referenceDate)
+        let harness = try await makeStore(referenceDate: referenceDate)
         let store = harness.store
         let context = harness.context
         let spy = harness.occurrencesService
@@ -185,28 +186,30 @@ internal struct SpecialPaymentReconciliationStoreTests {
         context.insert(transaction)
         try context.save()
 
-        store.refresh()
+        await store.refresh()
         store.selectedOccurrenceId = occurrence.id
-        store.unlinkSelectedOccurrence()
+        await store.unlinkSelectedOccurrence()
 
         #expect(occurrence.status != .completed)
         #expect(occurrence.transaction == nil)
         #expect(occurrence.actualAmount == nil)
-        #expect(spy.updateCalls.count == 1)
+        let updateCalls = await spy.updateCalls
+        #expect(updateCalls.count == 1)
         #expect(store.errorMessage == nil)
     }
 
     // MARK: - Helpers
 
-    private func makeStore(referenceDate: Date) throws -> ReconciliationStoreHarness {
+    @MainActor
+    private func makeStore(referenceDate: Date) async throws -> ReconciliationStoreHarness {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = SpecialPaymentRepositoryFactory.make(
+        let repository = await SpecialPaymentRepositoryFactory.make(
             modelContext: context,
             currentDateProvider: { referenceDate },
         )
-        let baseService = DefaultSpecialPaymentOccurrencesService(repository: repository)
-        let spyService = SpySpecialPaymentOccurrencesService(wrapping: baseService)
+        let baseService = await DefaultSpecialPaymentOccurrencesService(repository: repository)
+        let spyService = await SpySpecialPaymentOccurrencesService(wrapping: baseService)
         let store = SpecialPaymentReconciliationStore(
             repository: repository,
             transactionRepository: SwiftDataTransactionRepository(modelContext: context),

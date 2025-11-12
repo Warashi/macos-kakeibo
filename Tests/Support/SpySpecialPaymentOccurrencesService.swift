@@ -1,6 +1,7 @@
 import Foundation
 @testable import Kakeibo
 
+@DatabaseActor
 internal final class SpySpecialPaymentOccurrencesService: SpecialPaymentOccurrencesService {
     internal struct SynchronizeCall {
         internal let definitionId: UUID
