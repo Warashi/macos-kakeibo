@@ -69,7 +69,11 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
             throw RepositoryError.notFound
         }
         budget.amount = input.input.amount
-        budget.category = try category(id: input.input.categoryId)
+        if let categoryId = input.input.categoryId {
+            budget.category = try category(id: categoryId)
+        } else {
+            budget.category = nil
+        }
         budget.startYear = input.input.startYear
         budget.startMonth = input.input.startMonth
         budget.endYear = input.input.endYear

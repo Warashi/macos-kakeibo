@@ -256,7 +256,7 @@ internal struct BudgetCalculator: Sendable {
     ///   - budgetAmount: 予算額
     /// - Returns: 予算超過するか
     internal func willExceedBudget(
-        category: Category,
+        category: CategoryDTO,
         amount: Decimal,
         currentExpense: Decimal,
         budgetAmount: Decimal,

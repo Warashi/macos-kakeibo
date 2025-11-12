@@ -185,7 +185,18 @@ internal struct BudgetView: View {
 private extension BudgetView {
     func prepareStore() {
         guard store == nil else { return }
-        store = BudgetStore(modelContext: modelContext)
+        let repository = SwiftDataBudgetRepository(modelContext: modelContext)
+        let monthlyUseCase = DefaultMonthlyBudgetUseCase()
+        let annualUseCase = DefaultAnnualBudgetUseCase()
+        let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase()
+        let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
+        store = BudgetStore(
+            repository: repository,
+            monthlyUseCase: monthlyUseCase,
+            annualUseCase: annualUseCase,
+            specialPaymentUseCase: specialPaymentUseCase,
+            mutationUseCase: mutationUseCase,
+        )
     }
 }
 

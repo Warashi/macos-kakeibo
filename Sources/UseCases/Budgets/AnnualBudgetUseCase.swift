@@ -42,7 +42,11 @@ internal final class DefaultAnnualBudgetUseCase: AnnualBudgetUseCaseProtocol {
             annualBudgetConfig: config,
             filter: .default,
         )
-        return allocator.calculateAnnualBudgetUsage(params: params, upToMonth: month)
+        return allocator.calculateAnnualBudgetUsage(
+            params: params,
+            categories: snapshot.categories,
+            upToMonth: month,
+        )
     }
 
     internal func annualOverallEntry(

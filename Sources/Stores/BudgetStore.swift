@@ -60,10 +60,10 @@ internal final class BudgetStore {
     // MARK: - Cached Data
 
     /// 現在の月の予算一覧
-    internal var monthlyBudgets: [Budget] = []
+    internal var monthlyBudgets: [BudgetDTO] = []
 
     /// カテゴリ選択肢
-    internal var selectableCategories: [Category] = []
+    internal var selectableCategories: [CategoryDTO] = []
 
     /// 月次計算結果
     internal var monthlyBudgetCalculation: MonthlyBudgetCalculation
@@ -75,7 +75,7 @@ internal final class BudgetStore {
     internal var overallBudgetEntry: MonthlyBudgetEntry?
 
     /// 年次特別枠設定
-    internal var annualBudgetConfig: AnnualBudgetConfig?
+    internal var annualBudgetConfig: AnnualBudgetConfigDTO?
 
     /// 年次特別枠の使用状況
     internal var annualBudgetUsage: AnnualBudgetUsage?

@@ -244,29 +244,34 @@ internal struct TransactionAggregator: Sendable {
         transactions: [TransactionDTO],
         categories: [CategoryDTO],
     ) -> [CategorySummary] {
+        // カテゴリグループ化キー
+        struct CategoryKey: Hashable {
+            let name: String
+            let id: UUID?
+        }
+
         // カテゴリIDからカテゴリへのマップを作成
         let categoryMap = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
 
         // カテゴリごとにグループ化
-        let groupedByCategory = Dictionary(grouping: transactions) { transaction -> (String, UUID?) in
+        let groupedByCategory = Dictionary(grouping: transactions) { transaction -> CategoryKey in
             // 中項目があれば中項目のフルネーム、なければ大項目の名前、それもなければ「未分類」
             if let minorCategoryId = transaction.minorCategoryId,
                let minorCategory = categoryMap[minorCategoryId] {
                 // 親カテゴリ名を取得してフルネームを構築
                 let parentName = minorCategory.parentId.flatMap { categoryMap[$0]?.name } ?? ""
                 let fullName = parentName.isEmpty ? minorCategory.name : "\(parentName) > \(minorCategory.name)"
-                return (fullName, minorCategoryId)
+                return CategoryKey(name: fullName, id: minorCategoryId)
             } else if let majorCategoryId = transaction.majorCategoryId,
                       let majorCategory = categoryMap[majorCategoryId] {
-                return (majorCategory.name, majorCategoryId)
+                return CategoryKey(name: majorCategory.name, id: majorCategoryId)
             } else {
-                return ("未分類", nil)
+                return CategoryKey(name: "未分類", id: nil)
             }
         }
 
         // 各カテゴリの集計を計算
         return groupedByCategory.map { key, categoryTransactions in
-            let (categoryName, categoryId) = key
             let totalIncome = categoryTransactions
                 .filter(\.isIncome)
                 .reduce(Decimal.zero) { $0 + $1.amount }
@@ -276,8 +281,8 @@ internal struct TransactionAggregator: Sendable {
                 .reduce(Decimal.zero) { $0 + abs($1.amount) }
 
             return CategorySummary(
-                categoryName: categoryName,
-                categoryId: categoryId,
+                categoryName: key.name,
+                categoryId: key.id,
                 totalIncome: totalIncome,
                 totalExpense: totalExpense,
                 net: totalIncome - totalExpense,
