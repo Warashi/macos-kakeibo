@@ -57,7 +57,12 @@ internal actor CSVImporter {
     /// プレビュー済みデータをSwiftDataに取り込む
     /// - Note: @MainActor is required because ModelContext is Non-Sendable
     @MainActor
-    internal func performImport(preview: CSVImportPreview, modelContext: ModelContext) throws -> CSVImportSummary {
+    internal func performImport(
+        preview: CSVImportPreview,
+        modelContext: ModelContext,
+        batchSize: Int = 50,
+        onProgress: (@MainActor (Int, Int) -> Void)? = nil,
+    ) async throws -> CSVImportSummary {
         guard !preview.validRecords.isEmpty else {
             throw ImportError.nothingToImport
         }
@@ -65,6 +70,9 @@ internal actor CSVImporter {
         let startDate = Date()
         var state = ImportState()
         var cache = EntityCache()
+
+        let totalCount = preview.validRecords.count
+        var processedCount = 0
 
         for record in preview.validRecords {
             guard let draft = record.draft else { continue }
@@ -76,11 +84,24 @@ internal actor CSVImporter {
             } else {
                 state.updatedCount += 1
             }
+
+            processedCount += 1
+
+            // バッチごとに保存してUIスレッドを譲渡
+            if processedCount % batchSize == 0 {
+                if modelContext.hasChanges {
+                    try modelContext.save()
+                }
+                onProgress?(processedCount, totalCount)
+                await Task.yield() // メインスレッドを譲渡
+            }
         }
 
+        // 最後の残りを保存
         if modelContext.hasChanges {
             try modelContext.save()
         }
+        onProgress?(totalCount, totalCount)
 
         return CSVImportSummary(
             importedCount: state.importedCount,

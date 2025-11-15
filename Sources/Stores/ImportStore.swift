@@ -24,6 +24,7 @@ internal final class ImportStore {
     internal private(set) var statusMessage: String?
     internal private(set) var isProcessing: Bool = false
     internal private(set) var lastUpdatedAt: Date?
+    internal private(set) var importProgress: (current: Int, total: Int)?
 
     private var didManuallyEditMapping: Bool = false
 
@@ -120,6 +121,7 @@ internal final class ImportStore {
         selectedFileName = nil
         statusMessage = nil
         errorMessage = nil
+        importProgress = nil
         step = .fileSelection
         configuration = .init()
         mapping = .init()
@@ -303,12 +305,22 @@ private extension ImportStore {
         }
 
         isProcessing = true
+        importProgress = (0, preview.validRecords.count)
         statusMessage = "取り込み中..."
 
-        defer { isProcessing = false }
+        defer {
+            isProcessing = false
+            importProgress = nil
+        }
 
         do {
-            let summary = try importer.performImport(preview: preview, modelContext: modelContext)
+            let summary = try await importer.performImport(
+                preview: preview,
+                modelContext: modelContext,
+            ) { [weak self] current, total in
+                self?.importProgress = (current, total)
+                self?.statusMessage = "取り込み中... (\(current)/\(total))"
+            }
             self.summary = summary
             self.statusMessage = "取り込みが完了しました"
             self.lastUpdatedAt = Date()
