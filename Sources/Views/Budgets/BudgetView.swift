@@ -48,6 +48,7 @@ internal struct BudgetView: View {
                                     categoryEntries: store.categoryBudgetEntries,
                                     onAdd: { presentBudgetEditor(for: nil) },
                                     onEdit: { presentBudgetEditor(for: $0) },
+                                    onDuplicate: { presentBudgetEditor(forDuplicating: $0) },
                                     onDelete: { budgetPendingDeletion = $0 },
                                 )
 
@@ -228,6 +229,19 @@ private extension BudgetView {
                 defaultYear: store.currentYear,
                 defaultMonth: store.currentMonth,
             )
+        }
+        isPresentingBudgetEditor = true
+    }
+
+    func presentBudgetEditor(forDuplicating budget: BudgetDTO) {
+        guard let store else { return }
+        budgetFormError = nil
+        budgetEditorMode = .create
+        budgetFormState.load(from: budget)
+        // 期間を現在の表示月に変更
+        if let currentDate = Date.from(year: store.currentYear, month: store.currentMonth) {
+            budgetFormState.startDate = currentDate
+            budgetFormState.endDate = currentDate
         }
         isPresentingBudgetEditor = true
     }

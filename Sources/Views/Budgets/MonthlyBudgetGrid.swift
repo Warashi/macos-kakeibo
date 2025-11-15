@@ -9,6 +9,7 @@ internal struct MonthlyBudgetGrid: View {
     internal let categoryEntries: [MonthlyBudgetEntry]
     internal let onAdd: () -> Void
     internal let onEdit: (BudgetDTO) -> Void
+    internal let onDuplicate: (BudgetDTO) -> Void
     internal let onDelete: (BudgetDTO) -> Void
 
     private var rows: [MonthlyBudgetEntry] {
@@ -77,6 +78,13 @@ internal struct MonthlyBudgetGrid: View {
                                     onEdit(entry.budget)
                                 } label: {
                                     Image(systemName: "pencil")
+                                }
+                                .buttonStyle(.borderless)
+
+                                Button {
+                                    onDuplicate(entry.budget)
+                                } label: {
+                                    Image(systemName: "doc.on.doc")
                                 }
                                 .buttonStyle(.borderless)
 
