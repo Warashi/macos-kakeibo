@@ -4,6 +4,9 @@ options:
   deploymentTarget:
     macOS: "26.0"
   createIntermediateGroups: true
+  fileTypes:
+    icon:
+      file: true 
 
 packages:
   HolidayJp:
@@ -28,7 +31,7 @@ targets:
     platform: macOS
     sources:
       - Sources
-      - path: Config/Assets.xcassets
+      - path: Config/AppIcon.icon
     entitlements:
       path: Config/Kakeibo.entitlements
       properties:
