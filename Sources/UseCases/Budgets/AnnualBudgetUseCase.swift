@@ -36,11 +36,12 @@ internal final class DefaultAnnualBudgetUseCase: AnnualBudgetUseCaseProtocol {
         month: Int,
     ) -> AnnualBudgetUsage? {
         guard let config = snapshot.annualBudgetConfig else { return nil }
+        let filter = makeFilter(from: snapshot)
         let params = AllocationCalculationParams(
             transactions: snapshot.transactions,
             budgets: snapshot.budgets,
             annualBudgetConfig: config,
-            filter: .default,
+            filter: filter,
         )
         return allocator.calculateAnnualBudgetUsage(
             params: params,
@@ -66,15 +67,31 @@ internal final class DefaultAnnualBudgetUseCase: AnnualBudgetUseCaseProtocol {
 
 private extension DefaultAnnualBudgetUseCase {
     func annualProgressResult(snapshot: BudgetSnapshot, year: Int) -> AnnualBudgetProgressResult {
-        progressCalculator.calculate(
+        let filter = makeFilter(from: snapshot)
+        return progressCalculator.calculate(
             budgets: snapshot.budgets,
             transactions: snapshot.transactions,
             categories: snapshot.categories,
             year: year,
-            filter: .default,
+            filter: filter,
             excludedCategoryIds: snapshot.annualBudgetConfig?.fullCoverageCategoryIDs(
                 includingChildrenFrom: snapshot.categories,
             ) ?? [],
+        )
+    }
+
+    /// 特別支払いとリンクされた取引を除外するフィルタを作成
+    func makeFilter(from snapshot: BudgetSnapshot) -> AggregationFilter {
+        let excludedTransactionIds = Set(
+            snapshot.specialPaymentOccurrences
+                .compactMap(\.transactionId)
+        )
+        return AggregationFilter(
+            includeOnlyCalculationTarget: true,
+            excludeTransfers: true,
+            financialInstitutionId: nil,
+            categoryId: nil,
+            excludedTransactionIds: excludedTransactionIds
         )
     }
 }

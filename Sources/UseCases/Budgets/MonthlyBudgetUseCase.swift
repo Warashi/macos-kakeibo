@@ -46,14 +46,15 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
         year: Int,
         month: Int,
     ) -> MonthlyBudgetCalculation {
-        calculator.calculateMonthlyBudget(
+        let filter = makeFilter(from: snapshot)
+        return calculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
                 transactions: snapshot.transactions,
                 budgets: snapshot.budgets,
                 categories: snapshot.categories,
                 year: year,
                 month: month,
-                filter: .default,
+                filter: filter,
                 excludedCategoryIds: excludedCategoryIds(from: snapshot),
             ),
         )
@@ -141,5 +142,20 @@ private extension DefaultMonthlyBudgetUseCase {
         snapshot.annualBudgetConfig?.fullCoverageCategoryIDs(
             includingChildrenFrom: snapshot.categories,
         ) ?? [] as Set<UUID>
+    }
+
+    /// 特別支払いとリンクされた取引を除外するフィルタを作成
+    func makeFilter(from snapshot: BudgetSnapshot) -> AggregationFilter {
+        let excludedTransactionIds = Set(
+            snapshot.specialPaymentOccurrences
+                .compactMap(\.transactionId)
+        )
+        return AggregationFilter(
+            includeOnlyCalculationTarget: true,
+            excludeTransfers: true,
+            financialInstitutionId: nil,
+            categoryId: nil,
+            excludedTransactionIds: excludedTransactionIds
+        )
     }
 }
