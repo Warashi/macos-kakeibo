@@ -302,4 +302,111 @@ internal struct ScheduleServiceBasicTests {
             #expect(thirdTarget.scheduledDate.month == 1)
         }
     }
+
+    // MARK: - 終了日機能テスト
+
+    @Test("終了日が設定されている場合、その日付までのスケジュールのみ生成される")
+    internal func scheduleTargets_withEndDate() throws {
+        // 2025年1月開始、6ヶ月周期、2025年12月末で終了
+        let firstDate = try #require(Date.from(year: 2025, month: 1, day: 15))
+        let endDate = try #require(Date.from(year: 2025, month: 12, day: 31))
+        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
+
+        let definition = RecurringPaymentDefinition(
+            name: "テスト支払い（期間限定）",
+            amount: 100_000,
+            recurrenceIntervalMonths: 6,
+            firstOccurrenceDate: firstDate,
+            endDate: endDate,
+        )
+
+        let targets = service.scheduleTargets(
+            for: definition,
+            seedDate: definition.firstOccurrenceDate,
+            referenceDate: referenceDate,
+            horizonMonths: 24,
+        )
+
+        // 2025/1, 2025/7 の2件のみ生成される（2026/1は終了日を超えるため生成されない）
+        #expect(targets.count == 2)
+
+        let firstTarget = targets[0]
+        #expect(firstTarget.scheduledDate.year == 2025)
+        #expect(firstTarget.scheduledDate.month == 1)
+
+        let secondTarget = targets[1]
+        #expect(secondTarget.scheduledDate.year == 2025)
+        #expect(secondTarget.scheduledDate.month == 7)
+    }
+
+    @Test("終了日がnilの場合、無期限でスケジュール生成される")
+    internal func scheduleTargets_withoutEndDate() throws {
+        // 2025年1月開始、6ヶ月周期、終了日なし
+        let firstDate = try #require(Date.from(year: 2025, month: 1, day: 15))
+        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
+
+        let definition = RecurringPaymentDefinition(
+            name: "テスト支払い（無期限）",
+            amount: 100_000,
+            recurrenceIntervalMonths: 6,
+            firstOccurrenceDate: firstDate,
+            endDate: nil,
+        )
+
+        let targets = service.scheduleTargets(
+            for: definition,
+            seedDate: definition.firstOccurrenceDate,
+            referenceDate: referenceDate,
+            horizonMonths: 24,
+        )
+
+        // horizonMonths (24ヶ月) 分だけ生成される
+        // 2025/1, 2025/7, 2026/1, 2026/7 の4件
+        #expect(targets.count == 4)
+    }
+
+    @Test("終了日が開始日より前の場合、バリデーションエラーになる")
+    internal func validation_endDateBeforeFirstOccurrence() throws {
+        let firstDate = try #require(Date.from(year: 2025, month: 12, day: 1))
+        let endDate = try #require(Date.from(year: 2025, month: 6, day: 30))
+
+        let definition = RecurringPaymentDefinition(
+            name: "テスト支払い",
+            amount: 100_000,
+            recurrenceIntervalMonths: 6,
+            firstOccurrenceDate: firstDate,
+            endDate: endDate,
+        )
+
+        let errors = definition.validate()
+        #expect(!errors.isEmpty)
+        #expect(errors.contains { $0.contains("終了日は開始日以降") })
+    }
+
+    @Test("終了日が開始日と同じ場合、1件のみ生成される")
+    internal func scheduleTargets_endDateSameAsFirstOccurrence() throws {
+        let firstDate = try #require(Date.from(year: 2025, month: 6, day: 1))
+        let endDate = try #require(Date.from(year: 2025, month: 6, day: 1))
+        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
+
+        let definition = RecurringPaymentDefinition(
+            name: "テスト支払い（1回のみ）",
+            amount: 100_000,
+            recurrenceIntervalMonths: 12,
+            firstOccurrenceDate: firstDate,
+            endDate: endDate,
+        )
+
+        let targets = service.scheduleTargets(
+            for: definition,
+            seedDate: definition.firstOccurrenceDate,
+            referenceDate: referenceDate,
+            horizonMonths: 24,
+        )
+
+        // 開始日 = 終了日なので1件のみ
+        #expect(targets.count == 1)
+        #expect(targets[0].scheduledDate.year == 2025)
+        #expect(targets[0].scheduledDate.month == 6)
+    }
 }
