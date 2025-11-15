@@ -129,6 +129,45 @@ internal struct TransactionAggregatorTests {
         #expect(result.transactionCount == transactions.count - 1)
     }
 
+    @Test("フィルタ：特別支払いとリンクされた取引を除外")
+    internal func filter_excludeSpecialPaymentLinkedTransactions() throws {
+        // Given
+        var (transactions, categories) = createSampleTransactionsWithCategories()
+
+        // 特別支払いとリンクされた取引を追加
+        let linkedTx1 = createTransactionDTO(amount: -10000)
+        let linkedTx2 = createTransactionDTO(amount: -5000)
+        transactions.append(linkedTx1)
+        transactions.append(linkedTx2)
+
+        // 特別支払いとリンクされた取引を除外するフィルタ
+        let filter = AggregationFilter(
+            includeOnlyCalculationTarget: true,
+            excludeTransfers: true,
+            excludedTransactionIds: Set([linkedTx1.id, linkedTx2.id])
+        )
+
+        // When
+        let result = aggregator.aggregateMonthly(
+            transactions: transactions,
+            categories: categories,
+            year: 2025,
+            month: 11,
+            filter: filter,
+        )
+
+        // Then
+        // 特別支払いとリンクされた取引は集計に含まれない
+        #expect(result.transactionCount == transactions.count - 2)
+
+        // 除外された取引の金額は集計額に含まれていない
+        let expectedExpense = transactions
+            .filter { !filter.excludedTransactionIds.contains($0.id) }
+            .filter { $0.amount < 0 }
+            .reduce(Decimal.zero) { $0 + abs($1.amount) }
+        #expect(result.totalExpense == expectedExpense)
+    }
+
     // MARK: - Helper Methods
 
     private func createSampleTransactionsWithCategories() -> ([TransactionDTO], [CategoryDTO]) {
