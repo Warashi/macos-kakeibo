@@ -167,10 +167,14 @@ internal struct SpecialPaymentScheduleService {
         let safeHorizon = max(0, horizonMonths)
         let referenceStart = referenceDate.startOfMonth
 
+        // 生成開始点: firstOccurrenceDate.startOfMonth と referenceStart の早い方
+        // これにより過去の開始日を指定した場合でもその日付以降の発生を生成する
+        let generationStart = min(definition.firstOccurrenceDate.startOfMonth, referenceStart)
+
         var currentDate = safeSeed
         var iterationCount = 0
 
-        while currentDate < referenceStart, iterationCount < maxIterations {
+        while currentDate < generationStart, iterationCount < maxIterations {
             guard let next = nextOccurrence(
                 from: currentDate,
                 intervalMonths: definition.recurrenceIntervalMonths,
