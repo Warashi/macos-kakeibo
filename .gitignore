@@ -8,6 +8,7 @@
 # Info plists generated from project.yml
 /Info.plist
 /Tests/Info.plist
+/Config/Kakeibo.entitlements
 
 # Xcode user state
 *.xccheckout
