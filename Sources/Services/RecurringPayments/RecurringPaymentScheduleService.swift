@@ -189,11 +189,10 @@ internal struct RecurringPaymentScheduleService {
         let horizonEnd = calendar.date(byAdding: .month, value: safeHorizon, to: referenceStart) ?? referenceStart
 
         // 終了日が設定されている場合は、horizonEndと比較して小さい方を採用
-        let effectiveEnd: Date
-        if let endDate = definition.endDate {
-            effectiveEnd = min(horizonEnd, endDate)
+        let effectiveEnd: Date = if let endDate = definition.endDate {
+            min(horizonEnd, endDate)
         } else {
-            effectiveEnd = horizonEnd
+            horizonEnd
         }
 
         let endBoundary = max(effectiveEnd, currentDate)
