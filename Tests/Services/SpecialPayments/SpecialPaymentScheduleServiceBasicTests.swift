@@ -26,9 +26,10 @@ internal struct ScheduleServiceBasicTests {
             horizonMonths: 18,
         )
 
-        #expect(targets.count == 3)
+        #expect(targets.count == 4)
         let scheduledMonths = targets.map { ($0.scheduledDate.year, $0.scheduledDate.month) }
         let expectedMonths: [(Int, Int)] = [
+            (2024, 11),
             (2025, 5),
             (2025, 11),
             (2026, 5),
@@ -106,9 +107,10 @@ internal struct ScheduleServiceBasicTests {
 
         // maxIterations (600) に到達しても結果が返されることを確認
         #expect(!targets.isEmpty)
-        // 最初のターゲットは参照日の月初以降であることを確認
+        // 最初のターゲットは firstOccurrenceDate 以降であることを確認
+        // maxIterations による制限で firstOccurrenceDate からスキップされた位置から開始される
         let firstTarget = try #require(targets.first)
-        #expect(firstTarget.scheduledDate >= referenceDate.startOfMonth)
+        #expect(firstTarget.scheduledDate >= veryOldDate)
     }
 
     @Test("極端に大きな周期でもmaxIterationsで保護される")
@@ -256,5 +258,48 @@ internal struct ScheduleServiceBasicTests {
         let firstTarget = try #require(targets.first)
         #expect(firstTarget.scheduledDate.year == 2026)
         #expect(firstTarget.scheduledDate.month == 6)
+    }
+
+    @Test("過去の開始日を指定した場合、その日付以降の発生が生成される")
+    internal func scheduleTargets_pastStartDateGeneratesFromThatDate() throws {
+        // 6ヶ月前から開始（maxIterations の制限内）
+        let pastDate = try #require(Date.from(year: 2024, month: 7, day: 15))
+        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
+
+        let definition = SpecialPaymentDefinition(
+            name: "過去開始の支払い",
+            amount: 30000,
+            recurrenceIntervalMonths: 3,
+            firstOccurrenceDate: pastDate,
+        )
+
+        let targets = service.scheduleTargets(
+            for: definition,
+            seedDate: definition.firstOccurrenceDate,
+            referenceDate: referenceDate,
+            horizonMonths: 12,
+        )
+
+        #expect(!targets.isEmpty)
+
+        // 最初のターゲットは firstOccurrenceDate であることを確認
+        let firstTarget = try #require(targets.first)
+        #expect(firstTarget.scheduledDate.year == 2024)
+        #expect(firstTarget.scheduledDate.month == 7)
+        #expect(firstTarget.scheduledDate.day == 15)
+
+        // 過去から未来にかけて生成されることを確認
+        // 2024/7, 2024/10, 2025/1, 2025/4, ... と続く
+        #expect(targets.count >= 3)
+        if targets.count >= 2 {
+            let secondTarget = targets[1]
+            #expect(secondTarget.scheduledDate.year == 2024)
+            #expect(secondTarget.scheduledDate.month == 10)
+        }
+        if targets.count >= 3 {
+            let thirdTarget = targets[2]
+            #expect(thirdTarget.scheduledDate.year == 2025)
+            #expect(thirdTarget.scheduledDate.month == 1)
+        }
     }
 }
