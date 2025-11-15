@@ -1,8 +1,10 @@
 SCHEME=Kakeibo
 PROJECT=Kakeibo.xcodeproj
 DERIVED_DATA=build/DerivedData
+APP_NAME=$(SCHEME).app
+INSTALL_PATH=/Applications
 
-.PHONY: generate build release run lint format test clean
+.PHONY: generate build release run lint format test clean install
 
 generate:
 	xcodegen generate
@@ -45,3 +47,12 @@ test: generate
 clean:
 	rm -rf $(DERIVED_DATA)
 	rm -rf $(PROJECT)
+
+install: release
+	@echo "Installing $(APP_NAME) to $(INSTALL_PATH)..."
+	@if [ -d "$(INSTALL_PATH)/$(APP_NAME)" ]; then \
+		echo "Removing existing $(APP_NAME) from $(INSTALL_PATH)..."; \
+		rm -rf "$(INSTALL_PATH)/$(APP_NAME)"; \
+	fi
+	cp -R "$(DERIVED_DATA)/Build/Products/Release/$(APP_NAME)" "$(INSTALL_PATH)/"
+	@echo "Installation complete: $(INSTALL_PATH)/$(APP_NAME)"
