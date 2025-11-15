@@ -81,7 +81,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         )
 
         let farMatch = Transaction(
-            date: referenceDate.addingTimeInterval(60 * 60 * 24 * 30),
+            date: referenceDate.addingTimeInterval(-60 * 60 * 24 * 30),
             title: "別支出",
             amount: -170_000,
             memo: "",

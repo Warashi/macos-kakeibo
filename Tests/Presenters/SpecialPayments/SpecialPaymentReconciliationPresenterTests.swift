@@ -86,6 +86,7 @@ internal struct ReconciliationPresenterTests {
             linkedTransactionLookup: [:],
             windowDays: 30,
             limit: 5,
+            currentDate: Date.from(year: 2025, month: 12, day: 31) ?? Date(),
         )
 
         let candidates = presenter.transactionCandidates(
@@ -97,5 +98,56 @@ internal struct ReconciliationPresenterTests {
         #expect(candidates.count == 1)
         #expect(candidates.first?.transaction.id == matchingTransaction.id)
         #expect(candidates.first?.score.total ?? 0 > 0.5)
+    }
+
+    @Test("transactionCandidates excludes future transactions")
+    internal func transactionCandidates_excludesFutureTransactions() throws {
+        let presenter = SpecialPaymentReconciliationPresenter()
+        let definition = SpecialPaymentDefinition(
+            name: "保険料",
+            amount: 100_000,
+            recurrenceIntervalMonths: 12,
+            firstOccurrenceDate: Date(),
+        )
+        let occurrence = SpecialPaymentOccurrence(
+            definition: definition,
+            scheduledDate: Date.from(year: 2025, month: 6, day: 10) ?? Date(),
+            expectedAmount: 100_000,
+            status: .planned,
+        )
+
+        let pastTransaction = Transaction(
+            date: Date.from(year: 2025, month: 6, day: 5) ?? Date(),
+            title: "保険料",
+            amount: -100_000,
+        )
+
+        let futureTransaction = Transaction(
+            date: Date.from(year: 2025, month: 6, day: 20) ?? Date(),
+            title: "保険料",
+            amount: -100_000,
+        )
+
+        let definitionDTO = SpecialPaymentDefinitionDTO(from: definition)
+        let occurrenceDTO = SpecialPaymentOccurrenceDTO(from: occurrence)
+        let pastTransactionDTO = TransactionDTO(from: pastTransaction)
+        let futureTransactionDTO = TransactionDTO(from: futureTransaction)
+
+        let context = SpecialPaymentReconciliationPresenter.TransactionCandidateSearchContext(
+            transactions: [pastTransactionDTO, futureTransactionDTO],
+            linkedTransactionLookup: [:],
+            windowDays: 30,
+            limit: 5,
+            currentDate: Date.from(year: 2025, month: 6, day: 15) ?? Date(),
+        )
+
+        let candidates = presenter.transactionCandidates(
+            for: occurrenceDTO,
+            definition: definitionDTO,
+            context: context,
+        )
+
+        #expect(candidates.count == 1)
+        #expect(candidates.first?.transaction.id == pastTransaction.id)
     }
 }

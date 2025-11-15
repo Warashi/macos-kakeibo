@@ -125,6 +125,7 @@ internal struct SpecialPaymentReconciliationPresenter {
         internal let linkedTransactionLookup: [UUID: UUID]
         internal let windowDays: Int
         internal let limit: Int
+        internal let currentDate: Date
     }
 
     internal struct TransactionCandidateScore: Hashable {
@@ -299,7 +300,8 @@ internal struct SpecialPaymentReconciliationPresenter {
         let scorer = TransactionCandidateScorer(calendar: calendar, windowDays: context.windowDays)
 
         let startWindow = calendar.date(byAdding: .day, value: -context.windowDays, to: occurrence.scheduledDate)
-        let endWindow = calendar.date(byAdding: .day, value: context.windowDays, to: occurrence.scheduledDate)
+        let calculatedEndWindow = calendar.date(byAdding: .day, value: context.windowDays, to: occurrence.scheduledDate)
+        let endWindow = calculatedEndWindow.map { min($0, context.currentDate) }
 
         var candidates: [TransactionCandidate] = []
 

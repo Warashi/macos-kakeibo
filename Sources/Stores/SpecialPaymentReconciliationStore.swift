@@ -334,6 +334,7 @@ private extension SpecialPaymentReconciliationStore {
             linkedTransactionLookup: linkedTransactionLookup,
             windowDays: candidateSearchWindowDays,
             limit: candidateLimit,
+            currentDate: currentDateProvider(),
         )
         candidateTransactions = presenter.transactionCandidates(
             for: occurrence,
