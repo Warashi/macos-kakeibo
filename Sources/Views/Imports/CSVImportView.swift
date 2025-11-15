@@ -31,30 +31,35 @@ private struct CSVImportContentView: View {
 
     internal var body: some View {
         ZStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    CSVImportStepIndicator(currentStep: store.step)
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        CSVImportStepIndicator(currentStep: store.step)
 
-                    if let status = store.statusMessage {
-                        Label(status, systemImage: "info.circle")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        if let status = store.statusMessage {
+                            Label(status, systemImage: "info.circle")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        if let error = store.errorMessage {
+                            Label(error, systemImage: "exclamationmark.triangle.fill")
+                                .font(.callout)
+                                .foregroundStyle(.red)
+                        }
+
+                        stepContent
                     }
-
-                    if let error = store.errorMessage {
-                        Label(error, systemImage: "exclamationmark.triangle.fill")
-                            .font(.callout)
-                            .foregroundStyle(.red)
-                    }
-
-                    stepContent
-
-                    Divider()
-
-                    footerButtons
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .frame(maxHeight: .infinity)
+
+                Divider()
+
+                footerButtons
+                    .padding()
+                    .background(Color(nsColor: .windowBackgroundColor))
             }
             .disabled(store.isProcessing)
 
