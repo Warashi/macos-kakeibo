@@ -75,6 +75,7 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
             amount: input.amount,
             recurrenceIntervalMonths: input.recurrenceIntervalMonths,
             firstOccurrenceDate: input.firstOccurrenceDate,
+            endDate: input.endDate,
             leadTimeMonths: input.leadTimeMonths,
             category: category,
             savingStrategy: input.savingStrategy,
@@ -105,6 +106,7 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
         definition.amount = input.amount
         definition.recurrenceIntervalMonths = input.recurrenceIntervalMonths
         definition.firstOccurrenceDate = input.firstOccurrenceDate
+        definition.endDate = input.endDate
         definition.leadTimeMonths = input.leadTimeMonths
         definition.category = category
         definition.savingStrategy = input.savingStrategy

@@ -187,13 +187,26 @@ internal struct RecurringPaymentScheduleService {
         }
 
         let horizonEnd = calendar.date(byAdding: .month, value: safeHorizon, to: referenceStart) ?? referenceStart
-        let endBoundary = max(horizonEnd, currentDate)
+
+        // 終了日が設定されている場合は、horizonEndと比較して小さい方を採用
+        let effectiveEnd: Date
+        if let endDate = definition.endDate {
+            effectiveEnd = min(horizonEnd, endDate)
+        } else {
+            effectiveEnd = horizonEnd
+        }
+
+        let endBoundary = max(effectiveEnd, currentDate)
 
         var targets: [ScheduleTarget] = []
         var generationDate = currentDate
         var generationIteration = iterationCount
 
         while generationDate <= endBoundary, generationIteration < maxIterations {
+            // 終了日を超えた場合は生成を打ち切る
+            if let endDate = definition.endDate, generationDate > endDate {
+                break
+            }
             let adjustedDate = adjustDateForBusinessDay(generationDate, policy: definition.dateAdjustmentPolicy)
             targets.append(
                 ScheduleTarget(
