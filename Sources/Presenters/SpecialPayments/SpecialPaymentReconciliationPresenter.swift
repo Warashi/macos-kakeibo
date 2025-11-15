@@ -56,12 +56,7 @@ internal struct SpecialPaymentReconciliationPresenter {
         }
 
         internal var needsAttention: Bool {
-            switch status {
-            case .planned, .saving:
-                true
-            case .completed, .cancelled:
-                false
-            }
+            isOverdue
         }
 
         internal var isUpcoming: Bool {

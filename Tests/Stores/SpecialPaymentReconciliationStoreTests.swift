@@ -24,7 +24,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
 
         let pending = SpecialPaymentOccurrence(
             definition: definition,
-            scheduledDate: referenceDate,
+            scheduledDate: referenceDate.addingTimeInterval(-60 * 60 * 24),
             expectedAmount: 120_000,
             status: .planned,
         )
