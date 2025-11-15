@@ -53,6 +53,7 @@ internal final class RecurringPaymentDefinition {
     internal var amount: Decimal
     internal var recurrenceIntervalMonths: Int
     internal var firstOccurrenceDate: Date
+    internal var endDate: Date?
     internal var leadTimeMonths: Int
     internal var category: Category?
     internal var savingStrategy: RecurringPaymentSavingStrategy
@@ -73,6 +74,7 @@ internal final class RecurringPaymentDefinition {
         amount: Decimal,
         recurrenceIntervalMonths: Int,
         firstOccurrenceDate: Date,
+        endDate: Date? = nil,
         leadTimeMonths: Int = 0,
         category: Category? = nil,
         savingStrategy: RecurringPaymentSavingStrategy = .evenlyDistributed,
@@ -86,6 +88,7 @@ internal final class RecurringPaymentDefinition {
         self.amount = amount
         self.recurrenceIntervalMonths = recurrenceIntervalMonths
         self.firstOccurrenceDate = firstOccurrenceDate
+        self.endDate = endDate
         self.leadTimeMonths = leadTimeMonths
         self.category = category
         self.savingStrategy = savingStrategy
@@ -197,6 +200,12 @@ internal extension RecurringPaymentDefinition {
 
         if savingStrategy != .customMonthly, customMonthlySavingAmount != nil {
             errors.append("カスタム積立金額はカスタム積立モードでのみ使用できます")
+        }
+
+        if let endDate {
+            if endDate < firstOccurrenceDate {
+                errors.append("終了日は開始日以降を指定してください")
+            }
         }
 
         return errors
