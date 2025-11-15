@@ -82,7 +82,8 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
 
     private let lock: NSLock = NSLock()
     private var monthlyBudgetCache: [MonthlyBudgetCacheKey: MonthlyBudgetCalculation] = [:]
-    private var recurringPaymentSavingsCache: [RecurringPaymentSavingsCacheKey: [RecurringPaymentSavingsCalculation]] = [:]
+    private var recurringPaymentSavingsCache: [RecurringPaymentSavingsCacheKey: [RecurringPaymentSavingsCalculation]] =
+        [:]
     private var monthlySavingsCache: [SavingsAllocationCacheKey: Decimal] = [:]
     private var categorySavingsCache: [SavingsAllocationCacheKey: [UUID: Decimal]] = [:]
     private var metrics: StorageMetrics = StorageMetrics()

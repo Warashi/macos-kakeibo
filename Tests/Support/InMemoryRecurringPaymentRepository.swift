@@ -58,7 +58,8 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         if let statuses = query?.statusFilter, !statuses.isEmpty {
             results = results.filter { statuses.contains($0.status) }
         }
-        return results.sorted(by: { $0.scheduledDate < $1.scheduledDate }).map { RecurringPaymentOccurrenceDTO(from: $0) }
+        return results.sorted(by: { $0.scheduledDate < $1.scheduledDate })
+            .map { RecurringPaymentOccurrenceDTO(from: $0) }
     }
 
     internal func balances(query: RecurringPaymentBalanceQuery?) throws -> [RecurringPaymentSavingBalanceDTO] {

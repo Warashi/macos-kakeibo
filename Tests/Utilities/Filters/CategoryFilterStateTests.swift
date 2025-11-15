@@ -59,7 +59,7 @@ internal struct CategoryFilterStateTests {
         let selectionMinor = CategoryFilterState.Selection(
             majorCategoryId: major.id,
             minorCategoryId: minorFood.id,
-            categoryParentMap: parentMap
+            categoryParentMap: parentMap,
         )
         #expect(selectionMinor.matches(category: minorFood))
         #expect(!selectionMinor.matches(category: minorDaily))
@@ -67,7 +67,7 @@ internal struct CategoryFilterStateTests {
         let selectionMajor = CategoryFilterState.Selection(
             majorCategoryId: major.id,
             minorCategoryId: nil,
-            categoryParentMap: parentMap
+            categoryParentMap: parentMap,
         )
         #expect(selectionMajor.matches(category: minorFood))
         #expect(selectionMajor.matches(category: major))

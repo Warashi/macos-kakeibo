@@ -148,14 +148,14 @@ private extension DefaultMonthlyBudgetUseCase {
     func makeFilter(from snapshot: BudgetSnapshot) -> AggregationFilter {
         let excludedTransactionIds = Set(
             snapshot.recurringPaymentOccurrences
-                .compactMap(\.transactionId)
+                .compactMap(\.transactionId),
         )
         return AggregationFilter(
             includeOnlyCalculationTarget: true,
             excludeTransfers: true,
             financialInstitutionId: nil,
             categoryId: nil,
-            excludedTransactionIds: excludedTransactionIds
+            excludedTransactionIds: excludedTransactionIds,
         )
     }
 }

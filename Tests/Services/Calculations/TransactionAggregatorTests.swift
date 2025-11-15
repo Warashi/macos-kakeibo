@@ -144,7 +144,7 @@ internal struct TransactionAggregatorTests {
         let filter = AggregationFilter(
             includeOnlyCalculationTarget: true,
             excludeTransfers: true,
-            excludedTransactionIds: Set([linkedTx1.id, linkedTx2.id])
+            excludedTransactionIds: Set([linkedTx1.id, linkedTx2.id]),
         )
 
         // When
