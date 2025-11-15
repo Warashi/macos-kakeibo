@@ -16,9 +16,9 @@ internal struct MonthlyBudgetUseCaseTests {
             transactions: [],
             categories: [CategoryDTO(from: category)],
             annualBudgetConfig: nil,
-            specialPaymentDefinitions: [],
-            specialPaymentBalances: [],
-            specialPaymentOccurrences: [],
+            recurringPaymentDefinitions: [],
+            recurringPaymentBalances: [],
+            recurringPaymentOccurrences: [],
         )
         let useCase = DefaultMonthlyBudgetUseCase()
 
@@ -43,9 +43,9 @@ internal struct MonthlyBudgetUseCaseTests {
             transactions: [TransactionDTO(from: transaction)],
             categories: [CategoryDTO(from: category)],
             annualBudgetConfig: nil,
-            specialPaymentDefinitions: [],
-            specialPaymentBalances: [],
-            specialPaymentOccurrences: [],
+            recurringPaymentDefinitions: [],
+            recurringPaymentBalances: [],
+            recurringPaymentOccurrences: [],
         )
         let useCase = DefaultMonthlyBudgetUseCase()
 
@@ -69,9 +69,9 @@ internal struct MonthlyBudgetUseCaseTests {
             transactions: [TransactionDTO(from: transaction)],
             categories: [],
             annualBudgetConfig: nil,
-            specialPaymentDefinitions: [],
-            specialPaymentBalances: [],
-            specialPaymentOccurrences: [],
+            recurringPaymentDefinitions: [],
+            recurringPaymentBalances: [],
+            recurringPaymentOccurrences: [],
         )
         let useCase = DefaultMonthlyBudgetUseCase()
 

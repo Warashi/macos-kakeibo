@@ -4,7 +4,7 @@ import SwiftData
 
 /// 予算管理ストア
 ///
-/// 月次/年次/特別支払いモードを切り替えながら、表示状態を管理します。
+/// 月次/年次/定期支払いモードを切り替えながら、表示状態を管理します。
 @MainActor
 @Observable
 internal final class BudgetStore {
@@ -14,7 +14,7 @@ internal final class BudgetStore {
     internal enum DisplayMode: String, CaseIterable {
         case monthly = "月次"
         case annual = "年次"
-        case specialPaymentsList = "特別支払い一覧"
+        case recurringPaymentsList = "定期支払い一覧"
     }
 
     // MARK: - Dependencies
@@ -22,7 +22,7 @@ internal final class BudgetStore {
     private let repository: BudgetRepository
     private let monthlyUseCase: MonthlyBudgetUseCaseProtocol
     private let annualUseCase: AnnualBudgetUseCaseProtocol
-    private let specialPaymentUseCase: SpecialPaymentSavingsUseCaseProtocol
+    private let recurringPaymentUseCase: RecurringPaymentSavingsUseCaseProtocol
     private let mutationUseCase: BudgetMutationUseCaseProtocol
     private let currentDateProvider: () -> Date
 
@@ -87,16 +87,16 @@ internal final class BudgetStore {
     internal var annualCategoryBudgetEntries: [AnnualBudgetEntry] = []
 
     /// 月次積立金額の合計
-    internal var monthlySpecialPaymentSavingsTotal: Decimal = .zero
+    internal var monthlyRecurringPaymentSavingsTotal: Decimal = .zero
 
     /// カテゴリ別積立金額
-    internal var categorySpecialPaymentSavings: [UUID: Decimal] = [:]
+    internal var categoryRecurringPaymentSavings: [UUID: Decimal] = [:]
 
-    /// 特別支払い積立計算結果
-    internal var specialPaymentSavingsCalculations: [SpecialPaymentSavingsCalculation] = []
+    /// 定期支払い積立計算結果
+    internal var recurringPaymentSavingsCalculations: [RecurringPaymentSavingsCalculation] = []
 
-    /// 特別支払い積立の表示用エントリ
-    internal var specialPaymentSavingsEntries: [SpecialPaymentSavingsEntry] = []
+    /// 定期支払い積立の表示用エントリ
+    internal var recurringPaymentSavingsEntries: [RecurringPaymentSavingsEntry] = []
 
     // MARK: - Initialization
 
@@ -104,14 +104,14 @@ internal final class BudgetStore {
         repository: BudgetRepository,
         monthlyUseCase: MonthlyBudgetUseCaseProtocol,
         annualUseCase: AnnualBudgetUseCaseProtocol,
-        specialPaymentUseCase: SpecialPaymentSavingsUseCaseProtocol,
+        recurringPaymentUseCase: RecurringPaymentSavingsUseCaseProtocol,
         mutationUseCase: BudgetMutationUseCaseProtocol,
         currentDateProvider: @escaping () -> Date = Date.init,
     ) {
         self.repository = repository
         self.monthlyUseCase = monthlyUseCase
         self.annualUseCase = annualUseCase
-        self.specialPaymentUseCase = specialPaymentUseCase
+        self.recurringPaymentUseCase = recurringPaymentUseCase
         self.mutationUseCase = mutationUseCase
         self.currentDateProvider = currentDateProvider
 
@@ -151,7 +151,7 @@ internal extension BudgetStore {
 
         recalculateMonthlyBudgets(snapshot: snapshot)
         recalculateAnnualBudgets(snapshot: snapshot)
-        recalculateSpecialPaymentSavings(snapshot: snapshot)
+        recalculateRecurringPaymentSavings(snapshot: snapshot)
     }
 
     /// すべての計算結果を初期値にリセット
@@ -170,10 +170,10 @@ internal extension BudgetStore {
         annualBudgetUsage = nil
         annualOverallBudgetEntry = nil
         annualCategoryBudgetEntries = []
-        monthlySpecialPaymentSavingsTotal = .zero
-        categorySpecialPaymentSavings = [:]
-        specialPaymentSavingsCalculations = []
-        specialPaymentSavingsEntries = []
+        monthlyRecurringPaymentSavingsTotal = .zero
+        categoryRecurringPaymentSavings = [:]
+        recurringPaymentSavingsCalculations = []
+        recurringPaymentSavingsEntries = []
     }
 
     /// 月次予算データを再計算
@@ -219,24 +219,24 @@ internal extension BudgetStore {
         )
     }
 
-    /// 特別支払い積立データを再計算
-    private func recalculateSpecialPaymentSavings(snapshot: BudgetSnapshot) {
-        monthlySpecialPaymentSavingsTotal = specialPaymentUseCase.monthlySavingsTotal(
+    /// 定期支払い積立データを再計算
+    private func recalculateRecurringPaymentSavings(snapshot: BudgetSnapshot) {
+        monthlyRecurringPaymentSavingsTotal = recurringPaymentUseCase.monthlySavingsTotal(
             snapshot: snapshot,
             year: currentYear,
             month: currentMonth,
         )
-        categorySpecialPaymentSavings = specialPaymentUseCase.categorySavings(
+        categoryRecurringPaymentSavings = recurringPaymentUseCase.categorySavings(
             snapshot: snapshot,
             year: currentYear,
             month: currentMonth,
         )
-        specialPaymentSavingsCalculations = specialPaymentUseCase.calculations(
+        recurringPaymentSavingsCalculations = recurringPaymentUseCase.calculations(
             snapshot: snapshot,
             year: currentYear,
             month: currentMonth,
         )
-        specialPaymentSavingsEntries = specialPaymentUseCase.entries(
+        recurringPaymentSavingsEntries = recurringPaymentUseCase.entries(
             snapshot: snapshot,
             year: currentYear,
             month: currentMonth,

@@ -52,12 +52,12 @@ internal struct QueryBuilderTests {
         #expect(configs.first?.year == 2025)
     }
 
-    @Test("SpecialPaymentQueries.definitions は作成日時の降順で並ぶ")
-    internal func specialPaymentQueries_sortsDefinitions() throws {
+    @Test("RecurringPaymentQueries.definitions は作成日時の降順で並ぶ")
+    internal func recurringPaymentQueries_sortsDefinitions() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
-        let earlier = SpecialPaymentDefinition(
+        let earlier = RecurringPaymentDefinition(
             name: "古い支払い",
             amount: 10000,
             recurrenceIntervalMonths: 12,
@@ -66,7 +66,7 @@ internal struct QueryBuilderTests {
         )
         earlier.createdAt = Date(timeIntervalSince1970: 1000)
 
-        let latest = SpecialPaymentDefinition(
+        let latest = RecurringPaymentDefinition(
             name: "新しい支払い",
             amount: 20000,
             recurrenceIntervalMonths: 12,
@@ -79,7 +79,7 @@ internal struct QueryBuilderTests {
         context.insert(latest)
         try context.save()
 
-        let descriptor = SpecialPaymentQueries.definitions()
+        let descriptor = RecurringPaymentQueries.definitions()
         let definitions = try context.fetch(descriptor)
 
         #expect(definitions.first?.name == "新しい支払い")

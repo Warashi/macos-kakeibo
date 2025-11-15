@@ -47,18 +47,18 @@ internal struct MonthlyBudgetCalculation: Sendable {
     internal let categoryCalculations: [CategoryBudgetCalculation]
 }
 
-// MARK: - 特別支払い積立計算結果型
+// MARK: - 定期支払い積立計算結果型
 
-/// 特別支払い積立計算パラメータ
-internal struct SpecialPaymentSavingsCalculationInput: Sendable {
-    /// 特別支払い定義リスト（DTO）
-    internal let definitions: [SpecialPaymentDefinitionDTO]
+/// 定期支払い積立計算パラメータ
+internal struct RecurringPaymentSavingsCalculationInput: Sendable {
+    /// 定期支払い定義リスト（DTO）
+    internal let definitions: [RecurringPaymentDefinitionDTO]
 
     /// 積立残高リスト（DTO）
-    internal let balances: [SpecialPaymentSavingBalanceDTO]
+    internal let balances: [RecurringPaymentSavingBalanceDTO]
 
     /// 発生予定リスト（DTO）
-    internal let occurrences: [SpecialPaymentOccurrenceDTO]
+    internal let occurrences: [RecurringPaymentOccurrenceDTO]
 
     /// 対象年
     internal let year: Int
@@ -67,8 +67,8 @@ internal struct SpecialPaymentSavingsCalculationInput: Sendable {
     internal let month: Int
 }
 
-/// 特別支払い積立計算結果
-internal struct SpecialPaymentSavingsCalculation: Sendable {
+/// 定期支払い積立計算結果
+internal struct RecurringPaymentSavingsCalculation: Sendable {
     /// 定義ID
     internal let definitionId: UUID
 

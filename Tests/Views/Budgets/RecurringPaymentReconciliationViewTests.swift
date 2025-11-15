@@ -3,12 +3,12 @@ import SwiftData
 import SwiftUI
 import Testing
 
-@Suite("SpecialPaymentReconciliationView Tests")
+@Suite("RecurringPaymentReconciliationView Tests")
 @MainActor
-internal struct SpecialPaymentReconciliationViewTests {
+internal struct RecurringPaymentReconciliationViewTests {
     @Test("Reconciliation view can be initialized")
     internal func reconciliationViewInitialization() {
-        let view = SpecialPaymentReconciliationView()
+        let view = RecurringPaymentReconciliationView()
         let _: any View = view
     }
 
@@ -16,15 +16,15 @@ internal struct SpecialPaymentReconciliationViewTests {
     internal func contentViewInitialization() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let specialPaymentRepository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
+        let recurringPaymentRepository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
         let transactionRepository = await SwiftDataTransactionRepository(modelContext: context)
-        let occurrencesService = await DefaultSpecialPaymentOccurrencesService(repository: specialPaymentRepository)
-        let store = SpecialPaymentReconciliationStore(
-            repository: specialPaymentRepository,
+        let occurrencesService = await DefaultRecurringPaymentOccurrencesService(repository: recurringPaymentRepository)
+        let store = RecurringPaymentReconciliationStore(
+            repository: recurringPaymentRepository,
             transactionRepository: transactionRepository,
             occurrencesService: occurrencesService,
         )
-        let view = SpecialPaymentReconciliationContentView(store: store)
+        let view = RecurringPaymentReconciliationContentView(store: store)
         let _: any View = view
     }
 }

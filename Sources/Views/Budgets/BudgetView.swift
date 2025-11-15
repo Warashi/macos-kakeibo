@@ -11,20 +11,20 @@ internal struct BudgetView: View {
     @State private var isPresentingBudgetEditor: Bool = false
     @State private var isPresentingAnnualEditor: Bool = false
     @State private var isPresentingReconciliation: Bool = false
-    @State private var isPresentingSpecialPaymentEditor: Bool = false
+    @State private var isPresentingRecurringPaymentEditor: Bool = false
 
     @State private var budgetEditorMode: BudgetEditorMode = .create
     @State private var budgetFormState: BudgetEditorFormState = .init()
     @State private var annualFormState: AnnualBudgetFormState = .init()
-    @State private var specialPaymentEditorMode: SpecialPaymentEditorMode = .create
-    @State private var specialPaymentFormState: SpecialPaymentFormState = .init()
+    @State private var recurringPaymentEditorMode: RecurringPaymentEditorMode = .create
+    @State private var recurringPaymentFormState: RecurringPaymentFormState = .init()
 
     @State private var budgetFormError: String?
     @State private var annualFormError: String?
-    @State private var specialPaymentFormError: String?
+    @State private var recurringPaymentFormError: String?
 
     @State private var budgetPendingDeletion: BudgetDTO?
-    @State private var specialPaymentPendingDeletion: SpecialPaymentDefinition?
+    @State private var recurringPaymentPendingDeletion: RecurringPaymentDefinition?
     @State private var errorMessage: String?
     @State private var isShowingErrorAlert: Bool = false
 
@@ -59,10 +59,10 @@ internal struct BudgetView: View {
                                     onEdit: presentAnnualEditor,
                                 )
 
-                                BudgetSpecialPaymentSection(
-                                    onEdit: { presentSpecialPaymentEditor(for: $0) },
-                                    onDelete: { specialPaymentPendingDeletion = $0 },
-                                    onAdd: { presentSpecialPaymentEditor(for: nil) },
+                                BudgetRecurringPaymentSection(
+                                    onEdit: { presentRecurringPaymentEditor(for: $0) },
+                                    onDelete: { recurringPaymentPendingDeletion = $0 },
+                                    onAdd: { presentRecurringPaymentEditor(for: nil) },
                                 )
 
                             case .annual:
@@ -80,14 +80,14 @@ internal struct BudgetView: View {
                                     onEdit: presentAnnualEditor,
                                 )
 
-                                BudgetSpecialPaymentSection(
-                                    onEdit: { presentSpecialPaymentEditor(for: $0) },
-                                    onDelete: { specialPaymentPendingDeletion = $0 },
-                                    onAdd: { presentSpecialPaymentEditor(for: nil) },
+                                BudgetRecurringPaymentSection(
+                                    onEdit: { presentRecurringPaymentEditor(for: $0) },
+                                    onDelete: { recurringPaymentPendingDeletion = $0 },
+                                    onAdd: { presentRecurringPaymentEditor(for: nil) },
                                 )
 
-                            case .specialPaymentsList:
-                                SpecialPaymentListView()
+                            case .recurringPaymentsList:
+                                RecurringPaymentListView()
                             }
                         }
                         .padding()
@@ -127,17 +127,17 @@ internal struct BudgetView: View {
             .presentationSizing(.fitted)
         }
         .sheet(isPresented: $isPresentingReconciliation) {
-            SpecialPaymentReconciliationView()
+            RecurringPaymentReconciliationView()
         }
-        .sheet(isPresented: $isPresentingSpecialPaymentEditor) {
+        .sheet(isPresented: $isPresentingRecurringPaymentEditor) {
             if let store {
-                SpecialPaymentEditorSheet(
-                    formState: $specialPaymentFormState,
+                RecurringPaymentEditorSheet(
+                    formState: $recurringPaymentFormState,
                     categories: store.selectableCategories,
-                    mode: specialPaymentEditorMode,
-                    errorMessage: specialPaymentFormError,
-                    onCancel: dismissSpecialPaymentEditor,
-                    onSave: saveSpecialPayment,
+                    mode: recurringPaymentEditorMode,
+                    errorMessage: recurringPaymentFormError,
+                    onCancel: dismissRecurringPaymentEditor,
+                    onSave: saveRecurringPayment,
                 )
                 .frame(minWidth: 520, minHeight: 600)
                 .presentationSizing(.fitted)
@@ -157,15 +157,15 @@ internal struct BudgetView: View {
             Button("キャンセル", role: .cancel) {}
         }
         .confirmationDialog(
-            "特別支払いを削除しますか？",
+            "定期支払いを削除しますか？",
             isPresented: Binding(
-                get: { specialPaymentPendingDeletion != nil },
-                set: { if !$0 { specialPaymentPendingDeletion = nil } },
+                get: { recurringPaymentPendingDeletion != nil },
+                set: { if !$0 { recurringPaymentPendingDeletion = nil } },
             ),
             titleVisibility: .visible,
         ) {
             Button("削除", role: .destructive) {
-                deletePendingSpecialPayment()
+                deletePendingRecurringPayment()
             }
             Button("キャンセル", role: .cancel) {}
         }
@@ -197,7 +197,7 @@ private extension BudgetView {
             let repository = SwiftDataBudgetRepository(modelContext: context)
             let monthlyUseCase = DefaultMonthlyBudgetUseCase()
             let annualUseCase = DefaultAnnualBudgetUseCase()
-            let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase()
+            let recurringPaymentUseCase = DefaultRecurringPaymentSavingsUseCase()
             let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
             await MainActor.run {
                 guard store == nil else { return }
@@ -205,7 +205,7 @@ private extension BudgetView {
                     repository: repository,
                     monthlyUseCase: monthlyUseCase,
                     annualUseCase: annualUseCase,
-                    specialPaymentUseCase: specialPaymentUseCase,
+                    recurringPaymentUseCase: recurringPaymentUseCase,
                     mutationUseCase: mutationUseCase,
                 )
             }
@@ -365,48 +365,48 @@ private extension BudgetView {
 // MARK: - Special Payment Editor
 
 private extension BudgetView {
-    func presentSpecialPaymentEditor(for definition: SpecialPaymentDefinition?) {
-        specialPaymentFormError = nil
+    func presentRecurringPaymentEditor(for definition: RecurringPaymentDefinition?) {
+        recurringPaymentFormError = nil
         if let definition {
-            specialPaymentEditorMode = .edit(definition)
-            specialPaymentFormState.load(from: definition)
+            recurringPaymentEditorMode = .edit(definition)
+            recurringPaymentFormState.load(from: definition)
         } else {
-            specialPaymentEditorMode = .create
-            specialPaymentFormState.reset()
+            recurringPaymentEditorMode = .create
+            recurringPaymentFormState.reset()
         }
-        isPresentingSpecialPaymentEditor = true
+        isPresentingRecurringPaymentEditor = true
     }
 
-    func dismissSpecialPaymentEditor() {
-        isPresentingSpecialPaymentEditor = false
+    func dismissRecurringPaymentEditor() {
+        isPresentingRecurringPaymentEditor = false
     }
 
     @MainActor
-    func saveSpecialPayment() {
-        guard specialPaymentFormState.isValid else {
-            specialPaymentFormError = "入力内容を確認してください"
+    func saveRecurringPayment() {
+        guard recurringPaymentFormState.isValid else {
+            recurringPaymentFormError = "入力内容を確認してください"
             return
         }
 
-        guard let amount = specialPaymentFormState.decimalAmount else {
-            specialPaymentFormError = "金額を正しく入力してください"
+        guard let amount = recurringPaymentFormState.decimalAmount else {
+            recurringPaymentFormError = "金額を正しく入力してください"
             return
         }
 
-        let input = SpecialPaymentDefinitionInput(
-            name: specialPaymentFormState.nameText.trimmingCharacters(in: .whitespacesAndNewlines),
-            notes: specialPaymentFormState.notesText,
+        let input = RecurringPaymentDefinitionInput(
+            name: recurringPaymentFormState.nameText.trimmingCharacters(in: .whitespacesAndNewlines),
+            notes: recurringPaymentFormState.notesText,
             amount: amount,
-            recurrenceIntervalMonths: specialPaymentFormState.recurrenceIntervalMonths,
-            firstOccurrenceDate: specialPaymentFormState.firstOccurrenceDate,
-            leadTimeMonths: specialPaymentFormState.leadTimeMonths,
-            categoryId: specialPaymentFormState.selectedCategoryId,
-            savingStrategy: specialPaymentFormState.savingStrategy,
-            customMonthlySavingAmount: specialPaymentFormState.customMonthlySavingAmount,
-            dateAdjustmentPolicy: specialPaymentFormState.dateAdjustmentPolicy,
-            recurrenceDayPattern: specialPaymentFormState.recurrenceDayPattern,
+            recurrenceIntervalMonths: recurringPaymentFormState.recurrenceIntervalMonths,
+            firstOccurrenceDate: recurringPaymentFormState.firstOccurrenceDate,
+            leadTimeMonths: recurringPaymentFormState.leadTimeMonths,
+            categoryId: recurringPaymentFormState.selectedCategoryId,
+            savingStrategy: recurringPaymentFormState.savingStrategy,
+            customMonthlySavingAmount: recurringPaymentFormState.customMonthlySavingAmount,
+            dateAdjustmentPolicy: recurringPaymentFormState.dateAdjustmentPolicy,
+            recurrenceDayPattern: recurringPaymentFormState.recurrenceDayPattern,
         )
-        let editorMode = specialPaymentEditorMode
+        let editorMode = recurringPaymentEditorMode
         let editDefinitionId: UUID? = {
             if case let .edit(definition) = editorMode {
                 return definition.id
@@ -425,34 +425,34 @@ private extension BudgetView {
                 return
             }
             let context = ModelContext(container)
-            let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
-            let specialPaymentStore = SpecialPaymentStore(repository: repository)
+            let repository = SwiftDataRecurringPaymentRepository(modelContext: context)
+            let recurringPaymentStore = RecurringPaymentStore(repository: repository)
 
             do {
                 if isCreateMode {
-                    try await specialPaymentStore.createDefinition(input)
+                    try await recurringPaymentStore.createDefinition(input)
                 } else if let definitionId = editDefinitionId {
-                    try await specialPaymentStore.updateDefinition(definitionId: definitionId, input: input)
+                    try await recurringPaymentStore.updateDefinition(definitionId: definitionId, input: input)
                 } else {
                     await MainActor.run {
-                        specialPaymentFormError = "編集対象が不明です"
+                        recurringPaymentFormError = "編集対象が不明です"
                     }
                     return
                 }
                 await MainActor.run {
-                    isPresentingSpecialPaymentEditor = false
+                    isPresentingRecurringPaymentEditor = false
                 }
-            } catch SpecialPaymentDomainError.categoryNotFound {
+            } catch RecurringPaymentDomainError.categoryNotFound {
                 await MainActor.run {
-                    specialPaymentFormError = "選択したカテゴリが見つかりませんでした"
+                    recurringPaymentFormError = "選択したカテゴリが見つかりませんでした"
                 }
-            } catch let SpecialPaymentDomainError.validationFailed(errors) {
+            } catch let RecurringPaymentDomainError.validationFailed(errors) {
                 await MainActor.run {
-                    specialPaymentFormError = errors.joined(separator: "\n")
+                    recurringPaymentFormError = errors.joined(separator: "\n")
                 }
             } catch {
                 await MainActor.run {
-                    showError(message: "特別支払いの保存に失敗しました: \(error.localizedDescription)")
+                    showError(message: "定期支払いの保存に失敗しました: \(error.localizedDescription)")
                 }
             }
         }
@@ -475,8 +475,8 @@ private extension BudgetView {
     }
 
     @MainActor
-    func deletePendingSpecialPayment() {
-        guard let definition = specialPaymentPendingDeletion else { return }
+    func deletePendingRecurringPayment() {
+        guard let definition = recurringPaymentPendingDeletion else { return }
         let definitionId = definition.id
         Task { @DatabaseActor in
             guard let container = await MainActor.run(body: { modelContainer }) else {
@@ -484,17 +484,17 @@ private extension BudgetView {
                 return
             }
             let context = ModelContext(container)
-            let repository = SwiftDataSpecialPaymentRepository(modelContext: context)
-            let specialPaymentStore = SpecialPaymentStore(repository: repository)
+            let repository = SwiftDataRecurringPaymentRepository(modelContext: context)
+            let recurringPaymentStore = RecurringPaymentStore(repository: repository)
             do {
-                try await specialPaymentStore.deleteDefinition(definitionId: definitionId)
+                try await recurringPaymentStore.deleteDefinition(definitionId: definitionId)
             } catch {
                 await MainActor.run {
-                    showError(message: "特別支払いの削除に失敗しました: \(error.localizedDescription)")
+                    showError(message: "定期支払いの削除に失敗しました: \(error.localizedDescription)")
                 }
             }
             await MainActor.run {
-                specialPaymentPendingDeletion = nil
+                recurringPaymentPendingDeletion = nil
             }
         }
     }

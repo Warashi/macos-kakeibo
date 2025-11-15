@@ -129,18 +129,18 @@ internal struct TransactionAggregatorTests {
         #expect(result.transactionCount == transactions.count - 1)
     }
 
-    @Test("フィルタ：特別支払いとリンクされた取引を除外")
-    internal func filter_excludeSpecialPaymentLinkedTransactions() throws {
+    @Test("フィルタ：定期支払いとリンクされた取引を除外")
+    internal func filter_excludeRecurringPaymentLinkedTransactions() throws {
         // Given
         var (transactions, categories) = createSampleTransactionsWithCategories()
 
-        // 特別支払いとリンクされた取引を追加
+        // 定期支払いとリンクされた取引を追加
         let linkedTx1 = createTransactionDTO(amount: -10000)
         let linkedTx2 = createTransactionDTO(amount: -5000)
         transactions.append(linkedTx1)
         transactions.append(linkedTx2)
 
-        // 特別支払いとリンクされた取引を除外するフィルタ
+        // 定期支払いとリンクされた取引を除外するフィルタ
         let filter = AggregationFilter(
             includeOnlyCalculationTarget: true,
             excludeTransfers: true,
@@ -157,7 +157,7 @@ internal struct TransactionAggregatorTests {
         )
 
         // Then
-        // 特別支払いとリンクされた取引は集計に含まれない
+        // 定期支払いとリンクされた取引は集計に含まれない
         #expect(result.transactionCount == transactions.count - 2)
 
         // 除外された取引の金額は集計額に含まれていない

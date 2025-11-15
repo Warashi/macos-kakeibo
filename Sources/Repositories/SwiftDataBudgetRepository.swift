@@ -4,15 +4,15 @@ import SwiftData
 @DatabaseActor
 internal final class SwiftDataBudgetRepository: BudgetRepository {
     private let modelContext: ModelContext
-    private let specialPaymentRepository: SpecialPaymentRepository
+    private let recurringPaymentRepository: RecurringPaymentRepository
 
     internal init(
         modelContext: ModelContext,
-        specialPaymentRepository: SpecialPaymentRepository? = nil,
+        recurringPaymentRepository: RecurringPaymentRepository? = nil,
     ) {
         self.modelContext = modelContext
-        self.specialPaymentRepository = specialPaymentRepository
-            ?? SpecialPaymentRepositoryFactory.make(modelContext: modelContext)
+        self.recurringPaymentRepository = recurringPaymentRepository
+            ?? RecurringPaymentRepositoryFactory.make(modelContext: modelContext)
     }
 
     internal func fetchSnapshot(for year: Int) throws -> BudgetSnapshot {
@@ -30,9 +30,9 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         }
 
         let categories = try modelContext.fetch(CategoryQueries.sortedForDisplay())
-        let definitions = try specialPaymentRepository.definitions(filter: nil)
-        let balances = try specialPaymentRepository.balances(query: nil)
-        let occurrences = try specialPaymentRepository.occurrences(query: nil)
+        let definitions = try recurringPaymentRepository.definitions(filter: nil)
+        let balances = try recurringPaymentRepository.balances(query: nil)
+        let occurrences = try recurringPaymentRepository.occurrences(query: nil)
         let config = try modelContext.fetch(BudgetQueries.annualConfig(for: year)).first
 
         // SwiftDataモデルをDTOに変換
@@ -46,9 +46,9 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
             transactions: transactionDTOs,
             categories: categoryDTOs,
             annualBudgetConfig: configDTO,
-            specialPaymentDefinitions: definitions,
-            specialPaymentBalances: balances,
-            specialPaymentOccurrences: occurrences,
+            recurringPaymentDefinitions: definitions,
+            recurringPaymentBalances: balances,
+            recurringPaymentOccurrences: occurrences,
         )
     }
 

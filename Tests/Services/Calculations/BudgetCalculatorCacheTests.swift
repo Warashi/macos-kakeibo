@@ -79,16 +79,16 @@ internal struct BudgetCalculatorCacheTests {
         #expect(metrics.monthlyBudgetMisses == 2)
     }
 
-    @Test("特別支払い積立計算のキャッシュヒットを測定する")
-    internal func specialPaymentSavingsCaching() throws {
+    @Test("定期支払い積立計算のキャッシュヒットを測定する")
+    internal func recurringPaymentSavingsCaching() throws {
         let calculator = BudgetCalculator()
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 60000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 5) ?? Date(),
         )
-        let balance = SpecialPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 20000,
             totalPaidAmount: 10000,
@@ -96,32 +96,32 @@ internal struct BudgetCalculatorCacheTests {
             lastUpdatedMonth: 12,
         )
 
-        let input = SpecialPaymentSavingsCalculationInput(
-            definitions: [SpecialPaymentDefinitionDTO(from: definition)],
-            balances: [SpecialPaymentSavingBalanceDTO(from: balance)],
+        let input = RecurringPaymentSavingsCalculationInput(
+            definitions: [RecurringPaymentDefinitionDTO(from: definition)],
+            balances: [RecurringPaymentSavingBalanceDTO(from: balance)],
             occurrences: [],
             year: 2025,
             month: 4,
         )
 
-        _ = calculator.calculateSpecialPaymentSavings(input)
-        _ = calculator.calculateSpecialPaymentSavings(input)
+        _ = calculator.calculateRecurringPaymentSavings(input)
+        _ = calculator.calculateRecurringPaymentSavings(input)
 
         let metrics = calculator.cacheMetrics()
-        #expect(metrics.specialPaymentHits == 1)
-        #expect(metrics.specialPaymentMisses == 1)
+        #expect(metrics.recurringPaymentHits == 1)
+        #expect(metrics.recurringPaymentMisses == 1)
     }
 
-    @Test("残高更新で特別支払いキャッシュが失効する")
-    internal func specialPaymentSavingsInvalidatesOnBalanceChange() throws {
+    @Test("残高更新で定期支払いキャッシュが失効する")
+    internal func recurringPaymentSavingsInvalidatesOnBalanceChange() throws {
         let calculator = BudgetCalculator()
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "家財保険",
             amount: 36000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
-        let balance = SpecialPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 12000,
             totalPaidAmount: 0,
@@ -129,29 +129,29 @@ internal struct BudgetCalculatorCacheTests {
             lastUpdatedMonth: 12,
         )
 
-        let input1 = SpecialPaymentSavingsCalculationInput(
-            definitions: [SpecialPaymentDefinitionDTO(from: definition)],
-            balances: [SpecialPaymentSavingBalanceDTO(from: balance)],
+        let input1 = RecurringPaymentSavingsCalculationInput(
+            definitions: [RecurringPaymentDefinitionDTO(from: definition)],
+            balances: [RecurringPaymentSavingBalanceDTO(from: balance)],
             occurrences: [],
             year: 2025,
             month: 1,
         )
 
-        _ = calculator.calculateSpecialPaymentSavings(input1)
+        _ = calculator.calculateRecurringPaymentSavings(input1)
 
         balance.updatedAt = Date().addingTimeInterval(120)
 
-        let input2 = SpecialPaymentSavingsCalculationInput(
-            definitions: [SpecialPaymentDefinitionDTO(from: definition)],
-            balances: [SpecialPaymentSavingBalanceDTO(from: balance)],
+        let input2 = RecurringPaymentSavingsCalculationInput(
+            definitions: [RecurringPaymentDefinitionDTO(from: definition)],
+            balances: [RecurringPaymentSavingBalanceDTO(from: balance)],
             occurrences: [],
             year: 2025,
             month: 1,
         )
 
-        _ = calculator.calculateSpecialPaymentSavings(input2)
+        _ = calculator.calculateRecurringPaymentSavings(input2)
 
         let metrics = calculator.cacheMetrics()
-        #expect(metrics.specialPaymentMisses == 2)
+        #expect(metrics.recurringPaymentMisses == 2)
     }
 }

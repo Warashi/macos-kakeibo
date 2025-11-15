@@ -2,14 +2,14 @@ import Foundation
 import SwiftData
 
 @DatabaseActor
-internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository {
+internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
     private let modelContext: ModelContext
-    private let scheduleService: SpecialPaymentScheduleService
+    private let scheduleService: RecurringPaymentScheduleService
     private let currentDateProvider: () -> Date
 
     internal init(
         modelContext: ModelContext,
-        scheduleService: SpecialPaymentScheduleService = SpecialPaymentScheduleService(),
+        scheduleService: RecurringPaymentScheduleService = RecurringPaymentScheduleService(),
         currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         self.modelContext = modelContext
@@ -17,8 +17,8 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         self.currentDateProvider = currentDateProvider
     }
 
-    internal func definitions(filter: SpecialPaymentDefinitionFilter?) throws -> [SpecialPaymentDefinitionDTO] {
-        let descriptor = SpecialPaymentQueries.definitions(
+    internal func definitions(filter: RecurringPaymentDefinitionFilter?) throws -> [RecurringPaymentDefinitionDTO] {
+        let descriptor = RecurringPaymentQueries.definitions(
             predicate: definitionPredicate(for: filter),
         )
 
@@ -36,11 +36,11 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
             }
         }
 
-        return results.map { SpecialPaymentDefinitionDTO(from: $0) }
+        return results.map { RecurringPaymentDefinitionDTO(from: $0) }
     }
 
-    internal func occurrences(query: SpecialPaymentOccurrenceQuery?) throws -> [SpecialPaymentOccurrenceDTO] {
-        let descriptor = SpecialPaymentQueries.occurrences(
+    internal func occurrences(query: RecurringPaymentOccurrenceQuery?) throws -> [RecurringPaymentOccurrenceDTO] {
+        let descriptor = RecurringPaymentQueries.occurrences(
             predicate: occurrencePredicate(for: query),
         )
 
@@ -54,22 +54,22 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
             results = results.filter { definitionIds.contains($0.definition.id) }
         }
 
-        return results.map { SpecialPaymentOccurrenceDTO(from: $0) }
+        return results.map { RecurringPaymentOccurrenceDTO(from: $0) }
     }
 
-    internal func balances(query: SpecialPaymentBalanceQuery?) throws -> [SpecialPaymentSavingBalanceDTO] {
-        let descriptor = SpecialPaymentQueries.balances(
+    internal func balances(query: RecurringPaymentBalanceQuery?) throws -> [RecurringPaymentSavingBalanceDTO] {
+        let descriptor = RecurringPaymentQueries.balances(
             predicate: balancePredicate(for: query),
         )
 
-        return try modelContext.fetch(descriptor).map { SpecialPaymentSavingBalanceDTO(from: $0) }
+        return try modelContext.fetch(descriptor).map { RecurringPaymentSavingBalanceDTO(from: $0) }
     }
 
     @discardableResult
-    internal func createDefinition(_ input: SpecialPaymentDefinitionInput) throws -> UUID {
+    internal func createDefinition(_ input: RecurringPaymentDefinitionInput) throws -> UUID {
         let category = try resolvedCategory(id: input.categoryId)
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: input.name,
             notes: input.notes,
             amount: input.amount,
@@ -85,7 +85,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
         let errors = definition.validate()
         guard errors.isEmpty else {
-            throw SpecialPaymentDomainError.validationFailed(errors)
+            throw RecurringPaymentDomainError.validationFailed(errors)
         }
 
         modelContext.insert(definition)
@@ -95,7 +95,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
     internal func updateDefinition(
         definitionId: UUID,
-        input: SpecialPaymentDefinitionInput,
+        input: RecurringPaymentDefinitionInput,
     ) throws {
         let definition = try findDefinition(id: definitionId)
         let category = try resolvedCategory(id: input.categoryId)
@@ -115,7 +115,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
         let errors = definition.validate()
         guard errors.isEmpty else {
-            throw SpecialPaymentDomainError.validationFailed(errors)
+            throw RecurringPaymentDomainError.validationFailed(errors)
         }
 
         try modelContext.save()
@@ -132,14 +132,14 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date? = nil,
-    ) throws -> SpecialPaymentSynchronizationSummary {
+    ) throws -> RecurringPaymentSynchronizationSummary {
         let definition = try findDefinition(id: definitionId)
 
         guard definition.recurrenceIntervalMonths > 0 else {
-            throw SpecialPaymentDomainError.invalidRecurrence
+            throw RecurringPaymentDomainError.invalidRecurrence
         }
         guard horizonMonths >= 0 else {
-            throw SpecialPaymentDomainError.invalidHorizon
+            throw RecurringPaymentDomainError.invalidHorizon
         }
 
         let now = referenceDate ?? currentDateProvider()
@@ -150,7 +150,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         )
 
         guard !plan.occurrences.isEmpty else {
-            return SpecialPaymentSynchronizationSummary(
+            return RecurringPaymentSynchronizationSummary(
                 syncedAt: now,
                 createdCount: 0,
                 updatedCount: 0,
@@ -166,7 +166,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
         try modelContext.save()
 
-        return SpecialPaymentSynchronizationSummary(
+        return RecurringPaymentSynchronizationSummary(
             syncedAt: now,
             createdCount: plan.created.count,
             updatedCount: plan.updated.count,
@@ -179,7 +179,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
-    ) throws -> SpecialPaymentSynchronizationSummary {
+    ) throws -> RecurringPaymentSynchronizationSummary {
         let occurrence = try findOccurrence(id: occurrenceId)
 
         occurrence.actualDate = input.actualDate
@@ -192,7 +192,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
         let errors = occurrence.validate()
         guard errors.isEmpty else {
-            throw SpecialPaymentDomainError.validationFailed(errors)
+            throw RecurringPaymentDomainError.validationFailed(errors)
         }
 
         try modelContext.save()
@@ -209,7 +209,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
-    ) throws -> SpecialPaymentSynchronizationSummary? {
+    ) throws -> RecurringPaymentSynchronizationSummary? {
         let occurrence = try findOccurrence(id: occurrenceId)
         let now = currentDateProvider()
         let wasCompleted = occurrence.status == .completed
@@ -225,7 +225,7 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
 
         let errors = occurrence.validate()
         guard errors.isEmpty else {
-            throw SpecialPaymentDomainError.validationFailed(errors)
+            throw RecurringPaymentDomainError.validationFailed(errors)
         }
 
         try modelContext.save()
@@ -245,26 +245,26 @@ internal final class SwiftDataSpecialPaymentRepository: SpecialPaymentRepository
         try modelContext.save()
     }
 
-    internal func findOccurrence(id: UUID) throws -> SpecialPaymentOccurrence {
-        let predicate = #Predicate<SpecialPaymentOccurrence> { occurrence in
+    internal func findOccurrence(id: UUID) throws -> RecurringPaymentOccurrence {
+        let predicate = #Predicate<RecurringPaymentOccurrence> { occurrence in
             occurrence.id == id
         }
-        let descriptor = SpecialPaymentQueries.occurrences(predicate: predicate)
+        let descriptor = RecurringPaymentQueries.occurrences(predicate: predicate)
         guard let occurrence = try modelContext.fetch(descriptor).first else {
-            throw SpecialPaymentDomainError.occurrenceNotFound
+            throw RecurringPaymentDomainError.occurrenceNotFound
         }
         return occurrence
     }
 }
 
-private extension SwiftDataSpecialPaymentRepository {
-    func findDefinition(id: UUID) throws -> SpecialPaymentDefinition {
-        let predicate = #Predicate<SpecialPaymentDefinition> { definition in
+private extension SwiftDataRecurringPaymentRepository {
+    func findDefinition(id: UUID) throws -> RecurringPaymentDefinition {
+        let predicate = #Predicate<RecurringPaymentDefinition> { definition in
             definition.id == id
         }
-        let descriptor = SpecialPaymentQueries.definitions(predicate: predicate)
+        let descriptor = RecurringPaymentQueries.definitions(predicate: predicate)
         guard let definition = try modelContext.fetch(descriptor).first else {
-            throw SpecialPaymentDomainError.definitionNotFound
+            throw RecurringPaymentDomainError.definitionNotFound
         }
         return definition
     }
@@ -275,26 +275,26 @@ private extension SwiftDataSpecialPaymentRepository {
         }
         let descriptor = FetchDescriptor<Transaction>(predicate: predicate)
         guard let transaction = try modelContext.fetch(descriptor).first else {
-            throw SpecialPaymentDomainError.validationFailed(["取引が見つかりません"])
+            throw RecurringPaymentDomainError.validationFailed(["取引が見つかりません"])
         }
         return transaction
     }
 
     func definitionPredicate(
-        for filter: SpecialPaymentDefinitionFilter?,
-    ) -> Predicate<SpecialPaymentDefinition>? {
+        for filter: RecurringPaymentDefinitionFilter?,
+    ) -> Predicate<RecurringPaymentDefinition>? {
         guard let identifiers = filter?.ids, !identifiers.isEmpty else {
             return nil
         }
 
-        return #Predicate<SpecialPaymentDefinition> { definition in
+        return #Predicate<RecurringPaymentDefinition> { definition in
             identifiers.contains(definition.id)
         }
     }
 
     func occurrencePredicate(
-        for query: SpecialPaymentOccurrenceQuery?,
-    ) -> Predicate<SpecialPaymentOccurrence>? {
+        for query: RecurringPaymentOccurrenceQuery?,
+    ) -> Predicate<RecurringPaymentOccurrence>? {
         guard let range = query?.range else {
             return nil
         }
@@ -302,19 +302,19 @@ private extension SwiftDataSpecialPaymentRepository {
         let start = range.startDate
         let end = range.endDate
 
-        return #Predicate<SpecialPaymentOccurrence> { occurrence in
+        return #Predicate<RecurringPaymentOccurrence> { occurrence in
             occurrence.scheduledDate >= start && occurrence.scheduledDate <= end
         }
     }
 
     func balancePredicate(
-        for query: SpecialPaymentBalanceQuery?,
-    ) -> Predicate<SpecialPaymentSavingBalance>? {
+        for query: RecurringPaymentBalanceQuery?,
+    ) -> Predicate<RecurringPaymentSavingBalance>? {
         guard let identifiers = query?.definitionIds, !identifiers.isEmpty else {
             return nil
         }
 
-        return #Predicate<SpecialPaymentSavingBalance> { balance in
+        return #Predicate<RecurringPaymentSavingBalance> { balance in
             identifiers.contains(balance.definition.id)
         }
     }
@@ -322,7 +322,7 @@ private extension SwiftDataSpecialPaymentRepository {
     func resolvedCategory(id: UUID?) throws -> Category? {
         guard let id else { return nil }
         guard let category = try modelContext.fetch(CategoryQueries.byId(id)).first else {
-            throw SpecialPaymentDomainError.categoryNotFound
+            throw RecurringPaymentDomainError.categoryNotFound
         }
         return category
     }

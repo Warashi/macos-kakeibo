@@ -1,7 +1,7 @@
 import Foundation
 
-/// SpecialPaymentSavingBalanceのDTO（Sendable）
-internal struct SpecialPaymentSavingBalanceDTO: Sendable {
+/// RecurringPaymentSavingBalanceのDTO（Sendable）
+internal struct RecurringPaymentSavingBalanceDTO: Sendable {
     internal let id: UUID
     internal let definitionId: UUID
     internal let totalSavedAmount: Decimal
@@ -31,7 +31,7 @@ internal struct SpecialPaymentSavingBalanceDTO: Sendable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from balance: SpecialPaymentSavingBalance) {
+    internal init(from balance: RecurringPaymentSavingBalance) {
         self.id = balance.id
         self.definitionId = balance.definition.id
         self.totalSavedAmount = balance.totalSavedAmount

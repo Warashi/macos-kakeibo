@@ -3,14 +3,14 @@ import Foundation
 import SwiftData
 import Testing
 
-@Suite("SpecialPaymentDefinition Tests")
-internal struct SpecialPaymentDefinitionTests {
-    @Test("特別支払い定義を初期化できる")
+@Suite("RecurringPaymentDefinition Tests")
+internal struct RecurringPaymentDefinitionTests {
+    @Test("定期支払い定義を初期化できる")
     internal func initializeDefinition() {
         let startDate = Date()
         let category = Category(name: "教育費")
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "学資保険",
             notes: "毎年春に支払い",
             amount: 120_000,
@@ -33,7 +33,7 @@ internal struct SpecialPaymentDefinitionTests {
 
     @Test("カスタム積立金額を設定できる")
     internal func customMonthlySavingAmount() {
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -48,7 +48,7 @@ internal struct SpecialPaymentDefinitionTests {
 
     @Test("カスタム積立金額未設定の場合バリデーションエラーになる")
     internal func customSavingValidationFailsWithoutAmount() {
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -63,7 +63,7 @@ internal struct SpecialPaymentDefinitionTests {
 
     @Test("無効な入力はすべて検知できる")
     internal func validateInvalidDefinition() {
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: " ",
             amount: 0,
             recurrenceIntervalMonths: 0,
@@ -85,7 +85,7 @@ internal struct SpecialPaymentDefinitionTests {
     @Test("次回発生日は発生リストから算出される")
     internal func nextOccurrenceDateUsesUpcomingOccurrence() {
         let startDate = Date()
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
@@ -94,12 +94,12 @@ internal struct SpecialPaymentDefinitionTests {
 
         let pastDate = Calendar.current.date(byAdding: .month, value: -2, to: Date()) ?? Date()
         let futureDate = Calendar.current.date(byAdding: .month, value: 1, to: Date()) ?? Date()
-        let occurrencePast = SpecialPaymentOccurrence(
+        let occurrencePast = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: pastDate,
             expectedAmount: 150_000,
         )
-        let occurrenceFuture = SpecialPaymentOccurrence(
+        let occurrenceFuture = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: futureDate,
             expectedAmount: 150_000,
@@ -111,10 +111,10 @@ internal struct SpecialPaymentDefinitionTests {
     }
 }
 
-@Suite("SpecialPaymentOccurrence Tests")
-internal struct SpecialPaymentOccurrenceTests {
-    private func sampleDefinition() -> SpecialPaymentDefinition {
-        SpecialPaymentDefinition(
+@Suite("RecurringPaymentOccurrence Tests")
+internal struct RecurringPaymentOccurrenceTests {
+    private func sampleDefinition() -> RecurringPaymentDefinition {
+        RecurringPaymentDefinition(
             name: "家電買い替え",
             amount: 200_000,
             recurrenceIntervalMonths: 24,
@@ -122,12 +122,12 @@ internal struct SpecialPaymentOccurrenceTests {
         )
     }
 
-    @Test("特別支払い発生を初期化できる")
+    @Test("定期支払い発生を初期化できる")
     internal func initializeOccurrence() {
         let definition = sampleDefinition()
         let scheduledDate = Date()
 
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: scheduledDate,
             expectedAmount: 200_000,
@@ -144,7 +144,7 @@ internal struct SpecialPaymentOccurrenceTests {
     @Test("remainingAmountは実績金額を差し引いて計算する")
     internal func remainingAmountCalculation() {
         let definition = sampleDefinition()
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date(),
             expectedAmount: 200_000,
@@ -158,7 +158,7 @@ internal struct SpecialPaymentOccurrenceTests {
     @Test("完了ステータスでは実績日と実績金額が必須")
     internal func completedStatusValidation() {
         let definition = sampleDefinition()
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date(),
             expectedAmount: 200_000,
@@ -177,7 +177,7 @@ internal struct SpecialPaymentOccurrenceTests {
         let context = ModelContext(container)
 
         let definition = sampleDefinition()
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date(),
             expectedAmount: 200_000,
@@ -188,7 +188,7 @@ internal struct SpecialPaymentOccurrenceTests {
 
         try context.save()
 
-        let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<RecurringPaymentDefinition> = ModelFetchFactory.make()
         let storedDefinitions = try context.fetch(descriptor)
 
         #expect(storedDefinitions.count == 1)

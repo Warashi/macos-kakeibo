@@ -3,10 +3,10 @@ import Foundation
 import Testing
 
 @Suite
-internal struct SpecialPaymentSavingsUseCaseTests {
+internal struct RecurringPaymentSavingsUseCaseTests {
     @Test("月次積立合計を算出する")
     internal func calculatesMonthlySavingsTotal() {
-        let definitionDTO = SpecialPaymentDefinitionDTO(
+        let definitionDTO = RecurringPaymentDefinitionDTO(
             id: UUID(),
             name: "自動車税",
             notes: "",
@@ -27,11 +27,11 @@ internal struct SpecialPaymentSavingsUseCaseTests {
             transactions: [],
             categories: [],
             annualBudgetConfig: nil,
-            specialPaymentDefinitions: [definitionDTO],
-            specialPaymentBalances: [],
-            specialPaymentOccurrences: [],
+            recurringPaymentDefinitions: [definitionDTO],
+            recurringPaymentBalances: [],
+            recurringPaymentOccurrences: [],
         )
-        let useCase = DefaultSpecialPaymentSavingsUseCase()
+        let useCase = DefaultRecurringPaymentSavingsUseCase()
 
         let total = useCase.monthlySavingsTotal(snapshot: snapshot, year: 2025, month: 11)
 
@@ -41,7 +41,7 @@ internal struct SpecialPaymentSavingsUseCaseTests {
     @Test("表示用エントリを生成する")
     internal func buildsEntries() throws {
         let definitionId = UUID()
-        let definitionDTO = SpecialPaymentDefinitionDTO(
+        let definitionDTO = RecurringPaymentDefinitionDTO(
             id: definitionId,
             name: "旅行",
             notes: "",
@@ -57,7 +57,7 @@ internal struct SpecialPaymentSavingsUseCaseTests {
             createdAt: Date(),
             updatedAt: Date(),
         )
-        let balanceDTO = SpecialPaymentSavingBalanceDTO(
+        let balanceDTO = RecurringPaymentSavingBalanceDTO(
             id: UUID(),
             definitionId: definitionId,
             totalSavedAmount: 30000,
@@ -72,11 +72,11 @@ internal struct SpecialPaymentSavingsUseCaseTests {
             transactions: [],
             categories: [],
             annualBudgetConfig: nil,
-            specialPaymentDefinitions: [definitionDTO],
-            specialPaymentBalances: [balanceDTO],
-            specialPaymentOccurrences: [],
+            recurringPaymentDefinitions: [definitionDTO],
+            recurringPaymentBalances: [balanceDTO],
+            recurringPaymentOccurrences: [],
         )
-        let useCase = DefaultSpecialPaymentSavingsUseCase()
+        let useCase = DefaultRecurringPaymentSavingsUseCase()
 
         let entries = useCase.entries(snapshot: snapshot, year: 2025, month: 11)
         let entry = try #require(entries.first)

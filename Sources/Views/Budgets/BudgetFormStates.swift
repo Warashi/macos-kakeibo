@@ -257,7 +257,7 @@ internal enum BudgetEditorMode {
 
 // MARK: - Special Payment Form State
 
-internal struct SpecialPaymentFormState {
+internal struct RecurringPaymentFormState {
     internal var nameText: String = ""
     internal var notesText: String = ""
     internal var amountText: String = ""
@@ -267,7 +267,7 @@ internal struct SpecialPaymentFormState {
     internal var leadTimeMonths: Int = 0
     internal var selectedMajorCategoryId: UUID?
     internal var selectedMinorCategoryId: UUID?
-    internal var savingStrategy: SpecialPaymentSavingStrategy = .evenlyDistributed
+    internal var savingStrategy: RecurringPaymentSavingStrategy = .evenlyDistributed
     internal var customMonthlySavingAmountText: String = ""
     internal var dateAdjustmentPolicy: DateAdjustmentPolicy = .none
     internal var recurrenceDayPattern: DayOfMonthPattern?
@@ -276,7 +276,7 @@ internal struct SpecialPaymentFormState {
         selectedMinorCategoryId ?? selectedMajorCategoryId
     }
 
-    internal mutating func load(from definition: SpecialPaymentDefinition) {
+    internal mutating func load(from definition: RecurringPaymentDefinition) {
         nameText = definition.name
         notesText = definition.notes
         amountText = definition.amount.plainString
@@ -370,16 +370,16 @@ internal struct SpecialPaymentFormState {
 
 // MARK: - Special Payment Editor Mode
 
-internal enum SpecialPaymentEditorMode {
+internal enum RecurringPaymentEditorMode {
     case create
-    case edit(SpecialPaymentDefinition)
+    case edit(RecurringPaymentDefinition)
 
     internal var title: String {
         switch self {
         case .create:
-            "特別支払いを追加"
+            "定期支払いを追加"
         case .edit:
-            "特別支払いを編集"
+            "定期支払いを編集"
         }
     }
 }

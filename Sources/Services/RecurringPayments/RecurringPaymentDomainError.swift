@@ -1,7 +1,7 @@
 import Foundation
 
-/// 特別支払いドメインで使用する共通エラー
-internal enum SpecialPaymentDomainError: Error, Equatable {
+/// 定期支払いドメインで使用する共通エラー
+internal enum RecurringPaymentDomainError: Error, Equatable {
     case invalidRecurrence
     case invalidHorizon
     case validationFailed([String])

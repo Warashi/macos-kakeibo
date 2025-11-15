@@ -122,14 +122,14 @@ internal struct BudgetStoreTestsAggregation {
         let calculator = BudgetCalculator()
         let monthlyUseCase = DefaultMonthlyBudgetUseCase(calculator: calculator)
         let annualUseCase = DefaultAnnualBudgetUseCase()
-        let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase(calculator: calculator)
+        let recurringPaymentUseCase = DefaultRecurringPaymentSavingsUseCase(calculator: calculator)
         let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
 
         return await BudgetStore(
             repository: repository,
             monthlyUseCase: monthlyUseCase,
             annualUseCase: annualUseCase,
-            specialPaymentUseCase: specialPaymentUseCase,
+            recurringPaymentUseCase: recurringPaymentUseCase,
             mutationUseCase: mutationUseCase,
         )
     }

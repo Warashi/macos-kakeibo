@@ -1,9 +1,9 @@
 import Foundation
 
-internal struct SpecialPaymentReconciliationPresenter {
+internal struct RecurringPaymentReconciliationPresenter {
     internal struct Presentation {
         internal let rows: [OccurrenceRow]
-        internal let occurrenceLookup: [UUID: SpecialPaymentOccurrenceDTO]
+        internal let occurrenceLookup: [UUID: RecurringPaymentOccurrenceDTO]
         internal let linkedTransactionLookup: [UUID: UUID]
     }
 
@@ -13,15 +13,15 @@ internal struct SpecialPaymentReconciliationPresenter {
         internal let categoryName: String?
         internal let scheduledDate: Date
         internal let expectedAmount: Decimal
-        internal let status: SpecialPaymentStatus
+        internal let status: RecurringPaymentStatus
         internal let recurrenceDescription: String
         internal let transactionTitle: String?
         internal let actualAmount: Decimal?
         internal let isOverdue: Bool
 
         internal init(
-            occurrence: SpecialPaymentOccurrenceDTO,
-            definition: SpecialPaymentDefinitionDTO,
+            occurrence: RecurringPaymentOccurrenceDTO,
+            definition: RecurringPaymentDefinitionDTO,
             categoryName: String?,
             transactionTitle: String?,
             referenceDate: Date,
@@ -169,8 +169,8 @@ internal struct SpecialPaymentReconciliationPresenter {
         }
 
         internal func score(
-            occurrence: SpecialPaymentOccurrenceDTO,
-            definition: SpecialPaymentDefinitionDTO,
+            occurrence: RecurringPaymentOccurrenceDTO,
+            definition: RecurringPaymentDefinitionDTO,
             transaction: TransactionDTO,
         ) -> TransactionCandidateScore {
             let expectedAmount = occurrence.expectedAmount
@@ -231,8 +231,8 @@ internal struct SpecialPaymentReconciliationPresenter {
     }
 
     internal struct PresentationInput {
-        internal let occurrences: [SpecialPaymentOccurrenceDTO]
-        internal let definitions: [UUID: SpecialPaymentDefinitionDTO]
+        internal let occurrences: [RecurringPaymentOccurrenceDTO]
+        internal let definitions: [UUID: RecurringPaymentDefinitionDTO]
         internal let categories: [UUID: String]
         internal let transactions: [UUID: String]
         internal let referenceDate: Date
@@ -245,7 +245,7 @@ internal struct SpecialPaymentReconciliationPresenter {
         let transactions = input.transactions
         let referenceDate = input.referenceDate
         var rows: [OccurrenceRow] = []
-        var occurrenceLookup: [UUID: SpecialPaymentOccurrenceDTO] = [:]
+        var occurrenceLookup: [UUID: RecurringPaymentOccurrenceDTO] = [:]
         var linkedTransactionLookup: [UUID: UUID] = [:]
 
         for occurrence in occurrences {
@@ -288,8 +288,8 @@ internal struct SpecialPaymentReconciliationPresenter {
     }
 
     internal func transactionCandidates(
-        for occurrence: SpecialPaymentOccurrenceDTO,
-        definition: SpecialPaymentDefinitionDTO,
+        for occurrence: RecurringPaymentOccurrenceDTO,
+        definition: RecurringPaymentDefinitionDTO,
         context: TransactionCandidateSearchContext,
     ) -> [TransactionCandidate] {
         let scorer = TransactionCandidateScorer(calendar: calendar, windowDays: context.windowDays)

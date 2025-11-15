@@ -3,9 +3,9 @@ import Testing
 
 @testable import Kakeibo
 
-@Suite("SpecialPaymentScheduleService Recurrence Tests")
+@Suite("RecurringPaymentScheduleService Recurrence Tests")
 internal struct ScheduleServiceRecurrenceTests {
-    private let service: SpecialPaymentScheduleService = SpecialPaymentScheduleService()
+    private let service: RecurringPaymentScheduleService = RecurringPaymentScheduleService()
 
     // MARK: - 周期バリエーションテスト
 
@@ -14,7 +14,7 @@ internal struct ScheduleServiceRecurrenceTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 15))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "四半期支払い",
             amount: 30000,
             recurrenceIntervalMonths: 3,
@@ -40,7 +40,7 @@ internal struct ScheduleServiceRecurrenceTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "1.5年周期支払い",
             amount: 100_000,
             recurrenceIntervalMonths: 18,
@@ -70,7 +70,7 @@ internal struct ScheduleServiceRecurrenceTests {
         let firstDate = try #require(Date.from(year: 2025, month: 6, day: 15))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "3年周期支払い",
             amount: 500_000,
             recurrenceIntervalMonths: 36,
@@ -96,7 +96,7 @@ internal struct ScheduleServiceRecurrenceTests {
         let firstDate = try #require(Date.from(year: 2025, month: 4, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "年次支払い",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
@@ -123,7 +123,7 @@ internal struct ScheduleServiceRecurrenceTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "隔年支払い",
             amount: 200_000,
             recurrenceIntervalMonths: 24,

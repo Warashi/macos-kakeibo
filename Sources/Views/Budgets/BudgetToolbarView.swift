@@ -40,7 +40,7 @@ internal struct BudgetToolbarView: View {
                 }
             }
 
-            Button("特別支払いの突合") {
+            Button("定期支払いの突合") {
                 isPresentingReconciliation = true
             }
         }

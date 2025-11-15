@@ -6,14 +6,14 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct SpecialPaymentListStoreInitTests {
+internal struct RecurringPaymentListStoreInitTests {
     @Test("初期化：デフォルト期間が当月〜6ヶ月後")
     internal func initialization_defaultPeriod() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
-        let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
-        let store = SpecialPaymentListStore(repository: repository)
+        let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+        let store = RecurringPaymentListStore(repository: repository)
         let now = Date()
 
         let expectedStart = Calendar.current.startOfMonth(for: now)

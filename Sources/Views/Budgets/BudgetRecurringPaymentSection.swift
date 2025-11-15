@@ -1,17 +1,17 @@
 import SwiftData
 import SwiftUI
 
-/// 予算ビューの特別支払いリストセクション
-internal struct BudgetSpecialPaymentSection: View {
+/// 予算ビューの定期支払いリストセクション
+internal struct BudgetRecurringPaymentSection: View {
     @Environment(\.modelContext) private var modelContext: ModelContext
-    internal let onEdit: (SpecialPaymentDefinition) -> Void
-    internal let onDelete: (SpecialPaymentDefinition) -> Void
+    internal let onEdit: (RecurringPaymentDefinition) -> Void
+    internal let onDelete: (RecurringPaymentDefinition) -> Void
     internal let onAdd: () -> Void
 
     internal var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("特別支払い")
+                Text("定期支払い")
                     .font(.title2.bold())
                 Spacer()
                 Button {
@@ -21,17 +21,17 @@ internal struct BudgetSpecialPaymentSection: View {
                 }
             }
 
-            if specialPaymentDefinitions.isEmpty {
+            if recurringPaymentDefinitions.isEmpty {
                 ContentUnavailableView {
-                    Label("特別支払いがありません", systemImage: "calendar.badge.exclamationmark")
+                    Label("定期支払いがありません", systemImage: "calendar.badge.exclamationmark")
                 } description: {
                     Text("定期的な大きな支払いを登録して、月次の積立計画を立てましょう。")
                 }
                 .frame(height: 200)
             } else {
                 VStack(spacing: 12) {
-                    ForEach(specialPaymentDefinitions) { definition in
-                        SpecialPaymentRow(
+                    ForEach(recurringPaymentDefinitions) { definition in
+                        RecurringPaymentRow(
                             definition: definition,
                             onEdit: { onEdit(definition) },
                             onDelete: { onDelete(definition) },
@@ -45,11 +45,11 @@ internal struct BudgetSpecialPaymentSection: View {
         .cornerRadius(10)
     }
 
-    private var specialPaymentDefinitions: [SpecialPaymentDefinition] {
-        let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make(
+    private var recurringPaymentDefinitions: [RecurringPaymentDefinition] {
+        let descriptor: ModelFetchRequest<RecurringPaymentDefinition> = ModelFetchFactory.make(
             sortBy: [
-                SortDescriptor(\SpecialPaymentDefinition.firstOccurrenceDate),
-                SortDescriptor(\SpecialPaymentDefinition.name),
+                SortDescriptor(\RecurringPaymentDefinition.firstOccurrenceDate),
+                SortDescriptor(\RecurringPaymentDefinition.name),
             ],
         )
         return (try? modelContext.fetch(descriptor)) ?? []

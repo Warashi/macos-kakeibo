@@ -1,38 +1,38 @@
 import Foundation
 import SwiftData
 
-/// 特別支払い関連のフェッチビルダー
-internal enum SpecialPaymentQueries {
+/// 定期支払い関連のフェッチビルダー
+internal enum RecurringPaymentQueries {
     internal static func definitions(
-        predicate: Predicate<SpecialPaymentDefinition>? = nil,
-    ) -> ModelFetchRequest<SpecialPaymentDefinition> {
+        predicate: Predicate<RecurringPaymentDefinition>? = nil,
+    ) -> ModelFetchRequest<RecurringPaymentDefinition> {
         ModelFetchFactory.make(
             predicate: predicate,
             sortBy: [
-                SortDescriptor(\SpecialPaymentDefinition.createdAt, order: .reverse),
+                SortDescriptor(\RecurringPaymentDefinition.createdAt, order: .reverse),
             ],
         )
     }
 
     internal static func occurrences(
-        predicate: Predicate<SpecialPaymentOccurrence>? = nil,
-    ) -> ModelFetchRequest<SpecialPaymentOccurrence> {
+        predicate: Predicate<RecurringPaymentOccurrence>? = nil,
+    ) -> ModelFetchRequest<RecurringPaymentOccurrence> {
         ModelFetchFactory.make(
             predicate: predicate,
             sortBy: [
-                SortDescriptor(\SpecialPaymentOccurrence.scheduledDate),
-                SortDescriptor(\SpecialPaymentOccurrence.createdAt),
+                SortDescriptor(\RecurringPaymentOccurrence.scheduledDate),
+                SortDescriptor(\RecurringPaymentOccurrence.createdAt),
             ],
         )
     }
 
     internal static func balances(
-        predicate: Predicate<SpecialPaymentSavingBalance>? = nil,
-    ) -> ModelFetchRequest<SpecialPaymentSavingBalance> {
+        predicate: Predicate<RecurringPaymentSavingBalance>? = nil,
+    ) -> ModelFetchRequest<RecurringPaymentSavingBalance> {
         ModelFetchFactory.make(
             predicate: predicate,
             sortBy: [
-                SortDescriptor(\SpecialPaymentSavingBalance.updatedAt, order: .reverse),
+                SortDescriptor(\RecurringPaymentSavingBalance.updatedAt, order: .reverse),
             ],
         )
     }

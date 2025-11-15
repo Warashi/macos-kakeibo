@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-internal enum SpecialPaymentRepositoryFactory {
+internal enum RecurringPaymentRepositoryFactory {
     @DatabaseActor
     internal static func make(
         modelContext: ModelContext,
@@ -9,14 +9,14 @@ internal enum SpecialPaymentRepositoryFactory {
         businessDayService: BusinessDayService? = nil,
         holidayProvider: HolidayProvider? = nil,
         currentDateProvider: @escaping () -> Date = { Date() },
-    ) -> SpecialPaymentRepository {
-        let scheduleService = SpecialPaymentScheduleService(
+    ) -> RecurringPaymentRepository {
+        let scheduleService = RecurringPaymentScheduleService(
             calendar: calendar,
             businessDayService: businessDayService,
             holidayProvider: holidayProvider,
         )
 
-        return SwiftDataSpecialPaymentRepository(
+        return SwiftDataRecurringPaymentRepository(
             modelContext: modelContext,
             scheduleService: scheduleService,
             currentDateProvider: currentDateProvider,

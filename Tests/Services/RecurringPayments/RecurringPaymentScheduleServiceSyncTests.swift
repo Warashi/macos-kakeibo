@@ -3,16 +3,16 @@ import Testing
 
 @testable import Kakeibo
 
-@Suite("SpecialPaymentScheduleService Synchronization")
-internal struct SpecialPaymentScheduleServiceSyncTests {
-    private let service: SpecialPaymentScheduleService = SpecialPaymentScheduleService()
+@Suite("RecurringPaymentScheduleService Synchronization")
+internal struct RecurringPaymentScheduleServiceSyncTests {
+    private let service: RecurringPaymentScheduleService = RecurringPaymentScheduleService()
 
     @Test("定義から将来のOccurrenceを生成する")
     internal func synchronizationPlan_createsFutureOccurrences() throws {
         let firstDate = try #require(Date.from(year: 2025, month: 4, day: 30))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -38,14 +38,14 @@ internal struct SpecialPaymentScheduleServiceSyncTests {
         let firstDate = try #require(Date.from(year: 2024, month: 10, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "車検",
             amount: 100_000,
             recurrenceIntervalMonths: 6,
             firstOccurrenceDate: firstDate,
         )
 
-        let lockedOccurrence = SpecialPaymentOccurrence(
+        let lockedOccurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: firstDate,
             expectedAmount: 100_000,
@@ -70,7 +70,7 @@ internal struct SpecialPaymentScheduleServiceSyncTests {
         let firstDate = try #require(Date.from(year: 2025, month: 6, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 4, day: 1))
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "保険料",
             amount: 50000,
             recurrenceIntervalMonths: 12,
@@ -78,7 +78,7 @@ internal struct SpecialPaymentScheduleServiceSyncTests {
             leadTimeMonths: 3,
         )
 
-        let existingOccurrence = SpecialPaymentOccurrence(
+        let existingOccurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: firstDate,
             expectedAmount: 50000,

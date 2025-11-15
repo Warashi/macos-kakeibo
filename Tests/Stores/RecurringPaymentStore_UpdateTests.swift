@@ -6,14 +6,14 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct SpecialPaymentStoreUpdateTests {
+internal struct RecurringPaymentStoreUpdateTests {
     @Test("実績更新：実績データを更新できる")
     internal func updateOccurrence_updatesActualData() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト支払い",
             amount: 50000,
             recurrenceIntervalMonths: 12,
@@ -48,7 +48,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト支払い",
             amount: 50000,
             recurrenceIntervalMonths: 6,
@@ -100,7 +100,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト支払い",
             amount: 50000,
             recurrenceIntervalMonths: 6,
@@ -136,7 +136,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト支払い",
             amount: 50000,
             recurrenceIntervalMonths: 6,
@@ -183,7 +183,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト支払い",
             amount: 50000,
             recurrenceIntervalMonths: 12,
@@ -195,7 +195,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
         let occurrence = try #require(definition.occurrences.first)
 
-        await #expect(throws: SpecialPaymentDomainError.self) {
+        await #expect(throws: RecurringPaymentDomainError.self) {
             let input = OccurrenceUpdateInput(
                 status: .completed,
                 actualDate: nil,
@@ -215,7 +215,7 @@ internal struct SpecialPaymentStoreUpdateTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let scheduledDate = try #require(Date.from(year: 2025, month: 3, day: 15))
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト支払い",
             amount: 50000,
             recurrenceIntervalMonths: 12,
@@ -229,7 +229,7 @@ internal struct SpecialPaymentStoreUpdateTests {
 
         let farActualDate = try #require(Date.from(year: 2025, month: 7, day: 1))
 
-        await #expect(throws: SpecialPaymentDomainError.self) {
+        await #expect(throws: RecurringPaymentDomainError.self) {
             let input = OccurrenceUpdateInput(
                 status: .completed,
                 actualDate: farActualDate,
@@ -245,14 +245,14 @@ internal struct SpecialPaymentStoreUpdateTests {
 
     // MARK: - Helpers
 
-    private func makeStore(referenceDate: Date) async throws -> (SpecialPaymentStore, ModelContext) {
+    private func makeStore(referenceDate: Date) async throws -> (RecurringPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await SwiftDataSpecialPaymentRepository(
+        let repository = await SwiftDataRecurringPaymentRepository(
             modelContext: context,
             currentDateProvider: { referenceDate },
         )
-        let store = SpecialPaymentStore(
+        let store = RecurringPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },
         )

@@ -16,7 +16,7 @@ internal struct BudgetDisplayModeTraits {
             .monthly
         case .annual:
             .annual
-        case .specialPaymentsList:
+        case .recurringPaymentsList:
             .hidden
         }
     }
@@ -27,7 +27,7 @@ internal struct BudgetDisplayModeTraits {
             "今月"
         case .annual:
             "今年"
-        case .specialPaymentsList:
+        case .recurringPaymentsList:
             nil
         }
     }

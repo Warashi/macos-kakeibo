@@ -1,7 +1,7 @@
 import Foundation
 
-/// SpecialPaymentDefinitionのDTO（Sendable）
-internal struct SpecialPaymentDefinitionDTO: Sendable {
+/// RecurringPaymentDefinitionのDTO（Sendable）
+internal struct RecurringPaymentDefinitionDTO: Sendable {
     internal let id: UUID
     internal let name: String
     internal let notes: String
@@ -10,7 +10,7 @@ internal struct SpecialPaymentDefinitionDTO: Sendable {
     internal let firstOccurrenceDate: Date
     internal let leadTimeMonths: Int
     internal let categoryId: UUID?
-    internal let savingStrategy: SpecialPaymentSavingStrategy
+    internal let savingStrategy: RecurringPaymentSavingStrategy
     internal let customMonthlySavingAmount: Decimal?
     internal let dateAdjustmentPolicy: DateAdjustmentPolicy
     internal let recurrenceDayPattern: DayOfMonthPattern?
@@ -26,7 +26,7 @@ internal struct SpecialPaymentDefinitionDTO: Sendable {
         firstOccurrenceDate: Date,
         leadTimeMonths: Int,
         categoryId: UUID?,
-        savingStrategy: SpecialPaymentSavingStrategy,
+        savingStrategy: RecurringPaymentSavingStrategy,
         customMonthlySavingAmount: Decimal?,
         dateAdjustmentPolicy: DateAdjustmentPolicy,
         recurrenceDayPattern: DayOfMonthPattern?,
@@ -49,7 +49,7 @@ internal struct SpecialPaymentDefinitionDTO: Sendable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from definition: SpecialPaymentDefinition) {
+    internal init(from definition: RecurringPaymentDefinition) {
         self.id = definition.id
         self.name = definition.name
         self.notes = definition.notes

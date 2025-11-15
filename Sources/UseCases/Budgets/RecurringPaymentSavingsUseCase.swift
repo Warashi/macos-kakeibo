@@ -1,6 +1,6 @@
 import Foundation
 
-internal protocol SpecialPaymentSavingsUseCaseProtocol {
+internal protocol RecurringPaymentSavingsUseCaseProtocol {
     func monthlySavingsTotal(
         snapshot: BudgetSnapshot,
         year: Int,
@@ -17,16 +17,16 @@ internal protocol SpecialPaymentSavingsUseCaseProtocol {
         snapshot: BudgetSnapshot,
         year: Int,
         month: Int,
-    ) -> [SpecialPaymentSavingsCalculation]
+    ) -> [RecurringPaymentSavingsCalculation]
 
     func entries(
         snapshot: BudgetSnapshot,
         year: Int,
         month: Int,
-    ) -> [SpecialPaymentSavingsEntry]
+    ) -> [RecurringPaymentSavingsEntry]
 }
 
-internal final class DefaultSpecialPaymentSavingsUseCase: SpecialPaymentSavingsUseCaseProtocol {
+internal final class DefaultRecurringPaymentSavingsUseCase: RecurringPaymentSavingsUseCaseProtocol {
     private let calculator: BudgetCalculator
 
     internal init(calculator: BudgetCalculator = BudgetCalculator()) {
@@ -39,7 +39,7 @@ internal final class DefaultSpecialPaymentSavingsUseCase: SpecialPaymentSavingsU
         month: Int,
     ) -> Decimal {
         calculator.calculateMonthlySavingsAllocation(
-            definitions: snapshot.specialPaymentDefinitions,
+            definitions: snapshot.recurringPaymentDefinitions,
             year: year,
             month: month,
         )
@@ -51,7 +51,7 @@ internal final class DefaultSpecialPaymentSavingsUseCase: SpecialPaymentSavingsU
         month: Int,
     ) -> [UUID: Decimal] {
         calculator.calculateCategorySavingsAllocation(
-            definitions: snapshot.specialPaymentDefinitions,
+            definitions: snapshot.recurringPaymentDefinitions,
             year: year,
             month: month,
         )
@@ -61,12 +61,12 @@ internal final class DefaultSpecialPaymentSavingsUseCase: SpecialPaymentSavingsU
         snapshot: BudgetSnapshot,
         year: Int,
         month: Int,
-    ) -> [SpecialPaymentSavingsCalculation] {
-        calculator.calculateSpecialPaymentSavings(
-            SpecialPaymentSavingsCalculationInput(
-                definitions: snapshot.specialPaymentDefinitions,
-                balances: snapshot.specialPaymentBalances,
-                occurrences: snapshot.specialPaymentOccurrences,
+    ) -> [RecurringPaymentSavingsCalculation] {
+        calculator.calculateRecurringPaymentSavings(
+            RecurringPaymentSavingsCalculationInput(
+                definitions: snapshot.recurringPaymentDefinitions,
+                balances: snapshot.recurringPaymentBalances,
+                occurrences: snapshot.recurringPaymentOccurrences,
                 year: year,
                 month: month,
             ),
@@ -77,21 +77,21 @@ internal final class DefaultSpecialPaymentSavingsUseCase: SpecialPaymentSavingsU
         snapshot: BudgetSnapshot,
         year: Int,
         month: Int,
-    ) -> [SpecialPaymentSavingsEntry] {
+    ) -> [RecurringPaymentSavingsEntry] {
         calculations(snapshot: snapshot, year: year, month: month).map { calc in
-            SpecialPaymentSavingsEntry(
+            RecurringPaymentSavingsEntry(
                 calculation: calc,
-                progress: progress(for: calc, definitions: snapshot.specialPaymentDefinitions),
+                progress: progress(for: calc, definitions: snapshot.recurringPaymentDefinitions),
                 hasAlert: calc.balance < 0,
             )
         }
     }
 }
 
-private extension DefaultSpecialPaymentSavingsUseCase {
+private extension DefaultRecurringPaymentSavingsUseCase {
     func progress(
-        for calculation: SpecialPaymentSavingsCalculation,
-        definitions: [SpecialPaymentDefinitionDTO],
+        for calculation: RecurringPaymentSavingsCalculation,
+        definitions: [RecurringPaymentDefinitionDTO],
     ) -> Double {
         guard let definition = definitions.first(where: { $0.id == calculation.definitionId }) else {
             return 0

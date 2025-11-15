@@ -1,6 +1,6 @@
 import Foundation
 
-internal enum SpecialPaymentListSortOrder {
+internal enum RecurringPaymentListSortOrder {
     case dateAscending
     case dateDescending
     case nameAscending
@@ -9,14 +9,14 @@ internal enum SpecialPaymentListSortOrder {
     case amountDescending
 }
 
-internal struct SpecialPaymentListFilter {
+internal struct RecurringPaymentListFilter {
     internal let dateRange: DateRange
     internal let searchText: SearchText
     internal let categoryFilter: CategoryFilterState.Selection
-    internal let sortOrder: SpecialPaymentListSortOrder
+    internal let sortOrder: RecurringPaymentListSortOrder
 }
 
-internal struct SpecialPaymentListPresenter {
+internal struct RecurringPaymentListPresenter {
     private let calendar: Calendar
 
     internal init(calendar: Calendar = Calendar(identifier: .gregorian)) {
@@ -24,22 +24,22 @@ internal struct SpecialPaymentListPresenter {
     }
 
     internal struct EntriesInput {
-        internal let occurrences: [SpecialPaymentOccurrenceDTO]
-        internal let definitions: [UUID: SpecialPaymentDefinitionDTO]
-        internal let balances: [UUID: SpecialPaymentSavingBalanceDTO]
+        internal let occurrences: [RecurringPaymentOccurrenceDTO]
+        internal let definitions: [UUID: RecurringPaymentDefinitionDTO]
+        internal let balances: [UUID: RecurringPaymentSavingBalanceDTO]
         internal let categories: [UUID: String]
-        internal let filter: SpecialPaymentListFilter
+        internal let filter: RecurringPaymentListFilter
         internal let now: Date
     }
 
-    internal func entries(input: EntriesInput) -> [SpecialPaymentListEntry] {
+    internal func entries(input: EntriesInput) -> [RecurringPaymentListEntry] {
         let occurrences = input.occurrences
         let definitions = input.definitions
         let balances = input.balances
         let categories = input.categories
         let filter = input.filter
         let now = input.now
-        let entries = occurrences.compactMap { occurrence -> SpecialPaymentListEntry? in
+        let entries = occurrences.compactMap { occurrence -> RecurringPaymentListEntry? in
             guard let definition = definitions[occurrence.definitionId] else {
                 return nil
             }
@@ -67,10 +67,10 @@ internal struct SpecialPaymentListPresenter {
     }
 
     private func matches(
-        occurrence: SpecialPaymentOccurrenceDTO,
-        definition: SpecialPaymentDefinitionDTO,
+        occurrence: RecurringPaymentOccurrenceDTO,
+        definition: RecurringPaymentDefinitionDTO,
         categoryName: String?,
-        filter: SpecialPaymentListFilter,
+        filter: RecurringPaymentListFilter,
     ) -> Bool {
         guard filter.dateRange.contains(occurrence.scheduledDate) else {
             return false
@@ -84,9 +84,9 @@ internal struct SpecialPaymentListPresenter {
     }
 
     private func sortEntries(
-        _ entries: [SpecialPaymentListEntry],
-        order: SpecialPaymentListSortOrder,
-    ) -> [SpecialPaymentListEntry] {
+        _ entries: [RecurringPaymentListEntry],
+        order: RecurringPaymentListSortOrder,
+    ) -> [RecurringPaymentListEntry] {
         switch order {
         case .dateAscending:
             entries.sorted { $0.scheduledDate < $1.scheduledDate }
@@ -104,14 +104,14 @@ internal struct SpecialPaymentListPresenter {
     }
 
     internal struct EntryInput {
-        internal let occurrence: SpecialPaymentOccurrenceDTO
-        internal let definition: SpecialPaymentDefinitionDTO
+        internal let occurrence: RecurringPaymentOccurrenceDTO
+        internal let definition: RecurringPaymentDefinitionDTO
         internal let categoryName: String?
-        internal let balance: SpecialPaymentSavingBalanceDTO?
+        internal let balance: RecurringPaymentSavingBalanceDTO?
         internal let now: Date
     }
 
-    internal func entry(input: EntryInput) -> SpecialPaymentListEntry {
+    internal func entry(input: EntryInput) -> RecurringPaymentListEntry {
         let occurrence = input.occurrence
         let definition = input.definition
         let categoryName = input.categoryName
@@ -140,7 +140,7 @@ internal struct SpecialPaymentListPresenter {
             false
         }
 
-        return SpecialPaymentListEntry(
+        return RecurringPaymentListEntry(
             id: occurrence.id,
             definitionId: definition.id,
             name: definition.name,
@@ -159,9 +159,9 @@ internal struct SpecialPaymentListPresenter {
     }
 }
 
-// MARK: - SpecialPaymentListEntry DTO
+// MARK: - RecurringPaymentListEntry DTO
 
-internal struct SpecialPaymentListEntry: Identifiable, Sendable {
+internal struct RecurringPaymentListEntry: Identifiable, Sendable {
     internal let id: UUID
     internal let definitionId: UUID
     internal let name: String
@@ -170,7 +170,7 @@ internal struct SpecialPaymentListEntry: Identifiable, Sendable {
     internal let scheduledDate: Date
     internal let expectedAmount: Decimal
     internal let actualAmount: Decimal?
-    internal let status: SpecialPaymentStatus
+    internal let status: RecurringPaymentStatus
     internal let savingsBalance: Decimal
     internal let savingsProgress: Double
     internal let daysUntilDue: Int

@@ -3,12 +3,12 @@ import Foundation
 import SwiftData
 import Testing
 
-@Suite("SpecialPaymentBalanceService - 月次積立テスト")
+@Suite("RecurringPaymentBalanceService - 月次積立テスト")
 internal struct PaymentBalanceSavingsTests {
-    private let service: SpecialPaymentBalanceService = SpecialPaymentBalanceService()
+    private let service: RecurringPaymentBalanceService = RecurringPaymentBalanceService()
 
-    private func sampleDefinition() -> SpecialPaymentDefinition {
-        SpecialPaymentDefinition(
+    private func sampleDefinition() -> RecurringPaymentDefinition {
+        RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -27,7 +27,7 @@ internal struct PaymentBalanceSavingsTests {
 
         // When
         let balance = service.recordMonthlySavings(
-            params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+            params: RecurringPaymentBalanceService.MonthlySavingsParameters(
                 definition: definition,
                 balance: nil,
                 year: 2025,
@@ -49,7 +49,7 @@ internal struct PaymentBalanceSavingsTests {
         let context = ModelContext(container)
 
         let definition = sampleDefinition()
-        let existingBalance = SpecialPaymentSavingBalance(
+        let existingBalance = RecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 3750,
             totalPaidAmount: 0,
@@ -61,7 +61,7 @@ internal struct PaymentBalanceSavingsTests {
 
         // When
         let balance = service.recordMonthlySavings(
-            params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+            params: RecurringPaymentBalanceService.MonthlySavingsParameters(
                 definition: definition,
                 balance: existingBalance,
                 year: 2025,
@@ -82,7 +82,7 @@ internal struct PaymentBalanceSavingsTests {
         let context = ModelContext(container)
 
         let definition = sampleDefinition()
-        let existingBalance = SpecialPaymentSavingBalance(
+        let existingBalance = RecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 3750,
             totalPaidAmount: 0,
@@ -94,7 +94,7 @@ internal struct PaymentBalanceSavingsTests {
 
         // When
         let balance = service.recordMonthlySavings(
-            params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+            params: RecurringPaymentBalanceService.MonthlySavingsParameters(
                 definition: definition,
                 balance: existingBalance,
                 year: 2025,
@@ -115,12 +115,12 @@ internal struct PaymentBalanceSavingsTests {
         let definition = sampleDefinition()
         context.insert(definition)
 
-        var balance: SpecialPaymentSavingBalance?
+        var balance: RecurringPaymentSavingBalance?
 
         // 6ヶ月分の積立を記録
         for month in 1 ... 6 {
             balance = service.recordMonthlySavings(
-                params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                params: RecurringPaymentBalanceService.MonthlySavingsParameters(
                     definition: definition,
                     balance: balance,
                     year: 2025,

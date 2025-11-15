@@ -53,7 +53,7 @@ internal struct BudgetNavigationState {
             moveToCurrentMonth()
         case .annual:
             moveToCurrentYear()
-        case .specialPaymentsList:
+        case .recurringPaymentsList:
             false
         }
     }

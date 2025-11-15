@@ -1,8 +1,8 @@
 import Foundation
 
-/// 特別支払い積立の表示用エントリ
-internal struct SpecialPaymentSavingsEntry: Identifiable {
-    internal let calculation: SpecialPaymentSavingsCalculation
+/// 定期支払い積立の表示用エントリ
+internal struct RecurringPaymentSavingsEntry: Identifiable {
+    internal let calculation: RecurringPaymentSavingsCalculation
     internal let progress: Double
     internal let hasAlert: Bool
 

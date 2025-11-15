@@ -4,10 +4,10 @@ import Testing
 
 @testable import Kakeibo
 
-@Suite("SpecialPaymentBalanceService - キャッシュ")
-internal struct SpecialPaymentBalanceCacheTests {
-    private func makeDefinition() -> SpecialPaymentDefinition {
-        SpecialPaymentDefinition(
+@Suite("RecurringPaymentBalanceService - キャッシュ")
+internal struct RecurringPaymentBalanceCacheTests {
+    private func makeDefinition() -> RecurringPaymentDefinition {
+        RecurringPaymentDefinition(
             name: "自動車税",
             amount: 60000,
             recurrenceIntervalMonths: 12,
@@ -20,7 +20,7 @@ internal struct SpecialPaymentBalanceCacheTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let definition = makeDefinition()
-        let balance = SpecialPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 0,
             totalPaidAmount: 0,
@@ -29,7 +29,7 @@ internal struct SpecialPaymentBalanceCacheTests {
         )
         context.insert(definition)
         context.insert(balance)
-        let service = SpecialPaymentBalanceService()
+        let service = RecurringPaymentBalanceService()
 
         var metrics = service.cacheMetrics()
         #expect(metrics.hits == 0)
@@ -68,7 +68,7 @@ internal struct SpecialPaymentBalanceCacheTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let definition = makeDefinition()
-        let balance = SpecialPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 0,
             totalPaidAmount: 0,
@@ -77,7 +77,7 @@ internal struct SpecialPaymentBalanceCacheTests {
         )
         context.insert(definition)
         context.insert(balance)
-        let service = SpecialPaymentBalanceService()
+        let service = RecurringPaymentBalanceService()
 
         var metrics = service.cacheMetrics()
         #expect(metrics.hits == 0)

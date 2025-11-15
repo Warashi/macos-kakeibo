@@ -3,12 +3,12 @@ import Foundation
 import SwiftData
 import Testing
 
-@Suite("SpecialPaymentBalanceService - 残高再計算テスト")
+@Suite("RecurringPaymentBalanceService - 残高再計算テスト")
 internal struct PaymentBalanceRecalculationTests {
-    private let service: SpecialPaymentBalanceService = SpecialPaymentBalanceService()
+    private let service: RecurringPaymentBalanceService = RecurringPaymentBalanceService()
 
-    private func sampleDefinition() -> SpecialPaymentDefinition {
-        SpecialPaymentDefinition(
+    private func sampleDefinition() -> RecurringPaymentDefinition {
+        RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -24,7 +24,7 @@ internal struct PaymentBalanceRecalculationTests {
 
         let definition = sampleDefinition()
 
-        let balance = SpecialPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 0,
             totalPaidAmount: 0,
@@ -33,7 +33,7 @@ internal struct PaymentBalanceRecalculationTests {
         )
 
         // 完了済みのOccurrenceを追加
-        let occurrence1 = SpecialPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -41,7 +41,7 @@ internal struct PaymentBalanceRecalculationTests {
             actualDate: Date(),
             actualAmount: 45000,
         )
-        let occurrence2 = SpecialPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -49,7 +49,7 @@ internal struct PaymentBalanceRecalculationTests {
             actualDate: Date(),
             actualAmount: 50000,
         )
-        let occurrence3 = SpecialPaymentOccurrence(
+        let occurrence3 = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2027, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -62,7 +62,7 @@ internal struct PaymentBalanceRecalculationTests {
 
         // When: 2025年11月時点での再計算（積立開始は2025年1月）
         service.recalculateBalance(
-            params: SpecialPaymentBalanceService.RecalculateBalanceParameters(
+            params: RecurringPaymentBalanceService.RecalculateBalanceParameters(
                 definition: definition,
                 balance: balance,
                 year: 2025,
@@ -92,7 +92,7 @@ internal struct PaymentBalanceRecalculationTests {
         let context = ModelContext(container)
 
         let definition = sampleDefinition()
-        let balance = SpecialPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 1000, // 古いデータ
             totalPaidAmount: 500, // 古いデータ
@@ -105,7 +105,7 @@ internal struct PaymentBalanceRecalculationTests {
 
         // When
         service.recalculateBalance(
-            params: SpecialPaymentBalanceService.RecalculateBalanceParameters(
+            params: RecurringPaymentBalanceService.RecalculateBalanceParameters(
                 definition: definition,
                 balance: balance,
                 year: 2025,

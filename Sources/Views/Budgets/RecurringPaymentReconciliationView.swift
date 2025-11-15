@@ -1,16 +1,16 @@
 import SwiftData
 import SwiftUI
 
-internal struct SpecialPaymentReconciliationView: View {
+internal struct RecurringPaymentReconciliationView: View {
     @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
-    @State private var store: SpecialPaymentReconciliationStore?
+    @State private var store: RecurringPaymentReconciliationStore?
 
     internal var body: some View {
         Group {
             if let store {
-                SpecialPaymentReconciliationContentView(store: store)
+                RecurringPaymentReconciliationContentView(store: store)
             } else {
-                ProgressView("特別支払い情報を読み込み中…")
+                ProgressView("定期支払い情報を読み込み中…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
@@ -30,18 +30,18 @@ internal struct SpecialPaymentReconciliationView: View {
         }
 
         let dependencies = await Task { @DatabaseActor () -> (
-            SpecialPaymentRepository,
+            RecurringPaymentRepository,
             TransactionRepository,
-            SpecialPaymentOccurrencesService
+            RecurringPaymentOccurrencesService
         ) in
             let context = ModelContext(container)
-            let specialPaymentRepository = SpecialPaymentRepositoryFactory.make(modelContext: context)
+            let recurringPaymentRepository = RecurringPaymentRepositoryFactory.make(modelContext: context)
             let transactionRepository = SwiftDataTransactionRepository(modelContext: context)
-            let occurrencesService = DefaultSpecialPaymentOccurrencesService(repository: specialPaymentRepository)
-            return (specialPaymentRepository, transactionRepository, occurrencesService)
+            let occurrencesService = DefaultRecurringPaymentOccurrencesService(repository: recurringPaymentRepository)
+            return (recurringPaymentRepository, transactionRepository, occurrencesService)
         }.value
 
-        let reconciliationStore = SpecialPaymentReconciliationStore(
+        let reconciliationStore = RecurringPaymentReconciliationStore(
             repository: dependencies.0,
             transactionRepository: dependencies.1,
             occurrencesService: dependencies.2,
@@ -51,8 +51,8 @@ internal struct SpecialPaymentReconciliationView: View {
     }
 }
 
-internal struct SpecialPaymentReconciliationContentView: View {
-    @Bindable internal var store: SpecialPaymentReconciliationStore
+internal struct RecurringPaymentReconciliationContentView: View {
+    @Bindable internal var store: RecurringPaymentReconciliationStore
     @State private var isErrorAlertPresented: Bool = false
 
     internal var body: some View {
@@ -95,12 +95,12 @@ internal struct SpecialPaymentReconciliationContentView: View {
 // MARK: - Header View
 
 private struct ReconciliationHeaderView: View {
-    @Bindable internal var store: SpecialPaymentReconciliationStore
+    @Bindable internal var store: RecurringPaymentReconciliationStore
 
     internal var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("特別支払いと取引の突合")
+                Text("定期支払いと取引の突合")
                     .font(.title2.bold())
                 Spacer()
                 Button {
@@ -126,7 +126,7 @@ private struct ReconciliationHeaderView: View {
                 .frame(maxWidth: 280)
 
                 Picker("状態", selection: $store.filter) {
-                    ForEach(SpecialPaymentReconciliationStore.OccurrenceFilter.allCases, id: \.self) { filter in
+                    ForEach(RecurringPaymentReconciliationStore.OccurrenceFilter.allCases, id: \.self) { filter in
                         Text(filter.rawValue).tag(filter)
                     }
                 }
@@ -140,16 +140,16 @@ private struct ReconciliationHeaderView: View {
 // MARK: - Occurrence List View
 
 private struct ReconciliationOccurrenceListView: View {
-    @Bindable internal var store: SpecialPaymentReconciliationStore
+    @Bindable internal var store: RecurringPaymentReconciliationStore
 
     internal var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("特別支払い一覧")
+            Text("定期支払い一覧")
                 .font(.headline)
 
             if store.filteredRows.isEmpty {
                 ContentUnavailableView {
-                    Label("対象の特別支払いがありません", systemImage: "tray")
+                    Label("対象の定期支払いがありません", systemImage: "tray")
                 } description: {
                     Text("フィルタや検索条件を調整してください。")
                 }
@@ -173,7 +173,7 @@ private struct ReconciliationOccurrenceListView: View {
 // MARK: - Detail Panel View
 
 private struct ReconciliationDetailPanelView: View {
-    @Bindable internal var store: SpecialPaymentReconciliationStore
+    @Bindable internal var store: RecurringPaymentReconciliationStore
 
     internal var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -188,7 +188,7 @@ private struct ReconciliationDetailPanelView: View {
                 Spacer()
             } else {
                 ContentUnavailableView {
-                    Label("特別支払いを選択してください", systemImage: "hand.point.up.left")
+                    Label("定期支払いを選択してください", systemImage: "hand.point.up.left")
                 } description: {
                     Text("左の一覧から突合したい項目を選びます。")
                 }
@@ -201,7 +201,7 @@ private struct ReconciliationDetailPanelView: View {
 // MARK: - Detail Header View
 
 private struct ReconciliationDetailHeaderView: View {
-    internal let row: SpecialPaymentReconciliationStore.OccurrenceRow
+    internal let row: RecurringPaymentReconciliationStore.OccurrenceRow
 
     internal var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -220,7 +220,7 @@ private struct ReconciliationDetailHeaderView: View {
 // MARK: - Planned Info View
 
 private struct ReconciliationPlannedInfoView: View {
-    internal let row: SpecialPaymentReconciliationStore.OccurrenceRow
+    internal let row: RecurringPaymentReconciliationStore.OccurrenceRow
 
     internal var body: some View {
         Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 12) {
@@ -247,7 +247,7 @@ private struct ReconciliationPlannedInfoView: View {
 // MARK: - Form View
 
 private struct ReconciliationFormView: View {
-    @Bindable internal var store: SpecialPaymentReconciliationStore
+    @Bindable internal var store: RecurringPaymentReconciliationStore
 
     internal var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -303,7 +303,7 @@ private struct ReconciliationFormView: View {
 // MARK: - Candidate List View
 
 private struct ReconciliationCandidateListView: View {
-    @Bindable internal var store: SpecialPaymentReconciliationStore
+    @Bindable internal var store: RecurringPaymentReconciliationStore
 
     internal var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -336,7 +336,7 @@ private struct ReconciliationCandidateListView: View {
 // MARK: - Occurrence Row View
 
 private struct OccurrenceRowView: View {
-    internal let row: SpecialPaymentReconciliationStore.OccurrenceRow
+    internal let row: RecurringPaymentReconciliationStore.OccurrenceRow
 
     internal var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -368,7 +368,7 @@ private struct OccurrenceRowView: View {
 }
 
 private struct CandidateRow: View {
-    internal let candidate: SpecialPaymentReconciliationStore.TransactionCandidate
+    internal let candidate: RecurringPaymentReconciliationStore.TransactionCandidate
     internal let isSelected: Bool
     internal let onSelect: () -> Void
 

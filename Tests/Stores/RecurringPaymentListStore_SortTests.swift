@@ -6,26 +6,26 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct SpecialPaymentListStoreSortTests {
+internal struct RecurringPaymentListStoreSortTests {
     @Test("entries: 日付昇順ソート")
     internal func entries_sortByDateAscending() async throws {
         let (store, context) = try await makeStore()
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト",
             amount: 10000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence1 = SpecialPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 10000,
             status: .saving,
         )
 
-        let occurrence2 = SpecialPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 10000,
@@ -53,28 +53,28 @@ internal struct SpecialPaymentListStoreSortTests {
     internal func entries_sortByNameAscending() async throws {
         let (store, context) = try await makeStore()
 
-        let definition1 = SpecialPaymentDefinition(
+        let definition1 = RecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
             firstOccurrenceDate: Date.from(year: 2026, month: 3) ?? Date(),
         )
 
-        let definition2 = SpecialPaymentDefinition(
+        let definition2 = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 5) ?? Date(),
         )
 
-        let occurrence1 = SpecialPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrence(
             definition: definition1,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 120_000,
             status: .saving,
         )
 
-        let occurrence2 = SpecialPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrence(
             definition: definition2,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -102,11 +102,11 @@ internal struct SpecialPaymentListStoreSortTests {
 
     // MARK: - Helpers
 
-    private func makeStore() async throws -> (SpecialPaymentListStore, ModelContext) {
+    private func makeStore() async throws -> (RecurringPaymentListStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
-        let store = SpecialPaymentListStore(repository: repository)
+        let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+        let store = RecurringPaymentListStore(repository: repository)
         return (store, context)
     }
 }

@@ -50,10 +50,10 @@ internal struct CSVExporterTests {
         #expect(csv.contains("id,date,title"))
     }
 
-    @Test("特別支払い一覧エントリをCSVに変換できる")
-    internal func exportSpecialPaymentListEntries_containsHeaderAndRow() throws {
+    @Test("定期支払い一覧エントリをCSVに変換できる")
+    internal func exportRecurringPaymentListEntries_containsHeaderAndRow() throws {
         // Given
-        let entry = SpecialPaymentListEntry(
+        let entry = RecurringPaymentListEntry(
             id: UUID(),
             definitionId: UUID(),
             name: "自動車税",
@@ -72,7 +72,7 @@ internal struct CSVExporterTests {
 
         // When
         let exporter = CSVExporter()
-        let result = try exporter.exportSpecialPaymentListEntries([entry])
+        let result = try exporter.exportRecurringPaymentListEntries([entry])
         let csv = result.string
 
         // Then
@@ -87,13 +87,13 @@ internal struct CSVExporterTests {
         #expect(csv.contains("\"完了\""))
     }
 
-    @Test("特別支払い一覧エントリが空の場合でもヘッダーを出力する")
-    internal func exportSpecialPaymentListEntries_empty() throws {
+    @Test("定期支払い一覧エントリが空の場合でもヘッダーを出力する")
+    internal func exportRecurringPaymentListEntries_empty() throws {
         // Given
         let exporter = CSVExporter()
 
         // When
-        let result = try exporter.exportSpecialPaymentListEntries([])
+        let result = try exporter.exportRecurringPaymentListEntries([])
         let csv = result.string
 
         // Then

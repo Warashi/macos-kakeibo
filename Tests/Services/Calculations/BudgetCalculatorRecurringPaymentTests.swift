@@ -5,16 +5,16 @@ import Testing
 @testable import Kakeibo
 
 @Suite(.serialized)
-internal struct BudgetCalculatorSpecialPaymentTests {
+internal struct BudgetCalculatorRecurringPaymentTests {
     private let calculator: BudgetCalculator = BudgetCalculator()
 
-    // MARK: - 特別支払い積立計算テスト
+    // MARK: - 定期支払い積立計算テスト
 
-    @Test("特別支払い積立状況の計算")
-    internal func calculateSpecialPaymentSavings_success() throws {
+    @Test("定期支払い積立状況の計算")
+    internal func calculateRecurringPaymentSavings_success() throws {
         // Given
         let category = Category(name: "保険・税金")
-        let definition1 = SpecialPaymentDefinition(
+        let definition1 = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -22,7 +22,7 @@ internal struct BudgetCalculatorSpecialPaymentTests {
             category: category,
             savingStrategy: .evenlyDistributed,
         )
-        let definition2 = SpecialPaymentDefinition(
+        let definition2 = RecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -32,7 +32,7 @@ internal struct BudgetCalculatorSpecialPaymentTests {
             customMonthlySavingAmount: 6000,
         )
 
-        let balance1 = SpecialPaymentSavingBalance(
+        let balance1 = RecurringPaymentSavingBalance(
             definition: definition1,
             totalSavedAmount: 22500,
             totalPaidAmount: 0,
@@ -40,7 +40,7 @@ internal struct BudgetCalculatorSpecialPaymentTests {
             lastUpdatedMonth: 11,
         )
 
-        let balance2 = SpecialPaymentSavingBalance(
+        let balance2 = RecurringPaymentSavingBalance(
             definition: definition2,
             totalSavedAmount: 60000,
             totalPaidAmount: 0,
@@ -49,15 +49,15 @@ internal struct BudgetCalculatorSpecialPaymentTests {
         )
 
         // When
-        let results = calculator.calculateSpecialPaymentSavings(
-            SpecialPaymentSavingsCalculationInput(
+        let results = calculator.calculateRecurringPaymentSavings(
+            RecurringPaymentSavingsCalculationInput(
                 definitions: [
-                    SpecialPaymentDefinitionDTO(from: definition1),
-                    SpecialPaymentDefinitionDTO(from: definition2),
+                    RecurringPaymentDefinitionDTO(from: definition1),
+                    RecurringPaymentDefinitionDTO(from: definition2),
                 ],
                 balances: [
-                    SpecialPaymentSavingBalanceDTO(from: balance1),
-                    SpecialPaymentSavingBalanceDTO(from: balance2),
+                    RecurringPaymentSavingBalanceDTO(from: balance1),
+                    RecurringPaymentSavingBalanceDTO(from: balance2),
                 ],
                 occurrences: [],
                 year: 2025,
@@ -81,10 +81,10 @@ internal struct BudgetCalculatorSpecialPaymentTests {
         #expect(result2.balance == 60000)
     }
 
-    @Test("特別支払い積立状況の計算：残高がない場合")
-    internal func calculateSpecialPaymentSavings_noBalance() throws {
+    @Test("定期支払い積立状況の計算：残高がない場合")
+    internal func calculateRecurringPaymentSavings_noBalance() throws {
         // Given
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
@@ -93,9 +93,9 @@ internal struct BudgetCalculatorSpecialPaymentTests {
         )
 
         // When
-        let results = calculator.calculateSpecialPaymentSavings(
-            SpecialPaymentSavingsCalculationInput(
-                definitions: [SpecialPaymentDefinitionDTO(from: definition)],
+        let results = calculator.calculateRecurringPaymentSavings(
+            RecurringPaymentSavingsCalculationInput(
+                definitions: [RecurringPaymentDefinitionDTO(from: definition)],
                 balances: [], // 残高なし
                 occurrences: [],
                 year: 2025,
@@ -114,14 +114,14 @@ internal struct BudgetCalculatorSpecialPaymentTests {
     @Test("月次積立金額の合計計算")
     internal func calculateMonthlySavingsAllocation_success() throws {
         // Given
-        let definition1 = SpecialPaymentDefinition(
+        let definition1 = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
             savingStrategy: .evenlyDistributed,
         )
-        let definition2 = SpecialPaymentDefinition(
+        let definition2 = RecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -129,7 +129,7 @@ internal struct BudgetCalculatorSpecialPaymentTests {
             savingStrategy: .customMonthly,
             customMonthlySavingAmount: 6000,
         )
-        let definition3 = SpecialPaymentDefinition(
+        let definition3 = RecurringPaymentDefinition(
             name: "一時金（積立なし）",
             amount: 50000,
             recurrenceIntervalMonths: 12,
@@ -140,9 +140,9 @@ internal struct BudgetCalculatorSpecialPaymentTests {
         // When
         let total = calculator.calculateMonthlySavingsAllocation(
             definitions: [
-                SpecialPaymentDefinitionDTO(from: definition1),
-                SpecialPaymentDefinitionDTO(from: definition2),
-                SpecialPaymentDefinitionDTO(from: definition3),
+                RecurringPaymentDefinitionDTO(from: definition1),
+                RecurringPaymentDefinitionDTO(from: definition2),
+                RecurringPaymentDefinitionDTO(from: definition3),
             ],
             year: 2025,
             month: 11,
@@ -159,7 +159,7 @@ internal struct BudgetCalculatorSpecialPaymentTests {
         let category1 = Category(name: "保険・税金")
         let category2 = Category(name: "教育費")
 
-        let definition1 = SpecialPaymentDefinition(
+        let definition1 = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -167,7 +167,7 @@ internal struct BudgetCalculatorSpecialPaymentTests {
             category: category1,
             savingStrategy: .evenlyDistributed,
         )
-        let definition2 = SpecialPaymentDefinition(
+        let definition2 = RecurringPaymentDefinition(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
@@ -175,7 +175,7 @@ internal struct BudgetCalculatorSpecialPaymentTests {
             category: category1,
             savingStrategy: .evenlyDistributed,
         )
-        let definition3 = SpecialPaymentDefinition(
+        let definition3 = RecurringPaymentDefinition(
             name: "学資保険",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
@@ -183,7 +183,7 @@ internal struct BudgetCalculatorSpecialPaymentTests {
             category: category2,
             savingStrategy: .evenlyDistributed,
         )
-        let definition4 = SpecialPaymentDefinition(
+        let definition4 = RecurringPaymentDefinition(
             name: "カテゴリなし",
             amount: 50000,
             recurrenceIntervalMonths: 12,
@@ -195,10 +195,10 @@ internal struct BudgetCalculatorSpecialPaymentTests {
         // When
         let allocations = calculator.calculateCategorySavingsAllocation(
             definitions: [
-                SpecialPaymentDefinitionDTO(from: definition1),
-                SpecialPaymentDefinitionDTO(from: definition2),
-                SpecialPaymentDefinitionDTO(from: definition3),
-                SpecialPaymentDefinitionDTO(from: definition4),
+                RecurringPaymentDefinitionDTO(from: definition1),
+                RecurringPaymentDefinitionDTO(from: definition2),
+                RecurringPaymentDefinitionDTO(from: definition3),
+                RecurringPaymentDefinitionDTO(from: definition4),
             ],
             year: 2025,
             month: 11,

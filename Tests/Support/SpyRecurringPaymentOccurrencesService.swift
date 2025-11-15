@@ -2,7 +2,7 @@ import Foundation
 @testable import Kakeibo
 
 @DatabaseActor
-internal final class SpySpecialPaymentOccurrencesService: SpecialPaymentOccurrencesService {
+internal final class SpyRecurringPaymentOccurrencesService: RecurringPaymentOccurrencesService {
     internal struct SynchronizeCall {
         internal let definitionId: UUID
         internal let horizonMonths: Int
@@ -21,22 +21,22 @@ internal final class SpySpecialPaymentOccurrencesService: SpecialPaymentOccurren
         internal let horizonMonths: Int
     }
 
-    private let wrapped: SpecialPaymentOccurrencesService
+    private let wrapped: RecurringPaymentOccurrencesService
 
     internal private(set) var synchronizeCalls: [SynchronizeCall] = []
     internal private(set) var markCompletionCalls: [MarkCompletionCall] = []
     internal private(set) var updateCalls: [UpdateCall] = []
 
-    internal init(wrapping service: SpecialPaymentOccurrencesService) {
+    internal init(wrapping service: RecurringPaymentOccurrencesService) {
         self.wrapped = service
     }
 
     @discardableResult
     internal func synchronizeOccurrences(
-        for definition: SpecialPaymentDefinition,
+        for definition: RecurringPaymentDefinition,
         horizonMonths: Int,
         referenceDate: Date?,
-    ) throws -> SpecialPaymentSynchronizationSummary {
+    ) throws -> RecurringPaymentSynchronizationSummary {
         synchronizeCalls.append(
             SynchronizeCall(
                 definitionId: definition.id,
@@ -53,10 +53,10 @@ internal final class SpySpecialPaymentOccurrencesService: SpecialPaymentOccurren
 
     @discardableResult
     internal func markOccurrenceCompleted(
-        _ occurrence: SpecialPaymentOccurrence,
+        _ occurrence: RecurringPaymentOccurrence,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
-    ) throws -> SpecialPaymentSynchronizationSummary {
+    ) throws -> RecurringPaymentSynchronizationSummary {
         markCompletionCalls.append(
             MarkCompletionCall(
                 occurrenceId: occurrence.id,
@@ -73,10 +73,10 @@ internal final class SpySpecialPaymentOccurrencesService: SpecialPaymentOccurren
 
     @discardableResult
     internal func updateOccurrence(
-        _ occurrence: SpecialPaymentOccurrence,
+        _ occurrence: RecurringPaymentOccurrence,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
-    ) throws -> SpecialPaymentSynchronizationSummary? {
+    ) throws -> RecurringPaymentSynchronizationSummary? {
         updateCalls.append(
             UpdateCall(
                 occurrenceId: occurrence.id,

@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct SpecialPaymentDefinitionFilter {
+internal struct RecurringPaymentDefinitionFilter {
     internal let ids: Set<UUID>?
     internal let searchText: String?
     internal let categoryIds: Set<UUID>?
@@ -20,7 +20,7 @@ internal struct SpecialPaymentDefinitionFilter {
     }
 }
 
-internal struct SpecialPaymentOccurrenceRange {
+internal struct RecurringPaymentOccurrenceRange {
     internal let startDate: Date
     internal let endDate: Date
 
@@ -30,14 +30,14 @@ internal struct SpecialPaymentOccurrenceRange {
     }
 }
 
-internal struct SpecialPaymentOccurrenceQuery {
-    internal let range: SpecialPaymentOccurrenceRange?
-    internal let statusFilter: Set<SpecialPaymentStatus>?
+internal struct RecurringPaymentOccurrenceQuery {
+    internal let range: RecurringPaymentOccurrenceRange?
+    internal let statusFilter: Set<RecurringPaymentStatus>?
     internal let definitionIds: Set<UUID>?
 
     internal init(
-        range: SpecialPaymentOccurrenceRange? = nil,
-        statusFilter: Set<SpecialPaymentStatus>? = nil,
+        range: RecurringPaymentOccurrenceRange? = nil,
+        statusFilter: Set<RecurringPaymentStatus>? = nil,
         definitionIds: Set<UUID>? = nil,
     ) {
         self.range = range
@@ -46,7 +46,7 @@ internal struct SpecialPaymentOccurrenceQuery {
     }
 }
 
-internal struct SpecialPaymentBalanceQuery {
+internal struct RecurringPaymentBalanceQuery {
     internal let definitionIds: Set<UUID>?
 
     internal init(definitionIds: Set<UUID>? = nil) {
@@ -54,7 +54,7 @@ internal struct SpecialPaymentBalanceQuery {
     }
 }
 
-internal struct SpecialPaymentSynchronizationSummary {
+internal struct RecurringPaymentSynchronizationSummary {
     internal let syncedAt: Date
     internal let createdCount: Int
     internal let updatedCount: Int
@@ -62,14 +62,14 @@ internal struct SpecialPaymentSynchronizationSummary {
 }
 
 @DatabaseActor
-internal protocol SpecialPaymentRepository: Sendable {
-    func definitions(filter: SpecialPaymentDefinitionFilter?) throws -> [SpecialPaymentDefinitionDTO]
-    func occurrences(query: SpecialPaymentOccurrenceQuery?) throws -> [SpecialPaymentOccurrenceDTO]
-    func balances(query: SpecialPaymentBalanceQuery?) throws -> [SpecialPaymentSavingBalanceDTO]
+internal protocol RecurringPaymentRepository: Sendable {
+    func definitions(filter: RecurringPaymentDefinitionFilter?) throws -> [RecurringPaymentDefinitionDTO]
+    func occurrences(query: RecurringPaymentOccurrenceQuery?) throws -> [RecurringPaymentOccurrenceDTO]
+    func balances(query: RecurringPaymentBalanceQuery?) throws -> [RecurringPaymentSavingBalanceDTO]
 
     @discardableResult
-    func createDefinition(_ input: SpecialPaymentDefinitionInput) throws -> UUID
-    func updateDefinition(definitionId: UUID, input: SpecialPaymentDefinitionInput) throws
+    func createDefinition(_ input: RecurringPaymentDefinitionInput) throws -> UUID
+    func updateDefinition(definitionId: UUID, input: RecurringPaymentDefinitionInput) throws
     func deleteDefinition(definitionId: UUID) throws
 
     @discardableResult
@@ -77,23 +77,23 @@ internal protocol SpecialPaymentRepository: Sendable {
         definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
-    ) throws -> SpecialPaymentSynchronizationSummary
+    ) throws -> RecurringPaymentSynchronizationSummary
 
-    func findOccurrence(id: UUID) throws -> SpecialPaymentOccurrence
+    func findOccurrence(id: UUID) throws -> RecurringPaymentOccurrence
 
     @discardableResult
     func markOccurrenceCompleted(
         occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
-    ) throws -> SpecialPaymentSynchronizationSummary
+    ) throws -> RecurringPaymentSynchronizationSummary
 
     @discardableResult
     func updateOccurrence(
         occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
-    ) throws -> SpecialPaymentSynchronizationSummary?
+    ) throws -> RecurringPaymentSynchronizationSummary?
 
     func saveChanges() throws
 }

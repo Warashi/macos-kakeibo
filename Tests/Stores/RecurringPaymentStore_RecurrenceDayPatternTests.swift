@@ -6,14 +6,14 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct SpecialPaymentStoreDayPatternTests {
+internal struct RecurringPaymentStoreDayPatternTests {
     @Test("定義作成：recurrenceDayPatternを指定して作成")
     internal func createDefinition_withRecurrenceDayPattern() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let input = SpecialPaymentDefinitionInput(
+        let input = RecurringPaymentDefinitionInput(
             name: "月末支払い",
             notes: "毎月末に発生する支払い",
             amount: 30000,
@@ -28,7 +28,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         )
         try await store.createDefinition(input, horizonMonths: 6)
 
-        let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<RecurringPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
 
         #expect(definitions.count == 1)
@@ -46,7 +46,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let input = SpecialPaymentDefinitionInput(
+        let input = RecurringPaymentDefinitionInput(
             name: "営業日払い",
             notes: "休日の場合は前営業日に調整",
             amount: 40000,
@@ -61,7 +61,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         )
         try await store.createDefinition(input, horizonMonths: 6)
 
-        let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<RecurringPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
 
         #expect(definitions.count == 1)
@@ -76,7 +76,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "給料日",
             amount: 250_000,
             recurrenceIntervalMonths: 1,
@@ -89,7 +89,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 6)
 
         // パターンを月末に変更
-        let input = SpecialPaymentDefinitionInput(
+        let input = RecurringPaymentDefinitionInput(
             name: "給料日",
             notes: "月末払いに変更",
             amount: 250_000,
@@ -116,7 +116,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "家賃",
             amount: 100_000,
             recurrenceIntervalMonths: 1,
@@ -129,7 +129,7 @@ internal struct SpecialPaymentStoreDayPatternTests {
         try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 6)
 
         // ポリシーを変更
-        let input = SpecialPaymentDefinitionInput(
+        let input = RecurringPaymentDefinitionInput(
             name: "家賃",
             notes: "休日の場合は翌営業日払い",
             amount: 100_000,
@@ -150,14 +150,14 @@ internal struct SpecialPaymentStoreDayPatternTests {
 
     // MARK: - Helpers
 
-    private func makeStore(referenceDate: Date) async throws -> (SpecialPaymentStore, ModelContext) {
+    private func makeStore(referenceDate: Date) async throws -> (RecurringPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await SwiftDataSpecialPaymentRepository(
+        let repository = await SwiftDataRecurringPaymentRepository(
             modelContext: context,
             currentDateProvider: { referenceDate },
         )
-        let store = SpecialPaymentStore(
+        let store = RecurringPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },
         )

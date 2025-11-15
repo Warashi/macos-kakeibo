@@ -3,9 +3,9 @@ import Testing
 
 @testable import Kakeibo
 
-@Suite("SpecialPaymentScheduleService BusinessDay Tests")
+@Suite("RecurringPaymentScheduleService BusinessDay Tests")
 internal struct ScheduleServiceBusinessDayTests {
-    private let service: SpecialPaymentScheduleService = SpecialPaymentScheduleService()
+    private let service: RecurringPaymentScheduleService = RecurringPaymentScheduleService()
 
     @Test("土曜日を前営業日に調整できる")
     internal func adjustDateForBusinessDay_moveSaturdayToPreviousBusinessDay() throws {
@@ -78,7 +78,7 @@ internal struct ScheduleServiceBusinessDayTests {
         let firstDate = try #require(Date.from(year: 2025, month: 2, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト支払い",
             amount: 10000,
             recurrenceIntervalMonths: 1,
@@ -105,7 +105,7 @@ internal struct ScheduleServiceBusinessDayTests {
         let firstDate = try #require(Date.from(year: 2025, month: 2, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト支払い",
             amount: 10000,
             recurrenceIntervalMonths: 1,

@@ -4,23 +4,23 @@ import Testing
 
 @testable import Kakeibo
 
-@Suite("SpecialPaymentListView Tests")
+@Suite("RecurringPaymentListView Tests")
 @MainActor
-internal struct SpecialPaymentListViewTests {
-    @Test("SpecialPaymentListView本体を初期化できる")
-    internal func specialPaymentListViewInitialization() {
-        let view = SpecialPaymentListView()
+internal struct RecurringPaymentListViewTests {
+    @Test("RecurringPaymentListView本体を初期化できる")
+    internal func recurringPaymentListViewInitialization() {
+        let view = RecurringPaymentListView()
         let _: any View = view
     }
 
-    @Test("SpecialPaymentListContentViewにストアを渡して初期化できる")
-    internal func specialPaymentListContentViewInitialization() async throws {
+    @Test("RecurringPaymentListContentViewにストアを渡して初期化できる")
+    internal func recurringPaymentListContentViewInitialization() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
-        let store = SpecialPaymentListStore(repository: repository)
+        let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+        let store = RecurringPaymentListStore(repository: repository)
 
-        let view = SpecialPaymentListContentView(store: store)
+        let view = RecurringPaymentListContentView(store: store)
         let _: any View = view
     }
 
@@ -28,8 +28,8 @@ internal struct SpecialPaymentListViewTests {
     internal func emptyStoreHasNoEntries() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
-        let store = SpecialPaymentListStore(repository: repository)
+        let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+        let store = RecurringPaymentListStore(repository: repository)
 
         let entries = await store.entries()
         #expect(entries.isEmpty)
@@ -41,14 +41,14 @@ internal struct SpecialPaymentListViewTests {
         let context = ModelContext(container)
 
         // サンプルデータを投入
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 5) ?? Date(),
         )
 
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -60,8 +60,8 @@ internal struct SpecialPaymentListViewTests {
         try context.save()
 
         // ストアを作成
-        let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
-        let store = SpecialPaymentListStore(repository: repository)
+        let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+        let store = RecurringPaymentListStore(repository: repository)
         store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
         store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
 
@@ -156,40 +156,40 @@ internal struct SpecialPaymentListViewTests {
 
     // MARK: - Helpers
 
-    private func makeStoreWithMultipleEntries() async throws -> (SpecialPaymentListStore, ModelContext) {
+    private func makeStoreWithMultipleEntries() async throws -> (RecurringPaymentListStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
         // 複数のサンプルデータを作成
-        let definition1 = SpecialPaymentDefinition(
+        let definition1 = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 5) ?? Date(),
         )
 
-        let definition2 = SpecialPaymentDefinition(
+        let definition2 = RecurringPaymentDefinition(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 4) ?? Date(),
         )
 
-        let definition3 = SpecialPaymentDefinition(
+        let definition3 = RecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
             firstOccurrenceDate: Date.from(year: 2026, month: 3) ?? Date(),
         )
 
-        let occurrence1 = SpecialPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrence(
             definition: definition1,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
             status: .saving,
         )
 
-        let occurrence2 = SpecialPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrence(
             definition: definition2,
             scheduledDate: Date.from(year: 2026, month: 4) ?? Date(),
             expectedAmount: 150_000,
@@ -198,7 +198,7 @@ internal struct SpecialPaymentListViewTests {
             actualAmount: 150_000,
         )
 
-        let occurrence3 = SpecialPaymentOccurrence(
+        let occurrence3 = RecurringPaymentOccurrence(
             definition: definition3,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 120_000,
@@ -213,8 +213,8 @@ internal struct SpecialPaymentListViewTests {
         context.insert(occurrence3)
         try context.save()
 
-        let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
-        let store = SpecialPaymentListStore(repository: repository)
+        let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+        let store = RecurringPaymentListStore(repository: repository)
         store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
         store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
 

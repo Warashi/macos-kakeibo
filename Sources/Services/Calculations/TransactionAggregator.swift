@@ -103,7 +103,7 @@ internal struct AggregationFilter: Sendable {
     /// カテゴリIDでフィルタ（nilの場合はすべて）
     internal let categoryId: UUID?
 
-    /// 除外する取引IDのセット（特別支払いとリンクされた取引など）
+    /// 除外する取引IDのセット（定期支払いとリンクされた取引など）
     internal let excludedTransactionIds: Set<UUID>
 
     internal init(
@@ -304,7 +304,7 @@ internal struct TransactionAggregator: Sendable {
         transaction: TransactionDTO,
         filter: AggregationFilter,
     ) -> Bool {
-        // 除外リストチェック（特別支払いとリンクされた取引など）
+        // 除外リストチェック（定期支払いとリンクされた取引など）
         if filter.excludedTransactionIds.contains(transaction.id) {
             return false
         }

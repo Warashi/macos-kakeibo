@@ -80,10 +80,10 @@ private extension DefaultAnnualBudgetUseCase {
         )
     }
 
-    /// 特別支払いとリンクされた取引を除外するフィルタを作成
+    /// 定期支払いとリンクされた取引を除外するフィルタを作成
     func makeFilter(from snapshot: BudgetSnapshot) -> AggregationFilter {
         let excludedTransactionIds = Set(
-            snapshot.specialPaymentOccurrences
+            snapshot.recurringPaymentOccurrences
                 .compactMap(\.transactionId)
         )
         return AggregationFilter(

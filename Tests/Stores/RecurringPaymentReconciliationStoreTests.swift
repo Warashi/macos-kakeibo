@@ -6,7 +6,7 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct SpecialPaymentReconciliationStoreTests {
+internal struct RecurringPaymentReconciliationStoreTests {
     @Test("読み込み時に未完了のOccurrenceが優先される")
     internal func refreshPrioritizesPendingOccurrences() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
@@ -14,7 +14,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         let store = harness.store
         let context = harness.context
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
@@ -22,13 +22,13 @@ internal struct SpecialPaymentReconciliationStoreTests {
         )
         context.insert(definition)
 
-        let pending = SpecialPaymentOccurrence(
+        let pending = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: referenceDate.addingTimeInterval(-60 * 60 * 24),
             expectedAmount: 120_000,
             status: .planned,
         )
-        let completed = SpecialPaymentOccurrence(
+        let completed = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: referenceDate.addingTimeInterval(-60 * 60 * 24 * 100),
             expectedAmount: 120_000,
@@ -57,7 +57,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         let store = harness.store
         let context = harness.context
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
@@ -65,7 +65,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         )
         context.insert(definition)
 
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: referenceDate,
             expectedAmount: 150_000,
@@ -108,7 +108,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         let context = harness.context
         let spy = harness.occurrencesService
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "旅行積立",
             amount: 80000,
             recurrenceIntervalMonths: 6,
@@ -116,7 +116,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         )
         context.insert(definition)
 
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: referenceDate,
             expectedAmount: 80000,
@@ -157,7 +157,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         let context = harness.context
         let spy = harness.occurrencesService
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "大型備品",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
@@ -166,7 +166,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
         )
         context.insert(definition)
 
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: referenceDate,
             expectedAmount: 100_000,
@@ -204,18 +204,18 @@ internal struct SpecialPaymentReconciliationStoreTests {
     private func makeStore(referenceDate: Date) async throws -> ReconciliationStoreHarness {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await SpecialPaymentRepositoryFactory.make(
+        let repository = await RecurringPaymentRepositoryFactory.make(
             modelContext: context,
             currentDateProvider: { referenceDate },
         )
-        let baseService = await DefaultSpecialPaymentOccurrencesService(repository: repository)
-        let spyService = await SpySpecialPaymentOccurrencesService(wrapping: baseService)
+        let baseService = await DefaultRecurringPaymentOccurrencesService(repository: repository)
+        let spyService = await SpyRecurringPaymentOccurrencesService(wrapping: baseService)
         let transactionRepository = await SwiftDataTransactionRepository(modelContext: context)
-        let store = SpecialPaymentReconciliationStore(
+        let store = RecurringPaymentReconciliationStore(
             repository: repository,
             transactionRepository: transactionRepository,
             occurrencesService: spyService,
-            horizonMonths: SpecialPaymentScheduleService.defaultHorizonMonths,
+            horizonMonths: RecurringPaymentScheduleService.defaultHorizonMonths,
             currentDateProvider: { referenceDate },
         )
         return ReconciliationStoreHarness(
@@ -227,7 +227,7 @@ internal struct SpecialPaymentReconciliationStoreTests {
 }
 
 private struct ReconciliationStoreHarness {
-    let store: SpecialPaymentReconciliationStore
+    let store: RecurringPaymentReconciliationStore
     let context: ModelContext
-    let occurrencesService: SpySpecialPaymentOccurrencesService
+    let occurrencesService: SpyRecurringPaymentOccurrencesService
 }

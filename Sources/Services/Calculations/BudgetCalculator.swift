@@ -8,7 +8,7 @@ import Foundation
 /// - 予算使用率の計算
 /// - 残額計算
 /// - カテゴリ別予算チェック
-/// - 特別支払い積立計算
+/// - 定期支払い積立計算
 internal struct BudgetCalculator: Sendable {
     private let aggregator: TransactionAggregator
     private let cache: BudgetCalculationCache
@@ -265,21 +265,21 @@ internal struct BudgetCalculator: Sendable {
         return newExpense > budgetAmount
     }
 
-    // MARK: - 特別支払い積立計算
+    // MARK: - 定期支払い積立計算
 
-    /// 全特別支払いの積立状況を計算
+    /// 全定期支払いの積立状況を計算
     /// - Parameter input: 計算パラメータ
     /// - Returns: 積立状況計算結果リスト
-    internal func calculateSpecialPaymentSavings(
-        _ input: SpecialPaymentSavingsCalculationInput,
-    ) -> [SpecialPaymentSavingsCalculation] {
-        let cacheKey = SpecialPaymentSavingsCacheKey(
+    internal func calculateRecurringPaymentSavings(
+        _ input: RecurringPaymentSavingsCalculationInput,
+    ) -> [RecurringPaymentSavingsCalculation] {
+        let cacheKey = RecurringPaymentSavingsCacheKey(
             year: input.year,
             month: input.month,
             definitionsVersion: BudgetCalculationCacheHasher.definitionsVersion(input.definitions),
             balancesVersion: BudgetCalculationCacheHasher.balancesVersion(for: input.balances),
         )
-        if let cached = cache.cachedSpecialPaymentSavings(for: cacheKey) {
+        if let cached = cache.cachedRecurringPaymentSavings(for: cacheKey) {
             return cached
         }
 
@@ -307,7 +307,7 @@ internal struct BudgetCalculator: Sendable {
             } ?? []
             let nextOccurrence = upcomingOccurrences.first?.scheduledDate
 
-            return SpecialPaymentSavingsCalculation(
+            return RecurringPaymentSavingsCalculation(
                 definitionId: definition.id,
                 name: definition.name,
                 monthlySaving: monthlySaving,
@@ -317,18 +317,18 @@ internal struct BudgetCalculator: Sendable {
                 nextOccurrence: nextOccurrence,
             )
         }
-        cache.storeSpecialPaymentSavings(calculations, for: cacheKey)
+        cache.storeRecurringPaymentSavings(calculations, for: cacheKey)
         return calculations
     }
 
     /// 月次に組み込むべき積立金額の合計を計算
     /// - Parameters:
-    ///   - definitions: 特別支払い定義リスト（DTO）
+    ///   - definitions: 定期支払い定義リスト（DTO）
     ///   - year: 対象年
     ///   - month: 対象月
     /// - Returns: 月次積立金額の合計
     internal func calculateMonthlySavingsAllocation(
-        definitions: [SpecialPaymentDefinitionDTO],
+        definitions: [RecurringPaymentDefinitionDTO],
         year: Int,
         month: Int,
     ) -> Decimal {
@@ -356,12 +356,12 @@ internal struct BudgetCalculator: Sendable {
 
     /// カテゴリ別の積立金額を計算
     /// - Parameters:
-    ///   - definitions: 特別支払い定義リスト（DTO）
+    ///   - definitions: 定期支払い定義リスト（DTO）
     ///   - year: 対象年
     ///   - month: 対象月
     /// - Returns: カテゴリIDと積立金額のマップ
     internal func calculateCategorySavingsAllocation(
-        definitions: [SpecialPaymentDefinitionDTO],
+        definitions: [RecurringPaymentDefinitionDTO],
         year: Int,
         month: Int,
     ) -> [UUID: Decimal] {

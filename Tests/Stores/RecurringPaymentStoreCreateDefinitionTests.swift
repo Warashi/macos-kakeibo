@@ -6,14 +6,14 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct SpecialPaymentStoreCreateDefinitionTests {
+internal struct RecurringPaymentStoreCreateDefinitionTests {
     @Test("定義作成：正常系で定義とOccurrenceが作成される")
     internal func createDefinition_success() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let input = SpecialPaymentDefinitionInput(
+        let input = RecurringPaymentDefinitionInput(
             name: "自動車税",
             notes: "年1回の支払い",
             amount: 50000,
@@ -28,7 +28,7 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         )
         try await store.createDefinition(input, horizonMonths: 24)
 
-        let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<RecurringPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
 
         #expect(definitions.count == 1)
@@ -53,7 +53,7 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         try context.save()
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 4, day: 1))
-        let input = SpecialPaymentDefinitionInput(
+        let input = RecurringPaymentDefinitionInput(
             name: "固定資産税",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
@@ -62,7 +62,7 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         )
         try await store.createDefinition(input)
 
-        let descriptor: ModelFetchRequest<SpecialPaymentDefinition> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<RecurringPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
         let definition = try #require(definitions.first)
 
@@ -76,8 +76,8 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         let (store, _) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        await #expect(throws: SpecialPaymentDomainError.self) {
-            let input = SpecialPaymentDefinitionInput(
+        await #expect(throws: RecurringPaymentDomainError.self) {
+            let input = RecurringPaymentDefinitionInput(
                 name: "",
                 amount: 50000,
                 recurrenceIntervalMonths: 12,
@@ -93,8 +93,8 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         let (store, _) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        await #expect(throws: SpecialPaymentDomainError.self) {
-            let input = SpecialPaymentDefinitionInput(
+        await #expect(throws: RecurringPaymentDomainError.self) {
+            let input = RecurringPaymentDefinitionInput(
                 name: "テスト",
                 amount: 0,
                 recurrenceIntervalMonths: 12,
@@ -110,8 +110,8 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         let (store, _) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        await #expect(throws: SpecialPaymentDomainError.self) {
-            let input = SpecialPaymentDefinitionInput(
+        await #expect(throws: RecurringPaymentDomainError.self) {
+            let input = RecurringPaymentDefinitionInput(
                 name: "テスト",
                 amount: 50000,
                 recurrenceIntervalMonths: 0,
@@ -129,8 +129,8 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
         let nonExistentCategoryId = UUID()
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
 
-        await #expect(throws: SpecialPaymentDomainError.categoryNotFound) {
-            let input = SpecialPaymentDefinitionInput(
+        await #expect(throws: RecurringPaymentDomainError.categoryNotFound) {
+            let input = RecurringPaymentDefinitionInput(
                 name: "テスト",
                 amount: 50000,
                 recurrenceIntervalMonths: 12,
@@ -143,14 +143,14 @@ internal struct SpecialPaymentStoreCreateDefinitionTests {
 
     // MARK: - Helpers
 
-    private func makeStore(referenceDate: Date) async throws -> (SpecialPaymentStore, ModelContext) {
+    private func makeStore(referenceDate: Date) async throws -> (RecurringPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await SwiftDataSpecialPaymentRepository(
+        let repository = await SwiftDataRecurringPaymentRepository(
             modelContext: context,
             currentDateProvider: { referenceDate },
         )
-        let store = SpecialPaymentStore(
+        let store = RecurringPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },
         )

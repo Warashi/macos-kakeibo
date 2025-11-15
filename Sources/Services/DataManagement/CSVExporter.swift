@@ -112,10 +112,10 @@ internal struct CSVExporter: Sendable {
         "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
     }
 
-    /// 特別支払い一覧エントリをCSVに変換する
+    /// 定期支払い一覧エントリをCSVに変換する
     /// - Parameter entries: エクスポート対象のエントリ
     /// - Returns: CSVデータと行数
-    internal func exportSpecialPaymentListEntries(_ entries: [SpecialPaymentListEntry]) throws
+    internal func exportRecurringPaymentListEntries(_ entries: [RecurringPaymentListEntry]) throws
     -> CSVExportResult {
         let header = [
             "id",
@@ -153,10 +153,10 @@ internal struct CSVExporter: Sendable {
         )
     }
 
-    /// SpecialPaymentListEntryから1行のCSV文字列を生成
-    /// - Parameter entry: 特別支払い一覧エントリ
+    /// RecurringPaymentListEntryから1行のCSV文字列を生成
+    /// - Parameter entry: 定期支払い一覧エントリ
     /// - Returns: CSV文字列
-    private func row(from entry: SpecialPaymentListEntry) -> String {
+    private func row(from entry: RecurringPaymentListEntry) -> String {
         [
             entry.id.uuidString,
             entry.definitionId.uuidString,
@@ -175,7 +175,7 @@ internal struct CSVExporter: Sendable {
     }
 
     /// ステータスのラベルを取得
-    private func statusLabel(_ status: SpecialPaymentStatus) -> String {
+    private func statusLabel(_ status: RecurringPaymentStatus) -> String {
         switch status {
         case .planned:
             "予定のみ"

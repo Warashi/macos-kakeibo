@@ -3,12 +3,12 @@ import Foundation
 import SwiftData
 import Testing
 
-/// 特別支払い積立・充当ロジックの統合テスト（複数回支払いシナリオ）
+/// 定期支払い積立・充当ロジックの統合テスト（複数回支払いシナリオ）
 ///
 /// 複数サイクルでの積立・支払いの繰り返しを検証します。
-@Suite("SpecialPaymentSavings Multiple Payments Tests")
-internal struct SpecialPaymentMultiplePaymentsTests {
-    private let balanceService: SpecialPaymentBalanceService = SpecialPaymentBalanceService()
+@Suite("RecurringPaymentSavings Multiple Payments Tests")
+internal struct RecurringPaymentMultiplePaymentsTests {
+    private let balanceService: RecurringPaymentBalanceService = RecurringPaymentBalanceService()
 
     @Test("複数回支払い：2回目、3回目の支払い")
     @DatabaseActor
@@ -17,7 +17,7 @@ internal struct SpecialPaymentMultiplePaymentsTests {
         let context = ModelContext(container)
 
         // Given: 年次支払い
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
@@ -26,7 +26,7 @@ internal struct SpecialPaymentMultiplePaymentsTests {
         )
         context.insert(definition)
 
-        var balance: SpecialPaymentSavingBalance?
+        var balance: RecurringPaymentSavingBalance?
 
         // 1回目のサイクル: 12ヶ月積立 + 支払い
         balance = performFirstCycle(definition: definition, balance: balance, context: context)
@@ -57,10 +57,10 @@ internal struct SpecialPaymentMultiplePaymentsTests {
     /// 1回目のサイクルを実行
     @DatabaseActor
     private func performFirstCycle(
-        definition: SpecialPaymentDefinition,
-        balance: SpecialPaymentSavingBalance?,
+        definition: RecurringPaymentDefinition,
+        balance: RecurringPaymentSavingBalance?,
         context: ModelContext,
-    ) -> SpecialPaymentSavingBalance? {
+    ) -> RecurringPaymentSavingBalance? {
         let params: CycleParams = CycleParams(
             startMonth: 1,
             endMonth: 12,
@@ -69,7 +69,7 @@ internal struct SpecialPaymentMultiplePaymentsTests {
             actualAmount: 150_000,
         )
 
-        let updatedBalance: SpecialPaymentSavingBalance? = performSavingCycle(
+        let updatedBalance: RecurringPaymentSavingBalance? = performSavingCycle(
             definition: definition,
             balance: balance,
             params: params,
@@ -87,10 +87,10 @@ internal struct SpecialPaymentMultiplePaymentsTests {
     /// 2回目のサイクルを実行
     @DatabaseActor
     private func performSecondCycle(
-        definition: SpecialPaymentDefinition,
-        balance: SpecialPaymentSavingBalance?,
+        definition: RecurringPaymentDefinition,
+        balance: RecurringPaymentSavingBalance?,
         context: ModelContext,
-    ) -> SpecialPaymentSavingBalance? {
+    ) -> RecurringPaymentSavingBalance? {
         let params: CycleParams = CycleParams(
             startMonth: 13,
             endMonth: 24,
@@ -99,7 +99,7 @@ internal struct SpecialPaymentMultiplePaymentsTests {
             actualAmount: 155_000,
         )
 
-        let updatedBalance: SpecialPaymentSavingBalance? = performSavingCycle(
+        let updatedBalance: RecurringPaymentSavingBalance? = performSavingCycle(
             definition: definition,
             balance: balance,
             params: params,
@@ -117,10 +117,10 @@ internal struct SpecialPaymentMultiplePaymentsTests {
     /// 3回目のサイクルを実行
     @DatabaseActor
     private func performThirdCycle(
-        definition: SpecialPaymentDefinition,
-        balance: SpecialPaymentSavingBalance?,
+        definition: RecurringPaymentDefinition,
+        balance: RecurringPaymentSavingBalance?,
         context: ModelContext,
-    ) throws -> SpecialPaymentSavingBalance {
+    ) throws -> RecurringPaymentSavingBalance {
         let params: CycleParams = CycleParams(
             startMonth: 25,
             endMonth: 36,
@@ -129,7 +129,7 @@ internal struct SpecialPaymentMultiplePaymentsTests {
             actualAmount: 145_000,
         )
 
-        let updatedBalance: SpecialPaymentSavingBalance? = performSavingCycle(
+        let updatedBalance: RecurringPaymentSavingBalance? = performSavingCycle(
             definition: definition,
             balance: balance,
             params: params,
@@ -145,15 +145,15 @@ internal struct SpecialPaymentMultiplePaymentsTests {
     /// 指定範囲の月次積立を実行するヘルパー関数
     @DatabaseActor
     private func performSavingCycle(
-        definition: SpecialPaymentDefinition,
-        balance: SpecialPaymentSavingBalance?,
+        definition: RecurringPaymentDefinition,
+        balance: RecurringPaymentSavingBalance?,
         params: CycleParams,
         context: ModelContext,
-    ) -> SpecialPaymentSavingBalance? {
-        var currentBalance: SpecialPaymentSavingBalance? = balance
+    ) -> RecurringPaymentSavingBalance? {
+        var currentBalance: RecurringPaymentSavingBalance? = balance
         for month in params.startMonth ... params.endMonth {
             currentBalance = balanceService.recordMonthlySavings(
-                params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                params: RecurringPaymentBalanceService.MonthlySavingsParameters(
                     definition: definition,
                     balance: currentBalance,
                     year: 2024 + (month - 1) / 12,
@@ -168,11 +168,11 @@ internal struct SpecialPaymentMultiplePaymentsTests {
     /// 支払い実績を作成するヘルパー関数
     @DatabaseActor
     private func createOccurrence(
-        definition: SpecialPaymentDefinition,
+        definition: RecurringPaymentDefinition,
         params: CycleParams,
         context: ModelContext,
-    ) -> SpecialPaymentOccurrence {
-        let occurrence: SpecialPaymentOccurrence = SpecialPaymentOccurrence(
+    ) -> RecurringPaymentOccurrence {
+        let occurrence: RecurringPaymentOccurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: params.year, month: params.month) ?? Date(),
             expectedAmount: 150_000,

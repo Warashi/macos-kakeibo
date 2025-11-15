@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct SpecialPaymentScheduleService {
+internal struct RecurringPaymentScheduleService {
     /// 既定のスケジュール生成期間（月単位）
     internal static let defaultHorizonMonths: Int = 36
 
@@ -12,11 +12,11 @@ internal struct SpecialPaymentScheduleService {
 
     /// スケジュール同期結果
     internal struct SynchronizationResult {
-        internal let created: [SpecialPaymentOccurrence]
-        internal let updated: [SpecialPaymentOccurrence]
-        internal let removed: [SpecialPaymentOccurrence]
-        internal let locked: [SpecialPaymentOccurrence]
-        internal let occurrences: [SpecialPaymentOccurrence]
+        internal let created: [RecurringPaymentOccurrence]
+        internal let updated: [RecurringPaymentOccurrence]
+        internal let removed: [RecurringPaymentOccurrence]
+        internal let locked: [RecurringPaymentOccurrence]
+        internal let occurrences: [RecurringPaymentOccurrence]
         internal let referenceDate: Date
     }
 
@@ -67,12 +67,12 @@ internal struct SpecialPaymentScheduleService {
 
     /// 差分適用用の同期計画を生成
     /// - Parameters:
-    ///   - definition: 対象の特別支払い定義
+    ///   - definition: 対象の定期支払い定義
     ///   - referenceDate: 判定基準日
     ///   - horizonMonths: 生成対象期間
     /// - Returns: 同期結果
     internal func synchronizationPlan(
-        for definition: SpecialPaymentDefinition,
+        for definition: RecurringPaymentDefinition,
         referenceDate: Date,
         horizonMonths: Int,
     ) -> SynchronizationResult {
@@ -98,9 +98,9 @@ internal struct SpecialPaymentScheduleService {
         }
 
         var editableOccurrences = definition.occurrences.filter { !$0.isSchedulingLocked }
-        var created: [SpecialPaymentOccurrence] = []
-        var updated: [SpecialPaymentOccurrence] = []
-        var matched: [SpecialPaymentOccurrence] = []
+        var created: [RecurringPaymentOccurrence] = []
+        var updated: [RecurringPaymentOccurrence] = []
+        var matched: [RecurringPaymentOccurrence] = []
 
         for target in targets {
             if let existingIndex = editableOccurrences.firstIndex(
@@ -118,7 +118,7 @@ internal struct SpecialPaymentScheduleService {
                 }
                 matched.append(occurrence)
             } else {
-                let occurrence = SpecialPaymentOccurrence(
+                let occurrence = RecurringPaymentOccurrence(
                     definition: definition,
                     scheduledDate: target.scheduledDate,
                     expectedAmount: target.expectedAmount,
@@ -148,13 +148,13 @@ internal struct SpecialPaymentScheduleService {
 
     /// 定義に基づき、指定した開始日から将来のOccurrence候補を生成する
     /// - Parameters:
-    ///   - definition: 特別支払い定義
+    ///   - definition: 定期支払い定義
     ///   - seedDate: 計算開始基準日（通常は初回発生日か、最新実績の次回予定日）
     ///   - referenceDate: 判定基準となる日付（通常は「今日」）
     ///   - horizonMonths: 参照日から先の生成期間（月数）
     /// - Returns: 作成対象のOccurrence
     internal func scheduleTargets(
-        for definition: SpecialPaymentDefinition,
+        for definition: RecurringPaymentDefinition,
         seedDate: Date,
         referenceDate: Date,
         horizonMonths: Int,
@@ -237,7 +237,7 @@ internal struct SpecialPaymentScheduleService {
         for scheduledDate: Date,
         referenceDate: Date,
         leadTimeMonths: Int,
-    ) -> SpecialPaymentStatus {
+    ) -> RecurringPaymentStatus {
         let normalizedReference = referenceDate.startOfMonth
         let normalizedScheduled = scheduledDate.startOfMonth
 
@@ -289,7 +289,7 @@ internal struct SpecialPaymentScheduleService {
         }
     }
 
-    private func nextSeedDate(for definition: SpecialPaymentDefinition) -> Date {
+    private func nextSeedDate(for definition: RecurringPaymentDefinition) -> Date {
         let latestCompleted = definition.occurrences
             .filter { $0.status == .completed }
             .map(\.scheduledDate)
@@ -309,7 +309,7 @@ internal struct SpecialPaymentScheduleService {
     @discardableResult
     private func apply(
         target: ScheduleTarget,
-        to occurrence: SpecialPaymentOccurrence,
+        to occurrence: RecurringPaymentOccurrence,
         referenceDate: Date,
         leadTimeMonths: Int,
     ) -> Bool {
@@ -339,7 +339,7 @@ internal struct SpecialPaymentScheduleService {
     }
 
     private func updateStatusIfNeeded(
-        for occurrence: SpecialPaymentOccurrence,
+        for occurrence: RecurringPaymentOccurrence,
         referenceDate: Date,
         leadTimeMonths: Int,
     ) -> Bool {

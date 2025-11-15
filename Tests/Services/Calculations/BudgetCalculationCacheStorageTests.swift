@@ -70,14 +70,14 @@ internal struct BudgetCalculationCacheStorageTests {
         )
         cache.storeMonthlyBudget(monthlyValue, for: monthlyKey)
 
-        let specialKey = SpecialPaymentSavingsCacheKey(
+        let specialKey = RecurringPaymentSavingsCacheKey(
             year: 2025,
             month: 2,
             definitionsVersion: 1,
             balancesVersion: 1,
         )
         let savingsValue = [
-            SpecialPaymentSavingsCalculation(
+            RecurringPaymentSavingsCalculation(
                 definitionId: UUID(),
                 name: "車検",
                 monthlySaving: 10000,
@@ -87,7 +87,7 @@ internal struct BudgetCalculationCacheStorageTests {
                 nextOccurrence: nil,
             ),
         ]
-        cache.storeSpecialPaymentSavings(savingsValue, for: specialKey)
+        cache.storeRecurringPaymentSavings(savingsValue, for: specialKey)
 
         let categoryKey = SavingsAllocationCacheKey(
             year: 2025,
@@ -101,7 +101,7 @@ internal struct BudgetCalculationCacheStorageTests {
 
         #expect(cache.cachedMonthlyBudget(for: monthlyKey) == nil)
         #expect(cache.cachedCategorySavingsAllocation(for: categoryKey) == nil)
-        #expect(cache.cachedSpecialPaymentSavings(for: specialKey)?.count == 1)
+        #expect(cache.cachedRecurringPaymentSavings(for: specialKey)?.count == 1)
     }
 
     @Test("キャッシュヒットとミスがメトリクスに反映される")

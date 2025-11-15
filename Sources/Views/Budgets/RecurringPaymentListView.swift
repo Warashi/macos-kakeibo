@@ -1,15 +1,15 @@
 import SwiftData
 import SwiftUI
 
-/// 特別支払い一覧ビュー
-internal struct SpecialPaymentListView: View {
+/// 定期支払い一覧ビュー
+internal struct RecurringPaymentListView: View {
     @Environment(\.modelContext) private var modelContext: ModelContext
-    @State private var store: SpecialPaymentListStore?
+    @State private var store: RecurringPaymentListStore?
 
     internal var body: some View {
         Group {
             if let store {
-                SpecialPaymentListContentView(store: store)
+                RecurringPaymentListContentView(store: store)
             } else {
                 ProgressView("データを読み込み中…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -22,8 +22,8 @@ internal struct SpecialPaymentListView: View {
         guard store == nil else { return }
         let context = modelContext
         Task {
-            let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
-            let listStore = SpecialPaymentListStore(repository: repository)
+            let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+            let listStore = RecurringPaymentListStore(repository: repository)
             await listStore.refreshEntries()
             await MainActor.run {
                 store = listStore
@@ -32,9 +32,9 @@ internal struct SpecialPaymentListView: View {
     }
 }
 
-/// 特別支払い一覧コンテンツビュー
-internal struct SpecialPaymentListContentView: View {
-    @Bindable internal var store: SpecialPaymentListStore
+/// 定期支払い一覧コンテンツビュー
+internal struct RecurringPaymentListContentView: View {
+    @Bindable internal var store: RecurringPaymentListStore
     @Query private var allCategories: [Category]
     @State private var csvDocument: DataFileDocument?
     @State private var isExportingCSV: Bool = false
@@ -42,11 +42,11 @@ internal struct SpecialPaymentListContentView: View {
 
     internal var body: some View {
         VStack(spacing: 16) {
-            SpecialPaymentFilterToolbarView(store: store)
-            SpecialPaymentEntriesTableView(store: store)
+            RecurringPaymentFilterToolbarView(store: store)
+            RecurringPaymentEntriesTableView(store: store)
         }
         .padding()
-        .navigationTitle("特別支払い一覧")
+        .navigationTitle("定期支払い一覧")
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button {
@@ -115,7 +115,7 @@ internal struct SpecialPaymentListContentView: View {
         let exporter: CSVExporter = CSVExporter()
 
         do {
-            let result = try exporter.exportSpecialPaymentListEntries(store.cachedEntries)
+            let result = try exporter.exportRecurringPaymentListEntries(store.cachedEntries)
             csvDocument = DataFileDocument(data: result.data)
             isExportingCSV = true
         } catch {
@@ -127,7 +127,7 @@ internal struct SpecialPaymentListContentView: View {
         let formatter: DateFormatter = DateFormatter()
         formatter.dateFormat = "yyyyMMdd"
         let dateString: String = formatter.string(from: Date())
-        return "特別支払い一覧_\(dateString).csv"
+        return "定期支払い一覧_\(dateString).csv"
     }
 
     private func handleExportCompletion(result: Result<URL, Error>) {
@@ -143,8 +143,8 @@ internal struct SpecialPaymentListContentView: View {
 
 // MARK: - Filter Toolbar View
 
-private struct SpecialPaymentFilterToolbarView: View {
-    @Bindable internal var store: SpecialPaymentListStore
+private struct RecurringPaymentFilterToolbarView: View {
+    @Bindable internal var store: RecurringPaymentListStore
 
     internal var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -201,11 +201,11 @@ private struct SpecialPaymentFilterToolbarView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Picker("", selection: $store.selectedStatus) {
-                        Text("すべて").tag(nil as SpecialPaymentStatus?)
-                        Text("予定のみ").tag(SpecialPaymentStatus.planned as SpecialPaymentStatus?)
-                        Text("積立中").tag(SpecialPaymentStatus.saving as SpecialPaymentStatus?)
-                        Text("完了").tag(SpecialPaymentStatus.completed as SpecialPaymentStatus?)
-                        Text("中止").tag(SpecialPaymentStatus.cancelled as SpecialPaymentStatus?)
+                        Text("すべて").tag(nil as RecurringPaymentStatus?)
+                        Text("予定のみ").tag(RecurringPaymentStatus.planned as RecurringPaymentStatus?)
+                        Text("積立中").tag(RecurringPaymentStatus.saving as RecurringPaymentStatus?)
+                        Text("完了").tag(RecurringPaymentStatus.completed as RecurringPaymentStatus?)
+                        Text("中止").tag(RecurringPaymentStatus.cancelled as RecurringPaymentStatus?)
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
@@ -227,12 +227,12 @@ private struct SpecialPaymentFilterToolbarView: View {
                     .foregroundStyle(.secondary)
 
                 Picker("", selection: $store.sortOrder) {
-                    Text("日付（昇順）").tag(SpecialPaymentListStore.SortOrder.dateAscending)
-                    Text("日付（降順）").tag(SpecialPaymentListStore.SortOrder.dateDescending)
-                    Text("名称（昇順）").tag(SpecialPaymentListStore.SortOrder.nameAscending)
-                    Text("名称（降順）").tag(SpecialPaymentListStore.SortOrder.nameDescending)
-                    Text("金額（昇順）").tag(SpecialPaymentListStore.SortOrder.amountAscending)
-                    Text("金額（降順）").tag(SpecialPaymentListStore.SortOrder.amountDescending)
+                    Text("日付（昇順）").tag(RecurringPaymentListStore.SortOrder.dateAscending)
+                    Text("日付（降順）").tag(RecurringPaymentListStore.SortOrder.dateDescending)
+                    Text("名称（昇順）").tag(RecurringPaymentListStore.SortOrder.nameAscending)
+                    Text("名称（降順）").tag(RecurringPaymentListStore.SortOrder.nameDescending)
+                    Text("金額（昇順）").tag(RecurringPaymentListStore.SortOrder.amountAscending)
+                    Text("金額（降順）").tag(RecurringPaymentListStore.SortOrder.amountDescending)
                 }
                 .pickerStyle(.segmented)
 
@@ -251,15 +251,15 @@ private struct SpecialPaymentFilterToolbarView: View {
 
 // MARK: - Entries Table View
 
-private struct SpecialPaymentEntriesTableView: View {
-    @Bindable internal var store: SpecialPaymentListStore
+private struct RecurringPaymentEntriesTableView: View {
+    @Bindable internal var store: RecurringPaymentListStore
 
     internal var body: some View {
         if store.cachedEntries.isEmpty {
             ContentUnavailableView {
-                Label("特別支払いがありません", systemImage: "tray")
+                Label("定期支払いがありません", systemImage: "tray")
             } description: {
-                Text("フィルタを変更するか、特別支払いを追加してください。")
+                Text("フィルタを変更するか、定期支払いを追加してください。")
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
@@ -345,9 +345,9 @@ private struct SpecialPaymentEntriesTableView: View {
     }
 }
 
-// MARK: - SpecialPaymentStatus Extensions
+// MARK: - RecurringPaymentStatus Extensions
 
-private extension SpecialPaymentStatus {
+private extension RecurringPaymentStatus {
     var displayName: String {
         switch self {
         case .planned:

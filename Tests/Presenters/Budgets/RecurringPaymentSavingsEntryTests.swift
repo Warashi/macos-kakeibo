@@ -3,11 +3,11 @@ import Testing
 
 @testable import Kakeibo
 
-@Suite("SpecialPaymentSavingsEntry")
-internal struct SpecialPaymentSavingsEntryTests {
+@Suite("RecurringPaymentSavingsEntry")
+internal struct RecurringPaymentSavingsEntryTests {
     @Test("progressPercentageは0-100スケールに変換される")
     internal func progressPercentage_convertsScale() throws {
-        let calculation = SpecialPaymentSavingsCalculation(
+        let calculation = RecurringPaymentSavingsCalculation(
             definitionId: UUID(),
             name: "自動車税",
             monthlySaving: 15000,
@@ -17,7 +17,7 @@ internal struct SpecialPaymentSavingsEntryTests {
             nextOccurrence: Date.from(year: 2025, month: 5, day: 31),
         )
 
-        let entry = SpecialPaymentSavingsEntry(
+        let entry = RecurringPaymentSavingsEntry(
             calculation: calculation,
             progress: 0.75,
             hasAlert: false,
@@ -30,7 +30,7 @@ internal struct SpecialPaymentSavingsEntryTests {
     internal func exposesCalculationValues() throws {
         let definitionId = UUID()
         let nextDate = Date.from(year: 2025, month: 12, day: 1)
-        let calculation = SpecialPaymentSavingsCalculation(
+        let calculation = RecurringPaymentSavingsCalculation(
             definitionId: definitionId,
             name: "ボーナス",
             monthlySaving: 50000,
@@ -40,7 +40,7 @@ internal struct SpecialPaymentSavingsEntryTests {
             nextOccurrence: nextDate,
         )
 
-        let entry = SpecialPaymentSavingsEntry(
+        let entry = RecurringPaymentSavingsEntry(
             calculation: calculation,
             progress: 0.25,
             hasAlert: true,

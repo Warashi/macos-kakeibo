@@ -2,8 +2,8 @@ import Foundation
 import Observation
 import SwiftData
 
-/// 特別支払い定義の入力パラメータ
-internal struct SpecialPaymentDefinitionInput: Sendable {
+/// 定期支払い定義の入力パラメータ
+internal struct RecurringPaymentDefinitionInput: Sendable {
     internal let name: String
     internal let notes: String
     internal let amount: Decimal
@@ -11,7 +11,7 @@ internal struct SpecialPaymentDefinitionInput: Sendable {
     internal let firstOccurrenceDate: Date
     internal let leadTimeMonths: Int
     internal let categoryId: UUID?
-    internal let savingStrategy: SpecialPaymentSavingStrategy
+    internal let savingStrategy: RecurringPaymentSavingStrategy
     internal let customMonthlySavingAmount: Decimal?
     internal let dateAdjustmentPolicy: DateAdjustmentPolicy
     internal let recurrenceDayPattern: DayOfMonthPattern?
@@ -24,7 +24,7 @@ internal struct SpecialPaymentDefinitionInput: Sendable {
         firstOccurrenceDate: Date,
         leadTimeMonths: Int = 0,
         categoryId: UUID? = nil,
-        savingStrategy: SpecialPaymentSavingStrategy = .evenlyDistributed,
+        savingStrategy: RecurringPaymentSavingStrategy = .evenlyDistributed,
         customMonthlySavingAmount: Decimal? = nil,
         dateAdjustmentPolicy: DateAdjustmentPolicy = .none,
         recurrenceDayPattern: DayOfMonthPattern? = nil,
@@ -43,7 +43,7 @@ internal struct SpecialPaymentDefinitionInput: Sendable {
     }
 }
 
-/// 特別支払いOccurrence完了時の入力パラメータ
+/// 定期支払いOccurrence完了時の入力パラメータ
 internal struct OccurrenceCompletionInput: Sendable {
     internal let actualDate: Date
     internal let actualAmount: Decimal
@@ -60,15 +60,15 @@ internal struct OccurrenceCompletionInput: Sendable {
     }
 }
 
-/// 特別支払いOccurrence更新時の入力パラメータ
+/// 定期支払いOccurrence更新時の入力パラメータ
 internal struct OccurrenceUpdateInput: Sendable {
-    internal let status: SpecialPaymentStatus
+    internal let status: RecurringPaymentStatus
     internal let actualDate: Date?
     internal let actualAmount: Decimal?
     internal let transaction: TransactionDTO?
 
     internal init(
-        status: SpecialPaymentStatus,
+        status: RecurringPaymentStatus,
         actualDate: Date? = nil,
         actualAmount: Decimal? = nil,
         transaction: TransactionDTO? = nil,
@@ -81,14 +81,14 @@ internal struct OccurrenceUpdateInput: Sendable {
 }
 
 @Observable
-internal final class SpecialPaymentStore {
-    private let repository: SpecialPaymentRepository
+internal final class RecurringPaymentStore {
+    private let repository: RecurringPaymentRepository
     private let currentDateProvider: () -> Date
 
     internal private(set) var lastSyncedAt: Date?
 
     internal init(
-        repository: SpecialPaymentRepository,
+        repository: RecurringPaymentRepository,
         currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         self.repository = repository
@@ -99,7 +99,7 @@ internal final class SpecialPaymentStore {
 
     internal func synchronizeOccurrences(
         definitionId: UUID,
-        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
+        horizonMonths: Int = RecurringPaymentScheduleService.defaultHorizonMonths,
         referenceDate: Date? = nil,
     ) async throws {
         let summary = try await repository.synchronize(
@@ -114,7 +114,7 @@ internal final class SpecialPaymentStore {
     internal func markOccurrenceCompleted(
         occurrenceId: UUID,
         input: OccurrenceCompletionInput,
-        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
+        horizonMonths: Int = RecurringPaymentScheduleService.defaultHorizonMonths,
     ) async throws {
         let summary = try await repository.markOccurrenceCompleted(
             occurrenceId: occurrenceId,
@@ -132,7 +132,7 @@ internal final class SpecialPaymentStore {
     internal func updateOccurrence(
         occurrenceId: UUID,
         input: OccurrenceUpdateInput,
-        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
+        horizonMonths: Int = RecurringPaymentScheduleService.defaultHorizonMonths,
     ) async throws {
         let summary = try await repository.updateOccurrence(
             occurrenceId: occurrenceId,
@@ -148,11 +148,11 @@ internal final class SpecialPaymentStore {
 
 // MARK: - CRUD Operations
 
-extension SpecialPaymentStore {
-    /// 特別支払い定義を作成
+extension RecurringPaymentStore {
+    /// 定期支払い定義を作成
     internal func createDefinition(
-        _ input: SpecialPaymentDefinitionInput,
-        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
+        _ input: RecurringPaymentDefinitionInput,
+        horizonMonths: Int = RecurringPaymentScheduleService.defaultHorizonMonths,
     ) async throws {
         let definitionId = try await repository.createDefinition(input)
         let summary = try await repository.synchronize(
@@ -163,11 +163,11 @@ extension SpecialPaymentStore {
         lastSyncedAt = summary.syncedAt
     }
 
-    /// 特別支払い定義を更新
+    /// 定期支払い定義を更新
     internal func updateDefinition(
         definitionId: UUID,
-        input: SpecialPaymentDefinitionInput,
-        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
+        input: RecurringPaymentDefinitionInput,
+        horizonMonths: Int = RecurringPaymentScheduleService.defaultHorizonMonths,
     ) async throws {
         try await repository.updateDefinition(definitionId: definitionId, input: input)
         let summary = try await repository.synchronize(
@@ -178,7 +178,7 @@ extension SpecialPaymentStore {
         lastSyncedAt = summary.syncedAt
     }
 
-    /// 特別支払い定義を削除
+    /// 定期支払い定義を削除
     internal func deleteDefinition(definitionId: UUID) async throws {
         try await repository.deleteDefinition(definitionId: definitionId)
     }

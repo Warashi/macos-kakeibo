@@ -4,10 +4,10 @@ import SwiftData
 
 @Observable
 @MainActor
-internal final class SpecialPaymentReconciliationStore {
-    internal typealias OccurrenceRow = SpecialPaymentReconciliationPresenter.OccurrenceRow
-    internal typealias TransactionCandidate = SpecialPaymentReconciliationPresenter.TransactionCandidate
-    internal typealias TransactionCandidateScore = SpecialPaymentReconciliationPresenter.TransactionCandidateScore
+internal final class RecurringPaymentReconciliationStore {
+    internal typealias OccurrenceRow = RecurringPaymentReconciliationPresenter.OccurrenceRow
+    internal typealias TransactionCandidate = RecurringPaymentReconciliationPresenter.TransactionCandidate
+    internal typealias TransactionCandidateScore = RecurringPaymentReconciliationPresenter.TransactionCandidateScore
 
     // MARK: - Nested Types
 
@@ -35,10 +35,10 @@ internal final class SpecialPaymentReconciliationStore {
 
     // MARK: - Dependencies
 
-    private let repository: SpecialPaymentRepository
+    private let repository: RecurringPaymentRepository
     private let transactionRepository: TransactionRepository
-    private let occurrencesService: SpecialPaymentOccurrencesService
-    private let presenter: SpecialPaymentReconciliationPresenter
+    private let occurrencesService: RecurringPaymentOccurrencesService
+    private let presenter: RecurringPaymentReconciliationPresenter
     private let currentDateProvider: () -> Date
     private let candidateSearchWindowDays: Int
     private let candidateLimit: Int
@@ -76,26 +76,26 @@ internal final class SpecialPaymentReconciliationStore {
 
     // MARK: - Caches
 
-    private var occurrenceLookup: [UUID: SpecialPaymentOccurrenceDTO] = [:]
-    private var definitionsLookup: [UUID: SpecialPaymentDefinitionDTO] = [:]
+    private var occurrenceLookup: [UUID: RecurringPaymentOccurrenceDTO] = [:]
+    private var definitionsLookup: [UUID: RecurringPaymentDefinitionDTO] = [:]
     private var linkedTransactionLookup: [UUID: UUID] = [:]
     private var transactions: [TransactionDTO] = []
 
     // MARK: - Initialization
 
     internal init(
-        repository: SpecialPaymentRepository,
+        repository: RecurringPaymentRepository,
         transactionRepository: TransactionRepository,
-        occurrencesService: SpecialPaymentOccurrencesService,
+        occurrencesService: RecurringPaymentOccurrencesService,
         candidateSearchWindowDays: Int = 60,
         candidateLimit: Int = 12,
-        horizonMonths: Int = SpecialPaymentScheduleService.defaultHorizonMonths,
+        horizonMonths: Int = RecurringPaymentScheduleService.defaultHorizonMonths,
         currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         self.repository = repository
         self.transactionRepository = transactionRepository
         self.occurrencesService = occurrencesService
-        self.presenter = SpecialPaymentReconciliationPresenter()
+        self.presenter = RecurringPaymentReconciliationPresenter()
         self.candidateSearchWindowDays = candidateSearchWindowDays
         self.candidateLimit = candidateLimit
         self.currentDateProvider = currentDateProvider
@@ -112,7 +112,7 @@ internal final class SpecialPaymentReconciliationStore {
 
 // MARK: - Actions
 
-internal extension SpecialPaymentReconciliationStore {
+internal extension RecurringPaymentReconciliationStore {
     func refresh() async {
         errorMessage = nil
         statusMessage = nil
@@ -142,7 +142,7 @@ internal extension SpecialPaymentReconciliationStore {
             let transactionsDict = Dictionary(uniqueKeysWithValues: transactions.map { ($0.id, $0.title) })
 
             let presentation = presenter.makePresentation(
-                input: SpecialPaymentReconciliationPresenter.PresentationInput(
+                input: RecurringPaymentReconciliationPresenter.PresentationInput(
                     occurrences: occurrenceDTOs,
                     definitions: definitionsLookup,
                     categories: categoriesDict,
@@ -169,7 +169,7 @@ internal extension SpecialPaymentReconciliationStore {
             occurrenceLookup = [:]
             linkedTransactionLookup = [:]
             candidateTransactions = []
-            errorMessage = "特別支払い情報の取得に失敗しました: \(error.localizedDescription)"
+            errorMessage = "定期支払い情報の取得に失敗しました: \(error.localizedDescription)"
         }
     }
 
@@ -186,7 +186,7 @@ internal extension SpecialPaymentReconciliationStore {
 
     func saveSelectedOccurrence() async {
         guard let occurrenceId = selectedOccurrenceId else {
-            errorMessage = "保存対象の特別支払いを選択してください。"
+            errorMessage = "保存対象の定期支払いを選択してください。"
             return
         }
 
@@ -222,7 +222,7 @@ internal extension SpecialPaymentReconciliationStore {
             statusMessage = "実績を保存しました。"
             await refresh()
             selectedOccurrenceId = occurrenceId
-        } catch let storeError as SpecialPaymentDomainError {
+        } catch let storeError as RecurringPaymentDomainError {
             switch storeError {
             case let .validationFailed(messages):
                 errorMessage = messages.joined(separator: "\n")
@@ -236,7 +236,7 @@ internal extension SpecialPaymentReconciliationStore {
 
     func unlinkSelectedOccurrence() async {
         guard let occurrenceId = selectedOccurrenceId else {
-            errorMessage = "解除対象の特別支払いを選択してください。"
+            errorMessage = "解除対象の定期支払いを選択してください。"
             return
         }
 
@@ -284,8 +284,8 @@ internal extension SpecialPaymentReconciliationStore {
 
 // MARK: - Private Helpers
 
-private extension SpecialPaymentReconciliationStore {
-    var selectedOccurrence: SpecialPaymentOccurrenceDTO? {
+private extension RecurringPaymentReconciliationStore {
+    var selectedOccurrence: RecurringPaymentOccurrenceDTO? {
         guard let id = selectedOccurrenceId else { return nil }
         return occurrenceLookup[id]
     }
@@ -323,13 +323,13 @@ private extension SpecialPaymentReconciliationStore {
         recomputeCandidates(for: occurrence)
     }
 
-    private func recomputeCandidates(for occurrence: SpecialPaymentOccurrenceDTO) {
+    private func recomputeCandidates(for occurrence: RecurringPaymentOccurrenceDTO) {
         guard let definition = definitionsLookup[occurrence.definitionId] else {
             candidateTransactions = []
             return
         }
 
-        let context = SpecialPaymentReconciliationPresenter.TransactionCandidateSearchContext(
+        let context = RecurringPaymentReconciliationPresenter.TransactionCandidateSearchContext(
             transactions: transactions,
             linkedTransactionLookup: linkedTransactionLookup,
             windowDays: candidateSearchWindowDays,

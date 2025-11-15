@@ -3,22 +3,22 @@ import Foundation
 import SwiftData
 import Testing
 
-/// 特別支払い積立・充当ロジックの統合テスト（月次予算統合シナリオ）
+/// 定期支払い積立・充当ロジックの統合テスト（月次予算統合シナリオ）
 ///
 /// 月次予算への組み込みや複雑なエンドツーエンドシナリオを検証します。
-@Suite("SpecialPaymentSavings Budget Integration Tests")
-internal struct SpecialPaymentSavingsComplexTests {
-    private let balanceService: SpecialPaymentBalanceService = SpecialPaymentBalanceService()
+@Suite("RecurringPaymentSavings Budget Integration Tests")
+internal struct RecurringPaymentSavingsComplexTests {
+    private let balanceService: RecurringPaymentBalanceService = RecurringPaymentBalanceService()
     private let calculator: BudgetCalculator = BudgetCalculator()
 
     // MARK: - 月次予算への組み込み
 
-    @Test("月次予算への組み込み：複数の特別支払いを集計")
+    @Test("月次予算への組み込み：複数の定期支払いを集計")
     internal func monthlyBudgetIntegration() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
-        // Given: 複数の特別支払い定義
+        // Given: 複数の定期支払い定義
         let categoryTax = Category(name: "保険・税金")
         let categoryEducation = Category(name: "教育費")
         context.insert(categoryTax)
@@ -33,7 +33,7 @@ internal struct SpecialPaymentSavingsComplexTests {
         try context.save()
 
         // When: 月次積立金額を計算
-        let definitionDTOs = definitions.map { SpecialPaymentDefinitionDTO(from: $0) }
+        let definitionDTOs = definitions.map { RecurringPaymentDefinitionDTO(from: $0) }
         let totalAllocation = calculator.calculateMonthlySavingsAllocation(
             definitions: definitionDTOs,
             year: 2025,
@@ -67,15 +67,15 @@ internal struct SpecialPaymentSavingsComplexTests {
             context: context,
         )
 
-        let balanceDTOs = balances.map { SpecialPaymentSavingBalanceDTO(from: $0) }
-        let savingsInput = SpecialPaymentSavingsCalculationInput(
+        let balanceDTOs = balances.map { RecurringPaymentSavingBalanceDTO(from: $0) }
+        let savingsInput = RecurringPaymentSavingsCalculationInput(
             definitions: definitionDTOs,
             balances: balanceDTOs,
             occurrences: [],
             year: 2025,
             month: 6,
         )
-        let savingsCalculations = calculator.calculateSpecialPaymentSavings(savingsInput)
+        let savingsCalculations = calculator.calculateRecurringPaymentSavings(savingsInput)
 
         // Then: 各定義の積立状況が正しい
         #expect(savingsCalculations.count == 4)
@@ -93,14 +93,14 @@ internal struct SpecialPaymentSavingsComplexTests {
 
     // MARK: - Private Helpers
 
-    /// 特別支払い定義のパラメータ
+    /// 定期支払い定義のパラメータ
     private struct DefinitionParams {
         internal let name: String
         internal let amount: Decimal
         internal let year: Int
         internal let month: Int
         internal let category: Kakeibo.Category?
-        internal let strategy: SpecialPaymentSavingStrategy
+        internal let strategy: RecurringPaymentSavingStrategy
         internal let customAmount: Decimal?
 
         internal init(
@@ -109,7 +109,7 @@ internal struct SpecialPaymentSavingsComplexTests {
             year: Int,
             month: Int,
             category: Kakeibo.Category? = nil,
-            strategy: SpecialPaymentSavingStrategy,
+            strategy: RecurringPaymentSavingStrategy,
             customAmount: Decimal? = nil,
         ) {
             self.name = name
@@ -122,9 +122,9 @@ internal struct SpecialPaymentSavingsComplexTests {
         }
     }
 
-    /// 特別支払い定義を作成するヘルパー
-    private func makeDefinition(params: DefinitionParams) -> SpecialPaymentDefinition {
-        SpecialPaymentDefinition(
+    /// 定期支払い定義を作成するヘルパー
+    private func makeDefinition(params: DefinitionParams) -> RecurringPaymentDefinition {
+        RecurringPaymentDefinition(
             name: params.name,
             amount: params.amount,
             recurrenceIntervalMonths: 12,
@@ -135,13 +135,13 @@ internal struct SpecialPaymentSavingsComplexTests {
         )
     }
 
-    /// 複数の特別支払い定義を作成するヘルパー関数
+    /// 複数の定期支払い定義を作成するヘルパー関数
     private func createMultipleDefinitions(
         categoryTax: Kakeibo.Category,
         categoryEducation: Kakeibo.Category,
         context: ModelContext,
-    ) -> [SpecialPaymentDefinition] {
-        let definitions: [SpecialPaymentDefinition] = [
+    ) -> [RecurringPaymentDefinition] {
+        let definitions: [RecurringPaymentDefinition] = [
             makeDefinition(params: DefinitionParams(
                 name: "自動車税",
                 amount: 45000,
@@ -182,17 +182,17 @@ internal struct SpecialPaymentSavingsComplexTests {
 
     /// 複数定義の積立残高を作成するヘルパー関数
     private func createBalancesForDefinitions(
-        definitions: [SpecialPaymentDefinition],
+        definitions: [RecurringPaymentDefinition],
         months: Int,
         year: Int,
         context: ModelContext,
-    ) -> [SpecialPaymentSavingBalance] {
-        var balances: [SpecialPaymentSavingBalance] = []
+    ) -> [RecurringPaymentSavingBalance] {
+        var balances: [RecurringPaymentSavingBalance] = []
         for definition in definitions {
-            var balance: SpecialPaymentSavingBalance?
+            var balance: RecurringPaymentSavingBalance?
             for month in 1 ... months {
                 balance = balanceService.recordMonthlySavings(
-                    params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                    params: RecurringPaymentBalanceService.MonthlySavingsParameters(
                         definition: definition,
                         balance: balance,
                         year: year,

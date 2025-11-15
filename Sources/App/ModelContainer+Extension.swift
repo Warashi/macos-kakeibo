@@ -10,9 +10,9 @@ internal extension ModelContainer {
             Budget.self,
             AnnualBudgetConfig.self,
             FinancialInstitution.self,
-            SpecialPaymentDefinition.self,
-            SpecialPaymentOccurrence.self,
-            SpecialPaymentSavingBalance.self,
+            RecurringPaymentDefinition.self,
+            RecurringPaymentOccurrence.self,
+            RecurringPaymentSavingBalance.self,
             CustomHoliday.self,
         ])
 
@@ -35,9 +35,9 @@ internal extension ModelContainer {
             Budget.self,
             AnnualBudgetConfig.self,
             FinancialInstitution.self,
-            SpecialPaymentDefinition.self,
-            SpecialPaymentOccurrence.self,
-            SpecialPaymentSavingBalance.self,
+            RecurringPaymentDefinition.self,
+            RecurringPaymentOccurrence.self,
+            RecurringPaymentSavingBalance.self,
             CustomHoliday.self,
         ])
 

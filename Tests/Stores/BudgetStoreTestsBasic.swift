@@ -159,7 +159,7 @@ internal struct BudgetStoreTestsBasic {
         #expect(store.displayModeTraits.navigationStyle == .annual)
         #expect(store.displayModeTraits.presentButtonLabel == "今年")
 
-        store.displayMode = .specialPaymentsList
+        store.displayMode = .recurringPaymentsList
         #expect(store.displayModeTraits.showsNavigation == false)
         #expect(store.displayModeTraits.presentButtonLabel == nil)
     }
@@ -194,10 +194,10 @@ internal struct BudgetStoreTestsBasic {
         #expect(store.currentMonth == 6)
     }
 
-    @Test("moveToPresent: 特別支払い一覧では変化しない")
-    internal func moveToPresent_doesNothingForSpecialPayments() async throws {
+    @Test("moveToPresent: 定期支払い一覧では変化しない")
+    internal func moveToPresent_doesNothingForRecurringPayments() async throws {
         let (store, _) = try await makeStore()
-        store.displayMode = .specialPaymentsList
+        store.displayMode = .recurringPaymentsList
         store.currentYear = 2000
         store.currentMonth = 6
 
@@ -225,14 +225,14 @@ internal struct BudgetStoreTestsBasic {
         let calculator = BudgetCalculator()
         let monthlyUseCase = DefaultMonthlyBudgetUseCase(calculator: calculator)
         let annualUseCase = DefaultAnnualBudgetUseCase()
-        let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase(calculator: calculator)
+        let recurringPaymentUseCase = DefaultRecurringPaymentSavingsUseCase(calculator: calculator)
         let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
 
         return await BudgetStore(
             repository: repository,
             monthlyUseCase: monthlyUseCase,
             annualUseCase: annualUseCase,
-            specialPaymentUseCase: specialPaymentUseCase,
+            recurringPaymentUseCase: recurringPaymentUseCase,
             mutationUseCase: mutationUseCase,
         )
     }

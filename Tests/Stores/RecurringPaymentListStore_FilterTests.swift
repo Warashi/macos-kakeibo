@@ -6,12 +6,12 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct SpecialPaymentListStoreFilterTests {
+internal struct RecurringPaymentListStoreFilterTests {
     @Test("entries: 期間フィルタが適用される")
     internal func entries_periodFilter() async throws {
         let (store, context) = try await makeStore()
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -19,7 +19,7 @@ internal struct SpecialPaymentListStoreFilterTests {
         )
 
         // 期間内
-        let occurrence1 = SpecialPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 45000,
@@ -27,7 +27,7 @@ internal struct SpecialPaymentListStoreFilterTests {
         )
 
         // 期間外（過去）
-        let occurrence2 = SpecialPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 1) ?? Date(),
             expectedAmount: 45000,
@@ -35,7 +35,7 @@ internal struct SpecialPaymentListStoreFilterTests {
         )
 
         // 期間外（未来）
-        let occurrence3 = SpecialPaymentOccurrence(
+        let occurrence3 = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2027, month: 1) ?? Date(),
             expectedAmount: 45000,
@@ -62,28 +62,28 @@ internal struct SpecialPaymentListStoreFilterTests {
     internal func entries_searchTextFilter() async throws {
         let (store, context) = try await makeStore()
 
-        let definition1 = SpecialPaymentDefinition(
+        let definition1 = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 5) ?? Date(),
         )
 
-        let definition2 = SpecialPaymentDefinition(
+        let definition2 = RecurringPaymentDefinition(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 4) ?? Date(),
         )
 
-        let occurrence1 = SpecialPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrence(
             definition: definition1,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
             status: .saving,
         )
 
-        let occurrence2 = SpecialPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrence(
             definition: definition2,
             scheduledDate: Date.from(year: 2026, month: 4) ?? Date(),
             expectedAmount: 150_000,
@@ -112,21 +112,21 @@ internal struct SpecialPaymentListStoreFilterTests {
     internal func entries_statusFilter() async throws {
         let (store, context) = try await makeStore()
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト",
             amount: 10000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence1 = SpecialPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 10000,
             status: .saving,
         )
 
-        let occurrence2 = SpecialPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 4) ?? Date(),
             expectedAmount: 10000,
@@ -149,7 +149,7 @@ internal struct SpecialPaymentListStoreFilterTests {
         // Then
         let entries = await store.entries()
         #expect(entries.count == 1)
-        #expect(entries.first?.status == SpecialPaymentStatus.completed)
+        #expect(entries.first?.status == RecurringPaymentStatus.completed)
     }
 
     @Test("entries: 大項目フィルタで配下の中項目も含まれる")
@@ -164,7 +164,7 @@ internal struct SpecialPaymentListStoreFilterTests {
         context.insert(minor)
         context.insert(otherMajor)
 
-        let definitionMajor = SpecialPaymentDefinition(
+        let definitionMajor = RecurringPaymentDefinition(
             name: "家賃",
             amount: 80000,
             recurrenceIntervalMonths: 1,
@@ -172,7 +172,7 @@ internal struct SpecialPaymentListStoreFilterTests {
             category: major,
         )
 
-        let definitionMinor = SpecialPaymentDefinition(
+        let definitionMinor = RecurringPaymentDefinition(
             name: "外食",
             amount: 15000,
             recurrenceIntervalMonths: 1,
@@ -180,7 +180,7 @@ internal struct SpecialPaymentListStoreFilterTests {
             category: minor,
         )
 
-        let definitionOther = SpecialPaymentDefinition(
+        let definitionOther = RecurringPaymentDefinition(
             name: "サブスク",
             amount: 2000,
             recurrenceIntervalMonths: 1,
@@ -188,21 +188,21 @@ internal struct SpecialPaymentListStoreFilterTests {
             category: otherMajor,
         )
 
-        let occurrence1 = SpecialPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrence(
             definition: definitionMajor,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 80000,
             status: .saving,
         )
 
-        let occurrence2 = SpecialPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrence(
             definition: definitionMinor,
             scheduledDate: Date.from(year: 2026, month: 2) ?? Date(),
             expectedAmount: 15000,
             status: .saving,
         )
 
-        let occurrence3 = SpecialPaymentOccurrence(
+        let occurrence3 = RecurringPaymentOccurrence(
             definition: definitionOther,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 2000,
@@ -241,7 +241,7 @@ internal struct SpecialPaymentListStoreFilterTests {
         context.insert(minor)
         context.insert(anotherMinor)
 
-        let definitionMinor = SpecialPaymentDefinition(
+        let definitionMinor = RecurringPaymentDefinition(
             name: "外食",
             amount: 15000,
             recurrenceIntervalMonths: 1,
@@ -249,7 +249,7 @@ internal struct SpecialPaymentListStoreFilterTests {
             category: minor,
         )
 
-        let definitionAnother = SpecialPaymentDefinition(
+        let definitionAnother = RecurringPaymentDefinition(
             name: "日用品",
             amount: 8000,
             recurrenceIntervalMonths: 1,
@@ -257,14 +257,14 @@ internal struct SpecialPaymentListStoreFilterTests {
             category: anotherMinor,
         )
 
-        let occurrence1 = SpecialPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrence(
             definition: definitionMinor,
             scheduledDate: Date.from(year: 2026, month: 2) ?? Date(),
             expectedAmount: 15000,
             status: .saving,
         )
 
-        let occurrence2 = SpecialPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrence(
             definition: definitionAnother,
             scheduledDate: Date.from(year: 2026, month: 2) ?? Date(),
             expectedAmount: 8000,
@@ -316,11 +316,11 @@ internal struct SpecialPaymentListStoreFilterTests {
 
     // MARK: - Helpers
 
-    private func makeStore() async throws -> (SpecialPaymentListStore, ModelContext) {
+    private func makeStore() async throws -> (RecurringPaymentListStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await SpecialPaymentRepositoryFactory.make(modelContext: context)
-        let store = SpecialPaymentListStore(repository: repository)
+        let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+        let store = RecurringPaymentListStore(repository: repository)
         return (store, context)
     }
 }

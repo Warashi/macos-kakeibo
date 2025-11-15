@@ -6,13 +6,13 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct BudgetStoreTestsSpecialPaymentSavings {
-    @Test("特別支払い積立：月次積立金額の合計を取得")
-    internal func specialPaymentSavings_monthlyTotal() async throws {
+internal struct BudgetStoreTestsRecurringPaymentSavings {
+    @Test("定期支払い積立：月次積立金額の合計を取得")
+    internal func recurringPaymentSavings_monthlyTotal() async throws {
         let (store, context) = try await makeStore()
 
         let category = Category(name: "保険・税金")
-        let definition1 = SpecialPaymentDefinition(
+        let definition1 = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -20,7 +20,7 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
             category: category,
             savingStrategy: .evenlyDistributed,
         )
-        let definition2 = SpecialPaymentDefinition(
+        let definition2 = RecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -38,20 +38,20 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         await store.refresh()
 
         // When
-        let total = store.monthlySpecialPaymentSavingsTotal
+        let total = store.monthlyRecurringPaymentSavingsTotal
 
         // Then
         #expect(total == 9750) // 3750 + 6000
     }
 
-    @Test("特別支払い積立：カテゴリ別積立金額を取得")
-    internal func specialPaymentSavings_byCategory() async throws {
+    @Test("定期支払い積立：カテゴリ別積立金額を取得")
+    internal func recurringPaymentSavings_byCategory() async throws {
         let (store, context) = try await makeStore()
 
         let categoryTax = Category(name: "保険・税金")
         let categoryEducation = Category(name: "教育費")
 
-        let definition1 = SpecialPaymentDefinition(
+        let definition1 = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -59,7 +59,7 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
             category: categoryTax,
             savingStrategy: .evenlyDistributed,
         )
-        let definition2 = SpecialPaymentDefinition(
+        let definition2 = RecurringPaymentDefinition(
             name: "学資保険",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
@@ -77,7 +77,7 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         await store.refresh()
 
         // When
-        let allocations = store.categorySpecialPaymentSavings
+        let allocations = store.categoryRecurringPaymentSavings
 
         // Then
         #expect(allocations.count == 2)
@@ -85,13 +85,13 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         #expect(allocations[categoryEducation.id] == 10000)
     }
 
-    @Test("特別支払い積立：積立状況一覧を取得")
-    internal func specialPaymentSavings_entries() async throws {
+    @Test("定期支払い積立：積立状況一覧を取得")
+    internal func recurringPaymentSavings_entries() async throws {
         let (store, context) = try await makeStore()
 
-        let balanceService = SpecialPaymentBalanceService()
+        let balanceService = RecurringPaymentBalanceService()
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -101,10 +101,10 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         context.insert(definition)
 
         // 12ヶ月分の積立を記録
-        var balance: SpecialPaymentSavingBalance?
+        var balance: RecurringPaymentSavingBalance?
         for month in 1 ... 12 {
             balance = balanceService.recordMonthlySavings(
-                params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                params: RecurringPaymentBalanceService.MonthlySavingsParameters(
                     definition: definition,
                     balance: balance,
                     year: 2025,
@@ -118,7 +118,7 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         await store.refresh()
 
         // When
-        let entries = store.specialPaymentSavingsEntries
+        let entries = store.recurringPaymentSavingsEntries
 
         // Then
         #expect(entries.count == 1)
@@ -131,11 +131,11 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         #expect(entry.progress <= 1.0)
     }
 
-    @Test("特別支払い積立：残高不足の場合アラートフラグが立つ")
-    internal func specialPaymentSavings_alertFlag() async throws {
+    @Test("定期支払い積立：残高不足の場合アラートフラグが立つ")
+    internal func recurringPaymentSavings_alertFlag() async throws {
         let (store, context) = try await makeStore()
 
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -143,7 +143,7 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
             savingStrategy: .evenlyDistributed,
         )
 
-        let balance = SpecialPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 100_000,
             totalPaidAmount: 120_000, // 超過払い
@@ -158,7 +158,7 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         await store.refresh()
 
         // When
-        let entries = store.specialPaymentSavingsEntries
+        let entries = store.recurringPaymentSavingsEntries
 
         // Then
         let entry = try #require(entries.first)
@@ -184,14 +184,14 @@ internal struct BudgetStoreTestsSpecialPaymentSavings {
         let calculator = BudgetCalculator()
         let monthlyUseCase = DefaultMonthlyBudgetUseCase(calculator: calculator)
         let annualUseCase = DefaultAnnualBudgetUseCase()
-        let specialPaymentUseCase = DefaultSpecialPaymentSavingsUseCase(calculator: calculator)
+        let recurringPaymentUseCase = DefaultRecurringPaymentSavingsUseCase(calculator: calculator)
         let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
 
         return await BudgetStore(
             repository: repository,
             monthlyUseCase: monthlyUseCase,
             annualUseCase: annualUseCase,
-            specialPaymentUseCase: specialPaymentUseCase,
+            recurringPaymentUseCase: recurringPaymentUseCase,
             mutationUseCase: mutationUseCase,
         )
     }

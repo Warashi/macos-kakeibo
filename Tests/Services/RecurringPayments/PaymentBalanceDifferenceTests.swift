@@ -2,7 +2,7 @@ import Foundation
 @testable import Kakeibo
 import Testing
 
-@Suite("SpecialPaymentBalanceService - PaymentDifferenceテスト")
+@Suite("RecurringPaymentBalanceService - PaymentDifferenceテスト")
 internal struct PaymentBalanceDifferenceTests {
     @Test("PaymentDifference：ぴったり")
     internal func paymentDifference_exact() {

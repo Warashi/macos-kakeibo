@@ -23,9 +23,9 @@ internal struct AnnualBudgetUseCaseTests {
             transactions: transactions.map { TransactionDTO(from: $0) },
             categories: [],
             annualBudgetConfig: nil,
-            specialPaymentDefinitions: [],
-            specialPaymentBalances: [],
-            specialPaymentOccurrences: [],
+            recurringPaymentDefinitions: [],
+            recurringPaymentBalances: [],
+            recurringPaymentOccurrences: [],
         )
         let useCase = DefaultAnnualBudgetUseCase()
 
@@ -56,9 +56,9 @@ internal struct AnnualBudgetUseCaseTests {
             transactions: transactions.map { TransactionDTO(from: $0) },
             categories: [CategoryDTO(from: food)],
             annualBudgetConfig: nil,
-            specialPaymentDefinitions: [],
-            specialPaymentBalances: [],
-            specialPaymentOccurrences: [],
+            recurringPaymentDefinitions: [],
+            recurringPaymentBalances: [],
+            recurringPaymentOccurrences: [],
         )
         let useCase = DefaultAnnualBudgetUseCase()
 
@@ -90,9 +90,9 @@ internal struct AnnualBudgetUseCaseTests {
             transactions: transactions.map { TransactionDTO(from: $0) },
             categories: [CategoryDTO(from: food)],
             annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
-            specialPaymentDefinitions: [],
-            specialPaymentBalances: [],
-            specialPaymentOccurrences: [],
+            recurringPaymentDefinitions: [],
+            recurringPaymentBalances: [],
+            recurringPaymentOccurrences: [],
         )
         let useCase = DefaultAnnualBudgetUseCase()
 

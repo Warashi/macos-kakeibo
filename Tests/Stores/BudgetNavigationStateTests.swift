@@ -50,7 +50,7 @@ internal struct BudgetNavigationStateTests {
             month: 3,
             currentDateProvider: { referenceDate },
         )
-        let specialChanged = specialState.moveToPresent(displayMode: .specialPaymentsList)
+        let specialChanged = specialState.moveToPresent(displayMode: .recurringPaymentsList)
         #expect(specialChanged == false)
         #expect(specialState.year == 2010)
         #expect(specialState.month == 3)

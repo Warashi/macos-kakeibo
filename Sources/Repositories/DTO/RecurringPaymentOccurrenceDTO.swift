@@ -1,12 +1,12 @@
 import Foundation
 
-/// SpecialPaymentOccurrenceのDTO（Sendable）
-internal struct SpecialPaymentOccurrenceDTO: Sendable {
+/// RecurringPaymentOccurrenceのDTO（Sendable）
+internal struct RecurringPaymentOccurrenceDTO: Sendable {
     internal let id: UUID
     internal let definitionId: UUID
     internal let scheduledDate: Date
     internal let expectedAmount: Decimal
-    internal let status: SpecialPaymentStatus
+    internal let status: RecurringPaymentStatus
     internal let actualDate: Date?
     internal let actualAmount: Decimal?
     internal let transactionId: UUID?
@@ -18,7 +18,7 @@ internal struct SpecialPaymentOccurrenceDTO: Sendable {
         definitionId: UUID,
         scheduledDate: Date,
         expectedAmount: Decimal,
-        status: SpecialPaymentStatus,
+        status: RecurringPaymentStatus,
         actualDate: Date?,
         actualAmount: Decimal?,
         transactionId: UUID?,
@@ -37,7 +37,7 @@ internal struct SpecialPaymentOccurrenceDTO: Sendable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from occurrence: SpecialPaymentOccurrence) {
+    internal init(from occurrence: RecurringPaymentOccurrence) {
         self.id = occurrence.id
         self.definitionId = occurrence.definition.id
         self.scheduledDate = occurrence.scheduledDate

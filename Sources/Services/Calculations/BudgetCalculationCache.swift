@@ -11,7 +11,7 @@ internal struct MonthlyBudgetCacheKey: Hashable {
     internal let budgetsVersion: Int
 }
 
-internal struct SpecialPaymentSavingsCacheKey: Hashable {
+internal struct RecurringPaymentSavingsCacheKey: Hashable {
     internal let year: Int
     internal let month: Int
     internal let definitionsVersion: Int
@@ -43,8 +43,8 @@ internal struct FilterSignature: Hashable {
 internal struct BudgetCalculationCacheMetrics: Sendable {
     internal let monthlyBudgetHits: Int
     internal let monthlyBudgetMisses: Int
-    internal let specialPaymentHits: Int
-    internal let specialPaymentMisses: Int
+    internal let recurringPaymentHits: Int
+    internal let recurringPaymentMisses: Int
     internal let monthlySavingsHits: Int
     internal let monthlySavingsMisses: Int
     internal let categorySavingsHits: Int
@@ -57,8 +57,8 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
     private struct StorageMetrics {
         var monthlyBudgetHits: Int = 0
         var monthlyBudgetMisses: Int = 0
-        var specialPaymentHits: Int = 0
-        var specialPaymentMisses: Int = 0
+        var recurringPaymentHits: Int = 0
+        var recurringPaymentMisses: Int = 0
         var monthlySavingsHits: Int = 0
         var monthlySavingsMisses: Int = 0
         var categorySavingsHits: Int = 0
@@ -69,12 +69,12 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
         internal let rawValue: Int
 
         internal static let monthlyBudget: Target = Target(rawValue: 1 << 0)
-        internal static let specialPaymentSavings: Target = Target(rawValue: 1 << 1)
+        internal static let recurringPaymentSavings: Target = Target(rawValue: 1 << 1)
         internal static let monthlySavings: Target = Target(rawValue: 1 << 2)
         internal static let categorySavings: Target = Target(rawValue: 1 << 3)
         internal static let all: Target = [
             .monthlyBudget,
-            .specialPaymentSavings,
+            .recurringPaymentSavings,
             .monthlySavings,
             .categorySavings,
         ]
@@ -82,7 +82,7 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
 
     private let lock: NSLock = NSLock()
     private var monthlyBudgetCache: [MonthlyBudgetCacheKey: MonthlyBudgetCalculation] = [:]
-    private var specialPaymentSavingsCache: [SpecialPaymentSavingsCacheKey: [SpecialPaymentSavingsCalculation]] = [:]
+    private var recurringPaymentSavingsCache: [RecurringPaymentSavingsCacheKey: [RecurringPaymentSavingsCalculation]] = [:]
     private var monthlySavingsCache: [SavingsAllocationCacheKey: Decimal] = [:]
     private var categorySavingsCache: [SavingsAllocationCacheKey: [UUID: Decimal]] = [:]
     private var metrics: StorageMetrics = StorageMetrics()
@@ -92,8 +92,8 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
             BudgetCalculationCacheMetrics(
                 monthlyBudgetHits: metrics.monthlyBudgetHits,
                 monthlyBudgetMisses: metrics.monthlyBudgetMisses,
-                specialPaymentHits: metrics.specialPaymentHits,
-                specialPaymentMisses: metrics.specialPaymentMisses,
+                recurringPaymentHits: metrics.recurringPaymentHits,
+                recurringPaymentMisses: metrics.recurringPaymentMisses,
                 monthlySavingsHits: metrics.monthlySavingsHits,
                 monthlySavingsMisses: metrics.monthlySavingsMisses,
                 categorySavingsHits: metrics.categorySavingsHits,
@@ -119,25 +119,25 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
         }
     }
 
-    internal func cachedSpecialPaymentSavings(
-        for key: SpecialPaymentSavingsCacheKey,
-    ) -> [SpecialPaymentSavingsCalculation]? {
+    internal func cachedRecurringPaymentSavings(
+        for key: RecurringPaymentSavingsCacheKey,
+    ) -> [RecurringPaymentSavingsCalculation]? {
         lock.withLock {
-            if let value = specialPaymentSavingsCache[key] {
-                metrics.specialPaymentHits += 1
+            if let value = recurringPaymentSavingsCache[key] {
+                metrics.recurringPaymentHits += 1
                 return value
             }
-            metrics.specialPaymentMisses += 1
+            metrics.recurringPaymentMisses += 1
             return nil
         }
     }
 
-    internal func storeSpecialPaymentSavings(
-        _ value: [SpecialPaymentSavingsCalculation],
-        for key: SpecialPaymentSavingsCacheKey,
+    internal func storeRecurringPaymentSavings(
+        _ value: [RecurringPaymentSavingsCalculation],
+        for key: RecurringPaymentSavingsCacheKey,
     ) {
         lock.withLock {
-            specialPaymentSavingsCache[key] = value
+            recurringPaymentSavingsCache[key] = value
         }
     }
 
@@ -185,8 +185,8 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
             if targets.contains(.monthlyBudget) {
                 monthlyBudgetCache.removeAll()
             }
-            if targets.contains(.specialPaymentSavings) {
-                specialPaymentSavingsCache.removeAll()
+            if targets.contains(.recurringPaymentSavings) {
+                recurringPaymentSavingsCache.removeAll()
             }
             if targets.contains(.monthlySavings) {
                 monthlySavingsCache.removeAll()
@@ -218,11 +218,11 @@ internal enum BudgetCalculationCacheHasher {
         versionHash(for: budgets, id: { $0.id }, updatedAt: { $0.updatedAt })
     }
 
-    internal static func balancesVersion(for balances: [SpecialPaymentSavingBalanceDTO]) -> Int {
+    internal static func balancesVersion(for balances: [RecurringPaymentSavingBalanceDTO]) -> Int {
         versionHash(for: balances, id: { $0.id }, updatedAt: { $0.updatedAt })
     }
 
-    internal static func definitionsVersion(_ definitions: [SpecialPaymentDefinitionDTO]) -> Int {
+    internal static func definitionsVersion(_ definitions: [RecurringPaymentDefinitionDTO]) -> Int {
         versionHash(for: definitions, id: { $0.id }, updatedAt: { $0.updatedAt })
     }
 

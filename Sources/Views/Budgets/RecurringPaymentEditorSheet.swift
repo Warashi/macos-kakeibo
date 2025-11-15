@@ -1,12 +1,12 @@
 import SwiftUI
 
-/// 特別支払いエディタシート
+/// 定期支払いエディタシート
 ///
-/// 特別支払い定義の作成・編集を行うためのシートビュー。
-internal struct SpecialPaymentEditorSheet: View {
-    @Binding internal var formState: SpecialPaymentFormState
+/// 定期支払い定義の作成・編集を行うためのシートビュー。
+internal struct RecurringPaymentEditorSheet: View {
+    @Binding internal var formState: RecurringPaymentFormState
     internal let categories: [CategoryDTO]
-    internal let mode: SpecialPaymentEditorMode
+    internal let mode: RecurringPaymentEditorMode
     internal let errorMessage: String?
     internal let onCancel: () -> Void
     internal let onSave: () -> Void
@@ -83,9 +83,9 @@ internal struct SpecialPaymentEditorSheet: View {
 
                     LabeledField(title: "積立戦略") {
                         Picker("積立戦略", selection: $formState.savingStrategy) {
-                            Text("積立なし").tag(SpecialPaymentSavingStrategy.disabled)
-                            Text("周期で均等積立").tag(SpecialPaymentSavingStrategy.evenlyDistributed)
-                            Text("カスタム月次金額").tag(SpecialPaymentSavingStrategy.customMonthly)
+                            Text("積立なし").tag(RecurringPaymentSavingStrategy.disabled)
+                            Text("周期で均等積立").tag(RecurringPaymentSavingStrategy.evenlyDistributed)
+                            Text("カスタム月次金額").tag(RecurringPaymentSavingStrategy.customMonthly)
                         }
                         .labelsHidden()
                         .pickerStyle(.segmented)

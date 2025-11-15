@@ -1,48 +1,48 @@
 import Foundation
 
 @DatabaseActor
-internal protocol SpecialPaymentOccurrencesService: Sendable {
+internal protocol RecurringPaymentOccurrencesService: Sendable {
     @discardableResult
     func synchronizeOccurrences(
-        for definition: SpecialPaymentDefinition,
+        for definition: RecurringPaymentDefinition,
         horizonMonths: Int,
         referenceDate: Date?,
-    ) throws -> SpecialPaymentSynchronizationSummary
+    ) throws -> RecurringPaymentSynchronizationSummary
 
     @discardableResult
     func markOccurrenceCompleted(
-        _ occurrence: SpecialPaymentOccurrence,
+        _ occurrence: RecurringPaymentOccurrence,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
-    ) throws -> SpecialPaymentSynchronizationSummary
+    ) throws -> RecurringPaymentSynchronizationSummary
 
     @discardableResult
     func updateOccurrence(
-        _ occurrence: SpecialPaymentOccurrence,
+        _ occurrence: RecurringPaymentOccurrence,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
-    ) throws -> SpecialPaymentSynchronizationSummary?
+    ) throws -> RecurringPaymentSynchronizationSummary?
 }
 
 @DatabaseActor
-internal final class DefaultSpecialPaymentOccurrencesService: SpecialPaymentOccurrencesService {
-    private let repository: SpecialPaymentRepository
+internal final class DefaultRecurringPaymentOccurrencesService: RecurringPaymentOccurrencesService {
+    private let repository: RecurringPaymentRepository
 
-    internal init(repository: SpecialPaymentRepository) {
+    internal init(repository: RecurringPaymentRepository) {
         self.repository = repository
     }
 
     internal func synchronizeOccurrences(
-        for definition: SpecialPaymentDefinition,
+        for definition: RecurringPaymentDefinition,
         horizonMonths: Int,
         referenceDate: Date?,
-    ) throws -> SpecialPaymentSynchronizationSummary {
+    ) throws -> RecurringPaymentSynchronizationSummary {
         guard definition.recurrenceIntervalMonths > 0 else {
-            throw SpecialPaymentDomainError.invalidRecurrence
+            throw RecurringPaymentDomainError.invalidRecurrence
         }
 
         guard horizonMonths >= 0 else {
-            throw SpecialPaymentDomainError.invalidHorizon
+            throw RecurringPaymentDomainError.invalidHorizon
         }
 
         return try repository.synchronize(
@@ -53,10 +53,10 @@ internal final class DefaultSpecialPaymentOccurrencesService: SpecialPaymentOccu
     }
 
     internal func markOccurrenceCompleted(
-        _ occurrence: SpecialPaymentOccurrence,
+        _ occurrence: RecurringPaymentOccurrence,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
-    ) throws -> SpecialPaymentSynchronizationSummary {
+    ) throws -> RecurringPaymentSynchronizationSummary {
         try repository.markOccurrenceCompleted(
             occurrenceId: occurrence.id,
             input: input,
@@ -65,10 +65,10 @@ internal final class DefaultSpecialPaymentOccurrencesService: SpecialPaymentOccu
     }
 
     internal func updateOccurrence(
-        _ occurrence: SpecialPaymentOccurrence,
+        _ occurrence: RecurringPaymentOccurrence,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
-    ) throws -> SpecialPaymentSynchronizationSummary? {
+    ) throws -> RecurringPaymentSynchronizationSummary? {
         try repository.updateOccurrence(
             occurrenceId: occurrence.id,
             input: input,

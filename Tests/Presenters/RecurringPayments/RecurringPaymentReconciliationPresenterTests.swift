@@ -3,24 +3,24 @@ import Testing
 
 @testable import Kakeibo
 
-@Suite("SpecialPaymentReconciliationPresenter")
+@Suite("RecurringPaymentReconciliationPresenter")
 internal struct ReconciliationPresenterTests {
     @Test("makePresentation builds sorted rows and lookups")
     internal func makePresentation_buildsRows() throws {
-        let presenter = SpecialPaymentReconciliationPresenter()
-        let definition = SpecialPaymentDefinition(
+        let presenter = RecurringPaymentReconciliationPresenter()
+        let definition = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 5, day: 1) ?? Date(),
         )
-        let earlier = SpecialPaymentOccurrence(
+        let earlier = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 5, day: 1) ?? Date(),
             expectedAmount: 45000,
             status: .planned,
         )
-        let later = SpecialPaymentOccurrence(
+        let later = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5, day: 1) ?? Date(),
             expectedAmount: 46000,
@@ -28,11 +28,11 @@ internal struct ReconciliationPresenterTests {
         )
         definition.occurrences = [later, earlier]
 
-        let definitionDTO = SpecialPaymentDefinitionDTO(from: definition)
-        let earlierDTO = SpecialPaymentOccurrenceDTO(from: earlier)
-        let laterDTO = SpecialPaymentOccurrenceDTO(from: later)
+        let definitionDTO = RecurringPaymentDefinitionDTO(from: definition)
+        let earlierDTO = RecurringPaymentOccurrenceDTO(from: earlier)
+        let laterDTO = RecurringPaymentOccurrenceDTO(from: later)
 
-        let input = SpecialPaymentReconciliationPresenter.PresentationInput(
+        let input = RecurringPaymentReconciliationPresenter.PresentationInput(
             occurrences: [earlierDTO, laterDTO],
             definitions: [definitionDTO.id: definitionDTO],
             categories: [:],
@@ -50,14 +50,14 @@ internal struct ReconciliationPresenterTests {
 
     @Test("transactionCandidates scores transactions and limits count")
     internal func transactionCandidates_scoresTransactions() throws {
-        let presenter = SpecialPaymentReconciliationPresenter()
-        let definition = SpecialPaymentDefinition(
+        let presenter = RecurringPaymentReconciliationPresenter()
+        let definition = RecurringPaymentDefinition(
             name: "保険料",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
         )
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 6, day: 10) ?? Date(),
             expectedAmount: 100_000,
@@ -76,12 +76,12 @@ internal struct ReconciliationPresenterTests {
             amount: -50000,
         )
 
-        let definitionDTO = SpecialPaymentDefinitionDTO(from: definition)
-        let occurrenceDTO = SpecialPaymentOccurrenceDTO(from: occurrence)
+        let definitionDTO = RecurringPaymentDefinitionDTO(from: definition)
+        let occurrenceDTO = RecurringPaymentOccurrenceDTO(from: occurrence)
         let matchingTransactionDTO = TransactionDTO(from: matchingTransaction)
         let distantTransactionDTO = TransactionDTO(from: distantTransaction)
 
-        let context = SpecialPaymentReconciliationPresenter.TransactionCandidateSearchContext(
+        let context = RecurringPaymentReconciliationPresenter.TransactionCandidateSearchContext(
             transactions: [matchingTransactionDTO, distantTransactionDTO],
             linkedTransactionLookup: [:],
             windowDays: 30,
@@ -102,14 +102,14 @@ internal struct ReconciliationPresenterTests {
 
     @Test("transactionCandidates excludes future transactions")
     internal func transactionCandidates_excludesFutureTransactions() throws {
-        let presenter = SpecialPaymentReconciliationPresenter()
-        let definition = SpecialPaymentDefinition(
+        let presenter = RecurringPaymentReconciliationPresenter()
+        let definition = RecurringPaymentDefinition(
             name: "保険料",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
         )
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 6, day: 10) ?? Date(),
             expectedAmount: 100_000,
@@ -128,12 +128,12 @@ internal struct ReconciliationPresenterTests {
             amount: -100_000,
         )
 
-        let definitionDTO = SpecialPaymentDefinitionDTO(from: definition)
-        let occurrenceDTO = SpecialPaymentOccurrenceDTO(from: occurrence)
+        let definitionDTO = RecurringPaymentDefinitionDTO(from: definition)
+        let occurrenceDTO = RecurringPaymentOccurrenceDTO(from: occurrence)
         let pastTransactionDTO = TransactionDTO(from: pastTransaction)
         let futureTransactionDTO = TransactionDTO(from: futureTransaction)
 
-        let context = SpecialPaymentReconciliationPresenter.TransactionCandidateSearchContext(
+        let context = RecurringPaymentReconciliationPresenter.TransactionCandidateSearchContext(
             transactions: [pastTransactionDTO, futureTransactionDTO],
             linkedTransactionLookup: [:],
             windowDays: 30,

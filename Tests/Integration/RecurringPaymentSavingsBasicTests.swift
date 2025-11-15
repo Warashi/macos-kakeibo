@@ -3,12 +3,12 @@ import Foundation
 import SwiftData
 import Testing
 
-/// 特別支払い積立・充当ロジックの統合テスト（基本シナリオ）
+/// 定期支払い積立・充当ロジックの統合テスト（基本シナリオ）
 ///
 /// 基本的な積立・支払いのエンドツーエンドシナリオを検証します。
-@Suite("SpecialPaymentSavings Basic Integration Tests")
-internal struct SpecialPaymentSavingsBasicTests {
-    private let balanceService: SpecialPaymentBalanceService = SpecialPaymentBalanceService()
+@Suite("RecurringPaymentSavings Basic Integration Tests")
+internal struct RecurringPaymentSavingsBasicTests {
+    private let balanceService: RecurringPaymentBalanceService = RecurringPaymentBalanceService()
     private let calculator: BudgetCalculator = BudgetCalculator()
 
     // MARK: - 基本シナリオ
@@ -18,9 +18,9 @@ internal struct SpecialPaymentSavingsBasicTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
-        // Given: 3年周期（36ヶ月）の特別支払い定義
+        // Given: 3年周期（36ヶ月）の定期支払い定義
         let category = Category(name: "保険・税金")
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 36,
@@ -38,10 +38,10 @@ internal struct SpecialPaymentSavingsBasicTests {
         #expect(definition.monthlySavingAmount == expectedMonthlySaving)
 
         // When: 36ヶ月分の積立を記録
-        var balance: SpecialPaymentSavingBalance?
+        var balance: RecurringPaymentSavingBalance?
         for month in 1 ... 36 {
             balance = balanceService.recordMonthlySavings(
-                params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                params: RecurringPaymentBalanceService.MonthlySavingsParameters(
                     definition: definition,
                     balance: balance,
                     year: 2025 + (month - 1) / 12,
@@ -61,7 +61,7 @@ internal struct SpecialPaymentSavingsBasicTests {
         #expect(finalBalance.balance >= 119_999)
 
         // 実績支払いを記録
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2028, month: 1) ?? Date(),
             expectedAmount: 120_000,
@@ -93,7 +93,7 @@ internal struct SpecialPaymentSavingsBasicTests {
         let context = ModelContext(container)
 
         // Given
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -103,10 +103,10 @@ internal struct SpecialPaymentSavingsBasicTests {
         context.insert(definition)
 
         // 12ヶ月積立
-        var balance: SpecialPaymentSavingBalance?
+        var balance: RecurringPaymentSavingBalance?
         for month in 1 ... 12 {
             balance = balanceService.recordMonthlySavings(
-                params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                params: RecurringPaymentBalanceService.MonthlySavingsParameters(
                     definition: definition,
                     balance: balance,
                     year: 2025,
@@ -120,7 +120,7 @@ internal struct SpecialPaymentSavingsBasicTests {
         #expect(finalBalance.totalSavedAmount == 45000)
 
         // When: 実績が予定より少ない（値引きがあった）
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -152,7 +152,7 @@ internal struct SpecialPaymentSavingsBasicTests {
         let context = ModelContext(container)
 
         // Given
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -162,10 +162,10 @@ internal struct SpecialPaymentSavingsBasicTests {
         context.insert(definition)
 
         // 24ヶ月積立
-        var balance: SpecialPaymentSavingBalance?
+        var balance: RecurringPaymentSavingBalance?
         for month in 1 ... 24 {
             balance = balanceService.recordMonthlySavings(
-                params: SpecialPaymentBalanceService.MonthlySavingsParameters(
+                params: RecurringPaymentBalanceService.MonthlySavingsParameters(
                     definition: definition,
                     balance: balance,
                     year: 2024 + (month - 1) / 12,
@@ -179,7 +179,7 @@ internal struct SpecialPaymentSavingsBasicTests {
         #expect(finalBalance.totalSavedAmount == 120_000)
 
         // When: 実績が予定より多い（追加整備が必要だった）
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 120_000,

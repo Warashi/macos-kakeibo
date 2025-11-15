@@ -38,19 +38,19 @@ internal struct PaymentDifference: Sendable {
     }
 }
 
-// MARK: - SpecialPaymentBalanceService
+// MARK: - RecurringPaymentBalanceService
 
-/// 特別支払いの積立残高管理サービス
+/// 定期支払いの積立残高管理サービス
 ///
 /// 月次積立の記録、実績支払いの反映、残高の再計算を行います。
-internal struct SpecialPaymentBalanceService: Sendable {
-    private let cache: SpecialPaymentBalanceCache
+internal struct RecurringPaymentBalanceService: Sendable {
+    private let cache: RecurringPaymentBalanceCache
 
-    internal init(cache: SpecialPaymentBalanceCache = SpecialPaymentBalanceCache()) {
+    internal init(cache: RecurringPaymentBalanceCache = RecurringPaymentBalanceCache()) {
         self.cache = cache
     }
 
-    internal func cacheMetrics() -> SpecialPaymentBalanceCacheMetrics {
+    internal func cacheMetrics() -> RecurringPaymentBalanceCacheMetrics {
         cache.metricsSnapshot
     }
 
@@ -60,8 +60,8 @@ internal struct SpecialPaymentBalanceService: Sendable {
 
     /// 月次積立記録パラメータ
     internal struct MonthlySavingsParameters {
-        internal let definition: SpecialPaymentDefinition
-        internal let balance: SpecialPaymentSavingBalance?
+        internal let definition: RecurringPaymentDefinition
+        internal let balance: RecurringPaymentSavingBalance?
         internal let year: Int
         internal let month: Int
         internal let context: ModelContext
@@ -71,7 +71,7 @@ internal struct SpecialPaymentBalanceService: Sendable {
     /// - Parameter params: 月次積立記録パラメータ
     /// - Returns: 更新または新規作成された残高
     @discardableResult
-    internal func recordMonthlySavings(params: MonthlySavingsParameters) -> SpecialPaymentSavingBalance {
+    internal func recordMonthlySavings(params: MonthlySavingsParameters) -> RecurringPaymentSavingBalance {
         let definition = params.definition
         let balance = params.balance
         let year = params.year
@@ -95,7 +95,7 @@ internal struct SpecialPaymentBalanceService: Sendable {
             return existingBalance
         } else {
             // 新規作成
-            let newBalance = SpecialPaymentSavingBalance(
+            let newBalance = RecurringPaymentSavingBalance(
                 definition: definition,
                 totalSavedAmount: monthlySaving,
                 totalPaidAmount: 0,
@@ -116,8 +116,8 @@ internal struct SpecialPaymentBalanceService: Sendable {
     /// - Returns: 支払差分情報
     @discardableResult
     internal func processPayment(
-        occurrence: SpecialPaymentOccurrence,
-        balance: SpecialPaymentSavingBalance,
+        occurrence: RecurringPaymentOccurrence,
+        balance: RecurringPaymentSavingBalance,
         context: ModelContext,
     ) -> PaymentDifference {
         guard let actualAmount = occurrence.actualAmount else {
@@ -141,8 +141,8 @@ internal struct SpecialPaymentBalanceService: Sendable {
 
     /// 残高再計算パラメータ
     internal struct RecalculateBalanceParameters {
-        internal let definition: SpecialPaymentDefinition
-        internal let balance: SpecialPaymentSavingBalance
+        internal let definition: RecurringPaymentDefinition
+        internal let balance: RecurringPaymentSavingBalance
         internal let year: Int
         internal let month: Int
         internal let startYear: Int?
@@ -150,8 +150,8 @@ internal struct SpecialPaymentBalanceService: Sendable {
         internal let context: ModelContext
 
         internal init(
-            definition: SpecialPaymentDefinition,
-            balance: SpecialPaymentSavingBalance,
+            definition: RecurringPaymentDefinition,
+            balance: RecurringPaymentSavingBalance,
             year: Int,
             month: Int,
             startYear: Int? = nil,
@@ -257,7 +257,7 @@ internal struct SpecialPaymentBalanceService: Sendable {
 
 // MARK: - Cache Support
 
-internal struct SpecialPaymentBalanceCacheMetrics: Sendable {
+internal struct RecurringPaymentBalanceCacheMetrics: Sendable {
     internal let hits: Int
     internal let misses: Int
     internal let invalidations: Int
@@ -281,7 +281,7 @@ internal struct BalanceSnapshot: Sendable {
     internal let lastUpdatedMonth: Int
 }
 
-internal final class SpecialPaymentBalanceCache: @unchecked Sendable {
+internal final class RecurringPaymentBalanceCache: @unchecked Sendable {
     private struct Metrics {
         var hits: Int = 0
         var misses: Int = 0
@@ -292,9 +292,9 @@ internal final class SpecialPaymentBalanceCache: @unchecked Sendable {
     private var snapshots: [BalanceCacheKey: BalanceSnapshot] = [:]
     private var metrics: Metrics = Metrics()
 
-    internal var metricsSnapshot: SpecialPaymentBalanceCacheMetrics {
+    internal var metricsSnapshot: RecurringPaymentBalanceCacheMetrics {
         lock.withLock {
-            SpecialPaymentBalanceCacheMetrics(
+            RecurringPaymentBalanceCacheMetrics(
                 hits: metrics.hits,
                 misses: metrics.misses,
                 invalidations: metrics.invalidations,
@@ -331,7 +331,7 @@ internal final class SpecialPaymentBalanceCache: @unchecked Sendable {
     }
 }
 
-private func apply(snapshot: BalanceSnapshot, to balance: SpecialPaymentSavingBalance) {
+private func apply(snapshot: BalanceSnapshot, to balance: RecurringPaymentSavingBalance) {
     balance.totalSavedAmount = snapshot.totalSavedAmount
     balance.totalPaidAmount = snapshot.totalPaidAmount
     balance.lastUpdatedYear = snapshot.lastUpdatedYear
@@ -339,7 +339,7 @@ private func apply(snapshot: BalanceSnapshot, to balance: SpecialPaymentSavingBa
     balance.updatedAt = Date()
 }
 
-private func definitionVersion(for definition: SpecialPaymentDefinition) -> Int {
+private func definitionVersion(for definition: RecurringPaymentDefinition) -> Int {
     var hasher = Hasher()
     hasher.combine(definition.id)
     hasher.combine(definition.updatedAt.timeIntervalSinceReferenceDate)
@@ -350,7 +350,7 @@ private func definitionVersion(for definition: SpecialPaymentDefinition) -> Int 
     return hasher.finalize()
 }
 
-private func balanceVersion(for balance: SpecialPaymentSavingBalance) -> Int {
+private func balanceVersion(for balance: RecurringPaymentSavingBalance) -> Int {
     var hasher = Hasher()
     hasher.combine(balance.id)
     return hasher.finalize()

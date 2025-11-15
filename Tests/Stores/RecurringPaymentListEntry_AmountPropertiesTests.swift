@@ -8,14 +8,14 @@ import Testing
 internal struct EntryAmountPropertiesTests {
     @Test("discrepancyAmount: ぴったり支払いの場合")
     internal func discrepancyAmount_exact() {
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
 
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 1) ?? Date(),
             expectedAmount: 100_000,
@@ -24,11 +24,11 @@ internal struct EntryAmountPropertiesTests {
             actualAmount: 100_000,
         )
 
-        let presenter = SpecialPaymentListPresenter()
+        let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
-            input: SpecialPaymentListPresenter.EntryInput(
-                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
-                definition: SpecialPaymentDefinitionDTO(from: definition),
+            input: RecurringPaymentListPresenter.EntryInput(
+                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
+                definition: RecurringPaymentDefinitionDTO(from: definition),
                 categoryName: definition.category?.name,
                 balance: nil,
                 now: Date(),
@@ -40,14 +40,14 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("discrepancyAmount: 超過払いの場合")
     internal func discrepancyAmount_overpaid() {
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
 
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 1) ?? Date(),
             expectedAmount: 100_000,
@@ -56,11 +56,11 @@ internal struct EntryAmountPropertiesTests {
             actualAmount: 110_000,
         )
 
-        let presenter = SpecialPaymentListPresenter()
+        let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
-            input: SpecialPaymentListPresenter.EntryInput(
-                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
-                definition: SpecialPaymentDefinitionDTO(from: definition),
+            input: RecurringPaymentListPresenter.EntryInput(
+                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
+                definition: RecurringPaymentDefinitionDTO(from: definition),
                 categoryName: definition.category?.name,
                 balance: nil,
                 now: Date(),
@@ -72,14 +72,14 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("discrepancyAmount: 過少払いの場合")
     internal func discrepancyAmount_underpaid() {
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
 
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 1) ?? Date(),
             expectedAmount: 100_000,
@@ -88,11 +88,11 @@ internal struct EntryAmountPropertiesTests {
             actualAmount: 90000,
         )
 
-        let presenter = SpecialPaymentListPresenter()
+        let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
-            input: SpecialPaymentListPresenter.EntryInput(
-                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
-                definition: SpecialPaymentDefinitionDTO(from: definition),
+            input: RecurringPaymentListPresenter.EntryInput(
+                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
+                definition: RecurringPaymentDefinitionDTO(from: definition),
                 categoryName: definition.category?.name,
                 balance: nil,
                 now: Date(),
@@ -104,25 +104,25 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("discrepancyAmount: 実績なしの場合")
     internal func discrepancyAmount_notCompleted() {
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
 
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 1) ?? Date(),
             expectedAmount: 100_000,
             status: .saving,
         )
 
-        let presenter = SpecialPaymentListPresenter()
+        let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
-            input: SpecialPaymentListPresenter.EntryInput(
-                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
-                definition: SpecialPaymentDefinitionDTO(from: definition),
+            input: RecurringPaymentListPresenter.EntryInput(
+                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
+                definition: RecurringPaymentDefinitionDTO(from: definition),
                 categoryName: definition.category?.name,
                 balance: nil,
                 now: Date(),
@@ -134,21 +134,21 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("savingsProgress: 0%の場合")
     internal func savingsProgress_zero() {
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 100_000,
             status: .saving,
         )
 
-        let balance = SpecialPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 0,
             totalPaidAmount: 0,
@@ -156,13 +156,13 @@ internal struct EntryAmountPropertiesTests {
             lastUpdatedMonth: 1,
         )
 
-        let presenter = SpecialPaymentListPresenter()
+        let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
-            input: SpecialPaymentListPresenter.EntryInput(
-                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
-                definition: SpecialPaymentDefinitionDTO(from: definition),
+            input: RecurringPaymentListPresenter.EntryInput(
+                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
+                definition: RecurringPaymentDefinitionDTO(from: definition),
                 categoryName: definition.category?.name,
-                balance: SpecialPaymentSavingBalanceDTO(from: balance),
+                balance: RecurringPaymentSavingBalanceDTO(from: balance),
                 now: Date(),
             ),
         )
@@ -172,21 +172,21 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("savingsProgress: 50%の場合")
     internal func savingsProgress_half() {
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 100_000,
             status: .saving,
         )
 
-        let balance = SpecialPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 50000,
             totalPaidAmount: 0,
@@ -194,13 +194,13 @@ internal struct EntryAmountPropertiesTests {
             lastUpdatedMonth: 6,
         )
 
-        let presenter = SpecialPaymentListPresenter()
+        let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
-            input: SpecialPaymentListPresenter.EntryInput(
-                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
-                definition: SpecialPaymentDefinitionDTO(from: definition),
+            input: RecurringPaymentListPresenter.EntryInput(
+                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
+                definition: RecurringPaymentDefinitionDTO(from: definition),
                 categoryName: definition.category?.name,
-                balance: SpecialPaymentSavingBalanceDTO(from: balance),
+                balance: RecurringPaymentSavingBalanceDTO(from: balance),
                 now: Date(),
             ),
         )
@@ -210,21 +210,21 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("savingsProgress: 100%の場合")
     internal func savingsProgress_full() {
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 100_000,
             status: .saving,
         )
 
-        let balance = SpecialPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 100_000,
             totalPaidAmount: 0,
@@ -232,13 +232,13 @@ internal struct EntryAmountPropertiesTests {
             lastUpdatedMonth: 12,
         )
 
-        let presenter = SpecialPaymentListPresenter()
+        let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
-            input: SpecialPaymentListPresenter.EntryInput(
-                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
-                definition: SpecialPaymentDefinitionDTO(from: definition),
+            input: RecurringPaymentListPresenter.EntryInput(
+                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
+                definition: RecurringPaymentDefinitionDTO(from: definition),
                 categoryName: definition.category?.name,
-                balance: SpecialPaymentSavingBalanceDTO(from: balance),
+                balance: RecurringPaymentSavingBalanceDTO(from: balance),
                 now: Date(),
             ),
         )
@@ -248,21 +248,21 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("savingsProgress: 100%超過の場合は1.0にクランプ")
     internal func savingsProgress_overflow() {
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence = SpecialPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 100_000,
             status: .saving,
         )
 
-        let balance = SpecialPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 120_000,
             totalPaidAmount: 0,
@@ -270,13 +270,13 @@ internal struct EntryAmountPropertiesTests {
             lastUpdatedMonth: 12,
         )
 
-        let presenter = SpecialPaymentListPresenter()
+        let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
-            input: SpecialPaymentListPresenter.EntryInput(
-                occurrence: SpecialPaymentOccurrenceDTO(from: occurrence),
-                definition: SpecialPaymentDefinitionDTO(from: definition),
+            input: RecurringPaymentListPresenter.EntryInput(
+                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
+                definition: RecurringPaymentDefinitionDTO(from: definition),
                 categoryName: definition.category?.name,
-                balance: SpecialPaymentSavingBalanceDTO(from: balance),
+                balance: RecurringPaymentSavingBalanceDTO(from: balance),
                 now: Date(),
             ),
         )

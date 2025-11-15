@@ -1,13 +1,13 @@
 import Foundation
 import SwiftData
 
-internal enum SpecialPaymentSavingStrategy: String, Codable {
+internal enum RecurringPaymentSavingStrategy: String, Codable {
     case disabled // 積立なし
     case evenlyDistributed // 周期で均等積立
     case customMonthly // 手動で月次金額を指定
 }
 
-internal enum SpecialPaymentStatus: String, Codable {
+internal enum RecurringPaymentStatus: String, Codable {
     case planned // 予定のみ
     case saving // 積立中
     case completed // 実績反映済み
@@ -46,7 +46,7 @@ internal enum DayOfMonthPattern: Codable, Equatable, Hashable {
 }
 
 @Model
-internal final class SpecialPaymentDefinition {
+internal final class RecurringPaymentDefinition {
     internal var id: UUID
     internal var name: String
     internal var notes: String
@@ -55,13 +55,13 @@ internal final class SpecialPaymentDefinition {
     internal var firstOccurrenceDate: Date
     internal var leadTimeMonths: Int
     internal var category: Category?
-    internal var savingStrategy: SpecialPaymentSavingStrategy
+    internal var savingStrategy: RecurringPaymentSavingStrategy
     internal var customMonthlySavingAmount: Decimal?
     internal var dateAdjustmentPolicy: DateAdjustmentPolicy
     internal var recurrenceDayPattern: DayOfMonthPattern?
 
-    @Relationship(deleteRule: .cascade, inverse: \SpecialPaymentOccurrence.definition)
-    private var occurrencesStorage: [SpecialPaymentOccurrence]
+    @Relationship(deleteRule: .cascade, inverse: \RecurringPaymentOccurrence.definition)
+    private var occurrencesStorage: [RecurringPaymentOccurrence]
 
     internal var createdAt: Date
     internal var updatedAt: Date
@@ -75,7 +75,7 @@ internal final class SpecialPaymentDefinition {
         firstOccurrenceDate: Date,
         leadTimeMonths: Int = 0,
         category: Category? = nil,
-        savingStrategy: SpecialPaymentSavingStrategy = .evenlyDistributed,
+        savingStrategy: RecurringPaymentSavingStrategy = .evenlyDistributed,
         customMonthlySavingAmount: Decimal? = nil,
         dateAdjustmentPolicy: DateAdjustmentPolicy = .none,
         recurrenceDayPattern: DayOfMonthPattern? = nil,
@@ -102,9 +102,9 @@ internal final class SpecialPaymentDefinition {
 
 // MARK: - Computed Properties
 
-internal extension SpecialPaymentDefinition {
+internal extension RecurringPaymentDefinition {
     /// スケジュール日付で常に昇順ソートされたOccurrence一覧
-    var occurrences: [SpecialPaymentOccurrence] {
+    var occurrences: [RecurringPaymentOccurrence] {
         get {
             occurrencesStorage.sorted { $0.scheduledDate < $1.scheduledDate }
         }
@@ -164,7 +164,7 @@ internal extension SpecialPaymentDefinition {
 
 // MARK: - Validation
 
-internal extension SpecialPaymentDefinition {
+internal extension RecurringPaymentDefinition {
     func validate() -> [String] {
         var errors: [String] = []
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -208,14 +208,14 @@ internal extension SpecialPaymentDefinition {
 }
 
 @Model
-internal final class SpecialPaymentOccurrence {
+internal final class RecurringPaymentOccurrence {
     internal var id: UUID
 
-    internal var definition: SpecialPaymentDefinition
+    internal var definition: RecurringPaymentDefinition
 
     internal var scheduledDate: Date
     internal var expectedAmount: Decimal
-    internal var status: SpecialPaymentStatus
+    internal var status: RecurringPaymentStatus
 
     internal var actualDate: Date?
     internal var actualAmount: Decimal?
@@ -228,10 +228,10 @@ internal final class SpecialPaymentOccurrence {
 
     internal init(
         id: UUID = UUID(),
-        definition: SpecialPaymentDefinition,
+        definition: RecurringPaymentDefinition,
         scheduledDate: Date,
         expectedAmount: Decimal,
-        status: SpecialPaymentStatus = .planned,
+        status: RecurringPaymentStatus = .planned,
         actualDate: Date? = nil,
         actualAmount: Decimal? = nil,
         transaction: Transaction? = nil,
@@ -253,7 +253,7 @@ internal final class SpecialPaymentOccurrence {
 
 // MARK: - Computed Properties
 
-internal extension SpecialPaymentOccurrence {
+internal extension RecurringPaymentOccurrence {
     var isCompleted: Bool {
         status == .completed
     }
@@ -275,7 +275,7 @@ internal extension SpecialPaymentOccurrence {
 
 // MARK: - Validation
 
-internal extension SpecialPaymentOccurrence {
+internal extension RecurringPaymentOccurrence {
     func validate() -> [String] {
         var errors: [String] = []
 

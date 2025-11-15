@@ -4,20 +4,20 @@ import Testing
 @testable import Kakeibo
 
 @Suite(.serialized)
-internal struct SpecialPaymentOccurrencesServiceTests {
+internal struct RecurringPaymentOccurrencesServiceTests {
     @Test("同期で不正な周期を検出する")
     @DatabaseActor
     internal func synchronizeValidatesRecurrence() async throws {
-        let definition = SpecialPaymentDefinition(
+        let definition = RecurringPaymentDefinition(
             name: "不正定義",
             amount: 10000,
             recurrenceIntervalMonths: 0,
             firstOccurrenceDate: Date(),
         )
-        let repository = InMemorySpecialPaymentRepository(definitions: [definition])
-        let service = DefaultSpecialPaymentOccurrencesService(repository: repository)
+        let repository = InMemoryRecurringPaymentRepository(definitions: [definition])
+        let service = DefaultRecurringPaymentOccurrencesService(repository: repository)
 
-        #expect(throws: SpecialPaymentDomainError.invalidRecurrence) {
+        #expect(throws: RecurringPaymentDomainError.invalidRecurrence) {
             try service.synchronizeOccurrences(
                 for: definition,
                 horizonMonths: 12,
@@ -30,8 +30,8 @@ internal struct SpecialPaymentOccurrencesServiceTests {
     @DatabaseActor
     internal func markOccurrenceCompletedUpdatesModel() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 3, day: 1))
-        let occurrence = SpecialPaymentOccurrence(
-            definition: SpecialPaymentDefinition(
+        let occurrence = RecurringPaymentOccurrence(
+            definition: RecurringPaymentDefinition(
                 name: "引越し費用",
                 amount: 200_000,
                 recurrenceIntervalMonths: 12,
@@ -44,11 +44,11 @@ internal struct SpecialPaymentOccurrencesServiceTests {
         let definition = occurrence.definition
         definition.occurrences = [occurrence]
 
-        let repository = InMemorySpecialPaymentRepository(
+        let repository = InMemoryRecurringPaymentRepository(
             definitions: [definition],
             currentDateProvider: { referenceDate },
         )
-        let service = DefaultSpecialPaymentOccurrencesService(repository: repository)
+        let service = DefaultRecurringPaymentOccurrencesService(repository: repository)
 
         let result = try await service.markOccurrenceCompleted(
             occurrence,
@@ -69,8 +69,8 @@ internal struct SpecialPaymentOccurrencesServiceTests {
     @DatabaseActor
     internal func updateOccurrenceSkipsSyncWhenStatusUnchanged() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 7, day: 15))
-        let occurrence = SpecialPaymentOccurrence(
-            definition: SpecialPaymentDefinition(
+        let occurrence = RecurringPaymentOccurrence(
+            definition: RecurringPaymentDefinition(
                 name: "車検",
                 amount: 110_000,
                 recurrenceIntervalMonths: 24,
@@ -83,11 +83,11 @@ internal struct SpecialPaymentOccurrencesServiceTests {
         let definition = occurrence.definition
         definition.occurrences = [occurrence]
 
-        let repository = InMemorySpecialPaymentRepository(
+        let repository = InMemoryRecurringPaymentRepository(
             definitions: [definition],
             currentDateProvider: { referenceDate },
         )
-        let service = DefaultSpecialPaymentOccurrencesService(repository: repository)
+        let service = DefaultRecurringPaymentOccurrencesService(repository: repository)
 
         let summary = try await service.updateOccurrence(
             occurrence,
