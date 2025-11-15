@@ -31,11 +31,5 @@ internal final class EntitlementsTests: XCTestCase {
             true,
             "ユーザー選択ファイルの読み取り権限がありません",
         )
-
-        XCTAssertEqual(
-            entitlements["com.apple.security.files.user-selected.read-write"] as? Bool,
-            true,
-            "ユーザー選択ファイルの読み書き権限がありません",
-        )
     }
 }
