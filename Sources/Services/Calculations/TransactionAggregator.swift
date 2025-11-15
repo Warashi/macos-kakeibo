@@ -103,16 +103,21 @@ internal struct AggregationFilter: Sendable {
     /// カテゴリIDでフィルタ（nilの場合はすべて）
     internal let categoryId: UUID?
 
+    /// 除外する取引IDのセット（特別支払いとリンクされた取引など）
+    internal let excludedTransactionIds: Set<UUID>
+
     internal init(
         includeOnlyCalculationTarget: Bool = true,
         excludeTransfers: Bool = true,
         financialInstitutionId: UUID? = nil,
         categoryId: UUID? = nil,
+        excludedTransactionIds: Set<UUID> = [],
     ) {
         self.includeOnlyCalculationTarget = includeOnlyCalculationTarget
         self.excludeTransfers = excludeTransfers
         self.financialInstitutionId = financialInstitutionId
         self.categoryId = categoryId
+        self.excludedTransactionIds = excludedTransactionIds
     }
 
     /// デフォルトフィルタ（計算対象のみ、振替除外）
@@ -299,6 +304,11 @@ internal struct TransactionAggregator: Sendable {
         transaction: TransactionDTO,
         filter: AggregationFilter,
     ) -> Bool {
+        // 除外リストチェック（特別支払いとリンクされた取引など）
+        if filter.excludedTransactionIds.contains(transaction.id) {
+            return false
+        }
+
         // 計算対象チェック
         if filter.includeOnlyCalculationTarget, !transaction.isIncludedInCalculation {
             return false
