@@ -39,8 +39,8 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         transactions.count
     }
 
-    internal func fetchInstitutions() throws -> [FinancialInstitutionDTO] {
-        institutions.map { FinancialInstitutionDTO(from: $0) }
+    internal func fetchInstitutions() throws -> [FinancialInstitution] {
+        institutions.map { FinancialInstitution(from: $0) }
     }
 
     internal func fetchCategories() throws -> [Kakeibo.Category] {

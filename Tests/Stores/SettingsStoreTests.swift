@@ -170,7 +170,7 @@ internal struct SettingsStoreTests {
         )
         let transactionDTO = TransactionDTO(from: transaction)
         let categoryDTOs = [Category(from: major), Category(from: minor)]
-        let institutionDTO = FinancialInstitutionDTO(from: institution)
+        let institutionDTO = FinancialInstitution(from: institution)
         let transactionRepository = await makeTransactionRepository { repository in
             repository.snapshotTransactions = [transactionDTO]
             repository.snapshotCategories = categoryDTOs
@@ -312,7 +312,7 @@ private final class MockTransactionRepository: TransactionRepository {
     internal var transactionCount: Int = 0
     internal var snapshotTransactions: [TransactionDTO] = []
     internal var snapshotCategories: [Kakeibo.Category] = []
-    internal var snapshotInstitutions: [FinancialInstitutionDTO] = []
+    internal var snapshotInstitutions: [FinancialInstitution] = []
     internal private(set) var deleteAllTransactionsCallCount: Int = 0
 
     internal func fetchTransactions(query: TransactionQuery) throws -> [TransactionDTO] {
@@ -335,7 +335,7 @@ private final class MockTransactionRepository: TransactionRepository {
         transactionCount
     }
 
-    internal func fetchInstitutions() throws -> [FinancialInstitutionDTO] {
+    internal func fetchInstitutions() throws -> [FinancialInstitution] {
         snapshotInstitutions
     }
 
@@ -412,7 +412,7 @@ private final class MockBudgetRepository: BudgetRepository {
         categoryCount
     }
 
-    internal func findInstitutionByName(_ name: String) throws -> FinancialInstitutionDTO? {
+    internal func findInstitutionByName(_ name: String) throws -> FinancialInstitution? {
         unsupported(#function)
     }
 

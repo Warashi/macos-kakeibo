@@ -4,7 +4,7 @@ import Foundation
 internal struct TransactionCSVExportSnapshot: Sendable {
     internal let transactions: [TransactionDTO]
     internal let categories: [Category]
-    internal let institutions: [FinancialInstitutionDTO]
+    internal let institutions: [FinancialInstitution]
 
     internal var referenceData: TransactionReferenceData {
         TransactionReferenceData(institutions: institutions, categories: categories)

@@ -6,8 +6,8 @@ extension CSVImporter {
     /// 金融機関を解決（存在すればキャッシュから、なければデータベースから、最後に新規作成）
     internal func resolveFinancialInstitution(
         named name: String?,
-        cache: inout [String: FinancialInstitutionDTO]
-    ) async throws -> (FinancialInstitutionDTO?, Bool) {
+        cache: inout [String: FinancialInstitution]
+    ) async throws -> (FinancialInstitution?, Bool) {
         guard let name else {
             return (nil, false)
         }

@@ -13,7 +13,7 @@ internal struct CategoryResolutionResult {
 internal struct TransactionUpdateParameters {
     internal let draft: TransactionDraft
     internal let identifier: CSVTransactionIdentifier?
-    internal let institution: FinancialInstitutionDTO?
+    internal let institution: FinancialInstitution?
     internal let majorCategory: Category?
     internal let minorCategory: Category?
     internal let existingImportIdentifier: String?
@@ -33,7 +33,7 @@ internal struct ImportState {
 
 /// エンティティキャッシュ
 internal struct EntityCache {
-    internal var institutions: [String: FinancialInstitutionDTO] = [:]
+    internal var institutions: [String: FinancialInstitution] = [:]
     internal var majorCategories: [String: Category] = [:]
     internal var minorCategories: [String: Category] = [:]
 }
@@ -61,7 +61,7 @@ internal struct OptionalFieldsResult {
 internal struct TransactionCreationParameters {
     internal let draft: TransactionDraft
     internal let identifier: CSVTransactionIdentifier?
-    internal let institution: FinancialInstitutionDTO?
+    internal let institution: FinancialInstitution?
     internal let majorCategory: Category?
     internal let minorCategory: Category?
 }

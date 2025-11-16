@@ -7,7 +7,7 @@ internal protocol BudgetRepository: Sendable {
     func findCategoryByName(_ name: String, parentId: UUID?) throws -> Category?
     func createCategory(name: String, parentId: UUID?) throws -> UUID
     func countCategories() throws -> Int
-    func findInstitutionByName(_ name: String) throws -> FinancialInstitutionDTO?
+    func findInstitutionByName(_ name: String) throws -> FinancialInstitution?
     func createInstitution(name: String) throws -> UUID
     func countFinancialInstitutions() throws -> Int
     func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfigDTO?

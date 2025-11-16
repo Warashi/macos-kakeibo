@@ -89,7 +89,7 @@ private extension TransactionFormUseCaseTests {
         let major = CategoryEntity(name: "食費", displayOrder: 1)
         let minor = CategoryEntity(name: "外食", parent: major, displayOrder: 1)
         return TransactionReferenceData(
-            institutions: [FinancialInstitutionDTO(from: institution)],
+            institutions: [FinancialInstitution(from: institution)],
             categories: [Category(from: major), Category(from: minor)],
         )
     }

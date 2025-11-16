@@ -3,12 +3,12 @@ import Foundation
 
 internal final class InMemoryBudgetRepository: BudgetRepository {
     internal var categories: [UUID: Kakeibo.Category]
-    internal var institutions: [UUID: FinancialInstitutionDTO]
+    internal var institutions: [UUID: FinancialInstitution]
     internal private(set) var saveCallCount: Int = 0
 
     internal init(
         categories: [Kakeibo.Category] = [],
-        institutions: [FinancialInstitutionDTO] = []
+        institutions: [FinancialInstitution] = []
     ) {
         self.categories = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
         self.institutions = Dictionary(uniqueKeysWithValues: institutions.map { ($0.id, $0) })
@@ -54,14 +54,14 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
         categories.count
     }
 
-    internal func findInstitutionByName(_ name: String) throws -> FinancialInstitutionDTO? {
+    internal func findInstitutionByName(_ name: String) throws -> FinancialInstitution? {
         institutions.values.first { $0.name == name }
     }
 
     internal func createInstitution(name: String) throws -> UUID {
         let id = UUID()
         let now = Date()
-        let dto = FinancialInstitutionDTO(
+        let dto = FinancialInstitution(
             id: id,
             name: name,
             displayOrder: institutions.count,

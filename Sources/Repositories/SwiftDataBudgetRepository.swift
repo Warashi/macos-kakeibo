@@ -97,8 +97,8 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         try modelContext.count(CategoryEntity.self)
     }
 
-    internal func findInstitutionByName(_ name: String) throws -> FinancialInstitutionDTO? {
-        try modelContext.fetch(FinancialInstitutionQueries.byName(name)).first.map { FinancialInstitutionDTO(from: $0) }
+    internal func findInstitutionByName(_ name: String) throws -> FinancialInstitution? {
+        try modelContext.fetch(FinancialInstitutionQueries.byName(name)).first.map { FinancialInstitution(from: $0) }
     }
 
     internal func createInstitution(name: String) throws -> UUID {

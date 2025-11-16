@@ -3,7 +3,7 @@ import SwiftUI
 internal struct TransactionEditorView: View {
     @Bindable internal var store: TransactionStore
 
-    private var institutions: [FinancialInstitutionDTO] {
+    private var institutions: [FinancialInstitution] {
         store.availableInstitutions.sorted { lhs, rhs in
             if lhs.displayOrder == rhs.displayOrder {
                 return lhs.name < rhs.name

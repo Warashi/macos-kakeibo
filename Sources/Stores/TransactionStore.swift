@@ -84,7 +84,7 @@ internal final class TransactionStore {
         }
     }
 
-    internal private(set) var availableInstitutions: [FinancialInstitutionDTO] = []
+    internal private(set) var availableInstitutions: [FinancialInstitution] = []
     internal private(set) var availableCategories: [Category] = []
     internal var listErrorMessage: String?
 
