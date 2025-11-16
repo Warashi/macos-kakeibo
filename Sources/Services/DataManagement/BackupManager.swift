@@ -45,6 +45,12 @@ internal enum BackupManagerError: LocalizedError {
 
 /// バックアップとリストアを担当するコンポーネント
 internal actor BackupManager {
+    private let modelContainer: ModelContainer
+
+    internal init(modelContainer: ModelContainer) {
+        self.modelContainer = modelContainer
+    }
+
     /// バックアップを生成
     /// - Parameter payload: バックアップペイロード (MainActor で事前に生成)
     /// - Returns: バックアップデータとメタデータ
@@ -59,8 +65,8 @@ internal actor BackupManager {
     }
 
     /// バックアップペイロードを構築
-    @DatabaseActor
-    internal static func buildPayload(modelContext: ModelContext) throws -> BackupPayload {
+    internal func buildPayload() throws -> BackupPayload {
+        let modelContext = ModelContext(modelContainer)
         let transactions = try modelContext.fetchAll(Transaction.self)
         let categories = try modelContext.fetchAll(Category.self)
         let budgets = try modelContext.fetchAll(Budget.self)
@@ -105,9 +111,8 @@ internal actor BackupManager {
     }
 
     /// ペイロードからデータを復元
-    @DatabaseActor
-    internal static func restorePayload(_ payload: BackupPayload, to modelContext: ModelContext) throws
-    -> BackupRestoreSummary {
+    internal func restorePayload(_ payload: BackupPayload) throws -> BackupRestoreSummary {
+        let modelContext = ModelContext(modelContainer)
         try clearAllData(in: modelContext)
 
         let institutions = try insertFinancialInstitutions(payload.financialInstitutions, context: modelContext)
@@ -131,8 +136,7 @@ internal actor BackupManager {
 
     // MARK: - Clear
 
-    @DatabaseActor
-    private static func clearAllData(in context: ModelContext) throws {
+    private func clearAllData(in context: ModelContext) throws {
         try deleteAll(Transaction.self, in: context)
         try deleteAll(Budget.self, in: context)
         try deleteAll(AnnualBudgetConfig.self, in: context)
@@ -140,8 +144,7 @@ internal actor BackupManager {
         try deleteAll(FinancialInstitution.self, in: context)
     }
 
-    @DatabaseActor
-    private static func deleteAll<T: PersistentModel>(_ type: T.Type, in context: ModelContext) throws {
+    private func deleteAll<T: PersistentModel>(_ type: T.Type, in context: ModelContext) throws {
         let descriptor: ModelFetchRequest<T> = ModelFetchFactory.make()
         let items = try context.fetch(descriptor)
         for item in items {
@@ -150,8 +153,7 @@ internal actor BackupManager {
     }
 
     /// 親子関係を維持しながらカテゴリを削除
-    @DatabaseActor
-    private static func deleteCategoriesSafely(in context: ModelContext) throws {
+    private func deleteCategoriesSafely(in context: ModelContext) throws {
         let descriptor: ModelFetchRequest<Category> = ModelFetchFactory.make()
         let categories = try context.fetch(descriptor)
         let minors = categories.filter(\.isMinor)
@@ -165,8 +167,7 @@ internal actor BackupManager {
     // MARK: - Insert
 
     @discardableResult
-    @DatabaseActor
-    private static func insertFinancialInstitutions(
+    private func insertFinancialInstitutions(
         _ dtos: [BackupFinancialInstitutionDTO],
         context: ModelContext,
     ) throws -> [UUID: FinancialInstitution] {
@@ -186,8 +187,7 @@ internal actor BackupManager {
     }
 
     @discardableResult
-    @DatabaseActor
-    private static func insertCategories(
+    private func insertCategories(
         _ dtos: [BackupCategoryDTO],
         context: ModelContext,
     ) throws -> [UUID: Category] {
@@ -220,8 +220,7 @@ internal actor BackupManager {
         return result
     }
 
-    @DatabaseActor
-    private static func insertBudgets(
+    private func insertBudgets(
         _ dtos: [BackupBudgetDTO],
         categories: [UUID: Category],
         context: ModelContext,
@@ -242,8 +241,7 @@ internal actor BackupManager {
         }
     }
 
-    @DatabaseActor
-    private static func insertAnnualBudgetConfigs(
+    private func insertAnnualBudgetConfigs(
         _ dtos: [BackupAnnualBudgetConfigDTO],
         context: ModelContext,
     ) throws {
@@ -260,8 +258,7 @@ internal actor BackupManager {
         }
     }
 
-    @DatabaseActor
-    private static func insertTransactions(
+    private func insertTransactions(
         _ dtos: [BackupTransactionDTO],
         categories: [UUID: Category],
         institutions: [UUID: FinancialInstitution],

@@ -75,12 +75,12 @@ internal final class SettingsStore {
 
     internal init(
         modelContainer: ModelContainer,
-        backupManager: BackupManager = BackupManager(),
+        backupManager: BackupManager? = nil,
         csvExporter: CSVExporter = CSVExporter(),
         userDefaults: UserDefaults = .standard,
     ) {
         self.modelContainer = modelContainer
-        self.backupManager = backupManager
+        self.backupManager = backupManager ?? BackupManager(modelContainer: modelContainer)
         self.csvExporter = csvExporter
         self.userDefaults = userDefaults
 
@@ -151,12 +151,7 @@ internal final class SettingsStore {
         defer {
             isProcessingBackup = false
         }
-        let container = modelContainer
-        let payload = try await Task { @DatabaseActor () throws -> BackupPayload in
-            let context = ModelContext(container)
-            return try BackupManager.buildPayload(modelContext: context)
-        }.value
-        // Actor でエンコード
+        let payload = try await backupManager.buildPayload()
         let archive = try await backupManager.createBackup(payload: payload)
         lastBackupMetadata = archive.metadata
         statusMessage = "バックアップを作成しました"
@@ -172,13 +167,8 @@ internal final class SettingsStore {
         defer {
             isProcessingBackup = false
         }
-        // Actor でデコード
         let payload = try await backupManager.decodeBackup(from: data)
-        let container = modelContainer
-        let summary = try await Task { @DatabaseActor () throws -> BackupRestoreSummary in
-            let context = ModelContext(container)
-            return try BackupManager.restorePayload(payload, to: context)
-        }.value
+        let summary = try await backupManager.restorePayload(payload)
         lastRestoreSummary = summary
         lastBackupMetadata = summary.metadata
         await refreshStatistics()

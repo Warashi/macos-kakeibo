@@ -12,12 +12,10 @@ internal struct BackupManagerTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         try seedSampleData(in: context)
-        let manager = BackupManager()
+        let manager = BackupManager(modelContainer: container)
 
         // When
-        let payload = try await Task { @DatabaseActor () throws -> BackupPayload in
-            try BackupManager.buildPayload(modelContext: context)
-        }.value
+        let payload = try await manager.buildPayload()
         let archive = try await manager.createBackup(payload: payload)
 
         // Then
@@ -33,20 +31,17 @@ internal struct BackupManagerTests {
         let sourceContainer = try ModelContainer.createInMemoryContainer()
         let sourceContext = ModelContext(sourceContainer)
         try seedSampleData(in: sourceContext)
-        let manager = BackupManager()
-        let payload = try await Task { @DatabaseActor () throws -> BackupPayload in
-            try BackupManager.buildPayload(modelContext: sourceContext)
-        }.value
-        let archive = try await manager.createBackup(payload: payload)
+        let backupManager = BackupManager(modelContainer: sourceContainer)
+        let payload = try await backupManager.buildPayload()
+        let archive = try await backupManager.createBackup(payload: payload)
 
         let restoreContainer = try ModelContainer.createInMemoryContainer()
         let restoreContext = ModelContext(restoreContainer)
+        let restoreManager = BackupManager(modelContainer: restoreContainer)
 
         // When
-        let decodedPayload = try await manager.decodeBackup(from: archive.data)
-        let summary = try await Task { @DatabaseActor () throws -> BackupRestoreSummary in
-            try BackupManager.restorePayload(decodedPayload, to: restoreContext)
-        }.value
+        let decodedPayload = try await backupManager.decodeBackup(from: archive.data)
+        let summary = try await restoreManager.restorePayload(decodedPayload)
 
         // Then
         #expect(summary.restoredCounts.transactions == 1)
