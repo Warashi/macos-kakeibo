@@ -6,7 +6,7 @@ import SwiftUI
 /// アプリケーションのメインダッシュボード画面。
 /// 月次/年次の総括、年次特別枠の状況、カテゴリ別ハイライトを表示します。
 internal struct DashboardView: View {
-    @Environment(\.modelContext) private var modelContext: ModelContext
+    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
     @State private var store: DashboardStore?
 
     internal var body: some View {
@@ -45,7 +45,11 @@ internal struct DashboardView: View {
         .navigationTitle("ダッシュボード")
         .onAppear {
             guard store == nil else { return }
-            store = DashboardStore(modelContext: modelContext)
+            guard let modelContainer else {
+                assertionFailure("ModelContainer is unavailable")
+                return
+            }
+            store = DashboardStore(modelContainer: modelContainer)
         }
     }
 

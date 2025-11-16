@@ -14,7 +14,7 @@ internal struct DashboardStoreTests {
         let context = ModelContext(container)
 
         // When
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
 
         // Then
         let now = Date()
@@ -24,7 +24,7 @@ internal struct DashboardStoreTests {
     }
 
     @Test("月次集計：データがある場合")
-    internal func monthlySummary_withData() throws {
+    internal func monthlySummary_withData() async throws {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
@@ -40,10 +40,10 @@ internal struct DashboardStoreTests {
         context.insert(transaction)
         try context.save()
 
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
         store.currentMonth = 11
-        store.refresh()
+        await store.refresh()
 
         // When
         let summary = store.monthlySummary
@@ -56,7 +56,7 @@ internal struct DashboardStoreTests {
     }
 
     @Test("月次集計：年跨ぎ境界でも正しく集計する")
-    internal func monthlySummary_handlesYearBoundary() throws {
+    internal func monthlySummary_handlesYearBoundary() async throws {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
         let category = Category(name: "雑費")
@@ -82,10 +82,10 @@ internal struct DashboardStoreTests {
         )
         try context.save()
 
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
         store.currentMonth = 12
-        store.refresh()
+        await store.refresh()
 
         let summary = store.monthlySummary
         #expect(summary.transactionCount == 1)
@@ -97,7 +97,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
 
         // When & Then
         #expect(store.displayMode == .monthly)
@@ -107,7 +107,7 @@ internal struct DashboardStoreTests {
     }
 
     @Test("年次集計：対象年の全期間を集計する")
-    internal func annualSummary_includesWholeYear() throws {
+    internal func annualSummary_includesWholeYear() async throws {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -122,10 +122,10 @@ internal struct DashboardStoreTests {
         ))
         try context.save()
 
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
         store.currentMonth = 8
-        store.refresh()
+        await store.refresh()
 
         let summary = store.annualSummary
         #expect(summary.transactionCount == 2)
@@ -137,7 +137,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
         store.currentMonth = 3
 
@@ -154,7 +154,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
         store.currentMonth = 1
 
@@ -171,7 +171,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
         store.currentMonth = 3
 
@@ -188,7 +188,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
         store.currentMonth = 12
 
@@ -205,7 +205,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
 
         // When
@@ -220,7 +220,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
 
         // When
@@ -231,7 +231,7 @@ internal struct DashboardStoreTests {
     }
 
     @Test("カテゴリ別ハイライト：上位10件")
-    internal func categoryHighlights_top10() throws {
+    internal func categoryHighlights_top10() async throws {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
@@ -251,11 +251,12 @@ internal struct DashboardStoreTests {
         }
         try context.save()
 
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
         store.currentMonth = 11
-        store.refresh()
+        await store.refresh()
         store.displayMode = .monthly
+        await store.refresh()
 
         // When
         let highlights = store.categoryHighlights
@@ -265,7 +266,7 @@ internal struct DashboardStoreTests {
     }
 
     @Test("年次予算進捗：全体予算を集計する")
-    internal func annualBudgetProgress_overallBudget() throws {
+    internal func annualBudgetProgress_overallBudget() async throws {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -280,9 +281,9 @@ internal struct DashboardStoreTests {
         context.insert(transaction)
         try context.save()
 
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
-        store.refresh()
+        await store.refresh()
 
         let progress = try #require(store.annualBudgetProgressCalculation)
         #expect(progress.budgetAmount == 120_000)
@@ -290,7 +291,7 @@ internal struct DashboardStoreTests {
     }
 
     @Test("年次予算進捗：カテゴリ予算のみでも集計される")
-    internal func annualBudgetProgress_categoryOnly() throws {
+    internal func annualBudgetProgress_categoryOnly() async throws {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -309,9 +310,9 @@ internal struct DashboardStoreTests {
         context.insert(transaction)
         try context.save()
 
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
-        store.refresh()
+        await store.refresh()
 
         let progress = try #require(store.annualBudgetProgressCalculation)
         #expect(progress.budgetAmount == 10000)
@@ -322,7 +323,7 @@ internal struct DashboardStoreTests {
     internal func annualBudgetProgress_nilWhenNoBudget() throws {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         #expect(store.annualBudgetProgressCalculation == nil)
     }
 
@@ -336,13 +337,13 @@ internal struct DashboardStoreTests {
         context.insert(config)
         try context.save()
 
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
 
         #expect(store.currentYear == fallbackYear)
     }
 
     @Test("年次特別枠：設定があれば使用状況を計算する")
-    internal func annualBudgetUsage_availableWhenConfigExists() throws {
+    internal func annualBudgetUsage_availableWhenConfigExists() async throws {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
@@ -368,10 +369,10 @@ internal struct DashboardStoreTests {
 
         try context.save()
 
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
         store.currentMonth = 1
-        store.refresh()
+        await store.refresh()
 
         // When
         let usage = try #require(store.annualBudgetUsage)
@@ -384,7 +385,7 @@ internal struct DashboardStoreTests {
     }
 
     @Test("年次予算進捗：年次特別枠のfullCoverageカテゴリは全体予算から除外される")
-    internal func annualBudgetProgress_excludesFullCoverageCategories() throws {
+    internal func annualBudgetProgress_excludesFullCoverageCategories() async throws {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -428,9 +429,9 @@ internal struct DashboardStoreTests {
 
         try context.save()
 
-        let store = DashboardStore(modelContext: context)
+        let store = DashboardStore(modelContainer: container)
         store.currentYear = 2025
-        store.refresh()
+        await store.refresh()
 
         // When
         let progress = try #require(store.annualBudgetProgressCalculation)
