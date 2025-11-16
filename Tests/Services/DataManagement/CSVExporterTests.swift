@@ -19,10 +19,15 @@ internal struct CSVExporterTests {
             majorCategory: major,
             minorCategory: minor,
         )
+        let snapshot = TransactionCSVExportSnapshot(
+            transactions: [TransactionDTO(from: transaction)],
+            categories: [CategoryDTO(from: major), CategoryDTO(from: minor)],
+            institutions: [FinancialInstitutionDTO(from: institution)]
+        )
 
         // When
         let exporter = CSVExporter()
-        let result = try exporter.exportTransactions([transaction])
+        let result = try exporter.exportTransactions(snapshot)
         let csv = result.string
 
         // Then
@@ -39,9 +44,14 @@ internal struct CSVExporterTests {
     internal func exportTransactions_empty() throws {
         // Given
         let exporter = CSVExporter()
+        let snapshot = TransactionCSVExportSnapshot(
+            transactions: [],
+            categories: [],
+            institutions: []
+        )
 
         // When
-        let result = try exporter.exportTransactions([])
+        let result = try exporter.exportTransactions(snapshot)
         let csv = result.string
 
         // Then

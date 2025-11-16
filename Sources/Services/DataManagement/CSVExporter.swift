@@ -37,7 +37,7 @@ internal struct CSVExporter: Sendable {
     /// 取引データをCSVに変換する
     /// - Parameter transactions: エクスポート対象の取引
     /// - Returns: CSVデータと行数
-    internal func exportTransactions(_ transactions: [Transaction]) throws -> CSVExportResult {
+    internal func exportTransactions(_ snapshot: TransactionCSVExportSnapshot) throws -> CSVExportResult {
         let header = [
             "id",
             "date",
@@ -53,10 +53,11 @@ internal struct CSVExporter: Sendable {
         ]
 
         var rows: [String] = [header.joined(separator: delimiter)]
-        rows.reserveCapacity(transactions.count + 1)
+        rows.reserveCapacity(snapshot.transactions.count + 1)
 
-        for transaction in transactions {
-            rows.append(row(from: transaction))
+        let referenceData = snapshot.referenceData
+        for transaction in snapshot.transactions {
+            rows.append(row(from: transaction, referenceData: referenceData))
         }
 
         let csvString = rows.joined(separator: newline)
@@ -67,7 +68,7 @@ internal struct CSVExporter: Sendable {
 
         return CSVExportResult(
             data: data,
-            rowCount: transactions.count,
+            rowCount: snapshot.transactions.count,
             header: header,
         )
     }
@@ -77,8 +78,15 @@ internal struct CSVExporter: Sendable {
     /// 取引から1行のCSV文字列を生成
     /// - Parameter transaction: 取引
     /// - Returns: CSV文字列
-    private func row(from transaction: Transaction) -> String {
-        [
+    private func row(
+        from transaction: TransactionDTO,
+        referenceData: TransactionReferenceData
+    ) -> String {
+        let institutionName = referenceData.institution(id: transaction.financialInstitutionId)?.name ?? ""
+        let majorName = referenceData.category(id: transaction.majorCategoryId)?.name ?? ""
+        let minor = referenceData.category(id: transaction.minorCategoryId)
+        let minorName = minor?.name ?? ""
+        return [
             transaction.id.uuidString,
             formattedDate(transaction.date),
             quote(transaction.title),
@@ -86,10 +94,10 @@ internal struct CSVExporter: Sendable {
             quote(transaction.memo),
             transaction.isIncludedInCalculation.description,
             transaction.isTransfer.description,
-            quote(transaction.financialInstitution?.name ?? ""),
-            quote(transaction.majorCategory?.name ?? ""),
-            quote(transaction.minorCategory?.name ?? ""),
-            quote(transaction.categoryFullName),
+            quote(institutionName),
+            quote(majorName),
+            quote(minorName),
+            quote(categoryPath(for: transaction, minor: minor, referenceData: referenceData)),
         ].joined(separator: delimiter)
     }
 
@@ -110,6 +118,29 @@ internal struct CSVExporter: Sendable {
     /// CSV用にクオート（常にダブルクオートで囲む）
     private func quote(_ value: String) -> String {
         "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+    }
+
+    private func categoryPath(
+        for transaction: TransactionDTO,
+        minor: CategoryDTO?,
+        referenceData: TransactionReferenceData
+    ) -> String {
+        if let minor {
+            if let parentId = minor.parentId,
+               let parent = referenceData.category(id: parentId) {
+                return "\(parent.name) / \(minor.name)"
+            }
+            if let major = referenceData.category(id: transaction.majorCategoryId) {
+                return "\(major.name) / \(minor.name)"
+            }
+            return minor.name
+        }
+
+        if let major = referenceData.category(id: transaction.majorCategoryId) {
+            return major.name
+        }
+
+        return ""
     }
 
     /// 定期支払い一覧エントリをCSVに変換する

@@ -136,9 +136,9 @@ internal final class SettingsStore {
         let container = modelContainer
         let exporter = csvExporter
         return try await Task { @DatabaseActor () throws -> CSVExportResult in
-            let context = ModelContext(container)
-            let transactions = try context.fetchAll(Transaction.self)
-            return try exporter.exportTransactions(transactions)
+            let repository = SwiftDataTransactionRepository(modelContainer: container)
+            let snapshot = try repository.fetchCSVExportSnapshot()
+            return try exporter.exportTransactions(snapshot)
         }.value
     }
 
