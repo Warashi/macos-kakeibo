@@ -44,13 +44,7 @@ internal struct DashboardView: View {
         }
         .navigationTitle("ダッシュボード")
         .onAppear {
-            guard store == nil else { return }
-            guard let modelContainer else {
-                assertionFailure("ModelContainer is unavailable")
-                return
-            }
-            let repository = SwiftDataDashboardRepository(modelContainer: modelContainer)
-            store = DashboardStore(repository: repository)
+            prepareStoreIfNeeded()
         }
     }
 
@@ -150,5 +144,23 @@ internal struct DashboardView: View {
             title: store.displayMode == .monthly ? "今月のカテゴリ別支出" : "今年のカテゴリ別支出",
         )
         .frame(maxWidth: .infinity, alignment: .top)
+    }
+}
+
+private extension DashboardView {
+    func prepareStoreIfNeeded() {
+        guard store == nil else { return }
+        Task { @DatabaseActor in
+            guard await MainActor.run(body: { store == nil }) else { return }
+            guard let container = await MainActor.run(body: { modelContainer }) else {
+                assertionFailure("ModelContainer is unavailable")
+                return
+            }
+            let repository = SwiftDataDashboardRepository(modelContainer: container)
+            await MainActor.run {
+                guard store == nil else { return }
+                store = DashboardStore(repository: repository)
+            }
+        }
     }
 }

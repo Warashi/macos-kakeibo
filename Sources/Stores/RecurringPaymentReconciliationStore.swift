@@ -207,15 +207,11 @@ internal extension RecurringPaymentReconciliationStore {
                 actualAmount: amount,
                 transaction: transaction,
             )
-            let service = occurrencesService
-            let horizon = horizonMonths
-            try await Task { @DatabaseActor in
-                try service.markOccurrenceCompleted(
-                    occurrenceId: occurrenceId,
-                    input: input,
-                    horizonMonths: horizon
-                )
-            }.value
+            try await occurrencesService.markOccurrenceCompleted(
+                occurrenceId: occurrenceId,
+                input: input,
+                horizonMonths: horizonMonths
+            )
             statusMessage = "実績を保存しました。"
             await refresh()
             selectedOccurrenceId = occurrenceId
@@ -243,20 +239,16 @@ internal extension RecurringPaymentReconciliationStore {
         defer { isSaving = false }
 
         do {
-            let service = occurrencesService
-            let horizon = horizonMonths
-            try await Task { @DatabaseActor in
-                try service.updateOccurrence(
-                    occurrenceId: occurrenceId,
-                    input: OccurrenceUpdateInput(
-                        status: .planned,
-                        actualDate: nil,
-                        actualAmount: nil,
-                        transaction: nil
-                    ),
-                    horizonMonths: horizon
-                )
-            }.value
+            try await occurrencesService.updateOccurrence(
+                occurrenceId: occurrenceId,
+                input: OccurrenceUpdateInput(
+                    status: .planned,
+                    actualDate: nil,
+                    actualAmount: nil,
+                    transaction: nil
+                ),
+                horizonMonths: horizonMonths
+            )
             statusMessage = "取引リンクを解除しました。"
             await refresh()
             selectedOccurrenceId = occurrenceId

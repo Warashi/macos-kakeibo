@@ -29,21 +29,46 @@ internal struct TransactionRepositoryObservationTests {
 
         #expect(snapshots.isEmpty)
 
-        let transaction = Transaction(date: month, title: "ランチ", amount: -1200)
-        await repository.insert(transaction)
+        let initialInput = TransactionInput(
+            date: month,
+            title: "ランチ",
+            memo: "",
+            amount: -1200,
+            isIncludedInCalculation: true,
+            isTransfer: false,
+            financialInstitutionId: nil,
+            majorCategoryId: nil,
+            minorCategoryId: nil,
+            importIdentifier: nil
+        )
+        let transactionId = try await repository.insert(initialInput)
         try await repository.saveChanges()
         try await Task.sleep(nanoseconds: 100_000_000)
 
         #expect(!snapshots.isEmpty)
-        #expect(snapshots.last?.contains(where: { $0.id == transaction.id }) == true)
+        #expect(snapshots.last?.contains(where: { $0.id == transactionId }) == true)
 
-        transaction.title = "ディナー"
+        let updatedInput = TransactionInput(
+            date: month,
+            title: "ディナー",
+            memo: "",
+            amount: -1200,
+            isIncludedInCalculation: true,
+            isTransfer: false,
+            financialInstitutionId: nil,
+            majorCategoryId: nil,
+            minorCategoryId: nil,
+            importIdentifier: nil
+        )
+        try await repository.update(TransactionUpdateInput(id: transactionId, input: updatedInput))
         try await repository.saveChanges()
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        #expect(snapshots.last?.first?.title == "ディナー")
+        #expect(snapshots.last?
+            .first(where: { $0.id == transactionId })?
+            .title == "ディナー")
 
-        await repository.delete(transaction)
+        try await repository.delete(id: transactionId)
         try await repository.saveChanges()
         try await Task.sleep(nanoseconds: 100_000_000)
 

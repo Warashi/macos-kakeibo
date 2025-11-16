@@ -124,7 +124,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         config.policy = input.policy
         config.updatedAt = now
 
-        var existingAllocations = Dictionary(uniqueKeysWithValues: config.allocations.map { allocation in
+        let existingAllocations = Dictionary(uniqueKeysWithValues: config.allocations.map { allocation in
             (allocation.category.id, allocation)
         })
         var seenCategoryIds: Set<UUID> = []

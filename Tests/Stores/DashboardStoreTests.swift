@@ -8,13 +8,13 @@ import Testing
 @MainActor
 internal struct DashboardStoreTests {
     @Test("初期化：現在の年月が設定される")
-    internal func initialization_setsCurrentYearMonth() throws {
+    internal func initialization_setsCurrentYearMonth() async throws {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
 
         // When
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
 
         // Then
         let now = Date()
@@ -40,7 +40,7 @@ internal struct DashboardStoreTests {
         context.insert(transaction)
         try context.save()
 
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 11
         await store.refresh()
@@ -82,7 +82,7 @@ internal struct DashboardStoreTests {
         )
         try context.save()
 
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 12
         await store.refresh()
@@ -93,11 +93,11 @@ internal struct DashboardStoreTests {
     }
 
     @Test("表示モード切り替え")
-    internal func displayModeSwitch() throws {
+    internal func displayModeSwitch() async throws {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
 
         // When & Then
         #expect(store.displayMode == .monthly)
@@ -122,7 +122,7 @@ internal struct DashboardStoreTests {
         ))
         try context.save()
 
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 8
         await store.refresh()
@@ -133,11 +133,11 @@ internal struct DashboardStoreTests {
     }
 
     @Test("月移動：前月")
-    internal func moveToPreviousMonth_normalCase() throws {
+    internal func moveToPreviousMonth_normalCase() async throws {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 3
 
@@ -150,11 +150,11 @@ internal struct DashboardStoreTests {
     }
 
     @Test("月移動：前月（年跨ぎ）")
-    internal func moveToPreviousMonth_normalCase_年跨ぎ() throws {
+    internal func moveToPreviousMonth_normalCase_年跨ぎ() async throws {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 1
 
@@ -167,11 +167,11 @@ internal struct DashboardStoreTests {
     }
 
     @Test("月移動：次月")
-    internal func moveToNextMonth_normalCase() throws {
+    internal func moveToNextMonth_normalCase() async throws {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 3
 
@@ -184,11 +184,11 @@ internal struct DashboardStoreTests {
     }
 
     @Test("月移動：次月（年跨ぎ）")
-    internal func moveToNextMonth_normalCase_年跨ぎ() throws {
+    internal func moveToNextMonth_normalCase_年跨ぎ() async throws {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 12
 
@@ -201,11 +201,11 @@ internal struct DashboardStoreTests {
     }
 
     @Test("年移動：前年")
-    internal func moveToPreviousYear() throws {
+    internal func moveToPreviousYear() async throws {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
 
         // When
@@ -216,11 +216,11 @@ internal struct DashboardStoreTests {
     }
 
     @Test("年移動：次年")
-    internal func moveToNextYear() throws {
+    internal func moveToNextYear() async throws {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
 
         // When
@@ -251,7 +251,7 @@ internal struct DashboardStoreTests {
         }
         try context.save()
 
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 11
         await store.refresh()
@@ -281,7 +281,7 @@ internal struct DashboardStoreTests {
         context.insert(transaction)
         try context.save()
 
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
         await store.refresh()
 
@@ -310,7 +310,7 @@ internal struct DashboardStoreTests {
         context.insert(transaction)
         try context.save()
 
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
         await store.refresh()
 
@@ -320,15 +320,15 @@ internal struct DashboardStoreTests {
     }
 
     @Test("年次予算進捗：予算がなければnil")
-    internal func annualBudgetProgress_nilWhenNoBudget() throws {
+    internal func annualBudgetProgress_nilWhenNoBudget() async throws {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         #expect(store.annualBudgetProgressCalculation == nil)
     }
 
     @Test("初期化：年次特別枠設定のある年にフォールバックする")
-    internal func initialization_fallsBackToExistingAnnualBudgetYear() throws {
+    internal func initialization_fallsBackToExistingAnnualBudgetYear() async throws {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -337,7 +337,8 @@ internal struct DashboardStoreTests {
         context.insert(config)
         try context.save()
 
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         #expect(store.currentYear == fallbackYear)
     }
@@ -369,7 +370,7 @@ internal struct DashboardStoreTests {
 
         try context.save()
 
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 1
         await store.refresh()
@@ -429,7 +430,7 @@ internal struct DashboardStoreTests {
 
         try context.save()
 
-        let store = makeStore(container: container)
+        let store = await makeStore(container: container)
         store.currentYear = 2025
         await store.refresh()
 
@@ -453,8 +454,8 @@ internal struct DashboardStoreTests {
 }
 
 private extension DashboardStoreTests {
-    func makeStore(container: ModelContainer) -> DashboardStore {
-        let repository = SwiftDataDashboardRepository(modelContainer: container)
+    func makeStore(container: ModelContainer) async -> DashboardStore {
+        let repository = await SwiftDataDashboardRepository(modelContainer: container)
         return DashboardStore(repository: repository)
     }
 }
