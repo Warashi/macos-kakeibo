@@ -2,7 +2,7 @@ import SwiftData
 import SwiftUI
 
 internal struct TransactionListView: View {
-    @Environment(\.modelContext) private var modelContext: ModelContext
+    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
     @State private var store: TransactionStore?
 
     internal var body: some View {
@@ -19,9 +19,12 @@ internal struct TransactionListView: View {
 
     private func prepareStore() {
         guard store == nil else { return }
-        let context = modelContext
+        guard let container = modelContainer else {
+            assertionFailure("ModelContainer is unavailable")
+            return
+        }
         Task {
-            let repository = await SwiftDataTransactionRepository(modelContext: context)
+            let repository = await SwiftDataTransactionRepository(modelContainer: container)
             let listUseCase = await DefaultTransactionListUseCase(repository: repository)
             let formUseCase = await DefaultTransactionFormUseCase(repository: repository)
             store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase)

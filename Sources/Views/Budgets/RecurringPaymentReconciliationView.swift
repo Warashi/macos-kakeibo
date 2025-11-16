@@ -36,7 +36,7 @@ internal struct RecurringPaymentReconciliationView: View {
         ) in
             let context = ModelContext(container)
             let recurringPaymentRepository = RecurringPaymentRepositoryFactory.make(modelContext: context)
-            let transactionRepository = SwiftDataTransactionRepository(modelContext: context)
+            let transactionRepository = SwiftDataTransactionRepository(modelContainer: container)
             let occurrencesService = DefaultRecurringPaymentOccurrencesService(repository: recurringPaymentRepository)
             return (recurringPaymentRepository, transactionRepository, occurrencesService)
         }.value

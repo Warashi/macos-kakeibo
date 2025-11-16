@@ -19,8 +19,7 @@ internal struct TransactionListViewTests {
             for: Transaction.self, Category.self, FinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
-        let context = ModelContext(container)
-        let repository = await SwiftDataTransactionRepository(modelContext: context)
+        let repository = await SwiftDataTransactionRepository(modelContainer: container)
         let listUseCase = await DefaultTransactionListUseCase(repository: repository)
         let formUseCase = await DefaultTransactionFormUseCase(repository: repository)
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase)
@@ -35,8 +34,7 @@ internal struct TransactionListViewTests {
             for: Transaction.self, Category.self, FinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
-        let context = ModelContext(container)
-        let repository = await SwiftDataTransactionRepository(modelContext: context)
+        let repository = await SwiftDataTransactionRepository(modelContainer: container)
         let listUseCase = await DefaultTransactionListUseCase(repository: repository)
         let formUseCase = await DefaultTransactionFormUseCase(repository: repository)
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase)

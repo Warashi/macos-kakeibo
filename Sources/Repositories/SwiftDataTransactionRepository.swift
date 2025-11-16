@@ -5,8 +5,8 @@ import SwiftData
 internal final class SwiftDataTransactionRepository: TransactionRepository {
     private let modelContext: ModelContext
 
-    internal init(modelContext: ModelContext) {
-        self.modelContext = modelContext
+    internal init(modelContainer: ModelContainer) {
+        self.modelContext = ModelContext(modelContainer)
     }
 
     internal func fetchTransactions(query: TransactionQuery) throws -> [TransactionDTO] {

@@ -54,8 +54,7 @@ internal struct TransactionRepositoryObservationTests {
 private extension TransactionRepositoryObservationTests {
     func makeRepository() async throws -> (SwiftDataTransactionRepository, Date) {
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
-        let repository = await SwiftDataTransactionRepository(modelContext: context)
+        let repository = await SwiftDataTransactionRepository(modelContainer: container)
         let month = Date.from(year: 2025, month: 11, day: 1) ?? Date()
         return (repository, month)
     }
