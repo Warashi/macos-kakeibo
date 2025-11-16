@@ -28,7 +28,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let category = Category(name: "食費")
+        let category = CategoryEntity(name: "食費")
         context.insert(category)
 
         let transaction = Transaction(
@@ -59,7 +59,7 @@ internal struct DashboardStoreTests {
     internal func monthlySummary_handlesYearBoundary() async throws {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let category = Category(name: "雑費")
+        let category = CategoryEntity(name: "雑費")
         context.insert(category)
 
         let decemberDate = try #require(Date.from(year: 2025, month: 12, day: 15))
@@ -238,7 +238,7 @@ internal struct DashboardStoreTests {
 
         // 15カテゴリ作成
         for index in 1 ... 15 {
-            let category = Category(name: "カテゴリ\(index)")
+            let category = CategoryEntity(name: "カテゴリ\(index)")
             context.insert(category)
 
             let transaction = Transaction(
@@ -295,7 +295,7 @@ internal struct DashboardStoreTests {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
 
-        let food = Category(name: "食費")
+        let food = CategoryEntity(name: "食費")
         context.insert(food)
 
         let budget = Budget(amount: 10000, category: food, year: 2025, month: 1)
@@ -348,7 +348,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let category = Category(name: "特別費", allowsAnnualBudget: true)
+        let category = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
         context.insert(category)
 
         let transaction = Transaction(
@@ -391,8 +391,8 @@ internal struct DashboardStoreTests {
         let context = ModelContext(container)
 
         // カテゴリ作成
-        let foodCategory = Category(name: "食費", allowsAnnualBudget: false)
-        let specialCategory = Category(name: "特別費", allowsAnnualBudget: true)
+        let foodCategory = CategoryEntity(name: "食費", allowsAnnualBudget: false)
+        let specialCategory = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
         context.insert(foodCategory)
         context.insert(specialCategory)
 
@@ -446,7 +446,7 @@ internal struct DashboardStoreTests {
 
     private func createInMemoryContainer() throws -> ModelContainer {
         try ModelContainer(
-            for: Transaction.self, Category.self, Budget.self, AnnualBudgetConfig.self,
+            for: Transaction.self, CategoryEntity.self, Budget.self, AnnualBudgetConfig.self,
             FinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )

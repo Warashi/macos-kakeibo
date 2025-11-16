@@ -32,7 +32,7 @@ internal struct BudgetMutationUseCaseTests {
         let (container, context) = try makeContainerAndContext()
         let repository = await SwiftDataBudgetRepository(modelContext: context, modelContainer: container)
         let useCase = await DefaultBudgetMutationUseCase(repository: repository)
-        let category = Category(name: "食費", displayOrder: 1)
+        let category = CategoryEntity(name: "食費", displayOrder: 1)
         context.insert(category)
         let budget = Budget(amount: 4000, year: 2025, month: 11)
         context.insert(budget)
@@ -59,7 +59,7 @@ internal struct BudgetMutationUseCaseTests {
         let (container, context) = try makeContainerAndContext()
         let repository = await SwiftDataBudgetRepository(modelContext: context, modelContainer: container)
         let useCase = await DefaultBudgetMutationUseCase(repository: repository)
-        let category = Category(name: "教育費", allowsAnnualBudget: true, displayOrder: 1)
+        let category = CategoryEntity(name: "教育費", allowsAnnualBudget: true, displayOrder: 1)
         context.insert(category)
         try context.save()
 

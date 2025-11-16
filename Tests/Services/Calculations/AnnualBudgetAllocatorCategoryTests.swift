@@ -11,8 +11,8 @@ internal struct AnnualBudgetAllocatorCategoryTests {
     @Test("年次特別枠累積計算：実績0のカテゴリも表示される")
     internal func annualBudgetUsage_showsZeroCategories() throws {
         // Given
-        let category1 = Category(name: "旅行", allowsAnnualBudget: true)
-        let category2 = Category(name: "医療", allowsAnnualBudget: true)
+        let category1 = CategoryEntity(name: "旅行", allowsAnnualBudget: true)
+        let category2 = CategoryEntity(name: "医療", allowsAnnualBudget: true)
         let transactions = [
             createTransaction(amount: -50000, category: category1),
         ]
@@ -30,7 +30,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         )
 
         // When
-        let categories = [CategoryDTO(from: category1), CategoryDTO(from: category2)]
+        let categories = [Category(from: category1), Category(from: category2)]
         let result = allocator.calculateAnnualBudgetUsage(
             params: params,
             categories: categories,
@@ -56,7 +56,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
     @Test("年次特別枠累積計算：当月までの実績を集計する")
     internal func annualBudgetUsage_accumulatesUpToMonth() throws {
         // Given
-        let category = Category(name: "教育", allowsAnnualBudget: true)
+        let category = CategoryEntity(name: "教育", allowsAnnualBudget: true)
         let transactions = [
             createTransaction(amount: -40000, category: category, month: 1),
             createTransaction(amount: -60000, category: category, month: 2),
@@ -80,7 +80,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         )
 
         // When
-        let categories = [CategoryDTO(from: category)]
+        let categories = [Category(from: category)]
         let result = allocator.calculateAnnualBudgetUsage(
             params: params,
             categories: categories,
@@ -99,8 +99,8 @@ internal struct AnnualBudgetAllocatorCategoryTests {
 
     @Test("親子カテゴリの配分が重複計上されない")
     internal func annualBudgetUsage_parentChildNoDoubleCount() throws {
-        let major = Category(name: "特別費", allowsAnnualBudget: true)
-        let minor = Category(name: "旅行", parent: major, allowsAnnualBudget: true)
+        let major = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
+        let minor = CategoryEntity(name: "旅行", parent: major, allowsAnnualBudget: true)
         major.addChild(minor)
 
         let transactions = [
@@ -119,7 +119,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
             annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
-        let categories = [CategoryDTO(from: major), CategoryDTO(from: minor)]
+        let categories = [Category(from: major), Category(from: minor)]
         let result = allocator.calculateAnnualBudgetUsage(
             params: params,
             categories: categories,
@@ -137,9 +137,9 @@ internal struct AnnualBudgetAllocatorCategoryTests {
 
     private func createTransaction(
         amount: Decimal,
-        category: Kakeibo.Category? = nil,
-        majorCategory: Kakeibo.Category? = nil,
-        minorCategory: Kakeibo.Category? = nil,
+        category: Kakeibo.CategoryEntity? = nil,
+        majorCategory: Kakeibo.CategoryEntity? = nil,
+        minorCategory: Kakeibo.CategoryEntity? = nil,
         year: Int = 2025,
         month: Int = 11,
     ) -> Transaction {
@@ -175,7 +175,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
 }
 
 private struct AllocationSeed {
-    let category: Kakeibo.Category
+    let category: Kakeibo.CategoryEntity
     let amount: Decimal
     let override: AnnualBudgetPolicy?
 }

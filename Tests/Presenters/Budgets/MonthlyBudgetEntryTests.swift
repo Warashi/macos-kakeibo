@@ -7,8 +7,8 @@ import Testing
 internal struct MonthlyBudgetEntryTests {
     @Test("displayOrderKeyは親子のdisplayOrderを考慮")
     internal func displayOrderKey_usesHierarchy() throws {
-        let parent = Category(name: "固定費", displayOrder: 2)
-        let child = Category(name: "家賃", parent: parent, displayOrder: 10)
+        let parent = CategoryEntity(name: "固定費", displayOrder: 2)
+        let child = CategoryEntity(name: "家賃", parent: parent, displayOrder: 10)
         parent.addChild(child)
 
         let budget = Budget(

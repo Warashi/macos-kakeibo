@@ -36,9 +36,9 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
         return institutions.map { FinancialInstitutionDTO(from: $0) }
     }
 
-    internal func fetchCategories() throws -> [CategoryDTO] {
+    internal func fetchCategories() throws -> [Category] {
         let categories = try modelContext.fetch(CategoryQueries.sortedForDisplay())
-        return categories.map { CategoryDTO(from: $0) }
+        return categories.map { Category(from: $0) }
     }
 
     @discardableResult
@@ -126,7 +126,7 @@ private extension SwiftDataTransactionRepository {
         return institution
     }
 
-    func resolveCategory(id: UUID?) throws -> Category? {
+    func resolveCategory(id: UUID?) throws -> CategoryEntity? {
         guard let id else { return nil }
         guard let category = try modelContext.fetch(CategoryQueries.byId(id)).first else {
             throw RepositoryError.notFound

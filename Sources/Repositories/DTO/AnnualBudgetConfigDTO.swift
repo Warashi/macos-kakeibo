@@ -44,7 +44,7 @@ internal struct AnnualBudgetConfigDTO: Sendable, Hashable, Equatable {
     }
 
     internal func fullCoverageCategoryIDs(
-        includingChildrenFrom categories: [CategoryDTO] = [],
+        includingChildrenFrom categories: [Category] = [],
     ) -> Set<UUID> {
         guard !allocations.isEmpty else { return [] }
 

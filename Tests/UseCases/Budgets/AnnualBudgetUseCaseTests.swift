@@ -38,7 +38,7 @@ internal struct AnnualBudgetUseCaseTests {
     @Test("年次カテゴリ別エントリを算出する")
     internal func calculatesCategoryEntries() throws {
         let year = 2025
-        let food = Category(name: "食費", displayOrder: 1)
+        let food = CategoryEntity(name: "食費", displayOrder: 1)
         let budgets = [
             Budget(amount: 50000, category: food, year: year, month: 1),
             Budget(amount: 60000, category: food, year: year, month: 2),
@@ -54,7 +54,7 @@ internal struct AnnualBudgetUseCaseTests {
         let snapshot = BudgetSnapshot(
             budgets: budgets.map { BudgetDTO(from: $0) },
             transactions: transactions.map { TransactionDTO(from: $0) },
-            categories: [CategoryDTO(from: food)],
+            categories: [Category(from: food)],
             annualBudgetConfig: nil,
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],
@@ -72,7 +72,7 @@ internal struct AnnualBudgetUseCaseTests {
     @Test("年次特別枠の使用状況を算出する")
     internal func calculatesAnnualUsage() {
         let year = 2025
-        let food = Category(name: "食費", displayOrder: 1)
+        let food = CategoryEntity(name: "食費", displayOrder: 1)
         let config = AnnualBudgetConfig(year: year, totalAmount: 200_000, policy: .automatic)
         config.allocations = [
             AnnualBudgetAllocation(amount: 200_000, category: food, policyOverride: .automatic),
@@ -88,7 +88,7 @@ internal struct AnnualBudgetUseCaseTests {
         let snapshot = BudgetSnapshot(
             budgets: [],
             transactions: transactions.map { TransactionDTO(from: $0) },
-            categories: [CategoryDTO(from: food)],
+            categories: [Category(from: food)],
             annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],

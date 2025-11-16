@@ -8,7 +8,7 @@ internal struct RecurringPaymentDefinitionTests {
     @Test("定期支払い定義を初期化できる")
     internal func initializeDefinition() {
         let startDate = Date()
-        let category = Category(name: "教育費")
+        let category = CategoryEntity(name: "教育費")
 
         let definition = RecurringPaymentDefinition(
             name: "学資保険",

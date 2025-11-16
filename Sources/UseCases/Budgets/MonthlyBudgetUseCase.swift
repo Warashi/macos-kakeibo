@@ -128,7 +128,7 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
         )
     }
 
-    private func buildFullName(for category: CategoryDTO, categories: [CategoryDTO]) -> String {
+    private func buildFullName(for category: Category, categories: [Category]) -> String {
         guard let parentId = category.parentId,
               let parent = categories.first(where: { $0.id == parentId }) else {
             return category.name

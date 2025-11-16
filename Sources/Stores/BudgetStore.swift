@@ -62,7 +62,7 @@ internal final class BudgetStore {
     internal var monthlyBudgets: [BudgetDTO] = []
 
     /// カテゴリ選択肢
-    internal var selectableCategories: [CategoryDTO] = []
+    internal var selectableCategories: [Category] = []
 
     /// 月次計算結果
     internal var monthlyBudgetCalculation: MonthlyBudgetCalculation

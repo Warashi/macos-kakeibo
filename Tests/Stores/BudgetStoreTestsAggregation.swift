@@ -10,7 +10,7 @@ internal struct BudgetStoreTestsAggregation {
     @Test("予算追加：カテゴリ別予算を集計できる")
     internal func categoryBudgetEntries_calculatesActuals() async throws {
         let (store, context) = try await makeStore()
-        let food = Category(name: "食費", allowsAnnualBudget: true, displayOrder: 1)
+        let food = CategoryEntity(name: "食費", allowsAnnualBudget: true, displayOrder: 1)
         context.insert(food)
 
         let transaction = Transaction(
@@ -46,8 +46,8 @@ internal struct BudgetStoreTestsAggregation {
     @Test("年次予算：全体とカテゴリ別の集計を算出する")
     internal func annualBudgetEntries_calculatesYearlyTotals() async throws {
         let (store, context) = try await makeStore()
-        let food = Category(name: "食費", displayOrder: 1)
-        let transport = Category(name: "交通", displayOrder: 2)
+        let food = CategoryEntity(name: "食費", displayOrder: 1)
+        let transport = CategoryEntity(name: "交通", displayOrder: 2)
         context.insert(food)
         context.insert(transport)
 

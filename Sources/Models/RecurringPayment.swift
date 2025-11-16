@@ -55,7 +55,7 @@ internal final class RecurringPaymentDefinition {
     internal var firstOccurrenceDate: Date
     internal var endDate: Date?
     internal var leadTimeMonths: Int
-    internal var category: Category?
+    internal var category: CategoryEntity?
     internal var savingStrategy: RecurringPaymentSavingStrategy
     internal var customMonthlySavingAmount: Decimal?
     internal var dateAdjustmentPolicy: DateAdjustmentPolicy
@@ -76,7 +76,7 @@ internal final class RecurringPaymentDefinition {
         firstOccurrenceDate: Date,
         endDate: Date? = nil,
         leadTimeMonths: Int = 0,
-        category: Category? = nil,
+        category: CategoryEntity? = nil,
         savingStrategy: RecurringPaymentSavingStrategy = .evenlyDistributed,
         customMonthlySavingAmount: Decimal? = nil,
         dateAdjustmentPolicy: DateAdjustmentPolicy = .none,

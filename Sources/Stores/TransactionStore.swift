@@ -85,7 +85,7 @@ internal final class TransactionStore {
     }
 
     internal private(set) var availableInstitutions: [FinancialInstitutionDTO] = []
-    internal private(set) var availableCategories: [CategoryDTO] = []
+    internal private(set) var availableCategories: [Category] = []
     internal var listErrorMessage: String?
 
     internal var isEditorPresented: Bool = false
@@ -172,7 +172,7 @@ internal extension TransactionStore {
     }
 
     /// 大項目一覧
-    var majorCategories: [CategoryDTO] {
+    var majorCategories: [Category] {
         availableCategories
             .filter(\.isMajor)
             .sorted { lhs, rhs in
@@ -184,7 +184,7 @@ internal extension TransactionStore {
     }
 
     /// 指定した大項目に紐づく中項目一覧
-    func minorCategories(for majorCategoryId: UUID?) -> [CategoryDTO] {
+    func minorCategories(for majorCategoryId: UUID?) -> [Category] {
         guard let majorCategoryId else { return [] }
         return availableCategories
             .filter { $0.parentId == majorCategoryId }

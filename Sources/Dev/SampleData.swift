@@ -21,53 +21,53 @@ internal enum SampleData {
     // MARK: - Category
 
     /// サンプルカテゴリデータ（階層構造）
-    internal static func createSampleCategories() -> [Category] {
-        var categories: [Category] = []
+    internal static func createSampleCategories() -> [CategoryEntity] {
+        var categories: [CategoryEntity] = []
 
         // 食費
-        let food = Category(name: "食費", allowsAnnualBudget: false, displayOrder: 1)
-        food.addChild(Category(name: "外食", displayOrder: 1))
-        food.addChild(Category(name: "自炊", displayOrder: 2))
-        food.addChild(Category(name: "カフェ", displayOrder: 3))
+        let food = CategoryEntity(name: "食費", allowsAnnualBudget: false, displayOrder: 1)
+        food.addChild(CategoryEntity(name: "外食", displayOrder: 1))
+        food.addChild(CategoryEntity(name: "自炊", displayOrder: 2))
+        food.addChild(CategoryEntity(name: "カフェ", displayOrder: 3))
         categories.append(food)
         categories.append(contentsOf: food.children)
 
         // 日用品
-        let daily = Category(name: "日用品", allowsAnnualBudget: false, displayOrder: 2)
-        daily.addChild(Category(name: "消耗品", displayOrder: 1))
-        daily.addChild(Category(name: "衛生用品", displayOrder: 2))
+        let daily = CategoryEntity(name: "日用品", allowsAnnualBudget: false, displayOrder: 2)
+        daily.addChild(CategoryEntity(name: "消耗品", displayOrder: 1))
+        daily.addChild(CategoryEntity(name: "衛生用品", displayOrder: 2))
         categories.append(daily)
         categories.append(contentsOf: daily.children)
 
         // 交通費
-        let transport = Category(name: "交通費", allowsAnnualBudget: false, displayOrder: 3)
-        transport.addChild(Category(name: "電車", displayOrder: 1))
-        transport.addChild(Category(name: "バス", displayOrder: 2))
-        transport.addChild(Category(name: "タクシー", displayOrder: 3))
+        let transport = CategoryEntity(name: "交通費", allowsAnnualBudget: false, displayOrder: 3)
+        transport.addChild(CategoryEntity(name: "電車", displayOrder: 1))
+        transport.addChild(CategoryEntity(name: "バス", displayOrder: 2))
+        transport.addChild(CategoryEntity(name: "タクシー", displayOrder: 3))
         categories.append(transport)
         categories.append(contentsOf: transport.children)
 
         // 趣味・娯楽
-        let hobby = Category(name: "趣味・娯楽", allowsAnnualBudget: true, displayOrder: 4)
-        hobby.addChild(Category(name: "書籍", displayOrder: 1))
-        hobby.addChild(Category(name: "映画・動画", displayOrder: 2))
-        hobby.addChild(Category(name: "ゲーム", displayOrder: 3))
+        let hobby = CategoryEntity(name: "趣味・娯楽", allowsAnnualBudget: true, displayOrder: 4)
+        hobby.addChild(CategoryEntity(name: "書籍", displayOrder: 1))
+        hobby.addChild(CategoryEntity(name: "映画・動画", displayOrder: 2))
+        hobby.addChild(CategoryEntity(name: "ゲーム", displayOrder: 3))
         categories.append(hobby)
         categories.append(contentsOf: hobby.children)
 
         // 特別費
-        let special = Category(name: "特別費", allowsAnnualBudget: true, displayOrder: 5)
-        special.addChild(Category(name: "旅行", displayOrder: 1))
-        special.addChild(Category(name: "冠婚葬祭", displayOrder: 2))
-        special.addChild(Category(name: "家電", displayOrder: 3))
+        let special = CategoryEntity(name: "特別費", allowsAnnualBudget: true, displayOrder: 5)
+        special.addChild(CategoryEntity(name: "旅行", displayOrder: 1))
+        special.addChild(CategoryEntity(name: "冠婚葬祭", displayOrder: 2))
+        special.addChild(CategoryEntity(name: "家電", displayOrder: 3))
         categories.append(special)
         categories.append(contentsOf: special.children)
 
         // 収入
-        let income = Category(name: "収入", allowsAnnualBudget: false, displayOrder: 6)
-        income.addChild(Category(name: "給与", displayOrder: 1))
-        income.addChild(Category(name: "賞与", displayOrder: 2))
-        income.addChild(Category(name: "その他", displayOrder: 3))
+        let income = CategoryEntity(name: "収入", allowsAnnualBudget: false, displayOrder: 6)
+        income.addChild(CategoryEntity(name: "給与", displayOrder: 1))
+        income.addChild(CategoryEntity(name: "賞与", displayOrder: 2))
+        income.addChild(CategoryEntity(name: "その他", displayOrder: 3))
         categories.append(income)
         categories.append(contentsOf: income.children)
 
@@ -78,7 +78,7 @@ internal enum SampleData {
 
     /// サンプル取引データ
     internal static func createSampleTransactions(
-        categories: [Category],
+        categories: [CategoryEntity],
         institutions: [FinancialInstitution],
     ) -> [Transaction] {
         let refs = findCategoriesAndInstitutions(categories: categories, institutions: institutions)
@@ -95,7 +95,7 @@ internal enum SampleData {
     // MARK: - Budget
 
     /// サンプル予算データ
-    internal static func createSampleBudgets(categories: [Category]) -> [Budget] {
+    internal static func createSampleBudgets(categories: [CategoryEntity]) -> [Budget] {
         let calendar = Calendar.current
         let now = Date()
         let components = calendar.dateComponents([.year, .month], from: now)
@@ -267,7 +267,7 @@ private func createHobbyTransactions(
 
 /// カテゴリと金融機関の参照をまとめて検索
 private func findCategoriesAndInstitutions(
-    categories: [Category],
+    categories: [CategoryEntity],
     institutions: [FinancialInstitution],
 ) -> CategoryAndInstitutionRefs {
     CategoryAndInstitutionRefs(
@@ -290,17 +290,17 @@ private func findCategoriesAndInstitutions(
 
 /// カテゴリと金融機関の参照を保持する構造体
 private struct CategoryAndInstitutionRefs {
-    internal let food: Category?
-    internal let eating: Category?
-    internal let cooking: Category?
-    internal let cafe: Category?
-    internal let hobby: Category?
-    internal let book: Category?
-    internal let movie: Category?
-    internal let transport: Category?
-    internal let train: Category?
-    internal let incomeCategory: Category?
-    internal let salary: Category?
+    internal let food: CategoryEntity?
+    internal let eating: CategoryEntity?
+    internal let cooking: CategoryEntity?
+    internal let cafe: CategoryEntity?
+    internal let hobby: CategoryEntity?
+    internal let book: CategoryEntity?
+    internal let movie: CategoryEntity?
+    internal let transport: CategoryEntity?
+    internal let train: CategoryEntity?
+    internal let incomeCategory: CategoryEntity?
+    internal let salary: CategoryEntity?
     internal let card: FinancialInstitution?
     internal let cash: FinancialInstitution?
     internal let bank: FinancialInstitution?

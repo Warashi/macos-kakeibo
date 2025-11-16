@@ -52,7 +52,7 @@ internal struct AnnualBudgetProgressCalculator {
     internal func calculate(
         budgets: [BudgetDTO],
         transactions: [TransactionDTO],
-        categories: [CategoryDTO],
+        categories: [Category],
         year: Int,
         filter: AggregationFilter = .default,
         excludedCategoryIds: Set<UUID> = [],
@@ -160,12 +160,12 @@ internal struct AnnualBudgetProgressCalculator {
     private func makeCategoryEntries(
         year: Int,
         budgets: [BudgetDTO],
-        categories: [CategoryDTO],
+        categories: [Category],
         actualMap: [UUID: Decimal],
     ) -> [AnnualBudgetEntry] {
         let categoryMap = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
 
-        let categoryBudgets = budgets.compactMap { budget -> (CategoryDTO, BudgetDTO)? in
+        let categoryBudgets = budgets.compactMap { budget -> (Category, BudgetDTO)? in
             guard let categoryId = budget.categoryId,
                   let category = categoryMap[categoryId] else { return nil }
             return (category, budget)
@@ -210,8 +210,8 @@ internal struct AnnualBudgetProgressCalculator {
 
     /// カテゴリの実績額を計算（子カテゴリの実績も含む）
     private func calculateActualAmount(
-        for category: CategoryDTO,
-        categories: [CategoryDTO],
+        for category: Category,
+        categories: [Category],
         from actualMap: [UUID: Decimal],
     ) -> Decimal {
         var total = actualMap[category.id] ?? 0
@@ -227,7 +227,7 @@ internal struct AnnualBudgetProgressCalculator {
         return total
     }
 
-    private func buildFullName(for category: CategoryDTO, categories: [CategoryDTO]) -> String {
+    private func buildFullName(for category: Category, categories: [Category]) -> String {
         guard let parentId = category.parentId,
               let parent = categories.first(where: { $0.id == parentId }) else {
             return category.name
@@ -235,7 +235,7 @@ internal struct AnnualBudgetProgressCalculator {
         return "\(parent.name) > \(category.name)"
     }
 
-    private func createDisplayOrder(for category: CategoryDTO, categories: [CategoryDTO]) -> DisplayOrder {
+    private func createDisplayOrder(for category: Category, categories: [Category]) -> DisplayOrder {
         let parentOrder: Int = if let parentId = category.parentId,
                                   let parent = categories.first(where: { $0.id == parentId }) {
             parent.displayOrder

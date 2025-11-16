@@ -11,8 +11,8 @@ internal struct CategoryFilterStateTests {
     private let anotherMajor: Kakeibo.Category = Kakeibo.Category(name: "趣味", displayOrder: 2)
 
     internal init() {
-        let food = Kakeibo.Category(name: "食費", parent: major, displayOrder: 1)
-        let daily = Kakeibo.Category(name: "日用品", parent: major, displayOrder: 2)
+        let food = Kakeibo.Category(name: "食費", displayOrder: 1, parent: major)
+        let daily = Kakeibo.Category(name: "日用品", displayOrder: 2, parent: major)
         self.minorFood = food
         self.minorDaily = daily
     }

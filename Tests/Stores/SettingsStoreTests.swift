@@ -157,8 +157,8 @@ internal struct SettingsStoreTests {
         // Given
         let defaults = makeUserDefaults(suffix: "csv")
         let container = try ModelContainer.createInMemoryContainer()
-        let major = Category(name: "食費")
-        let minor = Category(name: "外食", parent: major)
+        let major = CategoryEntity(name: "食費")
+        let minor = CategoryEntity(name: "外食", parent: major)
         let institution = FinancialInstitution(name: "銀行")
         let transaction = Transaction(
             date: Date(),
@@ -169,7 +169,7 @@ internal struct SettingsStoreTests {
             minorCategory: minor
         )
         let transactionDTO = TransactionDTO(from: transaction)
-        let categoryDTOs = [CategoryDTO(from: major), CategoryDTO(from: minor)]
+        let categoryDTOs = [Category(from: major), Category(from: minor)]
         let institutionDTO = FinancialInstitutionDTO(from: institution)
         let transactionRepository = await makeTransactionRepository { repository in
             repository.snapshotTransactions = [transactionDTO]
@@ -234,7 +234,7 @@ internal struct SettingsStoreTests {
 
 @MainActor
 private func seedTransaction(in context: ModelContext) throws {
-    let category = Category(name: "食費")
+    let category = CategoryEntity(name: "食費")
     let institution = FinancialInstitution(name: "銀行")
     let transaction = Transaction(
         date: Date(),
@@ -311,7 +311,7 @@ private func makeBudgetRepository(
 private final class MockTransactionRepository: TransactionRepository {
     internal var transactionCount: Int = 0
     internal var snapshotTransactions: [TransactionDTO] = []
-    internal var snapshotCategories: [CategoryDTO] = []
+    internal var snapshotCategories: [Kakeibo.Category] = []
     internal var snapshotInstitutions: [FinancialInstitutionDTO] = []
     internal private(set) var deleteAllTransactionsCallCount: Int = 0
 
@@ -339,7 +339,7 @@ private final class MockTransactionRepository: TransactionRepository {
         snapshotInstitutions
     }
 
-    internal func fetchCategories() throws -> [CategoryDTO] {
+    internal func fetchCategories() throws -> [Kakeibo.Category] {
         snapshotCategories
     }
 
@@ -396,11 +396,11 @@ private final class MockBudgetRepository: BudgetRepository {
         unsupported(#function)
     }
 
-    internal func category(id: UUID) throws -> CategoryDTO? {
+    internal func category(id: UUID) throws -> Kakeibo.Category? {
         unsupported(#function)
     }
 
-    internal func findCategoryByName(_ name: String, parentId: UUID?) throws -> CategoryDTO? {
+    internal func findCategoryByName(_ name: String, parentId: UUID?) throws -> Kakeibo.Category? {
         unsupported(#function)
     }
 

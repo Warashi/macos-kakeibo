@@ -18,7 +18,7 @@ internal struct AnnualBudgetAllocationEngine: Sendable {
     internal func accumulateCategoryAllocations(
         accumulationParams: AccumulationParams,
         policyOverrides: [UUID: AnnualBudgetPolicy],
-        categories: [CategoryDTO],
+        categories: [Category],
     ) -> AccumulationResult {
         var totalUsed: Decimal = 0
         var categoryAccumulator: [UUID: CategoryAllocationAccumulator] = [:]
@@ -85,12 +85,12 @@ internal struct AnnualBudgetAllocationEngine: Sendable {
 
     internal func calculateCategoryAllocations(
         request: MonthlyCategoryAllocationRequest,
-        categories: [CategoryDTO],
+        categories: [Category],
     ) -> [CategoryAllocation] {
         categoryCalculator.calculateCategoryAllocations(request: request, categories: categories)
     }
 
-    private func buildCategoryName(category: CategoryDTO, categories: [CategoryDTO]) -> String {
+    private func buildCategoryName(category: Category, categories: [Category]) -> String {
         if let parentId = category.parentId,
            let parent = categories.first(where: { $0.id == parentId }) {
             return "\(parent.name) > \(category.name)"

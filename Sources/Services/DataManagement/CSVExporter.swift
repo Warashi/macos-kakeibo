@@ -122,7 +122,7 @@ internal struct CSVExporter: Sendable {
 
     private func categoryPath(
         for transaction: TransactionDTO,
-        minor: CategoryDTO?,
+        minor: Category?,
         referenceData: TransactionReferenceData
     ) -> String {
         if let minor {

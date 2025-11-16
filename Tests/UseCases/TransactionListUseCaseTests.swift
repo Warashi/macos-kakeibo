@@ -66,8 +66,8 @@ internal struct TransactionListUseCaseTests {
     @Test("参照データをまとめて取得できる")
     internal func loadsReferenceData() async throws {
         let institution = FinancialInstitution(name: "メイン銀行")
-        let major = Category(name: "食費", displayOrder: 1)
-        let minor = Category(name: "外食", parent: major, displayOrder: 1)
+        let major = CategoryEntity(name: "食費", displayOrder: 1)
+        let minor = CategoryEntity(name: "外食", parent: major, displayOrder: 1)
         let repository = InMemoryTransactionRepository(
             institutions: [institution],
             categories: [major, minor],

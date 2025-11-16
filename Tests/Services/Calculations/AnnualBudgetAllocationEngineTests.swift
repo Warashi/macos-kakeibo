@@ -9,7 +9,7 @@ internal struct AnnualBudgetAllocationEngineTests {
 
     @Test("累積計算で複数月の充当額を合算できる")
     internal func accumulateMultipleMonths() throws {
-        let category = Kakeibo.Category(name: "食費", allowsAnnualBudget: true)
+        let category = Kakeibo.CategoryEntity(name: "食費", allowsAnnualBudget: true)
         let config = makeConfig(
             policy: AnnualBudgetPolicy.automatic,
             allocations: [
@@ -38,7 +38,7 @@ internal struct AnnualBudgetAllocationEngineTests {
             annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
-        let categories = [CategoryDTO(from: category)]
+        let categories = [Category(from: category)]
         let result = engine.accumulateCategoryAllocations(
             accumulationParams: accumulationParams,
             policyOverrides: [:],
@@ -53,8 +53,8 @@ internal struct AnnualBudgetAllocationEngineTests {
 
     @Test("カテゴリごとのポリシー上書きを尊重する")
     internal func respectsPolicyOverrides() throws {
-        let major = Kakeibo.Category(name: "特別支出", allowsAnnualBudget: false)
-        let minor = Kakeibo.Category(name: "冠婚葬祭", parent: major, allowsAnnualBudget: false)
+        let major = Kakeibo.CategoryEntity(name: "特別支出", allowsAnnualBudget: false)
+        let minor = Kakeibo.CategoryEntity(name: "冠婚葬祭", parent: major, allowsAnnualBudget: false)
         major.addChild(minor)
 
         let config = makeConfig(
@@ -73,7 +73,7 @@ internal struct AnnualBudgetAllocationEngineTests {
             annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 
-        let categories = [CategoryDTO(from: major), CategoryDTO(from: minor)]
+        let categories = [Category(from: major), Category(from: minor)]
         let allocations = engine.calculateCategoryAllocations(
             request: MonthlyCategoryAllocationRequest(
                 params: params,
@@ -112,7 +112,7 @@ internal struct AnnualBudgetAllocationEngineTests {
     }
 
     private struct AllocationSeed {
-        let category: Kakeibo.Category
+        let category: Kakeibo.CategoryEntity
         let amount: Decimal
         let override: AnnualBudgetPolicy?
     }
@@ -121,8 +121,8 @@ internal struct AnnualBudgetAllocationEngineTests {
         amount: Decimal,
         year: Int,
         month: Int,
-        category: Kakeibo.Category?,
-        minorCategory: Kakeibo.Category? = nil,
+        category: Kakeibo.CategoryEntity?,
+        minorCategory: Kakeibo.CategoryEntity? = nil,
     ) -> Transaction {
         Transaction(
             date: Date.from(year: year, month: month) ?? Date(),

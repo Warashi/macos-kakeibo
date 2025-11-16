@@ -50,7 +50,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         // SwiftDataモデルをDTOに変換
         let budgetDTOs = budgets.map { BudgetDTO(from: $0) }
         let transactionDTOs = transactions.map { TransactionDTO(from: $0) }
-        let categoryDTOs = categories.map { CategoryDTO(from: $0) }
+        let categoryDTOs = categories.map { Category(from: $0) }
         let configDTO = config.map { AnnualBudgetConfigDTO(from: $0) }
 
         return BudgetSnapshot(
@@ -64,12 +64,12 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         )
     }
 
-    internal func category(id: UUID) throws -> CategoryDTO? {
-        try modelContext.fetch(CategoryQueries.byId(id)).first.map { CategoryDTO(from: $0) }
+    internal func category(id: UUID) throws -> Category? {
+        try modelContext.fetch(CategoryQueries.byId(id)).first.map { Category(from: $0) }
     }
 
-    internal func findCategoryByName(_ name: String, parentId: UUID?) throws -> CategoryDTO? {
-        let descriptor: ModelFetchRequest<Category>
+    internal func findCategoryByName(_ name: String, parentId: UUID?) throws -> Category? {
+        let descriptor: ModelFetchRequest<CategoryEntity>
         if let parentId {
             descriptor = CategoryQueries.firstMatching(
                 predicate: #Predicate { category in
@@ -83,18 +83,18 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
                 }
             )
         }
-        return try modelContext.fetch(descriptor).first.map { CategoryDTO(from: $0) }
+        return try modelContext.fetch(descriptor).first.map { Category(from: $0) }
     }
 
     internal func createCategory(name: String, parentId: UUID?) throws -> UUID {
         let parent = try resolveCategory(id: parentId)
-        let category = Category(name: name, parent: parent)
+        let category = CategoryEntity(name: name, parent: parent)
         modelContext.insert(category)
         return category.id
     }
 
     internal func countCategories() throws -> Int {
-        try modelContext.count(Category.self)
+        try modelContext.count(CategoryEntity.self)
     }
 
     internal func findInstitutionByName(_ name: String) throws -> FinancialInstitutionDTO? {
@@ -178,7 +178,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func deleteAllCategories() throws {
-        let descriptor: ModelFetchRequest<Category> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<CategoryEntity> = ModelFetchFactory.make()
         let categories = try modelContext.fetch(descriptor)
         let minors = categories.filter(\.isMinor)
         let majors = categories.filter(\.isMajor)
@@ -260,7 +260,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
 }
 
 private extension SwiftDataBudgetRepository {
-    func resolveCategory(id: UUID?) throws -> Category? {
+    func resolveCategory(id: UUID?) throws -> CategoryEntity? {
         guard let id else { return nil }
         guard let category = try modelContext.fetch(CategoryQueries.byId(id)).first else {
             throw RepositoryError.notFound

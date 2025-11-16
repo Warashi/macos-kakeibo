@@ -38,7 +38,7 @@ internal struct RecurringPaymentListView: View {
 /// 定期支払い一覧コンテンツビュー
 internal struct RecurringPaymentListContentView: View {
     @Bindable internal var store: RecurringPaymentListStore
-    @Query private var allCategories: [Category]
+    @Query private var allCategoryEntities: [CategoryEntity]
     @State private var csvDocument: DataFileDocument?
     @State private var isExportingCSV: Bool = false
     @State private var exportError: String?
@@ -87,10 +87,10 @@ internal struct RecurringPaymentListContentView: View {
             },
         )
         .onAppear {
-            store.categoryFilter.updateCategories(allCategories)
+            store.categoryFilter.updateCategories(domainCategories)
         }
-        .onChange(of: allCategories) { _, newValue in
-            store.categoryFilter.updateCategories(newValue)
+        .onChange(of: allCategoryEntities) { _, _ in
+            store.categoryFilter.updateCategories(domainCategories)
         }
         .onChange(of: store.dateRange) { [store] _, _ in
             Task { @MainActor in await store.refreshEntries() }
@@ -144,6 +144,12 @@ internal struct RecurringPaymentListContentView: View {
     }
 }
 
+private extension RecurringPaymentListContentView {
+    var domainCategories: [Category] {
+        allCategoryEntities.map { Category(from: $0) }
+    }
+}
+
 // MARK: - Filter Toolbar View
 
 private struct RecurringPaymentFilterToolbarView: View {
@@ -187,7 +193,7 @@ private struct RecurringPaymentFilterToolbarView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     CategoryHierarchyPicker(
-                        categories: store.categoryFilter.availableCategories.map { CategoryDTO(from: $0) },
+                        categories: store.categoryFilter.availableCategories,
                         selectedMajorCategoryId: $store.categoryFilter.selectedMajorCategoryId,
                         selectedMinorCategoryId: $store.categoryFilter.selectedMinorCategoryId,
                         majorPlaceholder: "すべて",

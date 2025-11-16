@@ -30,8 +30,8 @@ internal struct TransactionInitializationTests {
     internal func initializeTransactionWithAllParameters() {
         let date = Date()
         let institution = FinancialInstitution(name: "三菱UFJ")
-        let majorCategory = Category(name: "食費")
-        let minorCategory = Category(name: "外食", parent: majorCategory)
+        let majorCategory = CategoryEntity(name: "食費")
+        let minorCategory = CategoryEntity(name: "外食", parent: majorCategory)
 
         let transaction = Transaction(
             date: date,
@@ -103,9 +103,9 @@ internal struct TransactionComputedPropertyTests {
     }
 
     @Test("categoryFullNameは中項目がある場合フルパスを返す")
-    internal func categoryFullNameWithMinorCategory() {
-        let major = Category(name: "食費")
-        let minor = Category(name: "外食", parent: major)
+    internal func categoryFullNameWithMinorCategoryEntity() {
+        let major = CategoryEntity(name: "食費")
+        let minor = CategoryEntity(name: "外食", parent: major)
 
         let transaction = Transaction(
             date: Date(),
@@ -120,7 +120,7 @@ internal struct TransactionComputedPropertyTests {
 
     @Test("categoryFullNameは大項目のみの場合その名前を返す")
     internal func categoryFullNameWithMajorCategoryOnly() {
-        let major = Category(name: "食費")
+        let major = CategoryEntity(name: "食費")
 
         let transaction = Transaction(
             date: Date(),
@@ -148,8 +148,8 @@ internal struct TransactionComputedPropertyTests {
 internal struct TransactionValidationTests {
     @Test("有効な取引データの場合、バリデーションエラーがない")
     internal func validateValidTransaction() {
-        let major = Category(name: "食費")
-        let minor = Category(name: "外食", parent: major)
+        let major = CategoryEntity(name: "食費")
+        let minor = CategoryEntity(name: "外食", parent: major)
 
         let transaction = Transaction(
             date: Date(),
@@ -194,7 +194,7 @@ internal struct TransactionValidationTests {
 
     @Test("中項目のみ設定されている場合、バリデーションエラーが発生する")
     internal func validateMinorCategoryOnly() {
-        let minor = Category(name: "外食")
+        let minor = CategoryEntity(name: "外食")
 
         let transaction = Transaction(
             date: Date(),
@@ -211,9 +211,9 @@ internal struct TransactionValidationTests {
 
     @Test("中項目の親と大項目が一致しない場合、バリデーションエラーが発生する")
     internal func validateCategoryMismatch() {
-        let major1 = Category(name: "食費")
-        let major2 = Category(name: "日用品")
-        let minor = Category(name: "外食", parent: major1)
+        let major1 = CategoryEntity(name: "食費")
+        let major2 = CategoryEntity(name: "日用品")
+        let minor = CategoryEntity(name: "外食", parent: major1)
 
         let transaction = Transaction(
             date: Date(),

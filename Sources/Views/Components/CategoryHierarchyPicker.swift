@@ -2,7 +2,7 @@ import SwiftUI
 
 /// 大項目→中項目の順にカテゴリを選択するための共通ピッカー。
 internal struct CategoryHierarchyPicker: View {
-    internal let categories: [CategoryDTO]
+    internal let categories: [Category]
     @Binding internal var selectedMajorCategoryId: UUID?
     @Binding internal var selectedMinorCategoryId: UUID?
     internal let majorPlaceholder: String
@@ -10,12 +10,12 @@ internal struct CategoryHierarchyPicker: View {
     internal let inactiveMinorMessage: String?
     internal let noMinorMessage: String
 
-    private var grouping: CategoryDTOHierarchyGrouping {
-        CategoryDTOHierarchyGrouping(categories: categories)
+    private var grouping: CategoryHierarchyGrouping {
+        CategoryHierarchyGrouping(categories: categories)
     }
 
     internal init(
-        categories: [CategoryDTO],
+        categories: [Category],
         selectedMajorCategoryId: Binding<UUID?>,
         selectedMinorCategoryId: Binding<UUID?>,
         majorPlaceholder: String = "大項目を選択",

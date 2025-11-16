@@ -6,7 +6,7 @@ internal extension ModelContainer {
     static func createKakeiboContainer() throws -> ModelContainer {
         let schema = Schema([
             Transaction.self,
-            Category.self,
+            CategoryEntity.self,
             Budget.self,
             AnnualBudgetConfig.self,
             FinancialInstitution.self,
@@ -31,7 +31,7 @@ internal extension ModelContainer {
     static func createInMemoryContainer() throws -> ModelContainer {
         let schema = Schema([
             Transaction.self,
-            Category.self,
+            CategoryEntity.self,
             Budget.self,
             AnnualBudgetConfig.self,
             FinancialInstitution.self,

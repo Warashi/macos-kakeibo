@@ -19,7 +19,7 @@ internal struct RecurringPaymentSavingsBasicTests {
         let context = ModelContext(container)
 
         // Given: 3年周期（36ヶ月）の定期支払い定義
-        let category = Category(name: "保険・税金")
+        let category = CategoryEntity(name: "保険・税金")
         let definition = RecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,

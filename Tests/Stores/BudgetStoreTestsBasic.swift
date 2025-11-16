@@ -81,8 +81,8 @@ internal struct BudgetStoreTestsBasic {
     @Test("予算更新：金額とカテゴリを変更できる")
     internal func updateBudget_changesValues() async throws {
         let (store, context) = try await makeStore()
-        let food = Category(name: "食費", displayOrder: 1)
-        let transport = Category(name: "交通", displayOrder: 2)
+        let food = CategoryEntity(name: "食費", displayOrder: 1)
+        let transport = CategoryEntity(name: "交通", displayOrder: 2)
         context.insert(food)
         context.insert(transport)
 

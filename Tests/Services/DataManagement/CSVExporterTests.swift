@@ -7,8 +7,8 @@ internal struct CSVExporterTests {
     @Test("取引をCSVに変換できる")
     internal func exportTransactions_containsHeaderAndRow() throws {
         // Given
-        let major = Category(name: "食費")
-        let minor = Category(name: "外食", parent: major)
+        let major = CategoryEntity(name: "食費")
+        let minor = CategoryEntity(name: "外食", parent: major)
         let institution = FinancialInstitution(name: "テスト銀行")
         let transaction = Transaction(
             date: Date(timeIntervalSince1970: 0),
@@ -21,7 +21,7 @@ internal struct CSVExporterTests {
         )
         let snapshot = TransactionCSVExportSnapshot(
             transactions: [TransactionDTO(from: transaction)],
-            categories: [CategoryDTO(from: major), CategoryDTO(from: minor)],
+            categories: [Category(from: major), Category(from: minor)],
             institutions: [FinancialInstitutionDTO(from: institution)]
         )
 

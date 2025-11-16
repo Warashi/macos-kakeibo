@@ -17,7 +17,7 @@ internal enum AnnualBudgetPolicy: String, Codable, CaseIterable {
 
 internal extension AnnualBudgetConfig {
     func fullCoverageCategoryIDs(
-        includingChildrenFrom categories: [Category] = [],
+        includingChildrenFrom categories: [CategoryEntity] = [],
     ) -> Set<UUID> {
         guard !allocations.isEmpty else { return [] }
 
@@ -52,7 +52,7 @@ internal final class Budget {
     internal var amount: Decimal
 
     /// 対象カテゴリ（nilの場合は全体）
-    internal var category: Category?
+    internal var category: CategoryEntity?
 
     /// 対象期間（開始年月）
     internal var startYear: Int
@@ -69,7 +69,7 @@ internal final class Budget {
     internal init(
         id: UUID = UUID(),
         amount: Decimal,
-        category: Category? = nil,
+        category: CategoryEntity? = nil,
         startYear: Int,
         startMonth: Int,
         endYear: Int? = nil,
@@ -95,7 +95,7 @@ internal final class Budget {
     internal convenience init(
         id: UUID = UUID(),
         amount: Decimal,
-        category: Category? = nil,
+        category: CategoryEntity? = nil,
         year: Int,
         month: Int,
     ) {
@@ -304,7 +304,7 @@ internal extension AnnualBudgetConfig {
 internal final class AnnualBudgetAllocation {
     internal var id: UUID
     internal var amount: Decimal
-    internal var category: Category
+    internal var category: CategoryEntity
     internal var policyOverrideRawValue: String?
 
     internal var config: AnnualBudgetConfig?
@@ -315,7 +315,7 @@ internal final class AnnualBudgetAllocation {
     internal init(
         id: UUID = UUID(),
         amount: Decimal,
-        category: Category,
+        category: CategoryEntity,
         policyOverride: AnnualBudgetPolicy? = nil,
     ) {
         self.id = id

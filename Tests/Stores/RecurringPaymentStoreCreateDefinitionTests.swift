@@ -44,11 +44,11 @@ internal struct RecurringPaymentStoreCreateDefinitionTests {
     }
 
     @Test("定義作成：カテゴリ付きで作成")
-    internal func createDefinition_withCategory() async throws {
+    internal func createDefinition_withCategoryEntity() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
-        let category = Category(name: "税金", displayOrder: 0)
+        let category = CategoryEntity(name: "税金", displayOrder: 0)
         context.insert(category)
         try context.save()
 

@@ -25,8 +25,8 @@ internal struct BudgetTests {
     }
 
     @Test("カテゴリ付きで予算を初期化できる")
-    internal func initializeBudgetWithCategory() {
-        let category = Category(name: "食費")
+    internal func initializeBudgetWithCategoryEntity() {
+        let category = CategoryEntity(name: "食費")
         let budget = Budget(
             amount: 30000,
             category: category,

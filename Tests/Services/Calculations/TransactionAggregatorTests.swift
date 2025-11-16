@@ -170,16 +170,14 @@ internal struct TransactionAggregatorTests {
 
     // MARK: - Helper Methods
 
-    private func createSampleTransactionsWithCategories() -> ([TransactionDTO], [CategoryDTO]) {
+    private func createSampleTransactionsWithCategories() -> ([TransactionDTO], [Kakeibo.Category]) {
         let categoryId = UUID()
-        let category = CategoryDTO(
+        let category = CategoryEntity(
             id: categoryId,
             name: "食費",
-            displayOrder: 0,
+            parent: nil,
             allowsAnnualBudget: false,
-            parentId: nil,
-            createdAt: Date(),
-            updatedAt: Date(),
+            displayOrder: 0
         )
 
         let transactions = [
@@ -190,7 +188,7 @@ internal struct TransactionAggregatorTests {
             createTransactionDTO(amount: -15000, categoryId: categoryId),
         ]
 
-        return (transactions, [category])
+        return (transactions, [Category(from: category)])
     }
 
     private func createTransactionDTO(

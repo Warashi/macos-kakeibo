@@ -12,7 +12,7 @@ internal struct MonthlyCategoryAllocationRequest {
 internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
     internal func calculateCategoryAllocations(
         request: MonthlyCategoryAllocationRequest,
-        categories: [CategoryDTO],
+        categories: [Category],
     ) -> [CategoryAllocation] {
         let filteredTransactions = filterTransactions(
             transactions: request.params.transactions,
@@ -94,7 +94,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
 
     private func calculateAllocationsForMonthlyBudgets(
         budgets: [BudgetDTO],
-        categories: [CategoryDTO],
+        categories: [Category],
         context: AllocationComputationContext,
         processedCategoryIds: inout Set<UUID>,
     ) -> [CategoryAllocation] {
@@ -146,7 +146,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
 
     private func calculateAllocationsForUnbudgetedCategories(
         config: AnnualBudgetConfigDTO,
-        categories: [CategoryDTO],
+        categories: [Category],
         context: AllocationComputationContext,
         processedCategoryIds: inout Set<UUID>,
     ) -> [CategoryAllocation] {
@@ -197,7 +197,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
 
     private func calculateAllocationsForFullCoverage(
         config: AnnualBudgetConfigDTO,
-        categories: [CategoryDTO],
+        categories: [Category],
         context: AllocationComputationContext,
         processedCategoryIds: inout Set<UUID>,
     ) -> [CategoryAllocation] {
@@ -205,7 +205,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
 
         let fullCoverageAllocations = config.allocations
             .filter { $0.policyOverride == .fullCoverage }
-            .compactMap { allocation -> (AnnualBudgetAllocationDTO, CategoryDTO)? in
+            .compactMap { allocation -> (AnnualBudgetAllocationDTO, Category)? in
                 guard let category = categoryMap[allocation.categoryId] else { return nil }
                 return (allocation, category)
             }
@@ -258,8 +258,8 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
     }
 
     private func calculateActualAmount(
-        for category: CategoryDTO,
-        categories: [CategoryDTO],
+        for category: Category,
+        categories: [Category],
         context: AllocationComputationContext,
     ) -> Decimal {
         let categoryId = category.id
@@ -292,7 +292,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
         }
     }
 
-    private func buildCategoryName(category: CategoryDTO, categories: [CategoryDTO]) -> String {
+    private func buildCategoryName(category: Category, categories: [Category]) -> String {
         if let parentId = category.parentId,
            let parent = categories.first(where: { $0.id == parentId }) {
             return "\(parent.name) > \(category.name)"
@@ -395,7 +395,7 @@ private func matchesFilter(
 
 private func makeActualExpenseMaps(
     from transactions: [TransactionDTO],
-    categories: [CategoryDTO],
+    categories: [Category],
 ) -> ActualExpenseMaps {
     var categoryExpenses: [UUID: Decimal] = [:]
     var childExpenseByParent: [UUID: Decimal] = [:]
@@ -424,7 +424,7 @@ private func makeActualExpenseMaps(
 
 private func buildChildFallbackMap(
     from transactions: [TransactionDTO],
-    categories: [CategoryDTO],
+    categories: [Category],
 ) -> [UUID: Set<UUID>] {
     let categoryMap = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
 

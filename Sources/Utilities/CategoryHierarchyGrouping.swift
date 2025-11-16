@@ -1,15 +1,15 @@
 import Foundation
 
-/// カテゴリ一覧を大項目・中項目で分割した結果
-internal struct CategoryHierarchyGrouping {
-    internal let majorCategories: [Category]
-    internal let minorCategories: [Category]
-    internal let minorCategoriesByParent: [UUID: [Category]]
+/// SwiftDataのカテゴリを階層構造に分割した結果
+internal struct CategoryEntityHierarchyGrouping {
+    internal let majorCategories: [CategoryEntity]
+    internal let minorCategories: [CategoryEntity]
+    internal let minorCategoriesByParent: [UUID: [CategoryEntity]]
 
-    internal init(categories: [Category]) {
-        var majors: [Category] = []
-        var minors: [Category] = []
-        var minorsByParent: [UUID: [Category]] = [:]
+    internal init(categories: [CategoryEntity]) {
+        var majors: [CategoryEntity] = []
+        var minors: [CategoryEntity] = []
+        var minorsByParent: [UUID: [CategoryEntity]] = [:]
 
         for category in categories {
             if category.isMajor {
@@ -27,22 +27,22 @@ internal struct CategoryHierarchyGrouping {
         self.minorCategoriesByParent = minorsByParent
     }
 
-    internal func minorCategories(forMajorId id: UUID?) -> [Category] {
+    internal func minorCategories(forMajorId id: UUID?) -> [CategoryEntity] {
         guard let id else { return [] }
         return minorCategoriesByParent[id] ?? []
     }
 }
 
-/// CategoryDTO版のカテゴリ階層グルーピング
-internal struct CategoryDTOHierarchyGrouping {
-    internal let majorCategories: [CategoryDTO]
-    internal let minorCategories: [CategoryDTO]
-    internal let minorCategoriesByParent: [UUID: [CategoryDTO]]
+/// ドメインモデル版カテゴリ階層グルーピング
+internal struct CategoryHierarchyGrouping {
+    internal let majorCategories: [Category]
+    internal let minorCategories: [Category]
+    internal let minorCategoriesByParent: [UUID: [Category]]
 
-    internal init(categories: [CategoryDTO]) {
-        var majors: [CategoryDTO] = []
-        var minors: [CategoryDTO] = []
-        var minorsByParent: [UUID: [CategoryDTO]] = [:]
+    internal init(categories: [Category]) {
+        var majors: [Category] = []
+        var minors: [Category] = []
+        var minorsByParent: [UUID: [Category]] = [:]
 
         for category in categories {
             if category.isMajor {
@@ -60,7 +60,7 @@ internal struct CategoryDTOHierarchyGrouping {
         self.minorCategoriesByParent = minorsByParent
     }
 
-    internal func minorCategories(forMajorId id: UUID?) -> [CategoryDTO] {
+    internal func minorCategories(forMajorId id: UUID?) -> [Category] {
         guard let id else { return [] }
         return minorCategoriesByParent[id] ?? []
     }

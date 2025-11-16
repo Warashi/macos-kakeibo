@@ -13,7 +13,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
     @Test("定期支払い積立状況の計算")
     internal func calculateRecurringPaymentSavings_success() throws {
         // Given
-        let category = Category(name: "保険・税金")
+        let category = CategoryEntity(name: "保険・税金")
         let definition1 = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
@@ -156,8 +156,8 @@ internal struct BudgetCalculatorRecurringPaymentTests {
     @Test("カテゴリ別積立金額の計算")
     internal func calculateCategorySavingsAllocation_success() throws {
         // Given
-        let category1 = Category(name: "保険・税金")
-        let category2 = Category(name: "教育費")
+        let category1 = CategoryEntity(name: "保険・税金")
+        let category2 = CategoryEntity(name: "教育費")
 
         let definition1 = RecurringPaymentDefinition(
             name: "自動車税",
@@ -219,7 +219,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
 
     // MARK: - Helper Methods
 
-    private func createSampleTransactions(category: Kakeibo.Category) -> [Transaction] {
+    private func createSampleTransactions(category: Kakeibo.CategoryEntity) -> [Transaction] {
         [
             createTransaction(amount: -30000, category: category),
             createTransaction(amount: -20000, category: category),
@@ -229,7 +229,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
 
     private func createTransaction(
         amount: Decimal,
-        category: Kakeibo.Category,
+        category: Kakeibo.CategoryEntity,
     ) -> Transaction {
         Transaction(
             date: Date.from(year: 2025, month: 11) ?? Date(),

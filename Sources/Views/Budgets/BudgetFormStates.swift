@@ -97,7 +97,7 @@ internal struct AnnualBudgetFormState {
         ensureInitialRow()
     }
 
-    internal mutating func load(from config: AnnualBudgetConfigDTO, categories: [CategoryDTO]) {
+    internal mutating func load(from config: AnnualBudgetConfigDTO, categories: [Category]) {
         totalAmountText = config.totalAmount.plainString
         policy = config.policy
         let categoryLookup = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })

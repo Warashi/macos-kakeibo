@@ -10,8 +10,8 @@ internal struct BudgetStoreTestsAnnualConfig {
     @Test("年次特別枠：登録と更新")
     internal func upsertAnnualBudgetConfig_createsAndUpdates() async throws {
         let (store, context) = try await makeStore()
-        let food = Category(name: "食費")
-        let travel = Category(name: "旅行")
+        let food = CategoryEntity(name: "食費")
+        let travel = CategoryEntity(name: "旅行")
         context.insert(food)
         context.insert(travel)
         try context.save()
@@ -61,7 +61,7 @@ internal struct BudgetStoreTestsAnnualConfig {
     @Test("年次特別枠：カテゴリ重複はエラー")
     internal func upsertAnnualBudgetConfig_duplicateCategories() async throws {
         let (store, context) = try await makeStore()
-        let food = Category(name: "食費")
+        let food = CategoryEntity(name: "食費")
         context.insert(food)
         try context.save()
 

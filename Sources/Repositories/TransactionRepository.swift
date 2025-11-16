@@ -20,7 +20,7 @@ internal protocol TransactionRepository: Sendable {
     func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot
     func countTransactions() throws -> Int
     func fetchInstitutions() throws -> [FinancialInstitutionDTO]
-    func fetchCategories() throws -> [CategoryDTO]
+    func fetchCategories() throws -> [Category]
     @discardableResult
     func observeTransactions(
         query: TransactionQuery,

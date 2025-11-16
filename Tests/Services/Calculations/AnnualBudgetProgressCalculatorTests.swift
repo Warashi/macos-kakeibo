@@ -11,8 +11,8 @@ internal struct AnnualBudgetProgressCalculatorTests {
     @Test("大項目のみの予算：中項目を持つ取引の実績も含まれる")
     internal func majorCategoryBudget_includesMinorCategoryTransactions() throws {
         // Given: 大項目「食費」と中項目「食費 / 外食」を作成
-        let majorCategory = Category(name: "食費", displayOrder: 1)
-        let minorCategory = Category(name: "外食", parent: majorCategory, displayOrder: 1)
+        let majorCategory = CategoryEntity(name: "食費", displayOrder: 1)
+        let minorCategory = CategoryEntity(name: "外食", parent: majorCategory, displayOrder: 1)
         majorCategory.addChild(minorCategory)
 
         // 大項目「食費」に対して年次予算を設定（12ヶ月 × 50,000円 = 600,000円）
@@ -54,7 +54,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         ]
 
         // When: 年次予算進捗を計算
-        let categories = [CategoryDTO(from: majorCategory), CategoryDTO(from: minorCategory)]
+        let categories = [Category(from: majorCategory), Category(from: minorCategory)]
         let result = calculator.calculate(
             budgets: [BudgetDTO(from: budget)],
             transactions: transactions.map { TransactionDTO(from: $0) },
@@ -92,9 +92,9 @@ internal struct AnnualBudgetProgressCalculatorTests {
     @Test("中項目のみの予算：その中項目の取引のみが含まれる")
     internal func minorCategoryBudget_includesOnlyMinorCategoryTransactions() throws {
         // Given: 大項目「食費」と中項目「食費 / 外食」を作成
-        let majorCategory = Category(name: "食費", displayOrder: 1)
-        let minorCategory1 = Category(name: "外食", parent: majorCategory, displayOrder: 1)
-        let minorCategory2 = Category(name: "食材", parent: majorCategory, displayOrder: 2)
+        let majorCategory = CategoryEntity(name: "食費", displayOrder: 1)
+        let minorCategory1 = CategoryEntity(name: "外食", parent: majorCategory, displayOrder: 1)
+        let minorCategory2 = CategoryEntity(name: "食材", parent: majorCategory, displayOrder: 2)
         majorCategory.addChild(minorCategory1)
         majorCategory.addChild(minorCategory2)
 
@@ -130,9 +130,9 @@ internal struct AnnualBudgetProgressCalculatorTests {
 
         // When: 年次予算進捗を計算
         let categories = [
-            CategoryDTO(from: majorCategory),
-            CategoryDTO(from: minorCategory1),
-            CategoryDTO(from: minorCategory2),
+            Category(from: majorCategory),
+            Category(from: minorCategory1),
+            Category(from: minorCategory2),
         ]
         let result = calculator.calculate(
             budgets: [BudgetDTO(from: budget)],
@@ -168,9 +168,9 @@ internal struct AnnualBudgetProgressCalculatorTests {
 
         // When: 年次予算進捗を計算
         let categories = [
-            CategoryDTO(from: testData.foodCategory),
-            CategoryDTO(from: testData.diningOutCategory),
-            CategoryDTO(from: testData.transportCategory),
+            Category(from: testData.foodCategory),
+            Category(from: testData.diningOutCategory),
+            Category(from: testData.transportCategory),
         ]
         let result = calculator.calculate(
             budgets: testData.budgets.map { BudgetDTO(from: $0) },
@@ -218,17 +218,17 @@ internal struct AnnualBudgetProgressCalculatorTests {
     private struct MultipleCategoryTestData {
         let budgets: [Budget]
         let transactions: [Transaction]
-        let foodCategory: Kakeibo.Category
-        let diningOutCategory: Kakeibo.Category
-        let transportCategory: Kakeibo.Category
+        let foodCategory: Kakeibo.CategoryEntity
+        let diningOutCategory: Kakeibo.CategoryEntity
+        let transportCategory: Kakeibo.CategoryEntity
     }
 
     private func createMultipleCategoryTestData() -> MultipleCategoryTestData {
-        let foodCategory = Category(name: "食費", displayOrder: 1)
-        let diningOut = Category(name: "外食", parent: foodCategory, displayOrder: 1)
+        let foodCategory = CategoryEntity(name: "食費", displayOrder: 1)
+        let diningOut = CategoryEntity(name: "外食", parent: foodCategory, displayOrder: 1)
         foodCategory.addChild(diningOut)
 
-        let transportCategory = Category(name: "交通費", displayOrder: 2)
+        let transportCategory = CategoryEntity(name: "交通費", displayOrder: 2)
 
         let budgets = [
             Budget(
@@ -283,8 +283,8 @@ internal struct AnnualBudgetProgressCalculatorTests {
     @Test("全体予算の計算で除外カテゴリの支出が含まれない")
     internal func overallBudget_excludesExcludedCategoryExpense() throws {
         // Given: カテゴリと予算を作成
-        let foodCategory = Category(name: "食費", displayOrder: 1)
-        let transportCategory = Category(name: "交通費", displayOrder: 2)
+        let foodCategory = CategoryEntity(name: "食費", displayOrder: 1)
+        let transportCategory = CategoryEntity(name: "交通費", displayOrder: 2)
 
         // 全体予算: 600,000円/年（50,000円/月 × 12ヶ月）
         let overallBudget = Budget(
@@ -326,7 +326,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
 
         // When: 食費カテゴリを除外して年次予算進捗を計算
         let excludedCategoryIds: Set<UUID> = [foodCategory.id]
-        let categories = [CategoryDTO(from: foodCategory), CategoryDTO(from: transportCategory)]
+        let categories = [Category(from: foodCategory), Category(from: transportCategory)]
         let result = calculator.calculate(
             budgets: [BudgetDTO(from: overallBudget), BudgetDTO(from: foodBudget)],
             transactions: transactions.map { TransactionDTO(from: $0) },
@@ -358,9 +358,9 @@ internal struct AnnualBudgetProgressCalculatorTests {
     @Test("除外カテゴリが複数ある場合も正しく計算される")
     internal func overallBudget_excludesMultipleCategories() throws {
         // Given: 複数のカテゴリと予算を作成
-        let foodCategory = Category(name: "食費", displayOrder: 1)
-        let transportCategory = Category(name: "交通費", displayOrder: 2)
-        let entertainmentCategory = Category(name: "娯楽費", displayOrder: 3)
+        let foodCategory = CategoryEntity(name: "食費", displayOrder: 1)
+        let transportCategory = CategoryEntity(name: "交通費", displayOrder: 2)
+        let entertainmentCategory = CategoryEntity(name: "娯楽費", displayOrder: 3)
 
         // 全体予算: 600,000円/年
         let overallBudget = Budget(
@@ -400,9 +400,9 @@ internal struct AnnualBudgetProgressCalculatorTests {
         // When: 食費と娯楽費を除外して年次予算進捗を計算
         let excludedCategoryIds: Set<UUID> = [foodCategory.id, entertainmentCategory.id]
         let categories = [
-            CategoryDTO(from: foodCategory),
-            CategoryDTO(from: transportCategory),
-            CategoryDTO(from: entertainmentCategory),
+            Category(from: foodCategory),
+            Category(from: transportCategory),
+            Category(from: entertainmentCategory),
         ]
         let result = calculator.calculate(
             budgets: [BudgetDTO(from: overallBudget)],

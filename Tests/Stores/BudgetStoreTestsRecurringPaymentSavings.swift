@@ -11,7 +11,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
     internal func recurringPaymentSavings_monthlyTotal() async throws {
         let (store, context) = try await makeStore()
 
-        let category = Category(name: "保険・税金")
+        let category = CategoryEntity(name: "保険・税金")
         let definition1 = RecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
@@ -45,11 +45,11 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
     }
 
     @Test("定期支払い積立：カテゴリ別積立金額を取得")
-    internal func recurringPaymentSavings_byCategory() async throws {
+    internal func recurringPaymentSavings_byCategoryEntity() async throws {
         let (store, context) = try await makeStore()
 
-        let categoryTax = Category(name: "保険・税金")
-        let categoryEducation = Category(name: "教育費")
+        let categoryTax = CategoryEntity(name: "保険・税金")
+        let categoryEducation = CategoryEntity(name: "教育費")
 
         let definition1 = RecurringPaymentDefinition(
             name: "自動車税",

@@ -2,12 +2,12 @@ import Foundation
 @testable import Kakeibo
 
 internal final class InMemoryBudgetRepository: BudgetRepository {
-    internal var categories: [UUID: CategoryDTO]
+    internal var categories: [UUID: Kakeibo.Category]
     internal var institutions: [UUID: FinancialInstitutionDTO]
     internal private(set) var saveCallCount: Int = 0
 
     internal init(
-        categories: [CategoryDTO] = [],
+        categories: [Kakeibo.Category] = [],
         institutions: [FinancialInstitutionDTO] = []
     ) {
         self.categories = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
@@ -26,18 +26,18 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
         )
     }
 
-    internal func category(id: UUID) throws -> CategoryDTO? {
+    internal func category(id: UUID) throws -> Kakeibo.Category? {
         categories[id]
     }
 
-    internal func findCategoryByName(_ name: String, parentId: UUID?) throws -> CategoryDTO? {
+    internal func findCategoryByName(_ name: String, parentId: UUID?) throws -> Kakeibo.Category? {
         categories.values.first { $0.name == name && $0.parentId == parentId }
     }
 
     internal func createCategory(name: String, parentId: UUID?) throws -> UUID {
         let id = UUID()
         let now = Date()
-        let dto = CategoryDTO(
+        let dto = Kakeibo.Category(
             id: id,
             name: name,
             displayOrder: categories.count,

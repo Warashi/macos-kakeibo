@@ -19,8 +19,8 @@ internal struct RecurringPaymentSavingsComplexTests {
         let context = ModelContext(container)
 
         // Given: 複数の定期支払い定義
-        let categoryTax = Category(name: "保険・税金")
-        let categoryEducation = Category(name: "教育費")
+        let categoryTax = CategoryEntity(name: "保険・税金")
+        let categoryEducation = CategoryEntity(name: "教育費")
         context.insert(categoryTax)
         context.insert(categoryEducation)
 
@@ -98,7 +98,7 @@ internal struct RecurringPaymentSavingsComplexTests {
         internal let amount: Decimal
         internal let year: Int
         internal let month: Int
-        internal let category: Kakeibo.Category?
+        internal let category: Kakeibo.CategoryEntity?
         internal let strategy: RecurringPaymentSavingStrategy
         internal let customAmount: Decimal?
 
@@ -107,7 +107,7 @@ internal struct RecurringPaymentSavingsComplexTests {
             amount: Decimal,
             year: Int,
             month: Int,
-            category: Kakeibo.Category? = nil,
+            category: Kakeibo.CategoryEntity? = nil,
             strategy: RecurringPaymentSavingStrategy,
             customAmount: Decimal? = nil,
         ) {
@@ -136,8 +136,8 @@ internal struct RecurringPaymentSavingsComplexTests {
 
     /// 複数の定期支払い定義を作成するヘルパー関数
     private func createMultipleDefinitions(
-        categoryTax: Kakeibo.Category,
-        categoryEducation: Kakeibo.Category,
+        categoryTax: Kakeibo.CategoryEntity,
+        categoryEducation: Kakeibo.CategoryEntity,
         context: ModelContext,
     ) -> [RecurringPaymentDefinition] {
         let definitions: [RecurringPaymentDefinition] = [

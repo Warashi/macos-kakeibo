@@ -15,7 +15,7 @@ internal struct SeedHelperTests {
 
         // データが投入されたことを確認
         #expect(SeedHelper.count(FinancialInstitution.self, in: container) > 0)
-        #expect(SeedHelper.count(Kakeibo.Category.self, in: container) > 0)
+        #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) > 0)
         #expect(SeedHelper.count(Transaction.self, in: container) > 0)
         #expect(SeedHelper.count(Budget.self, in: container) > 0)
         #expect(SeedHelper.count(AnnualBudgetConfig.self, in: container) == 1)
@@ -28,7 +28,7 @@ internal struct SeedHelperTests {
         try SeedHelper.seedFinancialInstitutions(to: container)
 
         #expect(SeedHelper.count(FinancialInstitution.self, in: container) == 7)
-        #expect(SeedHelper.count(Kakeibo.Category.self, in: container) == 0)
+        #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) == 0)
         #expect(SeedHelper.count(Transaction.self, in: container) == 0)
     }
 
@@ -38,7 +38,7 @@ internal struct SeedHelperTests {
 
         try SeedHelper.seedCategories(to: container)
 
-        #expect(SeedHelper.count(Kakeibo.Category.self, in: container) > 0)
+        #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) > 0)
         #expect(SeedHelper.count(FinancialInstitution.self, in: container) == 0)
         #expect(SeedHelper.count(Transaction.self, in: container) == 0)
     }
@@ -59,7 +59,7 @@ internal struct SeedHelperTests {
 
         // すべてのデータが削除されたことを確認
         #expect(SeedHelper.count(FinancialInstitution.self, in: container) == 0)
-        #expect(SeedHelper.count(Kakeibo.Category.self, in: container) == 0)
+        #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) == 0)
         #expect(SeedHelper.count(Transaction.self, in: container) == 0)
         #expect(SeedHelper.count(Budget.self, in: container) == 0)
         #expect(SeedHelper.count(AnnualBudgetConfig.self, in: container) == 0)
@@ -112,17 +112,17 @@ internal struct SeedHelperTests {
         let context = ModelContext(container)
 
         // すべてのカテゴリを取得
-        let categories = try context.fetchAll(Kakeibo.Category.self)
+        let categories = try context.fetchAll(Kakeibo.CategoryEntity.self)
 
         // 中項目（子カテゴリ）は親を持つことを確認
-        let minorCategories = categories.filter(\Kakeibo.Category.isMinor)
+        let minorCategories = categories.filter(\Kakeibo.CategoryEntity.isMinor)
         for minor in minorCategories {
             #expect(minor.parent != nil)
             #expect(minor.parent?.children.contains { $0.id == minor.id } == true)
         }
 
         // 大項目（親カテゴリ）は子を持つことを確認
-        let majorCategories = categories.filter(\Kakeibo.Category.isMajor)
+        let majorCategories = categories.filter(\Kakeibo.CategoryEntity.isMajor)
         for major in majorCategories where !major.children.isEmpty {
             for child in major.children {
                 #expect(child.parent?.id == major.id)

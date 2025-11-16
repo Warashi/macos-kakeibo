@@ -3,13 +3,13 @@ import Foundation
 import SwiftData
 import Testing
 
-@Suite("Category Tests")
-internal struct CategoryTests {
+@Suite("CategoryEntity Tests")
+internal struct CategoryEntityTests {
     // MARK: - 初期化テスト
 
     @Test("カテゴリを初期化できる")
-    internal func initializeCategory() {
-        let category = Category(name: "食費")
+    internal func initializeCategoryEntity() {
+        let category = CategoryEntity(name: "食費")
 
         #expect(category.name == "食費")
         #expect(category.parent == nil)
@@ -20,7 +20,7 @@ internal struct CategoryTests {
 
     @Test("パラメータ付きでカテゴリを初期化できる")
     internal func initializeCategoryWithParameters() {
-        let category = Category(
+        let category = CategoryEntity(
             name: "外食",
             allowsAnnualBudget: true,
             displayOrder: 10,
@@ -35,16 +35,16 @@ internal struct CategoryTests {
 
     @Test("親子関係を設定できる")
     internal func setParentChildRelationship() {
-        let parent = Category(name: "食費")
-        let child = Category(name: "外食", parent: parent)
+        let parent = CategoryEntity(name: "食費")
+        let child = CategoryEntity(name: "外食", parent: parent)
 
         #expect(child.parent === parent)
     }
 
     @Test("addChildメソッドで子カテゴリを追加できる")
-    internal func addChildCategory() {
-        let parent = Category(name: "食費")
-        let child = Category(name: "外食")
+    internal func addChildCategoryEntity() {
+        let parent = CategoryEntity(name: "食費")
+        let child = CategoryEntity(name: "外食")
 
         parent.addChild(child)
 
@@ -55,9 +55,9 @@ internal struct CategoryTests {
 
     @Test("複数の子カテゴリを追加できる")
     internal func addMultipleChildCategories() {
-        let parent = Category(name: "食費")
-        let child1 = Category(name: "外食")
-        let child2 = Category(name: "自炊")
+        let parent = CategoryEntity(name: "食費")
+        let child1 = CategoryEntity(name: "外食")
+        let child2 = CategoryEntity(name: "自炊")
 
         parent.addChild(child1)
         parent.addChild(child2)
@@ -71,30 +71,30 @@ internal struct CategoryTests {
 
     @Test("isMajorは親がnilの場合にtrueを返す")
     internal func checkIsMajor() {
-        let category = Category(name: "食費")
+        let category = CategoryEntity(name: "食費")
         #expect(category.isMajor == true)
         #expect(category.isMinor == false)
     }
 
     @Test("isMinorは親がある場合にtrueを返す")
     internal func checkIsMinor() {
-        let parent = Category(name: "食費")
-        let child = Category(name: "外食", parent: parent)
+        let parent = CategoryEntity(name: "食費")
+        let child = CategoryEntity(name: "外食", parent: parent)
 
         #expect(child.isMajor == false)
         #expect(child.isMinor == true)
     }
 
     @Test("fullNameは大項目の場合、名前のみを返す")
-    internal func fullNameForMajorCategory() {
-        let category = Category(name: "食費")
+    internal func fullNameForMajorCategoryEntity() {
+        let category = CategoryEntity(name: "食費")
         #expect(category.fullName == "食費")
     }
 
     @Test("fullNameは中項目の場合、親/子の形式を返す")
-    internal func fullNameForMinorCategory() {
-        let parent = Category(name: "食費")
-        let child = Category(name: "外食", parent: parent)
+    internal func fullNameForMinorCategoryEntity() {
+        let parent = CategoryEntity(name: "食費")
+        let child = CategoryEntity(name: "外食", parent: parent)
 
         #expect(child.fullName == "食費 / 外食")
     }
@@ -103,9 +103,9 @@ internal struct CategoryTests {
 
     @Test("childメソッドで名前から子カテゴリを取得できる")
     internal func getChildCategoryByName() {
-        let parent = Category(name: "食費")
-        let child1 = Category(name: "外食")
-        let child2 = Category(name: "自炊")
+        let parent = CategoryEntity(name: "食費")
+        let child1 = CategoryEntity(name: "外食")
+        let child2 = CategoryEntity(name: "自炊")
 
         parent.addChild(child1)
         parent.addChild(child2)
@@ -116,8 +116,8 @@ internal struct CategoryTests {
 
     @Test("childメソッドで存在しない名前を指定するとnilを返す")
     internal func getChildCategoryByNonexistentName() {
-        let parent = Category(name: "食費")
-        let child = Category(name: "外食")
+        let parent = CategoryEntity(name: "食費")
+        let child = CategoryEntity(name: "外食")
 
         parent.addChild(child)
 
@@ -129,7 +129,7 @@ internal struct CategoryTests {
 
     @Test("年次特別枠の使用可否を設定できる")
     internal func setAllowsAnnualBudget() {
-        let category = Category(name: "特別", allowsAnnualBudget: true)
+        let category = CategoryEntity(name: "特別", allowsAnnualBudget: true)
         #expect(category.allowsAnnualBudget == true)
     }
 
@@ -137,8 +137,8 @@ internal struct CategoryTests {
 
     @Test("表示順序を設定できる")
     internal func setDisplayOrder() {
-        let category1 = Category(name: "食費", displayOrder: 1)
-        let category2 = Category(name: "日用品", displayOrder: 2)
+        let category1 = CategoryEntity(name: "食費", displayOrder: 1)
+        let category2 = CategoryEntity(name: "日用品", displayOrder: 2)
 
         #expect(category1.displayOrder == 1)
         #expect(category2.displayOrder == 2)
@@ -149,7 +149,7 @@ internal struct CategoryTests {
     @Test("作成日時と更新日時が設定される")
     internal func setCreatedAndUpdatedDates() {
         let before = Date()
-        let category = Category(name: "食費")
+        let category = CategoryEntity(name: "食費")
         let after = Date()
 
         #expect(category.createdAt >= before)

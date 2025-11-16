@@ -7,13 +7,13 @@ import Testing
 internal struct AnnualBudgetFormStateTests {
     @Test("ロード時、0円でも文字列として保持する")
     internal func loadKeepsZeroAmountText() throws {
-        let category = Category(name: "特別", allowsAnnualBudget: true)
+        let category = CategoryEntity(name: "特別", allowsAnnualBudget: true)
         let config = AnnualBudgetConfig(year: 2025, totalAmount: 100_000, policy: .automatic)
         let allocation = AnnualBudgetAllocation(amount: 0, category: category)
         config.allocations = [allocation]
 
         var state = AnnualBudgetFormState()
-        state.load(from: AnnualBudgetConfigDTO(from: config), categories: [CategoryDTO(from: category)])
+        state.load(from: AnnualBudgetConfigDTO(from: config), categories: [Category(from: category)])
 
         let row = try #require(state.allocationRows.first)
         #expect(row.amountText == "0")

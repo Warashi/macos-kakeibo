@@ -12,7 +12,7 @@ internal struct TransactionEditorView: View {
         }
     }
 
-    private var minorCategories: [CategoryDTO] {
+    private var minorCategories: [Category] {
         store.minorCategories(for: store.formState.majorCategoryId)
     }
 

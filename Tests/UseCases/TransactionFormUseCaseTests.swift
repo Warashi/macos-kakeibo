@@ -86,11 +86,11 @@ private extension TransactionFormUseCaseTests {
 
     func referenceData() -> TransactionReferenceData {
         let institution = FinancialInstitution(name: "メイン銀行")
-        let major = Category(name: "食費", displayOrder: 1)
-        let minor = Category(name: "外食", parent: major, displayOrder: 1)
+        let major = CategoryEntity(name: "食費", displayOrder: 1)
+        let minor = CategoryEntity(name: "外食", parent: major, displayOrder: 1)
         return TransactionReferenceData(
             institutions: [FinancialInstitutionDTO(from: institution)],
-            categories: [CategoryDTO(from: major), CategoryDTO(from: minor)],
+            categories: [Category(from: major), Category(from: minor)],
         )
     }
 }

@@ -4,8 +4,8 @@ import Foundation
 
 /// カテゴリ解決結果
 internal struct CategoryResolutionResult {
-    internal let majorCategory: CategoryDTO?
-    internal let minorCategory: CategoryDTO?
+    internal let majorCategory: Category?
+    internal let minorCategory: Category?
     internal let createdCount: Int
 }
 
@@ -14,8 +14,8 @@ internal struct TransactionUpdateParameters {
     internal let draft: TransactionDraft
     internal let identifier: CSVTransactionIdentifier?
     internal let institution: FinancialInstitutionDTO?
-    internal let majorCategory: CategoryDTO?
-    internal let minorCategory: CategoryDTO?
+    internal let majorCategory: Category?
+    internal let minorCategory: Category?
     internal let existingImportIdentifier: String?
 }
 
@@ -34,8 +34,8 @@ internal struct ImportState {
 /// エンティティキャッシュ
 internal struct EntityCache {
     internal var institutions: [String: FinancialInstitutionDTO] = [:]
-    internal var majorCategories: [String: CategoryDTO] = [:]
-    internal var minorCategories: [String: CategoryDTO] = [:]
+    internal var majorCategories: [String: Category] = [:]
+    internal var minorCategories: [String: Category] = [:]
 }
 
 // MARK: - Field Extraction Results
@@ -62,8 +62,8 @@ internal struct TransactionCreationParameters {
     internal let draft: TransactionDraft
     internal let identifier: CSVTransactionIdentifier?
     internal let institution: FinancialInstitutionDTO?
-    internal let majorCategory: CategoryDTO?
-    internal let minorCategory: CategoryDTO?
+    internal let majorCategory: Category?
+    internal let minorCategory: Category?
 }
 
 // MARK: - Category Resolution Context
@@ -72,14 +72,14 @@ internal struct TransactionCreationParameters {
 internal struct CategoryResolutionContext {
     internal let majorName: String?
     internal let minorName: String?
-    internal var majorCache: [String: CategoryDTO]
-    internal var minorCache: [String: CategoryDTO]
+    internal var majorCache: [String: Category]
+    internal var minorCache: [String: Category]
 }
 
 /// 中項目カテゴリ解決用コンテキスト
 internal struct MinorCategoryResolutionContext {
     internal let name: String?
-    internal let majorCategory: CategoryDTO?
-    internal var cache: [String: CategoryDTO]
+    internal let majorCategory: Category?
+    internal var cache: [String: Category]
     internal var createdCount: Int
 }

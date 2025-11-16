@@ -6,7 +6,7 @@ import Testing
 internal struct MonthlyBudgetUseCaseTests {
     @Test("指定月の予算だけを返す")
     internal func filtersBudgetsByMonth() {
-        let category = Category(name: "食費", displayOrder: 1)
+        let category = CategoryEntity(name: "食費", displayOrder: 1)
         let budgets = [
             Budget(amount: 5000, category: category, year: 2025, month: 11),
             Budget(amount: 6000, category: category, year: 2025, month: 12),
@@ -14,7 +14,7 @@ internal struct MonthlyBudgetUseCaseTests {
         let snapshot = BudgetSnapshot(
             budgets: budgets.map { BudgetDTO(from: $0) },
             transactions: [],
-            categories: [CategoryDTO(from: category)],
+            categories: [Category(from: category)],
             annualBudgetConfig: nil,
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],
@@ -30,7 +30,7 @@ internal struct MonthlyBudgetUseCaseTests {
 
     @Test("カテゴリ別エントリで実績が反映される")
     internal func categoryEntriesCalculateActuals() throws {
-        let category = Category(name: "食費", displayOrder: 1)
+        let category = CategoryEntity(name: "食費", displayOrder: 1)
         let budget = Budget(amount: 5000, category: category, year: 2025, month: 11)
         let transaction = Transaction(
             date: Date.from(year: 2025, month: 11, day: 5) ?? Date(),
@@ -41,7 +41,7 @@ internal struct MonthlyBudgetUseCaseTests {
         let snapshot = BudgetSnapshot(
             budgets: [BudgetDTO(from: budget)],
             transactions: [TransactionDTO(from: transaction)],
-            categories: [CategoryDTO(from: category)],
+            categories: [Category(from: category)],
             annualBudgetConfig: nil,
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],

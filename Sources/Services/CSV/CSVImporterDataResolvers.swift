@@ -61,9 +61,9 @@ extension CSVImporter {
     /// 大項目カテゴリを解決
     internal func resolveMajorCategory(
         name: String?,
-        cache: inout [String: CategoryDTO],
+        cache: inout [String: Category],
         createdCount: inout Int
-    ) async throws -> CategoryDTO? {
+    ) async throws -> Category? {
         guard let name else {
             return nil
         }
@@ -90,7 +90,7 @@ extension CSVImporter {
     /// 中項目カテゴリを解決
     internal func resolveMinorCategory(
         context: inout MinorCategoryResolutionContext
-    ) async throws -> CategoryDTO? {
+    ) async throws -> Category? {
         guard let name = context.name, let majorCategory = context.majorCategory else {
             return nil
         }

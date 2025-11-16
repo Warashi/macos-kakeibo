@@ -18,7 +18,7 @@ internal struct CategoryFilterState: Equatable {
             if category.isMajor {
                 return category.id == majorCategoryId
             }
-            return category.parent?.id == majorCategoryId
+            return category.parentId == majorCategoryId
         }
 
         internal func matches(majorCategory: Category?, minorCategory: Category?) -> Bool {
@@ -30,7 +30,7 @@ internal struct CategoryFilterState: Equatable {
             if let majorCategory, majorCategory.id == majorCategoryId {
                 return true
             }
-            return minorCategory?.parent?.id == majorCategoryId
+            return minorCategory?.parentId == majorCategoryId
         }
 
         internal func matchesIds(majorCategoryId: UUID?, minorCategoryId: UUID?) -> Bool {
@@ -102,7 +102,7 @@ internal struct CategoryFilterState: Equatable {
         let parentMap = Dictionary(
             uniqueKeysWithValues: availableCategories
                 .compactMap { category -> (UUID, UUID)? in
-                    guard let parentId = category.parent?.id else { return nil }
+                    guard let parentId = category.parentId else { return nil }
                     return (category.id, parentId)
                 },
         )

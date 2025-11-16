@@ -64,7 +64,7 @@ internal struct BudgetCalculator: Sendable {
     internal struct MonthlyBudgetInput {
         internal let transactions: [TransactionDTO]
         internal let budgets: [BudgetDTO]
-        internal let categories: [CategoryDTO]
+        internal let categories: [Category]
         internal let year: Int
         internal let month: Int
         internal let filter: AggregationFilter
@@ -185,7 +185,7 @@ internal struct BudgetCalculator: Sendable {
 
     private func categoryBudgetCalculations(
         monthlyBudgets: [BudgetDTO],
-        categories: [CategoryDTO],
+        categories: [Category],
         summary: MonthlySummary,
     ) -> [CategoryBudgetCalculation] {
         let categoryMap = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
@@ -220,8 +220,8 @@ internal struct BudgetCalculator: Sendable {
     }
 
     private func categoryActualAmount(
-        for category: CategoryDTO,
-        categories: [CategoryDTO],
+        for category: Category,
+        categories: [Category],
         summary: MonthlySummary,
     ) -> Decimal {
         if category.isMajor {
@@ -241,7 +241,7 @@ internal struct BudgetCalculator: Sendable {
     private struct MonthlyBudgetComputationContext {
         let transactions: [TransactionDTO]
         let budgets: [BudgetDTO]
-        let categories: [CategoryDTO]
+        let categories: [Category]
         let year: Int
         let month: Int
         let filter: AggregationFilter
@@ -256,7 +256,7 @@ internal struct BudgetCalculator: Sendable {
     ///   - budgetAmount: 予算額
     /// - Returns: 予算超過するか
     internal func willExceedBudget(
-        category: CategoryDTO,
+        category: Category,
         amount: Decimal,
         currentExpense: Decimal,
         budgetAmount: Decimal,

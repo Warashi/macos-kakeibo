@@ -20,8 +20,8 @@ internal final class Transaction {
 
     /// リレーション
     internal var financialInstitution: FinancialInstitution?
-    internal var majorCategory: Category? // 大項目
-    internal var minorCategory: Category? // 中項目
+    internal var majorCategory: CategoryEntity? // 大項目
+    internal var minorCategory: CategoryEntity? // 中項目
 
     /// 作成・更新日時
     internal var createdAt: Date
@@ -37,8 +37,8 @@ internal final class Transaction {
         isTransfer: Bool = false,
         importIdentifier: String? = nil,
         financialInstitution: FinancialInstitution? = nil,
-        majorCategory: Category? = nil,
-        minorCategory: Category? = nil,
+        majorCategory: CategoryEntity? = nil,
+        minorCategory: CategoryEntity? = nil,
     ) {
         self.id = id
         self.date = date

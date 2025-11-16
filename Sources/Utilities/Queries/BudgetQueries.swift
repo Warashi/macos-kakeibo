@@ -7,11 +7,11 @@ internal enum BudgetQueries {
         ModelFetchFactory.make()
     }
 
-    internal static func categoriesForBudgetList() -> ModelFetchRequest<Category> {
+    internal static func categoriesForBudgetList() -> ModelFetchRequest<CategoryEntity> {
         ModelFetchFactory.make(
             sortBy: [
-                SortDescriptor(\Category.displayOrder),
-                SortDescriptor(\Category.name, order: .forward),
+                SortDescriptor(\CategoryEntity.displayOrder),
+                SortDescriptor(\CategoryEntity.name, order: .forward),
             ],
         )
     }

@@ -68,7 +68,7 @@ internal actor BackupManager {
     internal func buildPayload() throws -> BackupPayload {
         let modelContext = ModelContext(modelContainer)
         let transactions = try modelContext.fetchAll(Transaction.self)
-        let categories = try modelContext.fetchAll(Category.self)
+        let categories = try modelContext.fetchAll(CategoryEntity.self)
         let budgets = try modelContext.fetchAll(Budget.self)
         let configs = try modelContext.fetchAll(AnnualBudgetConfig.self)
         let institutions = try modelContext.fetchAll(FinancialInstitution.self)
@@ -89,7 +89,7 @@ internal actor BackupManager {
         return BackupPayload(
             metadata: metadata,
             transactions: transactions.map(BackupTransactionDTO.init),
-            categories: categories.map(BackupCategoryDTO.init),
+            categories: categories.map(BackupCategory.init),
             budgets: budgets.map(BackupBudgetDTO.init),
             annualBudgetConfigs: configs.map(BackupAnnualBudgetConfigDTO.init),
             financialInstitutions: institutions.map(BackupFinancialInstitutionDTO.init),
@@ -154,7 +154,7 @@ internal actor BackupManager {
 
     /// 親子関係を維持しながらカテゴリを削除
     private func deleteCategoriesSafely(in context: ModelContext) throws {
-        let descriptor: ModelFetchRequest<Category> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<CategoryEntity> = ModelFetchFactory.make()
         let categories = try context.fetch(descriptor)
         let minors = categories.filter(\.isMinor)
         let majors = categories.filter(\.isMajor)
@@ -188,14 +188,14 @@ internal actor BackupManager {
 
     @discardableResult
     private func insertCategories(
-        _ dtos: [BackupCategoryDTO],
+        _ dtos: [BackupCategory],
         context: ModelContext,
-    ) throws -> [UUID: Category] {
-        var result: [UUID: Category] = [:]
+    ) throws -> [UUID: CategoryEntity] {
+        var result: [UUID: CategoryEntity] = [:]
 
         // まず全カテゴリを作成
         for dto in dtos {
-            let category = Category(
+            let category = CategoryEntity(
                 id: dto.id,
                 name: dto.name,
                 allowsAnnualBudget: dto.allowsAnnualBudget,
@@ -222,7 +222,7 @@ internal actor BackupManager {
 
     private func insertBudgets(
         _ dtos: [BackupBudgetDTO],
-        categories: [UUID: Category],
+        categories: [UUID: CategoryEntity],
         context: ModelContext,
     ) throws {
         for dto in dtos {
@@ -260,7 +260,7 @@ internal actor BackupManager {
 
     private func insertTransactions(
         _ dtos: [BackupTransactionDTO],
-        categories: [UUID: Category],
+        categories: [UUID: CategoryEntity],
         institutions: [UUID: FinancialInstitution],
         context: ModelContext,
     ) throws {
@@ -299,7 +299,7 @@ internal actor BackupManager {
 internal struct BackupPayload: Codable, Sendable {
     internal let metadata: BackupMetadata
     internal let transactions: [BackupTransactionDTO]
-    internal let categories: [BackupCategoryDTO]
+    internal let categories: [BackupCategory]
     internal let budgets: [BackupBudgetDTO]
     internal let annualBudgetConfigs: [BackupAnnualBudgetConfigDTO]
     internal let financialInstitutions: [BackupFinancialInstitutionDTO]
@@ -335,7 +335,7 @@ internal struct BackupTransactionDTO: Codable {
     }
 }
 
-internal struct BackupCategoryDTO: Codable {
+internal struct BackupCategory: Codable {
     internal let id: UUID
     internal let name: String
     internal let parentId: UUID?
@@ -344,7 +344,7 @@ internal struct BackupCategoryDTO: Codable {
     internal let createdAt: Date
     internal let updatedAt: Date
 
-    internal init(category: Category) {
+    internal init(category: CategoryEntity) {
         self.id = category.id
         self.name = category.name
         self.parentId = category.parent?.id

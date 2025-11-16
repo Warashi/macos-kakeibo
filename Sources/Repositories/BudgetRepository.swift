@@ -3,8 +3,8 @@ import Foundation
 @DatabaseActor
 internal protocol BudgetRepository: Sendable {
     func fetchSnapshot(for year: Int) throws -> BudgetSnapshot
-    func category(id: UUID) throws -> CategoryDTO?
-    func findCategoryByName(_ name: String, parentId: UUID?) throws -> CategoryDTO?
+    func category(id: UUID) throws -> Category?
+    func findCategoryByName(_ name: String, parentId: UUID?) throws -> Category?
     func createCategory(name: String, parentId: UUID?) throws -> UUID
     func countCategories() throws -> Int
     func findInstitutionByName(_ name: String) throws -> FinancialInstitutionDTO?

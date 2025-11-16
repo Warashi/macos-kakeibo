@@ -156,9 +156,9 @@ internal struct RecurringPaymentListStoreFilterTests {
     internal func entries_majorCategoryFilterIncludesChildren() async throws {
         let (store, context) = try await makeStore()
 
-        let major = Category(name: "生活費")
-        let minor = Category(name: "食費", parent: major)
-        let otherMajor = Category(name: "趣味")
+        let major = CategoryEntity(name: "生活費")
+        let minor = CategoryEntity(name: "食費", parent: major)
+        let otherMajor = CategoryEntity(name: "趣味")
 
         context.insert(major)
         context.insert(minor)
@@ -219,7 +219,7 @@ internal struct RecurringPaymentListStoreFilterTests {
 
         store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
         store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
-        store.categoryFilter.updateCategories([major, minor, otherMajor])
+        store.categoryFilter.updateCategories([Category(from: major), Category(from: minor), Category(from: otherMajor)])
         store.categoryFilter.selectedMajorCategoryId = major.id
 
         let entries = await store.entries()
@@ -233,9 +233,9 @@ internal struct RecurringPaymentListStoreFilterTests {
     internal func entries_minorCategoryFilterIsPrecise() async throws {
         let (store, context) = try await makeStore()
 
-        let major = Category(name: "生活費")
-        let minor = Category(name: "食費", parent: major)
-        let anotherMinor = Category(name: "日用品", parent: major)
+        let major = CategoryEntity(name: "生活費")
+        let minor = CategoryEntity(name: "食費", parent: major)
+        let anotherMinor = CategoryEntity(name: "日用品", parent: major)
 
         context.insert(major)
         context.insert(minor)
@@ -279,7 +279,7 @@ internal struct RecurringPaymentListStoreFilterTests {
 
         store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
         store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
-        store.categoryFilter.updateCategories([major, minor, anotherMinor])
+        store.categoryFilter.updateCategories([Category(from: major), Category(from: minor), Category(from: anotherMinor)])
         store.categoryFilter.selectedMajorCategoryId = major.id
         store.categoryFilter.selectedMinorCategoryId = minor.id
 

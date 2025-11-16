@@ -13,8 +13,8 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         let context = ModelContext(container)
         let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
 
-        let housing = Category(name: "住宅")
-        let dining = Category(name: "外食", parent: housing)
+        let housing = CategoryEntity(name: "住宅")
+        let dining = CategoryEntity(name: "外食", parent: housing)
         context.insert(housing)
         context.insert(dining)
 

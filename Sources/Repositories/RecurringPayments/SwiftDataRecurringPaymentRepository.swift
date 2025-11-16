@@ -341,7 +341,7 @@ private extension SwiftDataRecurringPaymentRepository {
         }
     }
 
-    func resolvedCategory(id: UUID?, context: ModelContext) throws -> Category? {
+    func resolvedCategory(id: UUID?, context: ModelContext) throws -> CategoryEntity? {
         guard let id else { return nil }
         guard let category = try context.fetch(CategoryQueries.byId(id)).first else {
             throw RecurringPaymentDomainError.categoryNotFound

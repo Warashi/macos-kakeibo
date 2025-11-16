@@ -8,7 +8,7 @@ internal struct AnnualBudgetPanel: View {
     internal let year: Int
     internal let config: AnnualBudgetConfigDTO?
     internal let usage: AnnualBudgetUsage?
-    internal let categories: [CategoryDTO]
+    internal let categories: [Category]
     internal let onEdit: () -> Void
 
     internal var body: some View {
@@ -162,7 +162,7 @@ internal enum AnnualBudgetPanelContentBuilder {
     internal static func build(
         config: AnnualBudgetConfigDTO,
         usage: AnnualBudgetUsage?,
-        categories: [CategoryDTO],
+        categories: [Category],
     ) -> AnnualBudgetPanelContent {
         let categoryLookup = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
         let usedAmount = usage?.usedAmount ?? 0
@@ -216,7 +216,7 @@ internal enum AnnualBudgetPanelContentBuilder {
 
     private static func sortedAllocations(
         _ allocations: [AnnualBudgetAllocationDTO],
-        categoryLookup: [UUID: CategoryDTO],
+        categoryLookup: [UUID: Category],
     ) -> [AnnualBudgetAllocationDTO] {
         allocations.sorted { lhs, rhs in
             guard let lhsCategory = categoryLookup[lhs.categoryId],
@@ -237,7 +237,7 @@ internal enum AnnualBudgetPanelContentBuilder {
         }
     }
 
-    private static func fullName(for category: CategoryDTO?, categoryLookup: [UUID: CategoryDTO]) -> String {
+    private static func fullName(for category: Category?, categoryLookup: [UUID: Category]) -> String {
         guard let category else { return "不明なカテゴリ" }
         if let parentId = category.parentId, let parent = categoryLookup[parentId] {
             return "\(parent.name) > \(category.name)"

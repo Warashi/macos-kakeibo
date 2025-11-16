@@ -97,7 +97,7 @@ internal enum SeedHelper {
     /// SwiftDataのバッチ削除では親子リンクのnullifyが許容されないため個別に削除する
     /// - Parameter context: 対象のModelContext
     private static func deleteCategoriesSafely(in context: ModelContext) throws {
-        let descriptor: ModelFetchRequest<Category> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<CategoryEntity> = ModelFetchFactory.make()
         let categories = try context.fetch(descriptor)
 
         let minors = categories.filter(\.isMinor)

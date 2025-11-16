@@ -5,7 +5,7 @@ import SwiftUI
 /// 定期支払い定義の作成・編集を行うためのシートビュー。
 internal struct RecurringPaymentEditorSheet: View {
     @Binding internal var formState: RecurringPaymentFormState
-    internal let categories: [CategoryDTO]
+    internal let categories: [Category]
     internal let mode: RecurringPaymentEditorMode
     internal let errorMessage: String?
     internal let onCancel: () -> Void

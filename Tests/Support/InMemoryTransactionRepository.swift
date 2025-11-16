@@ -4,13 +4,13 @@ import Foundation
 internal final class InMemoryTransactionRepository: TransactionRepository {
     internal var transactions: [Transaction]
     internal var institutions: [FinancialInstitution]
-    internal var categories: [Kakeibo.Category]
+    internal var categories: [Kakeibo.CategoryEntity]
     internal private(set) var saveCallCount: Int = 0
 
     internal init(
         transactions: [Transaction] = [],
         institutions: [FinancialInstitution] = [],
-        categories: [Kakeibo.Category] = [],
+        categories: [Kakeibo.CategoryEntity] = [],
     ) {
         self.transactions = transactions
         self.institutions = institutions
@@ -43,8 +43,8 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         institutions.map { FinancialInstitutionDTO(from: $0) }
     }
 
-    internal func fetchCategories() throws -> [CategoryDTO] {
-        categories.map { CategoryDTO(from: $0) }
+    internal func fetchCategories() throws -> [Kakeibo.Category] {
+        categories.map { Kakeibo.Category(from: $0) }
     }
 
     @discardableResult
@@ -124,7 +124,7 @@ private extension InMemoryTransactionRepository {
             matchTransfer(transaction: transaction, excludeTransfers: query.excludeTransfers) &&
             matchKind(transaction: transaction, filterKind: query.filterKind) &&
             matchInstitution(transaction: transaction, institutionId: query.institutionId) &&
-            matchCategory(transaction: transaction, majorId: query.majorCategoryId, minorId: query.minorCategoryId)
+            matchCategoryEntity(transaction: transaction, majorId: query.majorCategoryId, minorId: query.minorCategoryId)
     }
 
     func matchMonth(transaction: Transaction, month: Date) -> Bool {
@@ -155,7 +155,7 @@ private extension InMemoryTransactionRepository {
         return transaction.financialInstitution?.id == institutionId
     }
 
-    func matchCategory(transaction: Transaction, majorId: UUID?, minorId: UUID?) -> Bool {
+    func matchCategoryEntity(transaction: Transaction, majorId: UUID?, minorId: UUID?) -> Bool {
         if let minorId {
             return transaction.minorCategory?.id == minorId
         }
@@ -174,7 +174,7 @@ private extension InMemoryTransactionRepository {
         return institutions.first { $0.id == id }
     }
 
-    func category(id: UUID?) -> Kakeibo.Category? {
+    func category(id: UUID?) -> Kakeibo.CategoryEntity? {
         guard let id else { return nil }
         return categories.first { $0.id == id }
     }

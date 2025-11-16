@@ -9,7 +9,7 @@ internal struct BudgetCalculatorCacheTests {
     @Test("月次予算計算は二度目の呼び出しでキャッシュを利用する")
     internal func monthlyBudgetCachesResult() throws {
         let calculator = BudgetCalculator()
-        let category = Category(name: "食費", allowsAnnualBudget: true)
+        let category = CategoryEntity(name: "食費", allowsAnnualBudget: true)
         let budget = Budget(amount: 50000, category: category, year: 2025, month: 1)
         let transaction = Transaction(
             date: Date.from(year: 2025, month: 1) ?? Date(),
@@ -21,7 +21,7 @@ internal struct BudgetCalculatorCacheTests {
         let input = BudgetCalculator.MonthlyBudgetInput(
             transactions: [TransactionDTO(from: transaction)],
             budgets: [BudgetDTO(from: budget)],
-            categories: [CategoryDTO(from: category)],
+            categories: [Category(from: category)],
             year: 2025,
             month: 1,
             filter: .default,
@@ -39,7 +39,7 @@ internal struct BudgetCalculatorCacheTests {
     @Test("取引の更新で月次予算キャッシュが無効化される")
     internal func monthlyBudgetInvalidatesOnTransactionChange() throws {
         let calculator = BudgetCalculator()
-        let category = Category(name: "日用品")
+        let category = CategoryEntity(name: "日用品")
         let budget = Budget(amount: 40000, category: category, year: 2025, month: 2)
         let transaction = Transaction(
             date: Date.from(year: 2025, month: 2) ?? Date(),
@@ -51,7 +51,7 @@ internal struct BudgetCalculatorCacheTests {
         let input1 = BudgetCalculator.MonthlyBudgetInput(
             transactions: [TransactionDTO(from: transaction)],
             budgets: [BudgetDTO(from: budget)],
-            categories: [CategoryDTO(from: category)],
+            categories: [Category(from: category)],
             year: 2025,
             month: 2,
             filter: .default,
@@ -66,7 +66,7 @@ internal struct BudgetCalculatorCacheTests {
         let input2 = BudgetCalculator.MonthlyBudgetInput(
             transactions: [TransactionDTO(from: transaction)],
             budgets: [BudgetDTO(from: budget)],
-            categories: [CategoryDTO(from: category)],
+            categories: [Category(from: category)],
             year: 2025,
             month: 2,
             filter: .default,

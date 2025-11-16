@@ -2,16 +2,16 @@ import Foundation
 import SwiftData
 
 @Model
-internal final class Category {
+internal final class CategoryEntity {
     internal var id: UUID
     internal var name: String
 
     /// 階層構造: 親カテゴリがnilなら大項目、あれば中項目
-    internal var parent: Category?
+    internal var parent: CategoryEntity?
 
     /// 逆参照: 子カテゴリのリスト（大項目の場合のみ使用）
-    @Relationship(deleteRule: .cascade, inverse: \Category.parent)
-    internal var children: [Category]
+    @Relationship(deleteRule: .cascade, inverse: \CategoryEntity.parent)
+    internal var children: [CategoryEntity]
 
     /// 年次特別枠の使用可否（大項目・中項目どちらでも設定可能）
     internal var allowsAnnualBudget: Bool
@@ -26,7 +26,7 @@ internal final class Category {
     internal init(
         id: UUID = UUID(),
         name: String,
-        parent: Category? = nil,
+        parent: CategoryEntity? = nil,
         allowsAnnualBudget: Bool = false,
         displayOrder: Int = 0,
     ) {
@@ -45,7 +45,7 @@ internal final class Category {
 
 // MARK: - Computed Properties
 
-internal extension Category {
+internal extension CategoryEntity {
     /// 大項目かどうか
     var isMajor: Bool {
         parent == nil
@@ -67,14 +67,14 @@ internal extension Category {
 
 // MARK: - Convenience
 
-internal extension Category {
+internal extension CategoryEntity {
     /// 指定された名前の子カテゴリを取得
-    func child(named name: String) -> Category? {
+    func child(named name: String) -> CategoryEntity? {
         children.first { $0.name == name }
     }
 
     /// 子カテゴリを追加
-    func addChild(_ child: Category) {
+    func addChild(_ child: CategoryEntity) {
         child.parent = self
         children.append(child)
     }
