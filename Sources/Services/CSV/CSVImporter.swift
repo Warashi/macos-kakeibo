@@ -20,10 +20,12 @@ internal actor CSVImporter {
         }
     }
 
+    private let modelContainer: ModelContainer
     internal let dateFormatters: [DateFormatter]
     internal let locale: Foundation.Locale
 
-    internal init() {
+    internal init(modelContainer: ModelContainer) {
+        self.modelContainer = modelContainer
         self.dateFormatters = CSVImporter.makeDateFormatters()
         self.locale = AppConstants.Locale.default
     }
@@ -55,11 +57,8 @@ internal actor CSVImporter {
     // MARK: - Import
 
     /// プレビュー済みデータをSwiftDataに取り込む
-    /// - Note: @MainActor is required because ModelContext is Non-Sendable
-    @MainActor
     internal func performImport(
         preview: CSVImportPreview,
-        modelContext: ModelContext,
         batchSize: Int = 50,
         onProgress: (@MainActor (Int, Int) -> Void)? = nil,
     ) async throws -> CSVImportSummary {
@@ -68,6 +67,7 @@ internal actor CSVImporter {
         }
 
         let startDate = Date()
+        let modelContext = ModelContext(modelContainer)
         var state = ImportState()
         var cache = EntityCache()
 
@@ -92,7 +92,11 @@ internal actor CSVImporter {
                 if modelContext.hasChanges {
                     try modelContext.save()
                 }
-                onProgress?(processedCount, totalCount)
+                if let onProgress {
+                    await MainActor.run {
+                        onProgress(processedCount, totalCount)
+                    }
+                }
                 await Task.yield() // メインスレッドを譲渡
             }
         }
@@ -101,7 +105,11 @@ internal actor CSVImporter {
         if modelContext.hasChanges {
             try modelContext.save()
         }
-        onProgress?(totalCount, totalCount)
+        if let onProgress {
+            await MainActor.run {
+                onProgress(totalCount, totalCount)
+            }
+        }
 
         return CSVImportSummary(
             importedCount: state.importedCount,
@@ -113,7 +121,6 @@ internal actor CSVImporter {
         )
     }
 
-    @MainActor
     private func importRecord(
         draft: TransactionDraft,
         state: inout ImportState,
@@ -166,7 +173,6 @@ internal actor CSVImporter {
         return isNew
     }
 
-    @MainActor
     private func getOrCreateTransaction(
         parameters: TransactionCreationParameters,
         modelContext: ModelContext,

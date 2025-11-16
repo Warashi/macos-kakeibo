@@ -5,7 +5,6 @@ import SwiftData
 
 extension CSVImporter {
     /// 金融機関を解決（存在すればキャッシュから、なければデータベースから、最後に新規作成）
-    @MainActor
     internal func resolveFinancialInstitution(
         named name: String?,
         cache: inout [String: FinancialInstitution],
@@ -34,7 +33,6 @@ extension CSVImporter {
     }
 
     /// カテゴリを解決（大項目と中項目）
-    @MainActor
     internal func resolveCategories(
         context: inout CategoryResolutionContext,
     ) throws -> CategoryResolutionResult {
@@ -65,7 +63,6 @@ extension CSVImporter {
     }
 
     /// 大項目カテゴリを解決
-    @MainActor
     internal func resolveMajorCategory(
         name: String?,
         cache: inout [String: Category],
@@ -100,7 +97,6 @@ extension CSVImporter {
     }
 
     /// 中項目カテゴリを解決
-    @MainActor
     internal func resolveMinorCategory(
         context: inout MinorCategoryResolutionContext,
     ) throws -> Category? {
@@ -138,13 +134,11 @@ extension CSVImporter {
     }
 
     /// IDでトランザクションを検索
-    @MainActor
     internal func fetchTransaction(id: UUID, modelContext: ModelContext) throws -> Transaction? {
         try modelContext.fetch(TransactionQueries.byId(id)).first
     }
 
     /// インポート識別子でトランザクションを検索
-    @MainActor
     internal func fetchTransaction(importIdentifier: String, modelContext: ModelContext) throws -> Transaction? {
         try modelContext.fetch(
             TransactionQueries.byImportIdentifier(importIdentifier),

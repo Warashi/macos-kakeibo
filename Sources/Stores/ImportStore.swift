@@ -7,7 +7,7 @@ import SwiftData
 internal final class ImportStore {
     // MARK: - Dependencies
 
-    private let modelContext: ModelContext
+    private let modelContainer: ModelContainer
     private let parser: CSVParser
     private let importer: CSVImporter
 
@@ -30,10 +30,14 @@ internal final class ImportStore {
 
     // MARK: - Initialization
 
-    internal init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-        self.parser = CSVParser()
-        self.importer = CSVImporter()
+    internal init(
+        modelContainer: ModelContainer,
+        parser: CSVParser = CSVParser(),
+        importer: CSVImporter? = nil
+    ) {
+        self.modelContainer = modelContainer
+        self.parser = parser
+        self.importer = importer ?? CSVImporter(modelContainer: modelContainer)
     }
 
     // MARK: - Actions
@@ -315,8 +319,7 @@ private extension ImportStore {
 
         do {
             let summary = try await importer.performImport(
-                preview: preview,
-                modelContext: modelContext,
+                preview: preview
             ) { [weak self] current, total in
                 self?.importProgress = (current, total)
                 self?.statusMessage = "取り込み中... (\(current)/\(total))"

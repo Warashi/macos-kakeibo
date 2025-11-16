@@ -4,12 +4,11 @@ import SwiftData
 import Testing
 
 @Suite(.serialized)
-@MainActor
 internal struct CSVImporterTests {
     @Test("マッピング済みCSVからプレビューを生成できる")
     internal func makePreview_success() async throws {
-        let context = try makeInMemoryContext()
-        let importer = CSVImporter()
+        let container = try makeInMemoryContainer()
+        let importer = CSVImporter(modelContainer: container)
 
         let document = sampleDocument()
         let config = CSVImportConfiguration(hasHeaderRow: true)
@@ -36,8 +35,8 @@ internal struct CSVImporterTests {
 
     @Test("必須カラムの割り当てが無い場合はエラー")
     internal func makePreview_requiresMapping() async throws {
-        let context = try makeInMemoryContext()
-        let importer = CSVImporter()
+        let container = try makeInMemoryContainer()
+        let importer = CSVImporter(modelContainer: container)
 
         let document = sampleDocument()
         var mapping = CSVColumnMapping()
@@ -54,8 +53,8 @@ internal struct CSVImporterTests {
 
     @Test("プレビュー済みデータを取り込める")
     internal func performImport_createsTransactions() async throws {
-        let context = try makeInMemoryContext()
-        let importer = CSVImporter()
+        let container = try makeInMemoryContainer()
+        let importer = CSVImporter(modelContainer: container)
 
         let preview = try await importer.makePreview(
             document: sampleDocument(),
@@ -63,11 +62,12 @@ internal struct CSVImporterTests {
             configuration: CSVImportConfiguration(hasHeaderRow: true),
         )
 
-        let summary = try await importer.performImport(preview: preview, modelContext: context)
+        let summary = try await importer.performImport(preview: preview)
         #expect(summary.importedCount == 1)
         #expect(summary.updatedCount == 0)
         #expect(summary.skippedCount == 0)
 
+        let context = ModelContext(container)
         let transactions = try context.fetchAll(Transaction.self)
         #expect(transactions.count == 1)
         #expect(transactions.first?.title == "ランチ")
@@ -79,8 +79,8 @@ internal struct CSVImporterTests {
 
     @Test("同じIDの行は更新される")
     internal func performImport_updatesExistingTransactions() async throws {
-        let context = try makeInMemoryContext()
-        let importer = CSVImporter()
+        let container = try makeInMemoryContainer()
+        let importer = CSVImporter(modelContainer: container)
         let config = CSVImportConfiguration(hasHeaderRow: true)
 
         let preview = try await importer.makePreview(
@@ -88,7 +88,7 @@ internal struct CSVImporterTests {
             mapping: sampleMapping(),
             configuration: config,
         )
-        _ = try await importer.performImport(preview: preview, modelContext: context)
+        _ = try await importer.performImport(preview: preview)
 
         // 2回目: 金額とタイトルを変更したCSVを同じIDで再インポート
         let updatedDocument = CSVDocument(rows: [
@@ -111,11 +111,12 @@ internal struct CSVImporterTests {
             mapping: sampleMapping(),
             configuration: config,
         )
-        let summary = try await importer.performImport(preview: secondPreview, modelContext: context)
+        let summary = try await importer.performImport(preview: secondPreview)
 
         #expect(summary.importedCount == 0)
         #expect(summary.updatedCount == 1)
 
+        let context = ModelContext(container)
         let descriptor: ModelFetchRequest<Transaction> = ModelFetchFactory.make()
         let transactions = try context.fetch(descriptor)
         #expect(transactions.count == 1)
@@ -134,13 +135,13 @@ internal struct CSVImporterTests {
         ])
     }
 
-    private func makeInMemoryContext() throws -> ModelContext {
+    private func makeInMemoryContainer() throws -> ModelContainer {
         let container = try ModelContainer(
             for: Transaction.self, Category.self, Budget.self, AnnualBudgetConfig.self,
             FinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
-        return ModelContext(container)
+        return container
     }
 
     private func sampleDocument() -> CSVDocument {

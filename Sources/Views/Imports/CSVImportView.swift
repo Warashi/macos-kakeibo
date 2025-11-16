@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 internal struct CSVImportView: View {
-    @Environment(\.modelContext) private var modelContext: ModelContext
+    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
     @State private var store: ImportStore?
 
     internal var body: some View {
@@ -17,9 +17,12 @@ internal struct CSVImportView: View {
         }
         .navigationTitle("CSVインポート")
         .onAppear {
-            if store == nil {
-                store = ImportStore(modelContext: modelContext)
+            guard store == nil else { return }
+            guard let modelContainer else {
+                assertionFailure("ModelContainer is unavailable")
+                return
             }
+            store = ImportStore(modelContainer: modelContainer)
         }
     }
 }

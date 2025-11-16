@@ -7,8 +7,8 @@ import Testing
 internal struct ImportStoreTests {
     @Test("CSVドキュメントを適用すると初期状態がセットされる")
     internal func applyDocument_setsInitialState() throws {
-        let context = try makeInMemoryContext()
-        let store = ImportStore(modelContext: context)
+        let container = try makeInMemoryContainer()
+        let store = ImportStore(modelContainer: container)
 
         store.applyDocument(sampleDocument(), fileName: "sample.csv")
 
@@ -21,8 +21,8 @@ internal struct ImportStoreTests {
 
     @Test("ファイル選択から列マッピングへ進める")
     internal func proceedToColumnMapping() async throws {
-        let context = try makeInMemoryContext()
-        let store = ImportStore(modelContext: context)
+        let container = try makeInMemoryContainer()
+        let store = ImportStore(modelContainer: container)
         store.applyDocument(sampleDocument(), fileName: "sample.csv")
 
         #expect(store.step == .fileSelection)
@@ -32,8 +32,8 @@ internal struct ImportStoreTests {
 
     @Test("列マッピングから検証ステップに進める")
     internal func generatePreviewMovesToValidation() async throws {
-        let context = try makeInMemoryContext()
-        let store = ImportStore(modelContext: context)
+        let container = try makeInMemoryContainer()
+        let store = ImportStore(modelContainer: container)
         store.applyDocument(sampleDocument(), fileName: "sample.csv")
 
         await store.handleNextAction() // -> column mapping
@@ -45,8 +45,8 @@ internal struct ImportStoreTests {
 
     @Test("検証ステップで取り込みを実行できる")
     internal func performImportCreatesTransactions() async throws {
-        let context = try makeInMemoryContext()
-        let store = ImportStore(modelContext: context)
+        let container = try makeInMemoryContainer()
+        let store = ImportStore(modelContainer: container)
         store.applyDocument(sampleDocument(), fileName: "sample.csv")
 
         await store.handleNextAction() // column mapping
@@ -57,19 +57,20 @@ internal struct ImportStoreTests {
         #expect(summary.importedCount == 1)
         #expect(summary.updatedCount == 0)
 
+        let context = ModelContext(container)
         let transactions = try context.fetchAll(Transaction.self)
         #expect(transactions.count == 1)
     }
 
     // MARK: - Helpers
 
-    private func makeInMemoryContext() throws -> ModelContext {
+    private func makeInMemoryContainer() throws -> ModelContainer {
         let container = try ModelContainer(
             for: Transaction.self, Category.self, Budget.self, AnnualBudgetConfig.self,
             FinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
-        return ModelContext(container)
+        return container
     }
 
     private func sampleDocument() -> CSVDocument {
