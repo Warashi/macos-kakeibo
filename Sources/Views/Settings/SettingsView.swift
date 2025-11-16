@@ -3,11 +3,31 @@ import SwiftUI
 
 /// 設定画面のメインビュー
 internal struct SettingsView: View {
-    @Bindable private var store: SettingsStore
+    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
+    @State private var store: SettingsStore?
 
-    internal init(modelContext: ModelContext) {
-        self.store = SettingsStore(modelContext: modelContext)
+    internal var body: some View {
+        Group {
+            if let store {
+                SettingsContentView(store: store)
+            } else {
+                ProgressView("読み込み中…")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .onAppear {
+            guard store == nil else { return }
+            guard let modelContainer else {
+                assertionFailure("ModelContainer is unavailable")
+                return
+            }
+            store = SettingsStore(modelContainer: modelContainer)
+        }
     }
+}
+
+private struct SettingsContentView: View {
+    @Bindable var store: SettingsStore
 
     internal var body: some View {
         ScrollView {

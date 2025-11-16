@@ -98,14 +98,16 @@ internal struct DataManagementPanel: View {
     }
 
     private func exportCSV() {
-        do {
-            let result = try store.exportTransactionsCSV()
-            csvDocument = DataFileDocument(data: result.data)
-            csvFileName = makeCSVFileName()
-            showCSVExporter = true
-            store.statusMessage = "取引\(result.rowCount)件をエクスポートしました"
-        } catch {
-            store.statusMessage = "CSVエクスポートに失敗しました: \(error.localizedDescription)"
+        Task {
+            do {
+                let result = try await store.exportTransactionsCSV()
+                csvDocument = DataFileDocument(data: result.data)
+                csvFileName = makeCSVFileName()
+                showCSVExporter = true
+                store.statusMessage = "取引\(result.rowCount)件をエクスポートしました"
+            } catch {
+                store.statusMessage = "CSVエクスポートに失敗しました: \(error.localizedDescription)"
+            }
         }
     }
 
@@ -152,13 +154,15 @@ internal struct DataManagementPanel: View {
     }
 
     private func performDeletion() {
-        do {
-            try store.deleteAllData()
-        } catch {
-            store.statusMessage = "データ削除に失敗しました: \(error.localizedDescription)"
+        Task {
+            do {
+                try await store.deleteAllData()
+            } catch {
+                store.statusMessage = "データ削除に失敗しました: \(error.localizedDescription)"
+            }
+            showDeleteVerificationSheet = false
+            deleteVerificationText = ""
         }
-        showDeleteVerificationSheet = false
-        deleteVerificationText = ""
     }
 }
 
@@ -212,7 +216,9 @@ private struct DataStatisticsSection: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button {
-                    store.refreshStatistics()
+                    Task {
+                        await store.refreshStatistics()
+                    }
                 } label: {
                     Label("更新", systemImage: "arrow.clockwise")
                 }

@@ -32,11 +32,9 @@ internal struct KakeiboTests {
         let _: any View = view
     }
 
-    @Test("SettingsView can be initialized with ModelContext")
-    internal func settingsViewInitialization() throws {
-        let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
-        let view = SettingsView(modelContext: context)
+    @Test("SettingsView can be initialized")
+    internal func settingsViewInitialization() {
+        let view = SettingsView()
         let _: any View = view
     }
 }

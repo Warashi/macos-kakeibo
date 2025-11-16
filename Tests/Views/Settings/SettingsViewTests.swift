@@ -7,10 +7,8 @@ import Testing
 @MainActor
 internal struct SettingsViewTests {
     @Test("bodyがクラッシュせず構築される")
-    internal func bodyBuildsHierarchy() throws {
-        let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
-        let view = SettingsView(modelContext: context)
+    internal func bodyBuildsHierarchy() {
+        let view = SettingsView()
         let body = view.body
         let _: any View = body
     }

@@ -15,7 +15,9 @@ internal struct BackupManagerTests {
         let manager = BackupManager()
 
         // When
-        let payload = try BackupManager.buildPayload(modelContext: context)
+        let payload = try await Task { @DatabaseActor () throws -> BackupPayload in
+            try BackupManager.buildPayload(modelContext: context)
+        }.value
         let archive = try await manager.createBackup(payload: payload)
 
         // Then
@@ -32,7 +34,9 @@ internal struct BackupManagerTests {
         let sourceContext = ModelContext(sourceContainer)
         try seedSampleData(in: sourceContext)
         let manager = BackupManager()
-        let payload = try BackupManager.buildPayload(modelContext: sourceContext)
+        let payload = try await Task { @DatabaseActor () throws -> BackupPayload in
+            try BackupManager.buildPayload(modelContext: sourceContext)
+        }.value
         let archive = try await manager.createBackup(payload: payload)
 
         let restoreContainer = try ModelContainer.createInMemoryContainer()
@@ -40,7 +44,9 @@ internal struct BackupManagerTests {
 
         // When
         let decodedPayload = try await manager.decodeBackup(from: archive.data)
-        let summary = try BackupManager.restorePayload(decodedPayload, to: restoreContext)
+        let summary = try await Task { @DatabaseActor () throws -> BackupRestoreSummary in
+            try BackupManager.restorePayload(decodedPayload, to: restoreContext)
+        }.value
 
         // Then
         #expect(summary.restoredCounts.transactions == 1)

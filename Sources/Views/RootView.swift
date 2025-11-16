@@ -22,7 +22,6 @@ internal struct RootView: View {
 
 private struct RootDetailView: View {
     internal let screen: AppState.Screen
-    @Environment(\.modelContext) private var modelContext: ModelContext
 
     internal var body: some View {
         switch screen {
@@ -35,7 +34,7 @@ private struct RootDetailView: View {
         case .imports:
             CSVImportView()
         case .settings:
-            SettingsView(modelContext: modelContext)
+            SettingsView()
         }
     }
 }

@@ -16,10 +16,9 @@ internal struct SettingsStoreTests {
         defaults.set(false, forKey: "settings.useThousandSeparator")
 
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
 
         // When
-        let store = SettingsStore(modelContext: context, userDefaults: defaults)
+        let store = SettingsStore(modelContainer: container, userDefaults: defaults)
 
         // Then
         #expect(store.includeOnlyCalculationTarget == false)
@@ -33,8 +32,7 @@ internal struct SettingsStoreTests {
         // Given
         let defaults = makeUserDefaults(suffix: "persist")
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
-        let store = SettingsStore(modelContext: context, userDefaults: defaults)
+        let store = SettingsStore(modelContainer: container, userDefaults: defaults)
 
         // When
         store.includeOnlyCalculationTarget = false
@@ -52,7 +50,7 @@ internal struct SettingsStoreTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         try seedTransaction(in: context)
-        let store = SettingsStore(modelContext: context, userDefaults: defaults)
+        let store = SettingsStore(modelContainer: container, userDefaults: defaults)
 
         // When
         let archive = try await store.createBackupArchive()
@@ -64,16 +62,16 @@ internal struct SettingsStoreTests {
     }
 
     @Test("全データ削除でModelContextが空になる")
-    internal func deleteAllDataClearsContext() throws {
+    internal func deleteAllDataClearsContext() async throws {
         // Given
         let defaults = makeUserDefaults(suffix: "delete")
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         try seedTransaction(in: context)
-        let store = SettingsStore(modelContext: context, userDefaults: defaults)
+        let store = SettingsStore(modelContainer: container, userDefaults: defaults)
 
         // When
-        try store.deleteAllData()
+        try await store.deleteAllData()
 
         // Then
         #expect(try context.count(Transaction.self) == 0)
@@ -82,18 +80,18 @@ internal struct SettingsStoreTests {
     }
 
     @Test("refreshStatisticsで最新の件数が反映される")
-    internal func refreshStatisticsRecalculatesCounts() throws {
+    internal func refreshStatisticsRecalculatesCounts() async throws {
         // Given
         let defaults = makeUserDefaults(suffix: "refresh")
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let store = SettingsStore(modelContext: context, userDefaults: defaults)
+        let store = SettingsStore(modelContainer: container, userDefaults: defaults)
         #expect(store.statistics == .empty)
 
         try seedTransaction(in: context)
 
         // When
-        store.refreshStatistics()
+        await store.refreshStatistics()
 
         // Then
         #expect(store.statistics.transactions == 1)
@@ -101,16 +99,16 @@ internal struct SettingsStoreTests {
     }
 
     @Test("CSVエクスポート結果に取引が含まれる")
-    internal func exportTransactionsCSVIncludesRows() throws {
+    internal func exportTransactionsCSVIncludesRows() async throws {
         // Given
         let defaults = makeUserDefaults(suffix: "csv")
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         try seedTransaction(in: context)
-        let store = SettingsStore(modelContext: context, userDefaults: defaults)
+        let store = SettingsStore(modelContainer: container, userDefaults: defaults)
 
         // When
-        let result = try store.exportTransactionsCSV()
+        let result = try await store.exportTransactionsCSV()
 
         // Then
         #expect(result.rowCount == 1)
@@ -124,13 +122,15 @@ internal struct SettingsStoreTests {
         let sourceContainer = try ModelContainer.createInMemoryContainer()
         let sourceContext = ModelContext(sourceContainer)
         try seedTransaction(in: sourceContext)
-        let payload = try BackupManager.buildPayload(modelContext: sourceContext)
+        let payload = try await Task { @DatabaseActor () throws -> BackupPayload in
+            try BackupManager.buildPayload(modelContext: sourceContext)
+        }.value
         let archive = try await BackupManager().createBackup(payload: payload)
 
         let defaults = makeUserDefaults(suffix: "restore")
         let targetContainer = try ModelContainer.createInMemoryContainer()
         let targetContext = ModelContext(targetContainer)
-        let store = SettingsStore(modelContext: targetContext, userDefaults: defaults)
+        let store = SettingsStore(modelContainer: targetContainer, userDefaults: defaults)
 
         #expect(try targetContext.count(Transaction.self) == 0)
 

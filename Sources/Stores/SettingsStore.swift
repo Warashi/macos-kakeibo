@@ -3,6 +3,7 @@ import Observation
 import SwiftData
 
 /// 設定画面全体を管理するストア
+@MainActor
 @Observable
 internal final class SettingsStore {
     // MARK: - Nested Types
@@ -30,7 +31,7 @@ internal final class SettingsStore {
 
     // MARK: - Dependencies
 
-    private let modelContext: ModelContext
+    private let modelContainer: ModelContainer
     private let backupManager: BackupManager
     private let csvExporter: CSVExporter
     private let userDefaults: UserDefaults
@@ -73,12 +74,12 @@ internal final class SettingsStore {
     // MARK: - Initialization
 
     internal init(
-        modelContext: ModelContext,
+        modelContainer: ModelContainer,
         backupManager: BackupManager = BackupManager(),
         csvExporter: CSVExporter = CSVExporter(),
         userDefaults: UserDefaults = .standard,
     ) {
-        self.modelContext = modelContext
+        self.modelContainer = modelContainer
         self.backupManager = backupManager
         self.csvExporter = csvExporter
         self.userDefaults = userDefaults
@@ -100,7 +101,8 @@ internal final class SettingsStore {
             defaultValue: true,
         )
 
-        statistics = (try? makeStatistics()) ?? .empty
+        let context = ModelContext(modelContainer)
+        statistics = (try? makeStatistics(modelContext: context)) ?? .empty
     }
 
     // MARK: - Settings Handling
@@ -118,26 +120,26 @@ internal final class SettingsStore {
     // MARK: - Statistics
 
     /// データ件数を再計算
-    internal func refreshStatistics() {
-        statistics = (try? makeStatistics()) ?? .empty
-    }
-
-    private func makeStatistics() throws -> DataStatistics {
-        try DataStatistics(
-            transactions: modelContext.count(Transaction.self),
-            categories: modelContext.count(Category.self),
-            budgets: modelContext.count(Budget.self),
-            annualBudgetConfigs: modelContext.count(AnnualBudgetConfig.self),
-            financialInstitutions: modelContext.count(FinancialInstitution.self),
-        )
+    internal func refreshStatistics() async {
+        let container = modelContainer
+        let result = await Task { @DatabaseActor () -> DataStatistics? in
+            let context = ModelContext(container)
+            return try? makeStatistics(modelContext: context)
+        }.value
+        statistics = result ?? .empty
     }
 
     // MARK: - CSV Export
 
     /// 取引のCSVエクスポートを実行
-    internal func exportTransactionsCSV() throws -> CSVExportResult {
-        let transactions = try modelContext.fetchAll(Transaction.self)
-        return try csvExporter.exportTransactions(transactions)
+    internal func exportTransactionsCSV() async throws -> CSVExportResult {
+        let container = modelContainer
+        let exporter = csvExporter
+        return try await Task { @DatabaseActor () throws -> CSVExportResult in
+            let context = ModelContext(container)
+            let transactions = try context.fetchAll(Transaction.self)
+            return try exporter.exportTransactions(transactions)
+        }.value
     }
 
     // MARK: - Backup & Restore
@@ -149,7 +151,11 @@ internal final class SettingsStore {
         defer {
             isProcessingBackup = false
         }
-        let payload = try BackupManager.buildPayload(modelContext: modelContext)
+        let container = modelContainer
+        let payload = try await Task { @DatabaseActor () throws -> BackupPayload in
+            let context = ModelContext(container)
+            return try BackupManager.buildPayload(modelContext: context)
+        }.value
         // Actor でエンコード
         let archive = try await backupManager.createBackup(payload: payload)
         lastBackupMetadata = archive.metadata
@@ -168,22 +174,28 @@ internal final class SettingsStore {
         }
         // Actor でデコード
         let payload = try await backupManager.decodeBackup(from: data)
-        let summary = try BackupManager.restorePayload(payload, to: modelContext)
+        let container = modelContainer
+        let summary = try await Task { @DatabaseActor () throws -> BackupRestoreSummary in
+            let context = ModelContext(container)
+            return try BackupManager.restorePayload(payload, to: context)
+        }.value
         lastRestoreSummary = summary
         lastBackupMetadata = summary.metadata
-        statistics = (try? makeStatistics()) ?? .empty
+        await refreshStatistics()
         statusMessage = "バックアップから復元しました"
         return summary
     }
 
     /// すべてのデータを削除
-    internal func deleteAllData() throws {
+    internal func deleteAllData() async throws {
         isProcessingDeletion = true
-        defer {
-            isProcessingDeletion = false
-        }
-        try clearAllData(in: modelContext)
-        statistics = .empty
+        defer { isProcessingDeletion = false }
+
+        let container = modelContainer
+        try await Task { @DatabaseActor in
+            try clearAllData(in: ModelContext(container))
+        }.value
+        await refreshStatistics()
         lastRestoreSummary = nil
         lastBackupMetadata = nil
         statusMessage = "すべてのデータを削除しました"
@@ -198,35 +210,6 @@ internal final class SettingsStore {
         static let useThousandSeparator: String = "settings.useThousandSeparator"
     }
 
-    // MARK: - Data Clearing Helpers
-
-    private func clearAllData(in context: ModelContext) throws {
-        try deleteAll(Transaction.self, in: context)
-        try deleteAll(Budget.self, in: context)
-        try deleteAll(AnnualBudgetConfig.self, in: context)
-        try deleteCategoriesSafely(in: context)
-        try deleteAll(FinancialInstitution.self, in: context)
-        try context.save()
-    }
-
-    private func deleteAll<T: PersistentModel>(_ type: T.Type, in context: ModelContext) throws {
-        let descriptor: ModelFetchRequest<T> = ModelFetchFactory.make()
-        let items = try context.fetch(descriptor)
-        for item in items {
-            context.delete(item)
-        }
-    }
-
-    private func deleteCategoriesSafely(in context: ModelContext) throws {
-        let descriptor: ModelFetchRequest<Category> = ModelFetchFactory.make()
-        let categories = try context.fetch(descriptor)
-        let minors = categories.filter(\.isMinor)
-        let majors = categories.filter(\.isMajor)
-
-        for category in minors + majors {
-            context.delete(category)
-        }
-    }
 }
 
 // MARK: - UserDefaults Helper
@@ -237,5 +220,45 @@ private extension UserDefaults {
             return defaultValue
         }
         return bool(forKey: key)
+    }
+}
+
+// MARK: - Persistence Helpers
+
+private func makeStatistics(modelContext: ModelContext) throws -> SettingsStore.DataStatistics {
+    try SettingsStore.DataStatistics(
+        transactions: modelContext.count(Transaction.self),
+        categories: modelContext.count(Category.self),
+        budgets: modelContext.count(Budget.self),
+        annualBudgetConfigs: modelContext.count(AnnualBudgetConfig.self),
+        financialInstitutions: modelContext.count(FinancialInstitution.self),
+    )
+}
+
+private func clearAllData(in context: ModelContext) throws {
+    try deleteAll(Transaction.self, in: context)
+    try deleteAll(Budget.self, in: context)
+    try deleteAll(AnnualBudgetConfig.self, in: context)
+    try deleteCategoriesSafely(in: context)
+    try deleteAll(FinancialInstitution.self, in: context)
+    try context.save()
+}
+
+private func deleteAll<T: PersistentModel>(_ type: T.Type, in context: ModelContext) throws {
+    let descriptor: ModelFetchRequest<T> = ModelFetchFactory.make()
+    let items = try context.fetch(descriptor)
+    for item in items {
+        context.delete(item)
+    }
+}
+
+private func deleteCategoriesSafely(in context: ModelContext) throws {
+    let descriptor: ModelFetchRequest<Category> = ModelFetchFactory.make()
+    let categories = try context.fetch(descriptor)
+    let minors = categories.filter(\.isMinor)
+    let majors = categories.filter(\.isMajor)
+
+    for category in minors + majors {
+        context.delete(category)
     }
 }
