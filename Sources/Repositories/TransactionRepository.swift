@@ -17,6 +17,7 @@ internal struct TransactionQuery {
 internal protocol TransactionRepository: Sendable {
     func fetchTransactions(query: TransactionQuery) throws -> [TransactionDTO]
     func fetchAllTransactions() throws -> [TransactionDTO]
+    func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot
     func countTransactions() throws -> Int
     func fetchInstitutions() throws -> [FinancialInstitutionDTO]
     func fetchCategories() throws -> [CategoryDTO]

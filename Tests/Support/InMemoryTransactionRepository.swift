@@ -27,6 +27,14 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         transactions.map { TransactionDTO(from: $0) }
     }
 
+    internal func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot {
+        TransactionCSVExportSnapshot(
+            transactions: try fetchAllTransactions(),
+            categories: try fetchCategories(),
+            institutions: try fetchInstitutions()
+        )
+    }
+
     internal func countTransactions() throws -> Int {
         transactions.count
     }

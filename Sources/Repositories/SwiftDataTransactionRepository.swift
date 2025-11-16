@@ -19,6 +19,14 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
         return transactions.map { TransactionDTO(from: $0) }
     }
 
+    internal func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot {
+        TransactionCSVExportSnapshot(
+            transactions: try fetchAllTransactions(),
+            categories: try fetchCategories(),
+            institutions: try fetchInstitutions()
+        )
+    }
+
     internal func countTransactions() throws -> Int {
         try modelContext.count(Transaction.self)
     }
