@@ -15,6 +15,10 @@ internal protocol BudgetRepository: Sendable {
     func addBudget(_ input: BudgetInput) throws
     func updateBudget(input: BudgetUpdateInput) throws
     func deleteBudget(id: UUID) throws
+    func deleteAllBudgets() throws
+    func deleteAllAnnualBudgetConfigs() throws
+    func deleteAllCategories() throws
+    func deleteAllFinancialInstitutions() throws
     func countBudgets() throws -> Int
     func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) throws
     func saveChanges() throws

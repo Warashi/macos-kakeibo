@@ -30,6 +30,7 @@ internal protocol TransactionRepository: Sendable {
     @discardableResult
     func insert(_ input: TransactionInput) throws -> UUID
     func update(_ input: TransactionUpdateInput) throws
+    func deleteAllTransactions() throws
     func delete(id: UUID) throws
     func saveChanges() throws
 }

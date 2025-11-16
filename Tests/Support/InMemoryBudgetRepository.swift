@@ -96,6 +96,18 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
         unsupported(#function)
     }
 
+    internal func deleteAllBudgets() throws {}
+
+    internal func deleteAllAnnualBudgetConfigs() throws {}
+
+    internal func deleteAllCategories() throws {
+        categories.removeAll()
+    }
+
+    internal func deleteAllFinancialInstitutions() throws {
+        institutions.removeAll()
+    }
+
     internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) throws {
         unsupported(#function)
     }

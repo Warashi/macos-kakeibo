@@ -159,6 +159,44 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         modelContext.delete(budget)
     }
 
+    internal func deleteAllBudgets() throws {
+        let descriptor: ModelFetchRequest<Budget> = ModelFetchFactory.make()
+        let budgets = try modelContext.fetch(descriptor)
+        for budget in budgets {
+            modelContext.delete(budget)
+        }
+        try saveChanges()
+    }
+
+    internal func deleteAllAnnualBudgetConfigs() throws {
+        let descriptor: ModelFetchRequest<AnnualBudgetConfig> = ModelFetchFactory.make()
+        let configs = try modelContext.fetch(descriptor)
+        for config in configs {
+            modelContext.delete(config)
+        }
+        try saveChanges()
+    }
+
+    internal func deleteAllCategories() throws {
+        let descriptor: ModelFetchRequest<Category> = ModelFetchFactory.make()
+        let categories = try modelContext.fetch(descriptor)
+        let minors = categories.filter(\.isMinor)
+        let majors = categories.filter(\.isMajor)
+        for category in minors + majors {
+            modelContext.delete(category)
+        }
+        try saveChanges()
+    }
+
+    internal func deleteAllFinancialInstitutions() throws {
+        let descriptor: ModelFetchRequest<FinancialInstitution> = ModelFetchFactory.make()
+        let institutions = try modelContext.fetch(descriptor)
+        for institution in institutions {
+            modelContext.delete(institution)
+        }
+        try saveChanges()
+    }
+
     internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) throws {
         let config = try modelContext.fetch(BudgetQueries.annualConfig(for: input.year)).first
             ?? AnnualBudgetConfig(

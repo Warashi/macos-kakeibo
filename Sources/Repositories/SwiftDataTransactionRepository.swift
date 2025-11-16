@@ -88,6 +88,15 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
         transaction.updatedAt = Date()
     }
 
+    internal func deleteAllTransactions() throws {
+        let descriptor: ModelFetchRequest<Transaction> = ModelFetchFactory.make()
+        let transactions = try modelContext.fetch(descriptor)
+        for transaction in transactions {
+            modelContext.delete(transaction)
+        }
+        try saveChanges()
+    }
+
     internal func delete(id: UUID) throws {
         guard let transaction = try modelContext.fetch(TransactionQueries.byId(id)).first else {
             throw RepositoryError.notFound

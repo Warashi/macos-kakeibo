@@ -100,6 +100,10 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         transactions.remove(at: index)
     }
 
+    internal func deleteAllTransactions() throws {
+        transactions.removeAll()
+    }
+
     internal func saveChanges() throws {
         saveCallCount += 1
     }
