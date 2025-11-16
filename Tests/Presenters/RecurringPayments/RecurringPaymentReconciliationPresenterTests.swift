@@ -64,13 +64,13 @@ internal struct ReconciliationPresenterTests {
             status: .planned,
         )
 
-        let matchingTransaction = TransactionEntity(
+        let matchingTransactionEntity = TransactionEntity(
             date: Date.from(year: 2025, month: 6, day: 12) ?? Date(),
             title: "保険料",
             amount: -100_000,
         )
 
-        let distantTransaction = TransactionEntity(
+        let distantTransactionEntity = TransactionEntity(
             date: Date.from(year: 2025, month: 1, day: 1) ?? Date(),
             title: "別支払い",
             amount: -50000,
@@ -78,8 +78,8 @@ internal struct ReconciliationPresenterTests {
 
         let definitionDTO = RecurringPaymentDefinitionDTO(from: definition)
         let occurrenceDTO = RecurringPaymentOccurrenceDTO(from: occurrence)
-        let matchingTransaction = Transaction(from: matchingTransaction)
-        let distantTransaction = Transaction(from: distantTransaction)
+        let matchingTransaction = Transaction(from: matchingTransactionEntity)
+        let distantTransaction = Transaction(from: distantTransactionEntity)
 
         let context = RecurringPaymentReconciliationPresenter.TransactionCandidateSearchContext(
             transactions: [matchingTransaction, distantTransaction],
@@ -116,13 +116,13 @@ internal struct ReconciliationPresenterTests {
             status: .planned,
         )
 
-        let pastTransaction = TransactionEntity(
+        let pastTransactionEntity = TransactionEntity(
             date: Date.from(year: 2025, month: 6, day: 5) ?? Date(),
             title: "保険料",
             amount: -100_000,
         )
 
-        let futureTransaction = TransactionEntity(
+        let futureTransactionEntity = TransactionEntity(
             date: Date.from(year: 2025, month: 6, day: 20) ?? Date(),
             title: "保険料",
             amount: -100_000,
@@ -130,8 +130,8 @@ internal struct ReconciliationPresenterTests {
 
         let definitionDTO = RecurringPaymentDefinitionDTO(from: definition)
         let occurrenceDTO = RecurringPaymentOccurrenceDTO(from: occurrence)
-        let pastTransaction = Transaction(from: pastTransaction)
-        let futureTransaction = Transaction(from: futureTransaction)
+        let pastTransaction = Transaction(from: pastTransactionEntity)
+        let futureTransaction = Transaction(from: futureTransactionEntity)
 
         let context = RecurringPaymentReconciliationPresenter.TransactionCandidateSearchContext(
             transactions: [pastTransaction, futureTransaction],
