@@ -35,6 +35,8 @@ internal final class SettingsStore {
     private let backupManager: BackupManager
     private let csvExporter: CSVExporter
     private let userDefaults: UserDefaults
+    private let transactionRepository: TransactionRepository
+    private let budgetRepository: BudgetRepository
 
     // MARK: - User Settings
 
@@ -78,11 +80,15 @@ internal final class SettingsStore {
         backupManager: BackupManager? = nil,
         csvExporter: CSVExporter = CSVExporter(),
         userDefaults: UserDefaults = .standard,
-    ) {
+        transactionRepository: TransactionRepository,
+        budgetRepository: BudgetRepository
+    ) async {
         self.modelContainer = modelContainer
         self.backupManager = backupManager ?? BackupManager(modelContainer: modelContainer)
         self.csvExporter = csvExporter
         self.userDefaults = userDefaults
+        self.transactionRepository = transactionRepository
+        self.budgetRepository = budgetRepository
 
         includeOnlyCalculationTarget = userDefaults.bool(
             forKey: UserDefaultsKey.includeOnlyCalculationTarget,
@@ -101,8 +107,13 @@ internal final class SettingsStore {
             defaultValue: true,
         )
 
-        let context = ModelContext(modelContainer)
-        statistics = (try? makeStatistics(modelContext: context)) ?? .empty
+        let initialStatistics = await Task { @DatabaseActor () -> DataStatistics? in
+            try? makeStatistics(
+                transactionRepository: transactionRepository,
+                budgetRepository: budgetRepository
+            )
+        }.value
+        statistics = initialStatistics ?? .empty
     }
 
     // MARK: - Settings Handling
@@ -121,10 +132,11 @@ internal final class SettingsStore {
 
     /// データ件数を再計算
     internal func refreshStatistics() async {
-        let container = modelContainer
         let result = await Task { @DatabaseActor () -> DataStatistics? in
-            let context = ModelContext(container)
-            return try? makeStatistics(modelContext: context)
+            try? makeStatistics(
+                transactionRepository: transactionRepository,
+                budgetRepository: budgetRepository
+            )
         }.value
         statistics = result ?? .empty
     }
@@ -133,11 +145,9 @@ internal final class SettingsStore {
 
     /// 取引のCSVエクスポートを実行
     internal func exportTransactionsCSV() async throws -> CSVExportResult {
-        let container = modelContainer
         let exporter = csvExporter
         return try await Task { @DatabaseActor () throws -> CSVExportResult in
-            let repository = SwiftDataTransactionRepository(modelContainer: container)
-            let snapshot = try repository.fetchCSVExportSnapshot()
+            let snapshot = try transactionRepository.fetchCSVExportSnapshot()
             return try exporter.exportTransactions(snapshot)
         }.value
     }
@@ -181,10 +191,7 @@ internal final class SettingsStore {
         isProcessingDeletion = true
         defer { isProcessingDeletion = false }
 
-        let container = modelContainer
         try await Task { @DatabaseActor in
-            let transactionRepository = SwiftDataTransactionRepository(modelContainer: container)
-            let budgetRepository = SwiftDataBudgetRepository(modelContainer: container)
             try transactionRepository.deleteAllTransactions()
             try budgetRepository.deleteAllBudgets()
             try budgetRepository.deleteAllAnnualBudgetConfigs()
@@ -221,12 +228,16 @@ private extension UserDefaults {
 
 // MARK: - Persistence Helpers
 
-private func makeStatistics(modelContext: ModelContext) throws -> SettingsStore.DataStatistics {
+@DatabaseActor
+private func makeStatistics(
+    transactionRepository: TransactionRepository,
+    budgetRepository: BudgetRepository
+) throws -> SettingsStore.DataStatistics {
     try SettingsStore.DataStatistics(
-        transactions: modelContext.count(Transaction.self),
-        categories: modelContext.count(Category.self),
-        budgets: modelContext.count(Budget.self),
-        annualBudgetConfigs: modelContext.count(AnnualBudgetConfig.self),
-        financialInstitutions: modelContext.count(FinancialInstitution.self),
+        transactions: transactionRepository.countTransactions(),
+        categories: budgetRepository.countCategories(),
+        budgets: budgetRepository.countBudgets(),
+        annualBudgetConfigs: budgetRepository.countAnnualBudgetConfigs(),
+        financialInstitutions: budgetRepository.countFinancialInstitutions()
     )
 }

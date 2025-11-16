@@ -15,13 +15,22 @@ internal struct SettingsView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .onAppear {
+        .task {
             guard store == nil else { return }
             guard let modelContainer else {
                 assertionFailure("ModelContainer is unavailable")
                 return
             }
-            store = SettingsStore(modelContainer: modelContainer)
+            let repositories = await Task { @DatabaseActor () -> (TransactionRepository, BudgetRepository) in
+                let transactionRepository = SwiftDataTransactionRepository(modelContainer: modelContainer)
+                let budgetRepository = SwiftDataBudgetRepository(modelContainer: modelContainer)
+                return (transactionRepository, budgetRepository)
+            }.value
+            store = await SettingsStore(
+                modelContainer: modelContainer,
+                transactionRepository: repositories.0,
+                budgetRepository: repositories.1
+            )
         }
     }
 }

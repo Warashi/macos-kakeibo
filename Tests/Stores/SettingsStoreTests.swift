@@ -7,7 +7,7 @@ import Testing
 @MainActor
 internal struct SettingsStoreTests {
     @Test("UserDefaultsの値を初期値として読み込む")
-    internal func initializationLoadsDefaults() throws {
+    internal func initializationLoadsDefaults() async throws {
         // Given
         let defaults = makeUserDefaults(suffix: "initialization")
         defaults.set(false, forKey: "settings.includeOnlyCalculationTarget")
@@ -18,7 +18,7 @@ internal struct SettingsStoreTests {
         let container = try ModelContainer.createInMemoryContainer()
 
         // When
-        let store = SettingsStore(modelContainer: container, userDefaults: defaults)
+        let store = await makeSettingsStore(modelContainer: container, userDefaults: defaults)
 
         // Then
         #expect(store.includeOnlyCalculationTarget == false)
@@ -28,11 +28,11 @@ internal struct SettingsStoreTests {
     }
 
     @Test("設定変更がUserDefaultsに保存される")
-    internal func updatingSettingsPersists() throws {
+    internal func updatingSettingsPersists() async throws {
         // Given
         let defaults = makeUserDefaults(suffix: "persist")
         let container = try ModelContainer.createInMemoryContainer()
-        let store = SettingsStore(modelContainer: container, userDefaults: defaults)
+        let store = await makeSettingsStore(modelContainer: container, userDefaults: defaults)
 
         // When
         store.includeOnlyCalculationTarget = false
@@ -50,7 +50,7 @@ internal struct SettingsStoreTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         try seedTransaction(in: context)
-        let store = SettingsStore(modelContainer: container, userDefaults: defaults)
+        let store = await makeSettingsStore(modelContainer: container, userDefaults: defaults)
 
         // When
         let archive = try await store.createBackupArchive()
@@ -68,7 +68,7 @@ internal struct SettingsStoreTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         try seedTransaction(in: context)
-        let store = SettingsStore(modelContainer: container, userDefaults: defaults)
+        let store = await makeSettingsStore(modelContainer: container, userDefaults: defaults)
 
         // When
         try await store.deleteAllData()
@@ -85,7 +85,7 @@ internal struct SettingsStoreTests {
         let defaults = makeUserDefaults(suffix: "refresh")
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let store = SettingsStore(modelContainer: container, userDefaults: defaults)
+        let store = await makeSettingsStore(modelContainer: container, userDefaults: defaults)
         #expect(store.statistics == .empty)
 
         try seedTransaction(in: context)
@@ -105,7 +105,7 @@ internal struct SettingsStoreTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         try seedTransaction(in: context)
-        let store = SettingsStore(modelContainer: container, userDefaults: defaults)
+        let store = await makeSettingsStore(modelContainer: container, userDefaults: defaults)
 
         // When
         let result = try await store.exportTransactionsCSV()
@@ -129,7 +129,7 @@ internal struct SettingsStoreTests {
         let defaults = makeUserDefaults(suffix: "restore")
         let targetContainer = try ModelContainer.createInMemoryContainer()
         let targetContext = ModelContext(targetContainer)
-        let store = SettingsStore(modelContainer: targetContainer, userDefaults: defaults)
+        let store = await makeSettingsStore(modelContainer: targetContainer, userDefaults: defaults)
 
         #expect(try targetContext.count(Transaction.self) == 0)
 
@@ -173,4 +173,28 @@ private func makeUserDefaults(suffix: String) -> UserDefaults {
     }
     defaults.removePersistentDomain(forName: suiteName)
     return defaults
+}
+
+@MainActor
+private func makeSettingsStore(
+    modelContainer: ModelContainer,
+    userDefaults: UserDefaults
+) async -> SettingsStore {
+    let repositories = await makeSettingsStoreRepositories(modelContainer: modelContainer)
+    return await SettingsStore(
+        modelContainer: modelContainer,
+        userDefaults: userDefaults,
+        transactionRepository: repositories.transaction,
+        budgetRepository: repositories.budget
+    )
+}
+
+private func makeSettingsStoreRepositories(
+    modelContainer: ModelContainer
+) async -> (transaction: TransactionRepository, budget: BudgetRepository) {
+    await Task { @DatabaseActor () -> (TransactionRepository, BudgetRepository) in
+        let transactionRepository = SwiftDataTransactionRepository(modelContainer: modelContainer)
+        let budgetRepository = SwiftDataBudgetRepository(modelContainer: modelContainer)
+        return (transactionRepository, budgetRepository)
+    }.value
 }
