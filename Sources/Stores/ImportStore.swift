@@ -4,7 +4,7 @@ import SwiftData
 
 /// CSVインポート画面の状態を管理するストア
 @Observable
-internal final class ImportStore {
+internal final class ImportStore: @unchecked Sendable {
     // MARK: - Dependencies
 
     private let modelContainer: ModelContainer
@@ -42,14 +42,12 @@ internal final class ImportStore {
 
     // MARK: - Actions
 
-    @MainActor
     internal func loadFile(from url: URL) async {
-        guard !isProcessing else { return }
-        isProcessing = true
-        errorMessage = nil
-        statusMessage = "CSVを読み込み中..."
+        guard await beginProcessing(status: "CSVを読み込み中...") else {
+            return
+        }
 
-        defer { isProcessing = false }
+        let configuration = await MainActor.run { self.configuration }
 
         do {
             let document = try await SecurityScopedResourceAccess.performAsync(with: url) {
@@ -59,13 +57,20 @@ internal final class ImportStore {
                     configuration: configuration,
                 )
             }
-            applyDocument(document, fileName: url.lastPathComponent)
-            statusMessage = "\(url.lastPathComponent) を読み込みました"
+            await MainActor.run {
+                self.applyDocument(document, fileName: url.lastPathComponent)
+                self.statusMessage = "\(url.lastPathComponent) を読み込みました"
+            }
         } catch {
-            errorMessage = error.localizedDescription
+            await MainActor.run {
+                self.errorMessage = error.localizedDescription
+            }
         }
+
+        await endProcessing()
     }
 
+    @MainActor
     internal func goToPreviousStep() {
         guard canGoBack else { return }
         errorMessage = nil
@@ -81,29 +86,43 @@ internal final class ImportStore {
         }
     }
 
-    @MainActor
     internal func handleNextAction() async {
+        let isProcessing = await MainActor.run { self.isProcessing }
         guard !isProcessing else { return }
-        errorMessage = nil
 
-        switch step {
+        await MainActor.run {
+            self.errorMessage = nil
+        }
+
+        let currentStep = await MainActor.run { self.step }
+
+        switch currentStep {
         case .fileSelection:
-            guard document != nil else {
-                errorMessage = "CSVファイルを選択してください"
+            let hasDocument = await MainActor.run { self.document != nil }
+            if !hasDocument {
+                await MainActor.run {
+                    self.errorMessage = "CSVファイルを選択してください"
+                }
                 return
             }
-            step = .columnMapping
+            await MainActor.run {
+                self.step = .columnMapping
+            }
         case .columnMapping:
             await generatePreview()
         case .validation:
+            let summary = await MainActor.run { self.summary }
             if summary == nil {
                 await performImport()
             } else {
-                reset()
+                await MainActor.run {
+                    self.reset()
+                }
             }
         }
     }
 
+    @MainActor
     internal func updateHasHeaderRow(_ flag: Bool) {
         configuration.hasHeaderRow = flag
         preview = nil
@@ -113,11 +132,13 @@ internal final class ImportStore {
         mapping = CSVColumnMapping.automatic(for: columnOptions)
     }
 
+    @MainActor
     internal func updateMapping(column: CSVColumn, to columnIndex: Int?) {
         didManuallyEditMapping = true
         mapping.assign(column, to: columnIndex)
     }
 
+    @MainActor
     internal func reset() {
         document = nil
         preview = nil
@@ -133,6 +154,7 @@ internal final class ImportStore {
         lastUpdatedAt = Date()
     }
 
+    @MainActor
     internal func presentError(_ message: String) {
         errorMessage = message
     }
@@ -249,6 +271,7 @@ internal extension ImportStore {
 // MARK: - Internal Helpers (for testing)
 
 internal extension ImportStore {
+    @MainActor
     func applyDocument(_ document: CSVDocument, fileName: String?) {
         self.document = document
         self.preview = nil
@@ -265,70 +288,115 @@ internal extension ImportStore {
 // MARK: - Private Helpers
 
 private extension ImportStore {
-    @MainActor
     func generatePreview() async {
-        guard let document else {
-            errorMessage = "CSVファイルが読み込まれていません"
+        let payload = await MainActor.run(resultType: (CSVDocument, CSVColumnMapping, CSVImportConfiguration)?.self) {
+            guard let document = self.document else {
+                self.errorMessage = "CSVファイルが読み込まれていません"
+                return nil
+            }
+            guard self.mapping.hasRequiredAssignments else {
+                self.errorMessage = "必須カラム（日付・内容・金額）を割り当ててください"
+                return nil
+            }
+            return (document, self.mapping, self.configuration)
+        }
+        guard let payload else { return }
+
+        guard await beginProcessing(status: "プレビューを生成中...") else {
             return
         }
-        guard mapping.hasRequiredAssignments else {
-            errorMessage = "必須カラム（日付・内容・金額）を割り当ててください"
-            return
-        }
-
-        isProcessing = true
-        statusMessage = "プレビューを生成中..."
-
-        defer { isProcessing = false }
 
         do {
             let preview = try await importer.makePreview(
-                document: document,
-                mapping: mapping,
-                configuration: configuration,
+                document: payload.0,
+                mapping: payload.1,
+                configuration: payload.2
             )
-            self.preview = preview
-            self.summary = nil
-            self.step = .validation
-            self.lastUpdatedAt = Date()
-            self.statusMessage = "検証結果を更新しました"
+            await MainActor.run {
+                self.preview = preview
+                self.summary = nil
+                self.step = .validation
+                self.lastUpdatedAt = Date()
+                self.statusMessage = "検証結果を更新しました"
+            }
         } catch {
-            self.errorMessage = error.localizedDescription
+            await MainActor.run {
+                self.errorMessage = error.localizedDescription
+            }
         }
+
+        await endProcessing()
     }
 
-    @MainActor
     func performImport() async {
-        guard let preview else {
-            errorMessage = "プレビューが生成されていません"
-            return
+        let preview = await MainActor.run(resultType: CSVImportPreview?.self) {
+            guard let preview = self.preview else {
+                self.errorMessage = "プレビューが生成されていません"
+                return nil
+            }
+            guard !preview.validRecords.isEmpty else {
+                self.errorMessage = "取り込める行がありません"
+                return nil
+            }
+            return preview
         }
-        guard !preview.validRecords.isEmpty else {
-            errorMessage = "取り込める行がありません"
+        guard let preview else { return }
+
+        guard await beginProcessing(status: "取り込み中...") else {
             return
         }
 
-        isProcessing = true
-        importProgress = (0, preview.validRecords.count)
-        statusMessage = "取り込み中..."
-
-        defer {
-            isProcessing = false
-            importProgress = nil
+        let totalCount = preview.validRecords.count
+        await MainActor.run {
+            self.importProgress = (0, totalCount)
         }
 
         do {
             let summary = try await importer.performImport(
                 preview: preview
             ) { [weak self] current, total in
-                self?.importProgress = (current, total)
-                self?.statusMessage = "取り込み中... (\(current)/\(total))"
+                guard let self else { return }
+                self.updateImportProgress(current: current, total: total)
             }
-            self.summary = summary
-            self.statusMessage = "取り込みが完了しました"
-            self.lastUpdatedAt = Date()
+            await MainActor.run {
+                self.summary = summary
+                self.statusMessage = "取り込みが完了しました"
+                self.lastUpdatedAt = Date()
+            }
         } catch {
-            self.errorMessage = error.localizedDescription
+            await MainActor.run {
+                self.errorMessage = error.localizedDescription
+            }
         }
+
+        await MainActor.run {
+            self.importProgress = nil
+        }
+        await endProcessing()
+    }
+
+    private func beginProcessing(status: String) async -> Bool {
+        await MainActor.run {
+            guard !isProcessing else { return false }
+            isProcessing = true
+            errorMessage = nil
+            statusMessage = status
+            return true
+        }
+    }
+
+    private func endProcessing(status: String? = nil) async {
+        await MainActor.run {
+            isProcessing = false
+            if let status {
+                statusMessage = status
+            }
+        }
+    }
+
+    @MainActor
+    private func updateImportProgress(current: Int, total: Int) {
+        importProgress = (current, total)
+        statusMessage = "取り込み中... (\(current)/\(total))"
     }
 }

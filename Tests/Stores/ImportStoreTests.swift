@@ -3,57 +3,74 @@ import SwiftData
 import Testing
 
 @Suite(.serialized)
-@MainActor
 internal struct ImportStoreTests {
     @Test("CSVドキュメントを適用すると初期状態がセットされる")
-    internal func applyDocument_setsInitialState() throws {
+    internal func applyDocument_setsInitialState() async throws {
         let container = try makeInMemoryContainer()
         let store = ImportStore(modelContainer: container)
 
-        store.applyDocument(sampleDocument(), fileName: "sample.csv")
+        await MainActor.run {
+            store.applyDocument(sampleDocument(), fileName: "sample.csv")
+        }
 
-        #expect(store.document != nil)
-        #expect(store.selectedFileName == "sample.csv")
-        #expect(store.columnOptions.count == 9)
-        #expect(store.mapping.hasRequiredAssignments)
-        #expect(store.step == .fileSelection)
+        let hasDocument = await MainActor.run { store.document != nil }
+        let selectedFileName = await MainActor.run { store.selectedFileName }
+        let columnCount = await MainActor.run { store.columnOptions.count }
+        let hasMapping = await MainActor.run { store.mapping.hasRequiredAssignments }
+        let step = await MainActor.run { store.step }
+
+        #expect(hasDocument)
+        #expect(selectedFileName == "sample.csv")
+        #expect(columnCount == 9)
+        #expect(hasMapping)
+        #expect(step == .fileSelection)
     }
 
     @Test("ファイル選択から列マッピングへ進める")
     internal func proceedToColumnMapping() async throws {
         let container = try makeInMemoryContainer()
         let store = ImportStore(modelContainer: container)
-        store.applyDocument(sampleDocument(), fileName: "sample.csv")
+        await MainActor.run {
+            store.applyDocument(sampleDocument(), fileName: "sample.csv")
+        }
 
-        #expect(store.step == .fileSelection)
+        let initialStep = await MainActor.run { store.step }
+        #expect(initialStep == .fileSelection)
         await store.handleNextAction()
-        #expect(store.step == .columnMapping)
+        let nextStep = await MainActor.run { store.step }
+        #expect(nextStep == .columnMapping)
     }
 
     @Test("列マッピングから検証ステップに進める")
     internal func generatePreviewMovesToValidation() async throws {
         let container = try makeInMemoryContainer()
         let store = ImportStore(modelContainer: container)
-        store.applyDocument(sampleDocument(), fileName: "sample.csv")
+        await MainActor.run {
+            store.applyDocument(sampleDocument(), fileName: "sample.csv")
+        }
 
         await store.handleNextAction() // -> column mapping
         await store.handleNextAction() // -> validation (generate preview)
 
-        #expect(store.step == .validation)
-        #expect(store.preview != nil)
+        let step = await MainActor.run { store.step }
+        let hasPreview = await MainActor.run { store.preview != nil }
+        #expect(step == .validation)
+        #expect(hasPreview)
     }
 
     @Test("検証ステップで取り込みを実行できる")
     internal func performImportCreatesTransactions() async throws {
         let container = try makeInMemoryContainer()
         let store = ImportStore(modelContainer: container)
-        store.applyDocument(sampleDocument(), fileName: "sample.csv")
+        await MainActor.run {
+            store.applyDocument(sampleDocument(), fileName: "sample.csv")
+        }
 
         await store.handleNextAction() // column mapping
         await store.handleNextAction() // validation
         await store.handleNextAction() // import
 
-        let summary = try #require(store.summary)
+        let summary = try #require(await MainActor.run { store.summary })
         #expect(summary.importedCount == 1)
         #expect(summary.updatedCount == 0)
 
