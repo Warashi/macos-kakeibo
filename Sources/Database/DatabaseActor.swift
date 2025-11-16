@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 
 /// グローバルアクター：データベース操作の分離
 ///
@@ -10,4 +11,32 @@ import Foundation
 public actor DatabaseActor {
     /// 共有インスタンス
     public static let shared: DatabaseActor = DatabaseActor()
+
+    private var access: DatabaseAccess?
+
+    /// ModelContainer をセットアップして DatabaseAccess を構築
+    public func configure(modelContainer: ModelContainer) {
+        access = DatabaseAccess(container: modelContainer)
+    }
+
+    /// 既に構成済みでなければセットアップ
+    public func configureIfNeeded(modelContainer: ModelContainer) {
+        guard access == nil else { return }
+        configure(modelContainer: modelContainer)
+    }
+
+    /// 現在の DatabaseAccess を取得
+    internal func databaseAccess() -> DatabaseAccess {
+        guard let access else {
+            preconditionFailure("DatabaseAccess is not configured. Call configure(modelContainer:) first.")
+        }
+        return access
+    }
+
+    #if DEBUG
+        /// テスト用に Access をリセット
+        public func resetConfigurationForTesting() {
+            access = nil
+        }
+    #endif
 }
