@@ -4,6 +4,7 @@ import SwiftData
 @DatabaseActor
 internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
     private let modelContainer: ModelContainer
+    private let sharedContext: ModelContext?
     private let scheduleService: RecurringPaymentScheduleService
     private let currentDateProvider: () -> Date
 
@@ -11,14 +12,19 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
         modelContainer: ModelContainer,
         scheduleService: RecurringPaymentScheduleService = RecurringPaymentScheduleService(),
         currentDateProvider: @escaping () -> Date = { Date() },
+        sharedContext: ModelContext? = nil
     ) {
         self.modelContainer = modelContainer
+        self.sharedContext = sharedContext
         self.scheduleService = scheduleService
         self.currentDateProvider = currentDateProvider
     }
 
     private func makeContext() -> ModelContext {
-        ModelContext(modelContainer)
+        if let sharedContext {
+            return sharedContext
+        }
+        return ModelContext(modelContainer)
     }
 
     // Convenience initializer removed to encourage ModelContainer-based usage.
