@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import SwiftData
 
 /// 定期支払い定義の入力パラメータ
 internal struct RecurringPaymentDefinitionInput: Sendable {

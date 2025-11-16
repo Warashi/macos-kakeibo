@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import SwiftData
 
 /// 取引一覧画面用のストア
 ///
