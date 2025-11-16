@@ -1,7 +1,7 @@
 import Foundation
 
-/// 年次特別枠配分のDTO（Sendable）
-internal struct AnnualBudgetAllocationDTO: Sendable, Hashable, Equatable {
+/// ドメイン層で扱う年次特別枠カテゴリ配分
+internal struct AnnualBudgetAllocation: Sendable, Hashable, Equatable {
     internal let id: UUID
     internal let amount: Decimal
     internal let categoryId: UUID

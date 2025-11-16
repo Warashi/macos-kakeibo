@@ -205,7 +205,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
 
         let fullCoverageAllocations = config.allocations
             .filter { $0.policyOverride == .fullCoverage }
-            .compactMap { allocation -> (AnnualBudgetAllocationDTO, Category)? in
+            .compactMap { allocation -> (AnnualBudgetAllocation, Category)? in
                 guard let category = categoryMap[allocation.categoryId] else { return nil }
                 return (allocation, category)
             }

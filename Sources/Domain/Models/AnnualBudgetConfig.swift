@@ -6,7 +6,7 @@ internal struct AnnualBudgetConfig: Sendable, Hashable, Equatable {
     internal let year: Int
     internal let totalAmount: Decimal
     internal let policy: AnnualBudgetPolicy
-    internal let allocations: [AnnualBudgetAllocationDTO]
+    internal let allocations: [AnnualBudgetAllocation]
     internal let createdAt: Date
     internal let updatedAt: Date
 
@@ -15,7 +15,7 @@ internal struct AnnualBudgetConfig: Sendable, Hashable, Equatable {
         year: Int,
         totalAmount: Decimal,
         policy: AnnualBudgetPolicy,
-        allocations: [AnnualBudgetAllocationDTO],
+        allocations: [AnnualBudgetAllocation],
         createdAt: Date,
         updatedAt: Date,
     ) {
@@ -33,7 +33,7 @@ internal struct AnnualBudgetConfig: Sendable, Hashable, Equatable {
         self.year = config.year
         self.totalAmount = config.totalAmount
         self.policy = config.policy
-        self.allocations = config.allocations.map { AnnualBudgetAllocationDTO(from: $0) }
+        self.allocations = config.allocations.map { AnnualBudgetAllocation(from: $0) }
         self.createdAt = config.createdAt
         self.updatedAt = config.updatedAt
     }

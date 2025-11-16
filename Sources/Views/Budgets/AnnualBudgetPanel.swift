@@ -215,9 +215,9 @@ internal enum AnnualBudgetPanelContentBuilder {
     }
 
     private static func sortedAllocations(
-        _ allocations: [AnnualBudgetAllocationDTO],
+        _ allocations: [AnnualBudgetAllocation],
         categoryLookup: [UUID: Category],
-    ) -> [AnnualBudgetAllocationDTO] {
+    ) -> [AnnualBudgetAllocation] {
         allocations.sorted { lhs, rhs in
             guard let lhsCategory = categoryLookup[lhs.categoryId],
                   let rhsCategory = categoryLookup[rhs.categoryId] else {
