@@ -68,6 +68,41 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         try modelContext.fetch(CategoryQueries.byId(id)).first.map { CategoryDTO(from: $0) }
     }
 
+    internal func findCategoryByName(_ name: String, parentId: UUID?) throws -> CategoryDTO? {
+        let descriptor: ModelFetchRequest<Category>
+        if let parentId {
+            descriptor = CategoryQueries.firstMatching(
+                predicate: #Predicate { category in
+                    category.name == name && category.parent?.id == parentId
+                }
+            )
+        } else {
+            descriptor = CategoryQueries.firstMatching(
+                predicate: #Predicate { category in
+                    category.name == name && category.parent == nil
+                }
+            )
+        }
+        return try modelContext.fetch(descriptor).first.map { CategoryDTO(from: $0) }
+    }
+
+    internal func createCategory(name: String, parentId: UUID?) throws -> UUID {
+        let parent = try resolveCategory(id: parentId)
+        let category = Category(name: name, parent: parent)
+        modelContext.insert(category)
+        return category.id
+    }
+
+    internal func findInstitutionByName(_ name: String) throws -> FinancialInstitutionDTO? {
+        try modelContext.fetch(FinancialInstitutionQueries.byName(name)).first.map { FinancialInstitutionDTO(from: $0) }
+    }
+
+    internal func createInstitution(name: String) throws -> UUID {
+        let institution = FinancialInstitution(name: name)
+        modelContext.insert(institution)
+        return institution.id
+    }
+
     internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfigDTO? {
         try modelContext.fetch(BudgetQueries.annualConfig(for: year)).first.map { AnnualBudgetConfigDTO(from: $0) }
     }
