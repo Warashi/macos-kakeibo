@@ -43,7 +43,6 @@ internal struct RecurringPaymentBalanceCacheTests {
                 month: 6,
                 startYear: 2025,
                 startMonth: 1,
-                context: context,
             ),
         )
         service.recalculateBalance(
@@ -54,7 +53,6 @@ internal struct RecurringPaymentBalanceCacheTests {
                 month: 6,
                 startYear: 2025,
                 startMonth: 1,
-                context: context,
             ),
         )
 
@@ -91,7 +89,6 @@ internal struct RecurringPaymentBalanceCacheTests {
                 month: 6,
                 startYear: 2025,
                 startMonth: 1,
-                context: context,
             ),
         )
         service.recalculateBalance(
@@ -102,7 +99,6 @@ internal struct RecurringPaymentBalanceCacheTests {
                 month: 6,
                 startYear: 2025,
                 startMonth: 1,
-                context: context,
             ),
         )
 
@@ -112,7 +108,6 @@ internal struct RecurringPaymentBalanceCacheTests {
                 balance: balance,
                 year: 2025,
                 month: 7,
-                context: context,
             ),
         )
 
@@ -124,7 +119,6 @@ internal struct RecurringPaymentBalanceCacheTests {
                 month: 6,
                 startYear: 2025,
                 startMonth: 1,
-                context: context,
             ),
         )
 

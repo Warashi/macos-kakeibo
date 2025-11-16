@@ -43,7 +43,7 @@ func synchronizeDefinition(_ definition: SpecialPaymentDefinition) throws -> Spe
 let service = SpecialPaymentScheduleService(
     calendar: Calendar(identifier: .gregorian),
     holidayProvider: CompositeHolidayProvider(
-        providers: [JapaneseHolidayProvider(), CustomHolidayProvider(modelContext: modelContext)]
+        providers: [JapaneseHolidayProvider(), CustomHolidayProvider(modelContainer: modelContainer)]
     )
 )
 

@@ -64,19 +64,17 @@ internal struct RecurringPaymentBalanceService: Sendable {
         internal let balance: RecurringPaymentSavingBalance?
         internal let year: Int
         internal let month: Int
-        internal let context: ModelContext
     }
 
     /// 月次積立を記録
     /// - Parameter params: 月次積立記録パラメータ
-    /// - Returns: 更新または新規作成された残高
+    /// - Returns: 更新または新規作成された残高（新規の場合は呼び出し側で挿入すること）
     @discardableResult
     internal func recordMonthlySavings(params: MonthlySavingsParameters) -> RecurringPaymentSavingBalance {
         let definition = params.definition
         let balance = params.balance
         let year = params.year
         let month = params.month
-        let context = params.context
         let monthlySaving = definition.monthlySavingAmount
 
         if let existingBalance = balance {
@@ -102,7 +100,6 @@ internal struct RecurringPaymentBalanceService: Sendable {
                 lastUpdatedYear: year,
                 lastUpdatedMonth: month,
             )
-            context.insert(newBalance)
             cache.invalidate(balanceId: newBalance.id)
             return newBalance
         }
@@ -112,13 +109,11 @@ internal struct RecurringPaymentBalanceService: Sendable {
     /// - Parameters:
     ///   - occurrence: 完了したOccurrence
     ///   - balance: 積立残高
-    ///   - context: ModelContext
     /// - Returns: 支払差分情報
     @discardableResult
     internal func processPayment(
         occurrence: RecurringPaymentOccurrence,
         balance: RecurringPaymentSavingBalance,
-        context: ModelContext,
     ) -> PaymentDifference {
         guard let actualAmount = occurrence.actualAmount else {
             // 実績金額がない場合は、予定金額を使用
@@ -147,7 +142,6 @@ internal struct RecurringPaymentBalanceService: Sendable {
         internal let month: Int
         internal let startYear: Int?
         internal let startMonth: Int?
-        internal let context: ModelContext
 
         internal init(
             definition: RecurringPaymentDefinition,
@@ -156,7 +150,6 @@ internal struct RecurringPaymentBalanceService: Sendable {
             month: Int,
             startYear: Int? = nil,
             startMonth: Int? = nil,
-            context: ModelContext,
         ) {
             self.definition = definition
             self.balance = balance
@@ -164,7 +157,6 @@ internal struct RecurringPaymentBalanceService: Sendable {
             self.month = month
             self.startYear = startYear
             self.startMonth = startMonth
-            self.context = context
         }
     }
 

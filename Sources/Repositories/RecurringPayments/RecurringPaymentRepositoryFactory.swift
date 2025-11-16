@@ -10,10 +10,19 @@ internal enum RecurringPaymentRepositoryFactory {
         holidayProvider: HolidayProvider? = nil,
         currentDateProvider: @escaping () -> Date = { Date() },
     ) -> RecurringPaymentRepository {
+        let resolvedHolidayProvider: HolidayProvider? = {
+            if let holidayProvider {
+                return holidayProvider
+            }
+            let japaneseProvider = JapaneseHolidayProvider(calendar: calendar)
+            let customProvider = CustomHolidayProvider(modelContainer: modelContainer, calendar: calendar)
+            return CompositeHolidayProvider(providers: [japaneseProvider, customProvider])
+        }()
+
         let scheduleService = RecurringPaymentScheduleService(
             calendar: calendar,
             businessDayService: businessDayService,
-            holidayProvider: holidayProvider,
+            holidayProvider: resolvedHolidayProvider,
         )
 
         return SwiftDataRecurringPaymentRepository(

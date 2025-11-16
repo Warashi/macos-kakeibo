@@ -73,12 +73,11 @@ internal struct RecurringPaymentMultiplePaymentsTests {
             definition: definition,
             balance: balance,
             params: params,
-            context: context,
         )
 
         let occurrence = createOccurrence(definition: definition, params: params, context: context)
         if let finalBalance = updatedBalance {
-            balanceService.processPayment(occurrence: occurrence, balance: finalBalance, context: context)
+            balanceService.processPayment(occurrence: occurrence, balance: finalBalance)
             return finalBalance
         }
         return updatedBalance
@@ -103,12 +102,11 @@ internal struct RecurringPaymentMultiplePaymentsTests {
             definition: definition,
             balance: balance,
             params: params,
-            context: context,
         )
 
         let occurrence = createOccurrence(definition: definition, params: params, context: context)
         if let finalBalance = updatedBalance {
-            balanceService.processPayment(occurrence: occurrence, balance: finalBalance, context: context)
+            balanceService.processPayment(occurrence: occurrence, balance: finalBalance)
             return finalBalance
         }
         return updatedBalance
@@ -133,12 +131,11 @@ internal struct RecurringPaymentMultiplePaymentsTests {
             definition: definition,
             balance: balance,
             params: params,
-            context: context,
         )
 
         let occurrence = createOccurrence(definition: definition, params: params, context: context)
         let finalBalance = try #require(updatedBalance)
-        balanceService.processPayment(occurrence: occurrence, balance: finalBalance, context: context)
+        balanceService.processPayment(occurrence: occurrence, balance: finalBalance)
         return finalBalance
     }
 
@@ -147,8 +144,7 @@ internal struct RecurringPaymentMultiplePaymentsTests {
     private func performSavingCycle(
         definition: RecurringPaymentDefinition,
         balance: RecurringPaymentSavingBalance?,
-        params: CycleParams,
-        context: ModelContext,
+        params: CycleParams
     ) -> RecurringPaymentSavingBalance? {
         var currentBalance: RecurringPaymentSavingBalance? = balance
         for month in params.startMonth ... params.endMonth {
@@ -158,7 +154,6 @@ internal struct RecurringPaymentMultiplePaymentsTests {
                     balance: currentBalance,
                     year: 2024 + (month - 1) / 12,
                     month: ((month - 1) % 12) + 1,
-                    context: context,
                 ),
             )
         }

@@ -3,15 +3,16 @@ import SwiftData
 
 /// ユーザー定義祝日を提供するプロバイダー
 internal struct CustomHolidayProvider: HolidayProvider {
-    private let modelContext: ModelContext
+    private let modelContainer: ModelContainer
     private let calendar: Calendar
 
-    internal init(modelContext: ModelContext, calendar: Calendar = Calendar(identifier: .gregorian)) {
-        self.modelContext = modelContext
+    internal init(modelContainer: ModelContainer, calendar: Calendar = Calendar(identifier: .gregorian)) {
+        self.modelContainer = modelContainer
         self.calendar = calendar
     }
 
     internal func holidays(for year: Int) -> Set<Date> {
+        let modelContext = ModelContext(modelContainer)
         let descriptor: ModelFetchRequest<CustomHoliday> = ModelFetchFactory.make()
 
         guard let customHolidays = try? modelContext.fetch(descriptor) else {

@@ -47,7 +47,6 @@ internal struct PaymentBalancePaymentTests {
         let difference = service.processPayment(
             occurrence: occurrence,
             balance: balance,
-            context: context,
         )
 
         // Then
@@ -89,7 +88,6 @@ internal struct PaymentBalancePaymentTests {
         let difference = service.processPayment(
             occurrence: occurrence,
             balance: balance,
-            context: context,
         )
 
         // Then
@@ -129,7 +127,6 @@ internal struct PaymentBalancePaymentTests {
         let difference = service.processPayment(
             occurrence: occurrence,
             balance: balance,
-            context: context,
         )
 
         // Then
@@ -170,7 +167,6 @@ internal struct PaymentBalancePaymentTests {
         service.processPayment(
             occurrence: occurrence1,
             balance: balance,
-            context: context,
         )
 
         #expect(balance.totalPaidAmount == 45000)
@@ -190,7 +186,6 @@ internal struct PaymentBalancePaymentTests {
         service.processPayment(
             occurrence: occurrence2,
             balance: balance,
-            context: context,
         )
 
         // Then

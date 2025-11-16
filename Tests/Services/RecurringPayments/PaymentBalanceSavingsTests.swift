@@ -32,7 +32,6 @@ internal struct PaymentBalanceSavingsTests {
                 balance: nil,
                 year: 2025,
                 month: 11,
-                context: context,
             ),
         )
 
@@ -66,7 +65,6 @@ internal struct PaymentBalanceSavingsTests {
                 balance: existingBalance,
                 year: 2025,
                 month: 11,
-                context: context,
             ),
         )
 
@@ -99,7 +97,6 @@ internal struct PaymentBalanceSavingsTests {
                 balance: existingBalance,
                 year: 2025,
                 month: 11, // 同じ年月
-                context: context,
             ),
         )
 
@@ -125,7 +122,6 @@ internal struct PaymentBalanceSavingsTests {
                     balance: balance,
                     year: 2025,
                     month: month,
-                    context: context,
                 ),
             )
         }

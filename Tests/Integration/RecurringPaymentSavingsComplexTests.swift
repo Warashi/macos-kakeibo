@@ -63,8 +63,7 @@ internal struct RecurringPaymentSavingsComplexTests {
         let balances = createBalancesForDefinitions(
             definitions: Array(definitions.prefix(3)),
             months: 6,
-            year: 2025,
-            context: context,
+            year: 2025
         )
 
         let balanceDTOs = balances.map { RecurringPaymentSavingBalanceDTO(from: $0) }
@@ -184,8 +183,7 @@ internal struct RecurringPaymentSavingsComplexTests {
     private func createBalancesForDefinitions(
         definitions: [RecurringPaymentDefinition],
         months: Int,
-        year: Int,
-        context: ModelContext,
+        year: Int
     ) -> [RecurringPaymentSavingBalance] {
         var balances: [RecurringPaymentSavingBalance] = []
         for definition in definitions {
@@ -197,7 +195,6 @@ internal struct RecurringPaymentSavingsComplexTests {
                         balance: balance,
                         year: year,
                         month: month,
-                        context: context,
                     ),
                 )
             }

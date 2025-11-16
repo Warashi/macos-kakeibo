@@ -103,15 +103,18 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
         // 12ヶ月分の積立を記録
         var balance: RecurringPaymentSavingBalance?
         for month in 1 ... 12 {
-            balance = balanceService.recordMonthlySavings(
+            let nextBalance = balanceService.recordMonthlySavings(
                 params: RecurringPaymentBalanceService.MonthlySavingsParameters(
                     definition: definition,
                     balance: balance,
                     year: 2025,
                     month: month,
-                    context: context,
                 ),
             )
+            if balance == nil {
+                context.insert(nextBalance)
+            }
+            balance = nextBalance
         }
         try context.save()
 

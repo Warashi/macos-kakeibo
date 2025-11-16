@@ -69,7 +69,6 @@ internal struct PaymentBalanceRecalculationTests {
                 month: 11,
                 startYear: 2025,
                 startMonth: 1,
-                context: context,
             ),
         )
 
@@ -110,7 +109,6 @@ internal struct PaymentBalanceRecalculationTests {
                 balance: balance,
                 year: 2025,
                 month: 11,
-                context: context,
             ),
         )
 

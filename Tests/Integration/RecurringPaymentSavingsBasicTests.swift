@@ -46,7 +46,6 @@ internal struct RecurringPaymentSavingsBasicTests {
                     balance: balance,
                     year: 2025 + (month - 1) / 12,
                     month: ((month - 1) % 12) + 1,
-                    context: context,
                 ),
             )
         }
@@ -75,7 +74,6 @@ internal struct RecurringPaymentSavingsBasicTests {
         let difference = balanceService.processPayment(
             occurrence: occurrence,
             balance: finalBalance,
-            context: context,
         )
 
         // Then: ぴったり支払えたことを確認
@@ -111,7 +109,6 @@ internal struct RecurringPaymentSavingsBasicTests {
                     balance: balance,
                     year: 2025,
                     month: month,
-                    context: context,
                 ),
             )
         }
@@ -134,7 +131,6 @@ internal struct RecurringPaymentSavingsBasicTests {
         let difference = balanceService.processPayment(
             occurrence: occurrence,
             balance: finalBalance,
-            context: context,
         )
 
         // Then: 差額が残高に残る
@@ -170,7 +166,6 @@ internal struct RecurringPaymentSavingsBasicTests {
                     balance: balance,
                     year: 2024 + (month - 1) / 12,
                     month: ((month - 1) % 12) + 1,
-                    context: context,
                 ),
             )
         }
@@ -193,7 +188,6 @@ internal struct RecurringPaymentSavingsBasicTests {
         let difference = balanceService.processPayment(
             occurrence: occurrence,
             balance: finalBalance,
-            context: context,
         )
 
         // Then: 残高がマイナスになる（次回以降の積立で補填）
