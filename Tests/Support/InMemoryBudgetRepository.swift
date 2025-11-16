@@ -50,6 +50,10 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
         return id
     }
 
+    internal func countCategories() throws -> Int {
+        categories.count
+    }
+
     internal func findInstitutionByName(_ name: String) throws -> FinancialInstitutionDTO? {
         institutions.values.first { $0.name == name }
     }
@@ -68,8 +72,16 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
         return id
     }
 
+    internal func countFinancialInstitutions() throws -> Int {
+        institutions.count
+    }
+
     internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfigDTO? {
         nil
+    }
+
+    internal func countAnnualBudgetConfigs() throws -> Int {
+        0
     }
 
     internal func addBudget(_ input: BudgetInput) throws {
@@ -86,6 +98,10 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
 
     internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) throws {
         unsupported(#function)
+    }
+
+    internal func countBudgets() throws -> Int {
+        0
     }
 
     internal func saveChanges() throws {

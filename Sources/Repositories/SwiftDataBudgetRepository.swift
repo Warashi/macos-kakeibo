@@ -93,6 +93,10 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         return category.id
     }
 
+    internal func countCategories() throws -> Int {
+        try modelContext.count(Category.self)
+    }
+
     internal func findInstitutionByName(_ name: String) throws -> FinancialInstitutionDTO? {
         try modelContext.fetch(FinancialInstitutionQueries.byName(name)).first.map { FinancialInstitutionDTO(from: $0) }
     }
@@ -103,8 +107,16 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         return institution.id
     }
 
+    internal func countFinancialInstitutions() throws -> Int {
+        try modelContext.count(FinancialInstitution.self)
+    }
+
     internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfigDTO? {
         try modelContext.fetch(BudgetQueries.annualConfig(for: year)).first.map { AnnualBudgetConfigDTO(from: $0) }
+    }
+
+    internal func countAnnualBudgetConfigs() throws -> Int {
+        try modelContext.count(AnnualBudgetConfig.self)
     }
 
     internal func addBudget(_ input: BudgetInput) throws {
@@ -117,6 +129,10 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
             endMonth: input.endMonth
         )
         modelContext.insert(budget)
+    }
+
+    internal func countBudgets() throws -> Int {
+        try modelContext.count(Budget.self)
     }
 
     internal func updateBudget(input: BudgetUpdateInput) throws {

@@ -27,6 +27,10 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         transactions.map { TransactionDTO(from: $0) }
     }
 
+    internal func countTransactions() throws -> Int {
+        transactions.count
+    }
+
     internal func fetchInstitutions() throws -> [FinancialInstitutionDTO] {
         institutions.map { FinancialInstitutionDTO(from: $0) }
     }

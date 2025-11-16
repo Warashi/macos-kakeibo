@@ -19,6 +19,10 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
         return transactions.map { TransactionDTO(from: $0) }
     }
 
+    internal func countTransactions() throws -> Int {
+        try modelContext.count(Transaction.self)
+    }
+
     internal func fetchInstitutions() throws -> [FinancialInstitutionDTO] {
         let institutions = try modelContext.fetch(FinancialInstitutionQueries.sortedByDisplayOrder())
         return institutions.map { FinancialInstitutionDTO(from: $0) }
