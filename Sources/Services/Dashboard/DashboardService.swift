@@ -25,41 +25,41 @@ internal final class DashboardService {
 
     /// Calculate dashboard data
     /// - Parameters:
-    ///   - input: Input data (transactions, budgets, etc.)
+    ///   - snapshot: Input data (transactions, budgets, etc.)
     ///   - year: Target year
     ///   - month: Target month
     ///   - displayMode: Display mode (monthly/annual)
     /// - Returns: Dashboard calculation result
     internal func calculate(
-        input: DashboardInput,
+        snapshot: DashboardSnapshot,
         year: Int,
         month: Int,
         displayMode: DashboardStore.DisplayMode,
     ) -> DashboardResult {
-        let excludedCategoryIds = input.config?.fullCoverageCategoryIDs(
-            includingChildrenFrom: input.categories,
+        let excludedCategoryIds = snapshot.config?.fullCoverageCategoryIDs(
+            includingChildrenFrom: snapshot.categories,
         ) ?? []
 
         let monthlySummary = aggregator.aggregateMonthly(
-            transactions: input.monthlyTransactions,
-            categories: input.categories,
+            transactions: snapshot.monthlyTransactions,
+            categories: snapshot.categories,
             year: year,
             month: month,
             filter: .default,
         )
 
         let annualSummary = aggregator.aggregateAnnually(
-            transactions: input.annualTransactions,
-            categories: input.categories,
+            transactions: snapshot.annualTransactions,
+            categories: snapshot.categories,
             year: year,
             filter: .default,
         )
 
         let monthlyBudgetCalculation = budgetCalculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
-                transactions: input.monthlyTransactions,
-                budgets: input.budgets,
-                categories: input.categories,
+                transactions: snapshot.monthlyTransactions,
+                budgets: snapshot.budgets,
+                categories: snapshot.categories,
                 year: year,
                 month: month,
                 filter: .default,
@@ -68,7 +68,7 @@ internal final class DashboardService {
         )
 
         let (annualBudgetUsage, monthlyAllocation) = calculateAnnualBudgetAllocation(
-            input: input,
+            snapshot: snapshot,
             year: year,
             month: month,
         )
@@ -80,7 +80,7 @@ internal final class DashboardService {
         )
 
         let (progressCalculation, categoryEntries) = calculateAnnualBudgetProgress(
-            input: input,
+            snapshot: snapshot,
             year: year,
             excludedCategoryIds: excludedCategoryIds,
         )
@@ -100,30 +100,30 @@ internal final class DashboardService {
     // MARK: - Private Helpers
 
     private func calculateAnnualBudgetAllocation(
-        input: DashboardInput,
+        snapshot: DashboardSnapshot,
         year: Int,
         month: Int,
     ) -> (AnnualBudgetUsage?, MonthlyAllocation?) {
-        guard let config = input.config else {
+        guard let config = snapshot.config else {
             return (nil, nil)
         }
 
         let params = AllocationCalculationParams(
-            transactions: input.annualTransactions,
-            budgets: input.budgets,
+            transactions: snapshot.annualTransactions,
+            budgets: snapshot.budgets,
             annualBudgetConfig: config,
             filter: .default,
         )
 
         let usage = annualBudgetAllocator.calculateAnnualBudgetUsage(
             params: params,
-            categories: input.categories,
+            categories: snapshot.categories,
             upToMonth: month,
         )
 
         let allocation = annualBudgetAllocator.calculateMonthlyAllocation(
             params: params,
-            categories: input.categories,
+            categories: snapshot.categories,
             year: year,
             month: month,
         )
@@ -143,14 +143,14 @@ internal final class DashboardService {
     }
 
     private func calculateAnnualBudgetProgress(
-        input: DashboardInput,
+        snapshot: DashboardSnapshot,
         year: Int,
         excludedCategoryIds: Set<UUID>,
     ) -> (BudgetCalculation?, [AnnualBudgetEntry]) {
         let progressResult = annualBudgetProgressCalculator.calculate(
-            budgets: input.budgets,
-            transactions: input.annualTransactions,
-            categories: input.categories,
+            budgets: snapshot.budgets,
+            transactions: snapshot.annualTransactions,
+            categories: snapshot.categories,
             year: year,
             filter: .default,
             excludedCategoryIds: excludedCategoryIds,
@@ -165,15 +165,6 @@ internal final class DashboardService {
 }
 
 // MARK: - Input/Output Types
-
-/// Dashboard calculation input
-internal struct DashboardInput {
-    internal let monthlyTransactions: [TransactionDTO]
-    internal let annualTransactions: [TransactionDTO]
-    internal let budgets: [BudgetDTO]
-    internal let categories: [CategoryDTO]
-    internal let config: AnnualBudgetConfigDTO?
-}
 
 /// Dashboard calculation result
 internal struct DashboardResult {

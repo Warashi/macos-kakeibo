@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import SwiftData
 
 /// ダッシュボードストア
 ///
@@ -13,7 +12,7 @@ import SwiftData
 internal final class DashboardStore {
     // MARK: - Dependencies
 
-    private let modelContainer: ModelContainer
+    private let repository: DashboardRepository
     private let dashboardService: DashboardService
     @ObservationIgnored
     private var refreshTask: Task<Void, Never>?
@@ -76,13 +75,12 @@ internal final class DashboardStore {
 
     /// イニシャライザ
     /// - Parameters:
-    ///   - modelContainer: SwiftData の ModelContainer
     ///   - dashboardService: ダッシュボード計算サービス
     internal init(
-        modelContainer: ModelContainer,
+        repository: DashboardRepository,
         dashboardService: DashboardService = DashboardService(),
     ) {
-        self.modelContainer = modelContainer
+        self.repository = repository
         self.dashboardService = dashboardService
 
         // 現在の年月で初期化
@@ -125,14 +123,9 @@ internal final class DashboardStore {
         self.annualBudgetCategoryEntries = []
 
         // すべての stored property の初期化が完了したので、年のフォールバックチェックが可能
-        let bootstrapContext = ModelContext(modelContainer)
-        if getAnnualBudgetConfig(year: self.currentYear, modelContext: bootstrapContext) == nil,
-           let fallbackYear = latestAnnualBudgetConfigYear(modelContext: bootstrapContext) {
-            self.currentYear = fallbackYear
+        Task { [weak self] in
+            await self?.bootstrapInitialState()
         }
-
-        // 初回データ読み込み
-        scheduleRefresh()
     }
 
     // MARK: - Display Mode
@@ -143,130 +136,38 @@ internal final class DashboardStore {
         case annual = "年次"
     }
 
-    // MARK: - Data Fetching
-
-    /// 一括取得したデータ
-    private struct FetchedData {
-        let monthlyTransactions: [TransactionDTO]
-        let annualTransactions: [TransactionDTO]
-        let budgets: [BudgetDTO]
-        let categories: [CategoryDTO]
-        let config: AnnualBudgetConfigDTO?
-    }
-
-    /// 指定した期間の取引を取得
-    private nonisolated func fetchTransactions(
-        modelContext: ModelContext,
-        year: Int,
-        month: Int? = nil
-    ) -> [Transaction] {
-        guard let startDate = Date.from(year: year, month: month ?? 1) else {
-            return []
-        }
-
-        let endDate: Date = {
-            if let month {
-                let nextMonth = month == 12 ? 1 : month + 1
-                let nextYear = month == 12 ? year + 1 : year
-                return Date.from(year: nextYear, month: nextMonth) ?? startDate
-            } else {
-                return Date.from(year: year + 1, month: 1) ?? startDate
-            }
-        }()
-
-        let descriptor = TransactionQueries.between(startDate: startDate, endDate: endDate)
-        return (try? modelContext.fetch(descriptor)) ?? []
-    }
-
-    /// 指定年に関係する予算を取得
-    private nonisolated func fetchBudgets(modelContext: ModelContext, overlapping year: Int) -> [Budget] {
-        let descriptor = BudgetQueries.budgets(overlapping: year)
-        return (try? modelContext.fetch(descriptor)) ?? []
-    }
-
-    /// カテゴリを取得
-    private nonisolated func fetchCategories(modelContext: ModelContext) -> [Category] {
-        let descriptor = CategoryQueries.sortedForDisplay()
-        return (try? modelContext.fetch(descriptor)) ?? []
-    }
-
-    /// 年次特別枠設定を取得
-    private nonisolated func getAnnualBudgetConfig(year: Int, modelContext: ModelContext) -> AnnualBudgetConfig? {
-        try? modelContext.fetch(BudgetQueries.annualConfig(for: year)).first
-    }
-
-    /// 最新の年次特別枠設定の年を取得
-    private nonisolated func latestAnnualBudgetConfigYear(modelContext: ModelContext) -> Int? {
-        try? modelContext.fetch(BudgetQueries.latestAnnualConfig()).first?.year
-    }
-
-    /// 必要なデータを一括取得
-    private nonisolated func fetchAllData(
-        modelContext: ModelContext,
-        year: Int,
-        month: Int
-    ) -> FetchedData {
-        let monthlyTransactions = fetchTransactions(modelContext: modelContext, year: year, month: month)
-        let annualTransactions = fetchTransactions(modelContext: modelContext, year: year)
-        let budgets = fetchBudgets(modelContext: modelContext, overlapping: year)
-        let categories = fetchCategories(modelContext: modelContext)
-        let config = getAnnualBudgetConfig(year: year, modelContext: modelContext)
-
-        return FetchedData(
-            monthlyTransactions: monthlyTransactions.map { TransactionDTO(from: $0) },
-            annualTransactions: annualTransactions.map { TransactionDTO(from: $0) },
-            budgets: budgets.map { BudgetDTO(from: $0) },
-            categories: categories.map { CategoryDTO(from: $0) },
-            config: config.map { AnnualBudgetConfigDTO(from: $0) },
-        )
-    }
-
     // MARK: - Refresh
 
     /// データを再読み込みして計算結果を更新
     internal func refresh() async {
         let targetYear = currentYear
         let targetMonth = currentMonth
-        let container = modelContainer
-        let data = await Task { @DatabaseActor in
-            let context = ModelContext(container)
-            return fetchAllData(
-                modelContext: context,
+        do {
+            let snapshot = try await Task { @DatabaseActor in
+                try repository.fetchSnapshot(year: targetYear, month: targetMonth)
+            }.value
+
+            guard !Task.isCancelled else { return }
+
+            let result = dashboardService.calculate(
+                snapshot: snapshot,
                 year: targetYear,
-                month: targetMonth
+                month: targetMonth,
+                displayMode: displayMode
             )
-        }.value
 
-        guard !Task.isCancelled else { return }
-
-        // Build input for dashboard service
-        let input = DashboardInput(
-            monthlyTransactions: data.monthlyTransactions,
-            annualTransactions: data.annualTransactions,
-            budgets: data.budgets,
-            categories: data.categories,
-            config: data.config,
-        )
-
-        // Calculate dashboard data via service
-        let result = dashboardService.calculate(
-            input: input,
-            year: targetYear,
-            month: targetMonth,
-            displayMode: displayMode,
-        )
-
-        // Update state with calculation results
-        monthlySummary = result.monthlySummary
-        annualSummary = result.annualSummary
-        monthlyBudgetCalculation = result.monthlyBudgetCalculation
-        annualBudgetUsage = result.annualBudgetUsage
-        monthlyAllocation = result.monthlyAllocation
-        categoryHighlights = result.categoryHighlights
-        annualBudgetProgressCalculation = result.annualBudgetProgressCalculation
-        annualBudgetCategoryEntries = result.annualBudgetCategoryEntries
+            monthlySummary = result.monthlySummary
+            annualSummary = result.annualSummary
+            monthlyBudgetCalculation = result.monthlyBudgetCalculation
+            annualBudgetUsage = result.annualBudgetUsage
+            monthlyAllocation = result.monthlyAllocation
+            categoryHighlights = result.categoryHighlights
+            annualBudgetProgressCalculation = result.annualBudgetProgressCalculation
+            annualBudgetCategoryEntries = result.annualBudgetCategoryEntries
+        } catch {
+            // Keep previous state if fetching fails
+        }
     }
-
     // MARK: - Actions
 
     /// 前月に移動
@@ -310,5 +211,16 @@ internal final class DashboardStore {
         update(&navigator)
         currentYear = navigator.year
         currentMonth = navigator.month
+    }
+
+    private func bootstrapInitialState() async {
+        let defaultYear = currentYear
+        let resolvedYear = (try? await Task { @DatabaseActor in
+            try repository.resolveInitialYear(defaultYear: defaultYear)
+        }.value) ?? defaultYear
+        if resolvedYear != currentYear {
+            currentYear = resolvedYear
+        }
+        await refresh()
     }
 }

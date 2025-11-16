@@ -49,7 +49,8 @@ internal struct DashboardView: View {
                 assertionFailure("ModelContainer is unavailable")
                 return
             }
-            store = DashboardStore(modelContainer: modelContainer)
+            let repository = SwiftDataDashboardRepository(modelContainer: modelContainer)
+            store = DashboardStore(repository: repository)
         }
     }
 

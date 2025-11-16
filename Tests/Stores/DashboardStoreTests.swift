@@ -14,7 +14,7 @@ internal struct DashboardStoreTests {
         let context = ModelContext(container)
 
         // When
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
 
         // Then
         let now = Date()
@@ -40,7 +40,7 @@ internal struct DashboardStoreTests {
         context.insert(transaction)
         try context.save()
 
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 11
         await store.refresh()
@@ -82,7 +82,7 @@ internal struct DashboardStoreTests {
         )
         try context.save()
 
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 12
         await store.refresh()
@@ -97,7 +97,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
 
         // When & Then
         #expect(store.displayMode == .monthly)
@@ -122,7 +122,7 @@ internal struct DashboardStoreTests {
         ))
         try context.save()
 
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 8
         await store.refresh()
@@ -137,7 +137,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 3
 
@@ -154,7 +154,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 1
 
@@ -171,7 +171,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 3
 
@@ -188,7 +188,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 12
 
@@ -205,7 +205,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
 
         // When
@@ -220,7 +220,7 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
 
         // When
@@ -251,7 +251,7 @@ internal struct DashboardStoreTests {
         }
         try context.save()
 
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 11
         await store.refresh()
@@ -281,7 +281,7 @@ internal struct DashboardStoreTests {
         context.insert(transaction)
         try context.save()
 
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
         await store.refresh()
 
@@ -310,7 +310,7 @@ internal struct DashboardStoreTests {
         context.insert(transaction)
         try context.save()
 
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
         await store.refresh()
 
@@ -323,7 +323,7 @@ internal struct DashboardStoreTests {
     internal func annualBudgetProgress_nilWhenNoBudget() throws {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         #expect(store.annualBudgetProgressCalculation == nil)
     }
 
@@ -337,7 +337,7 @@ internal struct DashboardStoreTests {
         context.insert(config)
         try context.save()
 
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
 
         #expect(store.currentYear == fallbackYear)
     }
@@ -369,7 +369,7 @@ internal struct DashboardStoreTests {
 
         try context.save()
 
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
         store.currentMonth = 1
         await store.refresh()
@@ -429,7 +429,7 @@ internal struct DashboardStoreTests {
 
         try context.save()
 
-        let store = DashboardStore(modelContainer: container)
+        let store = makeStore(container: container)
         store.currentYear = 2025
         await store.refresh()
 
@@ -449,5 +449,12 @@ internal struct DashboardStoreTests {
             FinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
+    }
+}
+
+private extension DashboardStoreTests {
+    func makeStore(container: ModelContainer) -> DashboardStore {
+        let repository = SwiftDataDashboardRepository(modelContainer: container)
+        return DashboardStore(repository: repository)
     }
 }
