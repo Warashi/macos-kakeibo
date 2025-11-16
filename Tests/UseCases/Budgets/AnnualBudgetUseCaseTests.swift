@@ -73,7 +73,7 @@ internal struct AnnualBudgetUseCaseTests {
     internal func calculatesAnnualUsage() {
         let year = 2025
         let food = CategoryEntity(name: "食費", displayOrder: 1)
-        let config = AnnualBudgetConfig(year: year, totalAmount: 200_000, policy: .automatic)
+        let config = AnnualBudgetConfigEntity(year: year, totalAmount: 200_000, policy: .automatic)
         config.allocations = [
             AnnualBudgetAllocation(amount: 200_000, category: food, policyOverride: .automatic),
         ]
@@ -89,7 +89,7 @@ internal struct AnnualBudgetUseCaseTests {
             budgets: [],
             transactions: transactions.map { Transaction(from: $0) },
             categories: [Category(from: food)],
-            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
+            annualBudgetConfig: AnnualBudgetConfig(from: config),
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],
             recurringPaymentOccurrences: [],

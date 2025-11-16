@@ -26,7 +26,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         let params = AllocationCalculationParams(
             transactions: transactions.map { Transaction(from: $0) },
             budgets: [],
-            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
+            annualBudgetConfig: AnnualBudgetConfig(from: config),
         )
 
         // When
@@ -76,7 +76,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         let params = AllocationCalculationParams(
             transactions: transactions.map { Transaction(from: $0) },
             budgets: budgets.map { Budget(from: $0) },
-            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
+            annualBudgetConfig: AnnualBudgetConfig(from: config),
         )
 
         // When
@@ -116,7 +116,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         let params = AllocationCalculationParams(
             transactions: transactions.map { Transaction(from: $0) },
             budgets: [],
-            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
+            annualBudgetConfig: AnnualBudgetConfig(from: config),
         )
 
         let categories = [Category(from: major), Category(from: minor)]
@@ -155,8 +155,8 @@ internal struct AnnualBudgetAllocatorCategoryTests {
     private func makeConfig(
         policy: AnnualBudgetPolicy = .automatic,
         allocations: [AllocationSeed] = [],
-    ) -> AnnualBudgetConfig {
-        let config = AnnualBudgetConfig(
+    ) -> AnnualBudgetConfigEntity {
+        let config = AnnualBudgetConfigEntity(
             year: 2025,
             totalAmount: 500_000,
             policy: policy,

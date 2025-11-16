@@ -145,7 +145,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
     }
 
     private func calculateAllocationsForUnbudgetedCategories(
-        config: AnnualBudgetConfigDTO,
+        config: AnnualBudgetConfig,
         categories: [Category],
         context: AllocationComputationContext,
         processedCategoryIds: inout Set<UUID>,
@@ -196,7 +196,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
     }
 
     private func calculateAllocationsForFullCoverage(
-        config: AnnualBudgetConfigDTO,
+        config: AnnualBudgetConfig,
         categories: [Category],
         context: AllocationComputationContext,
         processedCategoryIds: inout Set<UUID>,
@@ -286,7 +286,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
         return context.actualExpenseMap[categoryId] ?? 0
     }
 
-    private func allocationAmountMap(from config: AnnualBudgetConfigDTO) -> [UUID: Decimal] {
+    private func allocationAmountMap(from config: AnnualBudgetConfig) -> [UUID: Decimal] {
         config.allocations.reduce(into: [:]) { partialResult, allocation in
             partialResult[allocation.categoryId] = allocation.amount
         }

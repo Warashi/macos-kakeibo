@@ -18,7 +18,7 @@ internal struct SeedHelperTests {
         #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) > 0)
         #expect(SeedHelper.count(TransactionEntity.self, in: container) > 0)
         #expect(SeedHelper.count(BudgetEntity.self, in: container) > 0)
-        #expect(SeedHelper.count(AnnualBudgetConfig.self, in: container) == 1)
+        #expect(SeedHelper.count(AnnualBudgetConfigEntity.self, in: container) == 1)
     }
 
     @Test("金融機関のみを投入できる")
@@ -62,7 +62,7 @@ internal struct SeedHelperTests {
         #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) == 0)
         #expect(SeedHelper.count(TransactionEntity.self, in: container) == 0)
         #expect(SeedHelper.count(BudgetEntity.self, in: container) == 0)
-        #expect(SeedHelper.count(AnnualBudgetConfig.self, in: container) == 0)
+        #expect(SeedHelper.count(AnnualBudgetConfigEntity.self, in: container) == 0)
     }
 
     // MARK: - カウントテスト

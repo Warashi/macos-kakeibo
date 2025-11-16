@@ -51,7 +51,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         let budgetDTOs = budgets.map { Budget(from: $0) }
         let transactionDTOs = transactions.map { Transaction(from: $0) }
         let categoryDTOs = categories.map { Category(from: $0) }
-        let configDTO = config.map { AnnualBudgetConfigDTO(from: $0) }
+        let configDTO = config.map { AnnualBudgetConfig(from: $0) }
 
         return BudgetSnapshot(
             budgets: budgetDTOs,
@@ -111,12 +111,12 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         try modelContext.count(FinancialInstitutionEntity.self)
     }
 
-    internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfigDTO? {
-        try modelContext.fetch(BudgetQueries.annualConfig(for: year)).first.map { AnnualBudgetConfigDTO(from: $0) }
+    internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfig? {
+        try modelContext.fetch(BudgetQueries.annualConfig(for: year)).first.map { AnnualBudgetConfig(from: $0) }
     }
 
     internal func countAnnualBudgetConfigs() throws -> Int {
-        try modelContext.count(AnnualBudgetConfig.self)
+        try modelContext.count(AnnualBudgetConfigEntity.self)
     }
 
     internal func addBudget(_ input: BudgetInput) throws {
@@ -169,7 +169,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func deleteAllAnnualBudgetConfigs() throws {
-        let descriptor: ModelFetchRequest<AnnualBudgetConfig> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<AnnualBudgetConfigEntity> = ModelFetchFactory.make()
         let configs = try modelContext.fetch(descriptor)
         for config in configs {
             modelContext.delete(config)
@@ -199,7 +199,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
 
     internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) throws {
         let config = try modelContext.fetch(BudgetQueries.annualConfig(for: input.year)).first
-            ?? AnnualBudgetConfig(
+            ?? AnnualBudgetConfigEntity(
                 year: input.year,
                 totalAmount: input.totalAmount,
                 policy: input.policy

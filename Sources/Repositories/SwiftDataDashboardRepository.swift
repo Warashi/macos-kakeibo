@@ -23,7 +23,7 @@ internal final class SwiftDataDashboardRepository: DashboardRepository {
         )
         let budgets = try context.fetch(BudgetQueries.budgets(overlapping: year)).map { Budget(from: $0) }
         let categories = try context.fetch(CategoryQueries.sortedForDisplay()).map { Category(from: $0) }
-        let config = try context.fetch(BudgetQueries.annualConfig(for: year)).first.map { AnnualBudgetConfigDTO(from: $0) }
+        let config = try context.fetch(BudgetQueries.annualConfig(for: year)).first.map { AnnualBudgetConfig(from: $0) }
 
         return DashboardSnapshot(
             monthlyTransactions: monthlyTransactions,

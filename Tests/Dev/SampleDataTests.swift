@@ -147,7 +147,7 @@ internal struct SampleDataTests {
         }
     }
 
-    // MARK: - AnnualBudgetConfig Tests
+    // MARK: - AnnualBudgetConfigEntity Tests
 
     @Test("サンプル年次特別枠設定が生成できる")
     internal func sampleAnnualBudgetConfig() {

@@ -9,7 +9,7 @@ internal struct AnnualBudgetResultFormatterTests {
 
     @Test("使用状況フォーマット：残額と利用率を計算")
     internal func formatUsage() throws {
-        let config = AnnualBudgetConfig(
+        let config = AnnualBudgetConfigEntity(
             year: 2025,
             totalAmount: 200_000,
             policy: .automatic,
@@ -32,7 +32,7 @@ internal struct AnnualBudgetResultFormatterTests {
 
         let usage = formatter.makeUsage(
             accumulationResult: accumulationResult,
-            config: AnnualBudgetConfigDTO(from: config),
+            config: AnnualBudgetConfig(from: config),
         )
 
         #expect(usage.remainingAmount == 150_000)
@@ -42,13 +42,13 @@ internal struct AnnualBudgetResultFormatterTests {
 
     @Test("無効時は空の使用状況を返す")
     internal func disabledUsage() throws {
-        let config = AnnualBudgetConfig(
+        let config = AnnualBudgetConfigEntity(
             year: 2025,
             totalAmount: 100_000,
             policy: .disabled,
         )
 
-        let usage = formatter.makeDisabledUsage(year: 2025, config: AnnualBudgetConfigDTO(from: config))
+        let usage = formatter.makeDisabledUsage(year: 2025, config: AnnualBudgetConfig(from: config))
 
         #expect(usage.usedAmount == 0)
         #expect(usage.categoryAllocations.isEmpty)

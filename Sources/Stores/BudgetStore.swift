@@ -74,7 +74,7 @@ internal final class BudgetStore {
     internal var overallBudgetEntry: MonthlyBudgetEntry?
 
     /// 年次特別枠設定
-    internal var annualBudgetConfig: AnnualBudgetConfigDTO?
+    internal var annualBudgetConfig: AnnualBudgetConfig?
 
     /// 年次特別枠の使用状況
     internal var annualBudgetUsage: AnnualBudgetUsage?

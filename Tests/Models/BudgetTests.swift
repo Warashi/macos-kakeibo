@@ -151,13 +151,13 @@ internal struct BudgetEntityTests {
     }
 }
 
-@Suite("AnnualBudgetConfig Tests")
+@Suite("AnnualBudgetConfigEntity Tests")
 internal struct AnnualBudgetConfigTests {
     // MARK: - 初期化テスト
 
     @Test("年次特別枠設定を初期化できる")
     internal func initializeAnnualBudgetConfig() {
-        let config = AnnualBudgetConfig(
+        let config = AnnualBudgetConfigEntity(
             year: 2025,
             totalAmount: 200_000,
         )
@@ -169,17 +169,17 @@ internal struct AnnualBudgetConfigTests {
 
     @Test("充当ポリシー付きで年次特別枠設定を初期化できる")
     internal func initializeAnnualBudgetConfigWithPolicy() {
-        let config1 = AnnualBudgetConfig(
+        let config1 = AnnualBudgetConfigEntity(
             year: 2025,
             totalAmount: 200_000,
             policy: .automatic,
         )
-        let config2 = AnnualBudgetConfig(
+        let config2 = AnnualBudgetConfigEntity(
             year: 2025,
             totalAmount: 200_000,
             policy: .manual,
         )
-        let config3 = AnnualBudgetConfig(
+        let config3 = AnnualBudgetConfigEntity(
             year: 2025,
             totalAmount: 200_000,
             policy: .disabled,
@@ -194,7 +194,7 @@ internal struct AnnualBudgetConfigTests {
 
     @Test("充当ポリシーを変更できる")
     internal func changePolicy() {
-        let config = AnnualBudgetConfig(
+        let config = AnnualBudgetConfigEntity(
             year: 2025,
             totalAmount: 200_000,
             policy: .automatic,
@@ -213,7 +213,7 @@ internal struct AnnualBudgetConfigTests {
 
     @Test("有効な年次特別枠設定の場合、バリデーションエラーがない")
     internal func validateValidAnnualBudgetConfig() {
-        let config = AnnualBudgetConfig(
+        let config = AnnualBudgetConfigEntity(
             year: 2025,
             totalAmount: 200_000,
         )
@@ -225,8 +225,8 @@ internal struct AnnualBudgetConfigTests {
 
     @Test("総額が0以下の場合、バリデーションエラーが発生する")
     internal func validateTotalAmountZeroOrNegative() {
-        let config1 = AnnualBudgetConfig(year: 2025, totalAmount: 0)
-        let config2 = AnnualBudgetConfig(year: 2025, totalAmount: -10000)
+        let config1 = AnnualBudgetConfigEntity(year: 2025, totalAmount: 0)
+        let config2 = AnnualBudgetConfigEntity(year: 2025, totalAmount: -10000)
 
         let errors1 = config1.validate()
         let errors2 = config2.validate()
@@ -241,8 +241,8 @@ internal struct AnnualBudgetConfigTests {
 
     @Test("年が不正な場合、バリデーションエラーが発生する")
     internal func validateInvalidYearForAnnualBudget() {
-        let config1 = AnnualBudgetConfig(year: 1999, totalAmount: 200_000)
-        let config2 = AnnualBudgetConfig(year: 2101, totalAmount: 200_000)
+        let config1 = AnnualBudgetConfigEntity(year: 1999, totalAmount: 200_000)
+        let config2 = AnnualBudgetConfigEntity(year: 2101, totalAmount: 200_000)
 
         let errors1 = config1.validate()
         let errors2 = config2.validate()
@@ -260,7 +260,7 @@ internal struct AnnualBudgetConfigTests {
     @Test("作成日時と更新日時が設定される")
     internal func setCreatedAndUpdatedDatesForAnnualBudget() {
         let before = Date()
-        let config = AnnualBudgetConfig(year: 2025, totalAmount: 200_000)
+        let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 200_000)
         let after = Date()
 
         #expect(config.createdAt >= before)

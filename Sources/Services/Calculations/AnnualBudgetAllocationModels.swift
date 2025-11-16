@@ -93,7 +93,7 @@ internal struct AllocationCalculationParams {
     internal let budgets: [Budget]
 
     /// 年次特別枠設定
-    internal let annualBudgetConfig: AnnualBudgetConfigDTO
+    internal let annualBudgetConfig: AnnualBudgetConfig
 
     /// 集計フィルタ
     internal let filter: AggregationFilter
@@ -101,7 +101,7 @@ internal struct AllocationCalculationParams {
     internal init(
         transactions: [Transaction],
         budgets: [Budget],
-        annualBudgetConfig: AnnualBudgetConfigDTO,
+        annualBudgetConfig: AnnualBudgetConfig,
         filter: AggregationFilter = .default,
     ) {
         self.transactions = transactions

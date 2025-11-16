@@ -41,8 +41,8 @@ internal struct QueryBuilderTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
-        context.insert(AnnualBudgetConfig(year: 2024, totalAmount: 100_000, policy: .automatic))
-        context.insert(AnnualBudgetConfig(year: 2025, totalAmount: 120_000, policy: .automatic))
+        context.insert(AnnualBudgetConfigEntity(year: 2024, totalAmount: 100_000, policy: .automatic))
+        context.insert(AnnualBudgetConfigEntity(year: 2025, totalAmount: 120_000, policy: .automatic))
         try context.save()
 
         let descriptor = BudgetQueries.annualConfig(for: 2025)

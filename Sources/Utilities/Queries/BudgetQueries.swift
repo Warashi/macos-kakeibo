@@ -16,16 +16,16 @@ internal enum BudgetQueries {
         )
     }
 
-    internal static func annualConfig(for year: Int) -> ModelFetchRequest<AnnualBudgetConfig> {
+    internal static func annualConfig(for year: Int) -> ModelFetchRequest<AnnualBudgetConfigEntity> {
         ModelFetchFactory.make(
             predicate: #Predicate { $0.year == year },
             fetchLimit: 1,
         )
     }
 
-    internal static func latestAnnualConfig() -> ModelFetchRequest<AnnualBudgetConfig> {
+    internal static func latestAnnualConfig() -> ModelFetchRequest<AnnualBudgetConfigEntity> {
         ModelFetchFactory.make(
-            sortBy: [SortDescriptor(\AnnualBudgetConfig.year, order: .reverse)],
+            sortBy: [SortDescriptor(\AnnualBudgetConfigEntity.year, order: .reverse)],
             fetchLimit: 1,
         )
     }

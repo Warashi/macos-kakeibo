@@ -76,7 +76,7 @@ internal struct AnnualBudgetFormState {
     internal var policy: AnnualBudgetPolicy = .automatic
     internal var allocationRows: [AnnualBudgetAllocationRowState] = []
 
-    internal mutating func load(from config: AnnualBudgetConfig) {
+    internal mutating func load(from config: AnnualBudgetConfigEntity) {
         totalAmountText = config.totalAmount.plainString
         policy = config.policy
         allocationRows = config.allocations.map { allocation in
@@ -97,7 +97,7 @@ internal struct AnnualBudgetFormState {
         ensureInitialRow()
     }
 
-    internal mutating func load(from config: AnnualBudgetConfigDTO, categories: [Category]) {
+    internal mutating func load(from config: AnnualBudgetConfig, categories: [Category]) {
         totalAmountText = config.totalAmount.plainString
         policy = config.policy
         let categoryLookup = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })

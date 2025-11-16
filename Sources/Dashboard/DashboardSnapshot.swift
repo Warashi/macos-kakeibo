@@ -6,5 +6,5 @@ internal struct DashboardSnapshot: Sendable {
     internal let annualTransactions: [Transaction]
     internal let budgets: [Budget]
     internal let categories: [Category]
-    internal let config: AnnualBudgetConfigDTO?
+    internal let config: AnnualBudgetConfig?
 }

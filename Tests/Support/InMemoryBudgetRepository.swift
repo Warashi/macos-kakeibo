@@ -76,7 +76,7 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
         institutions.count
     }
 
-    internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfigDTO? {
+    internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfig? {
         nil
     }
 

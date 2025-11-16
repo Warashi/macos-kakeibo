@@ -86,7 +86,7 @@ internal enum SeedHelper {
         // 削除は依存関係の逆順で行う
         try context.delete(model: TransactionEntity.self)
         try context.delete(model: BudgetEntity.self)
-        try context.delete(model: AnnualBudgetConfig.self)
+        try context.delete(model: AnnualBudgetConfigEntity.self)
         try deleteCategoriesSafely(in: context)
         try context.delete(model: FinancialInstitutionEntity.self)
 

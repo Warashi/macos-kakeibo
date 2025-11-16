@@ -15,7 +15,7 @@ internal enum AnnualBudgetPolicy: String, Codable, CaseIterable {
     case disabled // 無効
 }
 
-internal extension AnnualBudgetConfig {
+internal extension AnnualBudgetConfigEntity {
     func fullCoverageCategoryIDs(
         includingChildrenFrom categories: [CategoryEntity] = [],
     ) -> Set<UUID> {
@@ -226,7 +226,7 @@ internal extension BudgetEntity {
 // MARK: - 年次特別枠設定
 
 @Model
-internal final class AnnualBudgetConfig {
+internal final class AnnualBudgetConfigEntity {
     internal var id: UUID
 
     /// 対象年
@@ -276,7 +276,7 @@ internal final class AnnualBudgetConfig {
 
 // MARK: - Validation
 
-internal extension AnnualBudgetConfig {
+internal extension AnnualBudgetConfigEntity {
     /// データの検証
     func validate() -> [String] {
         var errors: [String] = []
@@ -307,7 +307,7 @@ internal final class AnnualBudgetAllocation {
     internal var category: CategoryEntity
     internal var policyOverrideRawValue: String?
 
-    internal var config: AnnualBudgetConfig?
+    internal var config: AnnualBudgetConfigEntity?
 
     internal var createdAt: Date
     internal var updatedAt: Date
@@ -339,7 +339,7 @@ internal final class AnnualBudgetAllocation {
     }
 }
 
-internal extension AnnualBudgetConfig {
+internal extension AnnualBudgetConfigEntity {
     /// カテゴリ配分の合計
     var allocationTotalAmount: Decimal {
         allocations.reduce(0) { $0 + $1.amount }

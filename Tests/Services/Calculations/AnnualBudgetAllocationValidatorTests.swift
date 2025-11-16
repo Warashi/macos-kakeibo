@@ -60,7 +60,7 @@ internal struct AnnualBudgetAllocationValidatorTests {
         policy: AnnualBudgetPolicy,
         allocations: [AnnualBudgetAllocation] = [],
     ) -> AllocationCalculationParams {
-        let config = AnnualBudgetConfig(
+        let config = AnnualBudgetConfigEntity(
             year: 2025,
             totalAmount: 500_000,
             policy: policy,
@@ -71,7 +71,7 @@ internal struct AnnualBudgetAllocationValidatorTests {
         return AllocationCalculationParams(
             transactions: [],
             budgets: [],
-            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
+            annualBudgetConfig: AnnualBudgetConfig(from: config),
         )
     }
 }

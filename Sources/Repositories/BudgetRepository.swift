@@ -10,7 +10,7 @@ internal protocol BudgetRepository: Sendable {
     func findInstitutionByName(_ name: String) throws -> FinancialInstitution?
     func createInstitution(name: String) throws -> UUID
     func countFinancialInstitutions() throws -> Int
-    func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfigDTO?
+    func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfig?
     func countAnnualBudgetConfigs() throws -> Int
     func addBudget(_ input: BudgetInput) throws
     func updateBudget(input: BudgetUpdateInput) throws

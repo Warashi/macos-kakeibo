@@ -70,7 +70,7 @@ internal actor BackupManager {
         let transactions = try modelContext.fetchAll(TransactionEntity.self)
         let categories = try modelContext.fetchAll(CategoryEntity.self)
         let budgets = try modelContext.fetchAll(BudgetEntity.self)
-        let configs = try modelContext.fetchAll(AnnualBudgetConfig.self)
+        let configs = try modelContext.fetchAll(AnnualBudgetConfigEntity.self)
         let institutions = try modelContext.fetchAll(FinancialInstitutionEntity.self)
 
         let metadata = BackupMetadata(
@@ -91,7 +91,7 @@ internal actor BackupManager {
             transactions: transactions.map(BackupTransactionDTO.init),
             categories: categories.map(BackupCategory.init),
             budgets: budgets.map(BackupBudgetDTO.init),
-            annualBudgetConfigs: configs.map(BackupAnnualBudgetConfigDTO.init),
+            annualBudgetConfigs: configs.map(BackupAnnualBudgetConfig.init),
             financialInstitutions: institutions.map(BackupFinancialInstitutionDTO.init),
         )
     }
@@ -139,7 +139,7 @@ internal actor BackupManager {
     private func clearAllData(in context: ModelContext) throws {
         try deleteAll(TransactionEntity.self, in: context)
         try deleteAll(BudgetEntity.self, in: context)
-        try deleteAll(AnnualBudgetConfig.self, in: context)
+        try deleteAll(AnnualBudgetConfigEntity.self, in: context)
         try deleteCategoriesSafely(in: context)
         try deleteAll(FinancialInstitutionEntity.self, in: context)
     }
@@ -242,11 +242,11 @@ internal actor BackupManager {
     }
 
     private func insertAnnualBudgetConfigs(
-        _ dtos: [BackupAnnualBudgetConfigDTO],
+        _ dtos: [BackupAnnualBudgetConfig],
         context: ModelContext,
     ) throws {
         for dto in dtos {
-            let config = AnnualBudgetConfig(
+            let config = AnnualBudgetConfigEntity(
                 id: dto.id,
                 year: dto.year,
                 totalAmount: dto.totalAmount,
@@ -301,7 +301,7 @@ internal struct BackupPayload: Codable, Sendable {
     internal let transactions: [BackupTransactionDTO]
     internal let categories: [BackupCategory]
     internal let budgets: [BackupBudgetDTO]
-    internal let annualBudgetConfigs: [BackupAnnualBudgetConfigDTO]
+    internal let annualBudgetConfigs: [BackupAnnualBudgetConfig]
     internal let financialInstitutions: [BackupFinancialInstitutionDTO]
 }
 
@@ -379,7 +379,7 @@ internal struct BackupBudgetDTO: Codable {
     }
 }
 
-internal struct BackupAnnualBudgetConfigDTO: Codable {
+internal struct BackupAnnualBudgetConfig: Codable {
     internal let id: UUID
     internal let year: Int
     internal let totalAmount: Decimal
@@ -387,7 +387,7 @@ internal struct BackupAnnualBudgetConfigDTO: Codable {
     internal let createdAt: Date
     internal let updatedAt: Date
 
-    internal init(config: AnnualBudgetConfig) {
+    internal init(config: AnnualBudgetConfigEntity) {
         self.id = config.id
         self.year = config.year
         self.totalAmount = config.totalAmount

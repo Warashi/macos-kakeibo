@@ -27,7 +27,7 @@ internal struct AnnualBudgetAllocationEngineTests {
         let params = AllocationCalculationParams(
             transactions: transactions.map { Transaction(from: $0) },
             budgets: budgets.map { Budget(from: $0) },
-            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
+            annualBudgetConfig: AnnualBudgetConfig(from: config),
         )
 
         let accumulationParams = AccumulationParams(
@@ -35,7 +35,7 @@ internal struct AnnualBudgetAllocationEngineTests {
             year: 2025,
             endMonth: 2,
             policy: .automatic,
-            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
+            annualBudgetConfig: AnnualBudgetConfig(from: config),
         )
 
         let categories = [Category(from: category)]
@@ -70,7 +70,7 @@ internal struct AnnualBudgetAllocationEngineTests {
         let params = AllocationCalculationParams(
             transactions: transactions.map { Transaction(from: $0) },
             budgets: [],
-            annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
+            annualBudgetConfig: AnnualBudgetConfig(from: config),
         )
 
         let categories = [Category(from: major), Category(from: minor)]
@@ -93,8 +93,8 @@ internal struct AnnualBudgetAllocationEngineTests {
     private func makeConfig(
         policy: AnnualBudgetPolicy,
         allocations: [AllocationSeed],
-    ) -> AnnualBudgetConfig {
-        let config = AnnualBudgetConfig(
+    ) -> AnnualBudgetConfigEntity {
+        let config = AnnualBudgetConfigEntity(
             year: 2025,
             totalAmount: 1_000_000,
             policy: policy,

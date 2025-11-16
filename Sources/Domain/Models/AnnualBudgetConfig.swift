@@ -1,7 +1,7 @@
 import Foundation
 
-/// 年次特別枠設定のDTO（Sendable）
-internal struct AnnualBudgetConfigDTO: Sendable, Hashable, Equatable {
+/// 年次特別枠設定のドメインモデル
+internal struct AnnualBudgetConfig: Sendable, Hashable, Equatable {
     internal let id: UUID
     internal let year: Int
     internal let totalAmount: Decimal
@@ -28,7 +28,7 @@ internal struct AnnualBudgetConfigDTO: Sendable, Hashable, Equatable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from config: AnnualBudgetConfig) {
+    internal init(from config: AnnualBudgetConfigEntity) {
         self.id = config.id
         self.year = config.year
         self.totalAmount = config.totalAmount

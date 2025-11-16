@@ -60,7 +60,7 @@ private func seedSampleData(in context: ModelContext) throws {
     let major = CategoryEntity(name: "食費", allowsAnnualBudget: false, displayOrder: 1)
     let minor = CategoryEntity(name: "外食", parent: major, allowsAnnualBudget: false, displayOrder: 1)
 let budget = BudgetEntity(amount: 50000, category: major, year: 2025, month: 11)
-    let config = AnnualBudgetConfig(year: 2025, totalAmount: 100_000, policy: .automatic)
+    let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 100_000, policy: .automatic)
     let transaction = TransactionEntity(
         date: Date(),
         title: "テストディナー",

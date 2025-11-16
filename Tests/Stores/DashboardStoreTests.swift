@@ -333,7 +333,7 @@ internal struct DashboardStoreTests {
         let context = ModelContext(container)
 
         let fallbackYear = Date().year - 1
-        let config = AnnualBudgetConfig(year: fallbackYear, totalAmount: 100_000, policy: .automatic)
+        let config = AnnualBudgetConfigEntity(year: fallbackYear, totalAmount: 100_000, policy: .automatic)
         context.insert(config)
         try context.save()
 
@@ -362,7 +362,7 @@ internal struct DashboardStoreTests {
         let budget = BudgetEntity(amount: 30000, category: category, year: 2025, month: 1)
         context.insert(budget)
 
-        let config = AnnualBudgetConfig(year: 2025, totalAmount: 200_000, policy: .automatic)
+        let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 200_000, policy: .automatic)
         let allocation = AnnualBudgetAllocation(amount: 100_000, category: category)
         allocation.config = config
         context.insert(config)
@@ -417,7 +417,7 @@ internal struct DashboardStoreTests {
         context.insert(specialTransaction)
 
         // 年次特別枠設定（specialCategoryをfullCoverageに設定）
-        let config = AnnualBudgetConfig(year: 2025, totalAmount: 200_000, policy: .automatic)
+        let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 200_000, policy: .automatic)
         let allocation = AnnualBudgetAllocation(
             amount: 100_000,
             category: specialCategory,
@@ -446,7 +446,7 @@ internal struct DashboardStoreTests {
 
     private func createInMemoryContainer() throws -> ModelContainer {
         try ModelContainer(
-            for: TransactionEntity.self, CategoryEntity.self, BudgetEntity.self, AnnualBudgetConfig.self,
+            for: TransactionEntity.self, CategoryEntity.self, BudgetEntity.self, AnnualBudgetConfigEntity.self,
             FinancialInstitutionEntity.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )

@@ -424,7 +424,7 @@ private final class MockBudgetRepository: BudgetRepository {
         institutionCount
     }
 
-    internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfigDTO? {
+    internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfig? {
         nil
     }
 

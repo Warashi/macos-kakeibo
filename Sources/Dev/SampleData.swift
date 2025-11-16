@@ -124,15 +124,15 @@ internal enum SampleData {
         return budgets
     }
 
-    // MARK: - AnnualBudgetConfig
+    // MARK: - AnnualBudgetConfigEntity
 
     /// サンプル年次特別枠設定
-    internal static func createSampleAnnualBudgetConfig() -> AnnualBudgetConfig {
+    internal static func createSampleAnnualBudgetConfig() -> AnnualBudgetConfigEntity {
         let calendar = Calendar.current
         let now = Date()
         let year = calendar.component(.year, from: now)
 
-        return AnnualBudgetConfig(
+        return AnnualBudgetConfigEntity(
             year: year,
             totalAmount: 500_000,
             policy: .automatic,

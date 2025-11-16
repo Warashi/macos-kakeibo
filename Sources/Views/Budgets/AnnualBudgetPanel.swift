@@ -6,7 +6,7 @@ import SwiftUI
 /// 対象年の設定と使用状況を表示します。
 internal struct AnnualBudgetPanel: View {
     internal let year: Int
-    internal let config: AnnualBudgetConfigDTO?
+    internal let config: AnnualBudgetConfig?
     internal let usage: AnnualBudgetUsage?
     internal let categories: [Category]
     internal let onEdit: () -> Void
@@ -160,7 +160,7 @@ internal struct AnnualBudgetPanelRow: Identifiable {
 
 internal enum AnnualBudgetPanelContentBuilder {
     internal static func build(
-        config: AnnualBudgetConfigDTO,
+        config: AnnualBudgetConfig,
         usage: AnnualBudgetUsage?,
         categories: [Category],
     ) -> AnnualBudgetPanelContent {
