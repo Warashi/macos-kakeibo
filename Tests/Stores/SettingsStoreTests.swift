@@ -50,7 +50,14 @@ internal struct SettingsStoreTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         try seedTransaction(in: context)
-        let store = await makeSettingsStore(modelContainer: container, userDefaults: defaults)
+        let transactionRepository = await makeTransactionRepository { repository in
+            repository.transactionCount = 1
+        }
+        let store = await makeSettingsStore(
+            modelContainer: container,
+            userDefaults: defaults,
+            transactionRepository: transactionRepository
+        )
 
         // When
         let archive = try await store.createBackupArchive()
@@ -66,15 +73,46 @@ internal struct SettingsStoreTests {
         // Given
         let defaults = makeUserDefaults(suffix: "delete")
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
-        try seedTransaction(in: context)
-        let store = await makeSettingsStore(modelContainer: container, userDefaults: defaults)
+        let transactionRepository = await makeTransactionRepository { repository in
+            repository.transactionCount = 1
+        }
+        let budgetRepository = await makeBudgetRepository { repository in
+            repository.budgetCount = 1
+            repository.annualBudgetConfigCount = 1
+            repository.categoryCount = 1
+            repository.institutionCount = 1
+        }
+        let store = await makeSettingsStore(
+            modelContainer: container,
+            userDefaults: defaults,
+            transactionRepository: transactionRepository,
+            budgetRepository: budgetRepository
+        )
 
         // When
         try await store.deleteAllData()
 
         // Then
-        #expect(try context.count(Transaction.self) == 0)
+        let deleteCalls = await Task { @DatabaseActor () -> (
+            Int,
+            Int,
+            Int,
+            Int,
+            Int
+        ) in
+            (
+                transactionRepository.deleteAllTransactionsCallCount,
+                budgetRepository.deleteAllBudgetsCallCount,
+                budgetRepository.deleteAllConfigsCallCount,
+                budgetRepository.deleteAllCategoriesCallCount,
+                budgetRepository.deleteAllInstitutionsCallCount
+            )
+        }.value
+        #expect(deleteCalls.0 == 1)
+        #expect(deleteCalls.1 == 1)
+        #expect(deleteCalls.2 == 1)
+        #expect(deleteCalls.3 == 1)
+        #expect(deleteCalls.4 == 1)
         #expect(store.statistics.totalRecords == 0)
         #expect(store.statusMessage?.contains("削除") == true)
     }
@@ -84,18 +122,34 @@ internal struct SettingsStoreTests {
         // Given
         let defaults = makeUserDefaults(suffix: "refresh")
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
-        let store = await makeSettingsStore(modelContainer: container, userDefaults: defaults)
+        let transactionRepository = await makeTransactionRepository()
+        let budgetRepository = await makeBudgetRepository()
+        let store = await makeSettingsStore(
+            modelContainer: container,
+            userDefaults: defaults,
+            transactionRepository: transactionRepository,
+            budgetRepository: budgetRepository
+        )
         #expect(store.statistics == .empty)
 
-        try seedTransaction(in: context)
+        await Task { @DatabaseActor in
+            transactionRepository.transactionCount = 2
+            budgetRepository.budgetCount = 3
+            budgetRepository.annualBudgetConfigCount = 1
+            budgetRepository.categoryCount = 4
+            budgetRepository.institutionCount = 2
+        }.value
 
         // When
         await store.refreshStatistics()
 
         // Then
-        #expect(store.statistics.transactions == 1)
-        #expect(store.statistics.totalRecords == 3)
+        #expect(store.statistics.transactions == 2)
+        #expect(store.statistics.categories == 4)
+        #expect(store.statistics.budgets == 3)
+        #expect(store.statistics.annualBudgetConfigs == 1)
+        #expect(store.statistics.financialInstitutions == 2)
+        #expect(store.statistics.totalRecords == 12)
     }
 
     @Test("CSVエクスポート結果に取引が含まれる")
@@ -103,9 +157,31 @@ internal struct SettingsStoreTests {
         // Given
         let defaults = makeUserDefaults(suffix: "csv")
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
-        try seedTransaction(in: context)
-        let store = await makeSettingsStore(modelContainer: container, userDefaults: defaults)
+        let major = Category(name: "食費")
+        let minor = Category(name: "外食", parent: major)
+        let institution = FinancialInstitution(name: "銀行")
+        let transaction = Transaction(
+            date: Date(),
+            title: "テスト",
+            amount: -1_000,
+            financialInstitution: institution,
+            majorCategory: major,
+            minorCategory: minor
+        )
+        let transactionDTO = TransactionDTO(from: transaction)
+        let categoryDTOs = [CategoryDTO(from: major), CategoryDTO(from: minor)]
+        let institutionDTO = FinancialInstitutionDTO(from: institution)
+        let transactionRepository = await makeTransactionRepository { repository in
+            repository.snapshotTransactions = [transactionDTO]
+            repository.snapshotCategories = categoryDTOs
+            repository.snapshotInstitutions = [institutionDTO]
+            repository.transactionCount = 1
+        }
+        let store = await makeSettingsStore(
+            modelContainer: container,
+            userDefaults: defaults,
+            transactionRepository: transactionRepository
+        )
 
         // When
         let result = try await store.exportTransactionsCSV()
@@ -129,7 +205,14 @@ internal struct SettingsStoreTests {
         let defaults = makeUserDefaults(suffix: "restore")
         let targetContainer = try ModelContainer.createInMemoryContainer()
         let targetContext = ModelContext(targetContainer)
-        let store = await makeSettingsStore(modelContainer: targetContainer, userDefaults: defaults)
+        let transactionRepository = await makeTransactionRepository { repository in
+            repository.transactionCount = 1
+        }
+        let store = await makeSettingsStore(
+            modelContainer: targetContainer,
+            userDefaults: defaults,
+            transactionRepository: transactionRepository
+        )
 
         #expect(try targetContext.count(Transaction.self) == 0)
 
@@ -178,23 +261,220 @@ private func makeUserDefaults(suffix: String) -> UserDefaults {
 @MainActor
 private func makeSettingsStore(
     modelContainer: ModelContainer,
-    userDefaults: UserDefaults
+    userDefaults: UserDefaults,
+    transactionRepository: MockTransactionRepository? = nil,
+    budgetRepository: MockBudgetRepository? = nil
 ) async -> SettingsStore {
-    let repositories = await makeSettingsStoreRepositories(modelContainer: modelContainer)
+    let resolvedTransactionRepository: MockTransactionRepository
+    if let transactionRepository {
+        resolvedTransactionRepository = transactionRepository
+    } else {
+        resolvedTransactionRepository = await makeTransactionRepository()
+    }
+    let resolvedBudgetRepository: MockBudgetRepository
+    if let budgetRepository {
+        resolvedBudgetRepository = budgetRepository
+    } else {
+        resolvedBudgetRepository = await makeBudgetRepository()
+    }
     return await SettingsStore(
         modelContainer: modelContainer,
         userDefaults: userDefaults,
-        transactionRepository: repositories.transaction,
-        budgetRepository: repositories.budget
+        transactionRepository: resolvedTransactionRepository,
+        budgetRepository: resolvedBudgetRepository
     )
 }
 
-private func makeSettingsStoreRepositories(
-    modelContainer: ModelContainer
-) async -> (transaction: TransactionRepository, budget: BudgetRepository) {
-    await Task { @DatabaseActor () -> (TransactionRepository, BudgetRepository) in
-        let transactionRepository = SwiftDataTransactionRepository(modelContainer: modelContainer)
-        let budgetRepository = SwiftDataBudgetRepository(modelContainer: modelContainer)
-        return (transactionRepository, budgetRepository)
+@MainActor
+private func makeTransactionRepository(
+    configure: (@DatabaseActor (MockTransactionRepository) -> Void)? = nil
+) async -> MockTransactionRepository {
+    await Task { @DatabaseActor () -> MockTransactionRepository in
+        let repository = MockTransactionRepository()
+        configure?(repository)
+        return repository
     }.value
+}
+
+@MainActor
+private func makeBudgetRepository(
+    configure: (@DatabaseActor (MockBudgetRepository) -> Void)? = nil
+) async -> MockBudgetRepository {
+    await Task { @DatabaseActor () -> MockBudgetRepository in
+        let repository = MockBudgetRepository()
+        configure?(repository)
+        return repository
+    }.value
+}
+
+@DatabaseActor
+private final class MockTransactionRepository: TransactionRepository {
+    internal var transactionCount: Int = 0
+    internal var snapshotTransactions: [TransactionDTO] = []
+    internal var snapshotCategories: [CategoryDTO] = []
+    internal var snapshotInstitutions: [FinancialInstitutionDTO] = []
+    internal private(set) var deleteAllTransactionsCallCount: Int = 0
+
+    internal func fetchTransactions(query: TransactionQuery) throws -> [TransactionDTO] {
+        unsupported(#function)
+    }
+
+    internal func fetchAllTransactions() throws -> [TransactionDTO] {
+        snapshotTransactions
+    }
+
+    internal func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot {
+        TransactionCSVExportSnapshot(
+            transactions: snapshotTransactions,
+            categories: snapshotCategories,
+            institutions: snapshotInstitutions
+        )
+    }
+
+    internal func countTransactions() throws -> Int {
+        transactionCount
+    }
+
+    internal func fetchInstitutions() throws -> [FinancialInstitutionDTO] {
+        snapshotInstitutions
+    }
+
+    internal func fetchCategories() throws -> [CategoryDTO] {
+        snapshotCategories
+    }
+
+    @discardableResult
+    internal func observeTransactions(
+        query: TransactionQuery,
+        onChange: @escaping @MainActor ([TransactionDTO]) -> Void
+    ) throws -> ObservationToken {
+        unsupported(#function)
+    }
+
+    internal func findTransaction(id: UUID) throws -> TransactionDTO? {
+        unsupported(#function)
+    }
+
+    internal func findByIdentifier(_ identifier: String) throws -> TransactionDTO? {
+        unsupported(#function)
+    }
+
+    @discardableResult
+    internal func insert(_ input: TransactionInput) throws -> UUID {
+        unsupported(#function)
+    }
+
+    internal func update(_ input: TransactionUpdateInput) throws {
+        unsupported(#function)
+    }
+
+    internal func deleteAllTransactions() throws {
+        deleteAllTransactionsCallCount += 1
+        transactionCount = 0
+    }
+
+    internal func delete(id: UUID) throws {
+        unsupported(#function)
+    }
+
+    internal func saveChanges() throws {}
+}
+
+@DatabaseActor
+private final class MockBudgetRepository: BudgetRepository {
+    internal var budgetCount: Int = 0
+    internal var annualBudgetConfigCount: Int = 0
+    internal var categoryCount: Int = 0
+    internal var institutionCount: Int = 0
+
+    internal private(set) var deleteAllBudgetsCallCount: Int = 0
+    internal private(set) var deleteAllConfigsCallCount: Int = 0
+    internal private(set) var deleteAllCategoriesCallCount: Int = 0
+    internal private(set) var deleteAllInstitutionsCallCount: Int = 0
+
+    internal func fetchSnapshot(for year: Int) throws -> BudgetSnapshot {
+        unsupported(#function)
+    }
+
+    internal func category(id: UUID) throws -> CategoryDTO? {
+        unsupported(#function)
+    }
+
+    internal func findCategoryByName(_ name: String, parentId: UUID?) throws -> CategoryDTO? {
+        unsupported(#function)
+    }
+
+    internal func createCategory(name: String, parentId: UUID?) throws -> UUID {
+        unsupported(#function)
+    }
+
+    internal func countCategories() throws -> Int {
+        categoryCount
+    }
+
+    internal func findInstitutionByName(_ name: String) throws -> FinancialInstitutionDTO? {
+        unsupported(#function)
+    }
+
+    internal func createInstitution(name: String) throws -> UUID {
+        unsupported(#function)
+    }
+
+    internal func countFinancialInstitutions() throws -> Int {
+        institutionCount
+    }
+
+    internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfigDTO? {
+        nil
+    }
+
+    internal func countAnnualBudgetConfigs() throws -> Int {
+        annualBudgetConfigCount
+    }
+
+    internal func addBudget(_ input: BudgetInput) throws {
+        unsupported(#function)
+    }
+
+    internal func updateBudget(input: BudgetUpdateInput) throws {
+        unsupported(#function)
+    }
+
+    internal func deleteBudget(id: UUID) throws {
+        unsupported(#function)
+    }
+
+    internal func deleteAllBudgets() throws {
+        deleteAllBudgetsCallCount += 1
+        budgetCount = 0
+    }
+
+    internal func deleteAllAnnualBudgetConfigs() throws {
+        deleteAllConfigsCallCount += 1
+        annualBudgetConfigCount = 0
+    }
+
+    internal func deleteAllCategories() throws {
+        deleteAllCategoriesCallCount += 1
+        categoryCount = 0
+    }
+
+    internal func deleteAllFinancialInstitutions() throws {
+        deleteAllInstitutionsCallCount += 1
+        institutionCount = 0
+    }
+
+    internal func countBudgets() throws -> Int {
+        budgetCount
+    }
+
+    internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) throws {
+        unsupported(#function)
+    }
+
+    internal func saveChanges() throws {}
+}
+
+private func unsupported(_ function: StaticString) -> Never {
+    preconditionFailure("\(function) is not supported in this context")
 }
