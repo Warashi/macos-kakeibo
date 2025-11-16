@@ -51,6 +51,10 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         transactions.first { $0.id == id }.map { TransactionDTO(from: $0) }
     }
 
+    internal func findByIdentifier(_ identifier: String) throws -> TransactionDTO? {
+        transactions.first { $0.importIdentifier == identifier }.map { TransactionDTO(from: $0) }
+    }
+
     @discardableResult
     internal func insert(_ input: TransactionInput) throws -> UUID {
         let transaction = Transaction(

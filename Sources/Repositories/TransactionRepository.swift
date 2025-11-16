@@ -25,6 +25,7 @@ internal protocol TransactionRepository: Sendable {
         onChange: @escaping @MainActor ([TransactionDTO]) -> Void,
     ) throws -> ObservationToken
     func findTransaction(id: UUID) throws -> TransactionDTO?
+    func findByIdentifier(_ identifier: String) throws -> TransactionDTO?
     @discardableResult
     func insert(_ input: TransactionInput) throws -> UUID
     func update(_ input: TransactionUpdateInput) throws

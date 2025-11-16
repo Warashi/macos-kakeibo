@@ -45,6 +45,10 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
         try modelContext.fetch(TransactionQueries.byId(id)).first.map { TransactionDTO(from: $0) }
     }
 
+    internal func findByIdentifier(_ identifier: String) throws -> TransactionDTO? {
+        try modelContext.fetch(TransactionQueries.byImportIdentifier(identifier)).first.map { TransactionDTO(from: $0) }
+    }
+
     @discardableResult
     internal func insert(_ input: TransactionInput) throws -> UUID {
         let transaction = Transaction(
