@@ -251,6 +251,7 @@ internal struct RecurringPaymentStoreUpdateTests {
         let repository = await SwiftDataRecurringPaymentRepository(
             modelContainer: container,
             currentDateProvider: { referenceDate },
+            sharedContext: context
         )
         let store = RecurringPaymentStore(
             repository: repository,
