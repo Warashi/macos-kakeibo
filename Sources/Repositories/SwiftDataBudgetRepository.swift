@@ -102,13 +102,13 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func createInstitution(name: String) throws -> UUID {
-        let institution = FinancialInstitution(name: name)
+        let institution = FinancialInstitutionEntity(name: name)
         modelContext.insert(institution)
         return institution.id
     }
 
     internal func countFinancialInstitutions() throws -> Int {
-        try modelContext.count(FinancialInstitution.self)
+        try modelContext.count(FinancialInstitutionEntity.self)
     }
 
     internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfigDTO? {
@@ -189,7 +189,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func deleteAllFinancialInstitutions() throws {
-        let descriptor: ModelFetchRequest<FinancialInstitution> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<FinancialInstitutionEntity> = ModelFetchFactory.make()
         let institutions = try modelContext.fetch(descriptor)
         for institution in institutions {
             modelContext.delete(institution)

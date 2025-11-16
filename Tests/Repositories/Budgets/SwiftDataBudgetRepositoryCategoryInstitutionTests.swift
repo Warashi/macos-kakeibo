@@ -42,7 +42,7 @@ internal struct SwiftDataBudgetRepositoryCategoryInstitutionTests {
     @Test("金融機関を名前で検索できる")
     internal func findsInstitutionByName() throws {
         let (repository, context) = try makeRepository()
-        let institution = FinancialInstitution(name: "メイン口座")
+        let institution = FinancialInstitutionEntity(name: "メイン口座")
         context.insert(institution)
         try context.save()
 

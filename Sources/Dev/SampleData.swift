@@ -3,18 +3,18 @@ import Foundation
 
 /// 開発・デバッグ用のサンプルデータ定義
 internal enum SampleData {
-    // MARK: - FinancialInstitution
+    // MARK: - FinancialInstitutionEntity
 
     /// サンプル金融機関データ
-    internal static func financialInstitutions() -> [FinancialInstitution] {
+    internal static func financialInstitutions() -> [FinancialInstitutionEntity] {
         [
-            FinancialInstitution(name: "三菱UFJ銀行", displayOrder: 1),
-            FinancialInstitution(name: "三井住友銀行", displayOrder: 2),
-            FinancialInstitution(name: "楽天銀行", displayOrder: 3),
-            FinancialInstitution(name: "PayPay銀行", displayOrder: 4),
-            FinancialInstitution(name: "三井住友カード", displayOrder: 5),
-            FinancialInstitution(name: "楽天カード", displayOrder: 6),
-            FinancialInstitution(name: "現金", displayOrder: 7),
+            FinancialInstitutionEntity(name: "三菱UFJ銀行", displayOrder: 1),
+            FinancialInstitutionEntity(name: "三井住友銀行", displayOrder: 2),
+            FinancialInstitutionEntity(name: "楽天銀行", displayOrder: 3),
+            FinancialInstitutionEntity(name: "PayPay銀行", displayOrder: 4),
+            FinancialInstitutionEntity(name: "三井住友カード", displayOrder: 5),
+            FinancialInstitutionEntity(name: "楽天カード", displayOrder: 6),
+            FinancialInstitutionEntity(name: "現金", displayOrder: 7),
         ]
     }
 
@@ -79,7 +79,7 @@ internal enum SampleData {
     /// サンプル取引データ
     internal static func createSampleTransactions(
         categories: [CategoryEntity],
-        institutions: [FinancialInstitution],
+        institutions: [FinancialInstitutionEntity],
     ) -> [Transaction] {
         let refs = findCategoriesAndInstitutions(categories: categories, institutions: institutions)
         let calendar = Calendar.current
@@ -268,7 +268,7 @@ private func createHobbyTransactions(
 /// カテゴリと金融機関の参照をまとめて検索
 private func findCategoriesAndInstitutions(
     categories: [CategoryEntity],
-    institutions: [FinancialInstitution],
+    institutions: [FinancialInstitutionEntity],
 ) -> CategoryAndInstitutionRefs {
     CategoryAndInstitutionRefs(
         food: categories.first { $0.name == "食費" },
@@ -301,9 +301,9 @@ private struct CategoryAndInstitutionRefs {
     internal let train: CategoryEntity?
     internal let incomeCategory: CategoryEntity?
     internal let salary: CategoryEntity?
-    internal let card: FinancialInstitution?
-    internal let cash: FinancialInstitution?
-    internal let bank: FinancialInstitution?
+    internal let card: FinancialInstitutionEntity?
+    internal let cash: FinancialInstitutionEntity?
+    internal let bank: FinancialInstitutionEntity?
 }
 
 #endif

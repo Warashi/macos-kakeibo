@@ -29,7 +29,7 @@ internal struct TransactionInitializationTests {
     @Test("すべてのパラメータ付きで取引を初期化できる")
     internal func initializeTransactionWithAllParameters() {
         let date = Date()
-        let institution = FinancialInstitution(name: "三菱UFJ")
+        let institution = FinancialInstitutionEntity(name: "三菱UFJ")
         let majorCategory = CategoryEntity(name: "食費")
         let minorCategory = CategoryEntity(name: "外食", parent: majorCategory)
 

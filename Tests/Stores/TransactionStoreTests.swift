@@ -149,7 +149,7 @@ private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol, 
 
     internal init(transactions: [TransactionDTO]) {
         self.transactions = transactions
-        let institution = FinancialInstitution(name: "メイン銀行")
+        let institution = FinancialInstitutionEntity(name: "メイン銀行")
         let major = CategoryEntity(name: "食費", displayOrder: 1)
         let minor = CategoryEntity(name: "外食", parent: major, displayOrder: 1)
         self.referenceData = TransactionReferenceData(

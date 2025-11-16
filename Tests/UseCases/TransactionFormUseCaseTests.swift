@@ -85,7 +85,7 @@ private extension TransactionFormUseCaseTests {
     }
 
     func referenceData() -> TransactionReferenceData {
-        let institution = FinancialInstitution(name: "メイン銀行")
+        let institution = FinancialInstitutionEntity(name: "メイン銀行")
         let major = CategoryEntity(name: "食費", displayOrder: 1)
         let minor = CategoryEntity(name: "外食", parent: major, displayOrder: 1)
         return TransactionReferenceData(

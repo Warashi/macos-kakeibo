@@ -3,13 +3,13 @@ import Foundation
 
 internal final class InMemoryTransactionRepository: TransactionRepository {
     internal var transactions: [Transaction]
-    internal var institutions: [FinancialInstitution]
+    internal var institutions: [FinancialInstitutionEntity]
     internal var categories: [Kakeibo.CategoryEntity]
     internal private(set) var saveCallCount: Int = 0
 
     internal init(
         transactions: [Transaction] = [],
-        institutions: [FinancialInstitution] = [],
+        institutions: [FinancialInstitutionEntity] = [],
         categories: [Kakeibo.CategoryEntity] = [],
     ) {
         self.transactions = transactions
@@ -169,7 +169,7 @@ private extension InMemoryTransactionRepository {
         return transaction.minorCategory?.parent?.id == majorId
     }
 
-    func institution(id: UUID?) -> FinancialInstitution? {
+    func institution(id: UUID?) -> FinancialInstitutionEntity? {
         guard let id else { return nil }
         return institutions.first { $0.id == id }
     }

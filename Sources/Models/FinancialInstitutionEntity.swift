@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 @Model
-internal final class FinancialInstitution {
+internal final class FinancialInstitutionEntity {
     internal var id: UUID
     internal var name: String
 

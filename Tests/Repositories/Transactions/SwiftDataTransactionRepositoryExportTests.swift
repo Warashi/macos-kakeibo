@@ -10,7 +10,7 @@ internal struct SwiftDataTransactionRepositoryExportTests {
     internal func buildsSnapshot() throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let institution = FinancialInstitution(name: "銀行")
+        let institution = FinancialInstitutionEntity(name: "銀行")
         let major = CategoryEntity(name: "食費")
         let minor = CategoryEntity(name: "外食", parent: major)
         context.insert(institution)

@@ -19,7 +19,7 @@ internal final class Transaction {
     internal var importIdentifier: String?
 
     /// リレーション
-    internal var financialInstitution: FinancialInstitution?
+    internal var financialInstitution: FinancialInstitutionEntity?
     internal var majorCategory: CategoryEntity? // 大項目
     internal var minorCategory: CategoryEntity? // 中項目
 
@@ -36,7 +36,7 @@ internal final class Transaction {
         isIncludedInCalculation: Bool = true,
         isTransfer: Bool = false,
         importIdentifier: String? = nil,
-        financialInstitution: FinancialInstitution? = nil,
+        financialInstitution: FinancialInstitutionEntity? = nil,
         majorCategory: CategoryEntity? = nil,
         minorCategory: CategoryEntity? = nil,
     ) {

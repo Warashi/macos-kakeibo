@@ -71,7 +71,7 @@ internal actor BackupManager {
         let categories = try modelContext.fetchAll(CategoryEntity.self)
         let budgets = try modelContext.fetchAll(Budget.self)
         let configs = try modelContext.fetchAll(AnnualBudgetConfig.self)
-        let institutions = try modelContext.fetchAll(FinancialInstitution.self)
+        let institutions = try modelContext.fetchAll(FinancialInstitutionEntity.self)
 
         let metadata = BackupMetadata(
             generatedAt: Date(),
@@ -141,7 +141,7 @@ internal actor BackupManager {
         try deleteAll(Budget.self, in: context)
         try deleteAll(AnnualBudgetConfig.self, in: context)
         try deleteCategoriesSafely(in: context)
-        try deleteAll(FinancialInstitution.self, in: context)
+        try deleteAll(FinancialInstitutionEntity.self, in: context)
     }
 
     private func deleteAll<T: PersistentModel>(_ type: T.Type, in context: ModelContext) throws {
@@ -170,10 +170,10 @@ internal actor BackupManager {
     private func insertFinancialInstitutions(
         _ dtos: [BackupFinancialInstitutionDTO],
         context: ModelContext,
-    ) throws -> [UUID: FinancialInstitution] {
-        var result: [UUID: FinancialInstitution] = [:]
+    ) throws -> [UUID: FinancialInstitutionEntity] {
+        var result: [UUID: FinancialInstitutionEntity] = [:]
         for dto in dtos {
-            let institution = FinancialInstitution(
+            let institution = FinancialInstitutionEntity(
                 id: dto.id,
                 name: dto.name,
                 displayOrder: dto.displayOrder,
@@ -261,7 +261,7 @@ internal actor BackupManager {
     private func insertTransactions(
         _ dtos: [BackupTransactionDTO],
         categories: [UUID: CategoryEntity],
-        institutions: [UUID: FinancialInstitution],
+        institutions: [UUID: FinancialInstitutionEntity],
         context: ModelContext,
     ) throws {
         for dto in dtos {
@@ -408,7 +408,7 @@ internal struct BackupFinancialInstitutionDTO: Codable {
     internal let createdAt: Date
     internal let updatedAt: Date
 
-    internal init(institution: FinancialInstitution) {
+    internal init(institution: FinancialInstitutionEntity) {
         self.id = institution.id
         self.name = institution.name
         self.displayOrder = institution.displayOrder

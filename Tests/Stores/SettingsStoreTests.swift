@@ -159,7 +159,7 @@ internal struct SettingsStoreTests {
         let container = try ModelContainer.createInMemoryContainer()
         let major = CategoryEntity(name: "食費")
         let minor = CategoryEntity(name: "外食", parent: major)
-        let institution = FinancialInstitution(name: "銀行")
+        let institution = FinancialInstitutionEntity(name: "銀行")
         let transaction = Transaction(
             date: Date(),
             title: "テスト",
@@ -235,7 +235,7 @@ internal struct SettingsStoreTests {
 @MainActor
 private func seedTransaction(in context: ModelContext) throws {
     let category = CategoryEntity(name: "食費")
-    let institution = FinancialInstitution(name: "銀行")
+    let institution = FinancialInstitutionEntity(name: "銀行")
     let transaction = Transaction(
         date: Date(),
         title: "テスト",

@@ -88,7 +88,7 @@ internal enum SeedHelper {
         try context.delete(model: Budget.self)
         try context.delete(model: AnnualBudgetConfig.self)
         try deleteCategoriesSafely(in: context)
-        try context.delete(model: FinancialInstitution.self)
+        try context.delete(model: FinancialInstitutionEntity.self)
 
         try context.save()
     }

@@ -118,7 +118,7 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
 }
 
 private extension SwiftDataTransactionRepository {
-    func resolveInstitution(id: UUID?) throws -> FinancialInstitution? {
+    func resolveInstitution(id: UUID?) throws -> FinancialInstitutionEntity? {
         guard let id else { return nil }
         guard let institution = try modelContext.fetch(FinancialInstitutionQueries.byId(id)).first else {
             throw RepositoryError.notFound

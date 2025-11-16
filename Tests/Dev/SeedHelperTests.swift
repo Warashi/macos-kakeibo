@@ -14,7 +14,7 @@ internal struct SeedHelperTests {
         try SeedHelper.seedSampleData(to: container)
 
         // データが投入されたことを確認
-        #expect(SeedHelper.count(FinancialInstitution.self, in: container) > 0)
+        #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) > 0)
         #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) > 0)
         #expect(SeedHelper.count(Transaction.self, in: container) > 0)
         #expect(SeedHelper.count(Budget.self, in: container) > 0)
@@ -27,7 +27,7 @@ internal struct SeedHelperTests {
 
         try SeedHelper.seedFinancialInstitutions(to: container)
 
-        #expect(SeedHelper.count(FinancialInstitution.self, in: container) == 7)
+        #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) == 7)
         #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) == 0)
         #expect(SeedHelper.count(Transaction.self, in: container) == 0)
     }
@@ -39,7 +39,7 @@ internal struct SeedHelperTests {
         try SeedHelper.seedCategories(to: container)
 
         #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) > 0)
-        #expect(SeedHelper.count(FinancialInstitution.self, in: container) == 0)
+        #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) == 0)
         #expect(SeedHelper.count(Transaction.self, in: container) == 0)
     }
 
@@ -51,14 +51,14 @@ internal struct SeedHelperTests {
 
         // まずデータを投入
         try SeedHelper.seedSampleData(to: container)
-        #expect(SeedHelper.count(FinancialInstitution.self, in: container) > 0)
+        #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) > 0)
 
         // データをクリア
         let context = ModelContext(container)
         try SeedHelper.clearAllData(in: context)
 
         // すべてのデータが削除されたことを確認
-        #expect(SeedHelper.count(FinancialInstitution.self, in: container) == 0)
+        #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) == 0)
         #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) == 0)
         #expect(SeedHelper.count(Transaction.self, in: container) == 0)
         #expect(SeedHelper.count(Budget.self, in: container) == 0)
@@ -72,11 +72,11 @@ internal struct SeedHelperTests {
         let container = try ModelContainer.createInMemoryContainer()
 
         // 初期状態は0件
-        #expect(SeedHelper.count(FinancialInstitution.self, in: container) == 0)
+        #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) == 0)
 
         // データ投入後はカウントが増える
         try SeedHelper.seedFinancialInstitutions(to: container)
-        let count = SeedHelper.count(FinancialInstitution.self, in: container)
+        let count = SeedHelper.count(FinancialInstitutionEntity.self, in: container)
         #expect(count == 7)
     }
 
