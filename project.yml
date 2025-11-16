@@ -30,7 +30,10 @@ targets:
     type: application
     platform: macOS
     sources:
-      - Sources
+      - path: Sources
+        excludes:
+          - Domain/**
+      - path: Sources/Domain
       - path: Config/AppIcon.icon
     entitlements:
       path: Config/Kakeibo.entitlements
