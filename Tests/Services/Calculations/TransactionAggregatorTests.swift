@@ -208,6 +208,7 @@ internal struct TransactionAggregatorTests {
             memo: "",
             isIncludedInCalculation: isIncludedInCalculation,
             isTransfer: isTransfer,
+            importIdentifier: nil,
             financialInstitutionId: financialInstitutionId,
             majorCategoryId: categoryId,
             minorCategoryId: nil,

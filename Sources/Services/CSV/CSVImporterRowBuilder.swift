@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 
 // MARK: - Row Building Extensions
 

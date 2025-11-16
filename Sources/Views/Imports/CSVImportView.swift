@@ -16,14 +16,31 @@ internal struct CSVImportView: View {
             }
         }
         .navigationTitle("CSVインポート")
-        .onAppear {
-            guard store == nil else { return }
-            guard let modelContainer else {
-                assertionFailure("ModelContainer is unavailable")
-                return
-            }
-            store = ImportStore(modelContainer: modelContainer)
+        .task {
+            await prepareStore()
         }
+    }
+}
+
+private extension CSVImportView {
+    @MainActor
+    func prepareStore() async {
+        guard store == nil else { return }
+        guard let modelContainer else {
+            assertionFailure("ModelContainer is unavailable")
+            return
+        }
+
+        let dependencies = await Task { @DatabaseActor () -> (TransactionRepository, BudgetRepository) in
+            let transactionRepository = SwiftDataTransactionRepository(modelContainer: modelContainer)
+            let budgetRepository = SwiftDataBudgetRepository(modelContainer: modelContainer)
+            return (transactionRepository, budgetRepository)
+        }.value
+
+        store = ImportStore(
+            transactionRepository: dependencies.0,
+            budgetRepository: dependencies.1
+        )
     }
 }
 

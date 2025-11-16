@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 
 // MARK: - Data Resolution Extensions
 
@@ -7,9 +6,8 @@ extension CSVImporter {
     /// 金融機関を解決（存在すればキャッシュから、なければデータベースから、最後に新規作成）
     internal func resolveFinancialInstitution(
         named name: String?,
-        cache: inout [String: FinancialInstitution],
-        modelContext: ModelContext,
-    ) throws -> (FinancialInstitution?, Bool) {
+        cache: inout [String: FinancialInstitutionDTO]
+    ) async throws -> (FinancialInstitutionDTO?, Bool) {
         guard let name else {
             return (nil, false)
         }
@@ -19,30 +17,29 @@ extension CSVImporter {
             return (cached, false)
         }
 
-        let descriptor = FinancialInstitutionQueries.byName(name)
-
-        if let existing = try modelContext.fetch(descriptor).first {
+        if let existing = try await budgetRepository.findInstitutionByName(name) {
             cache[key] = existing
             return (existing, false)
         }
 
-        let institution = FinancialInstitution(name: name)
-        modelContext.insert(institution)
+        _ = try await budgetRepository.createInstitution(name: name)
+        guard let institution = try await budgetRepository.findInstitutionByName(name) else {
+            throw RepositoryError.notFound
+        }
         cache[key] = institution
         return (institution, true)
     }
 
     /// カテゴリを解決（大項目と中項目）
     internal func resolveCategories(
-        context: inout CategoryResolutionContext,
-    ) throws -> CategoryResolutionResult {
+        context: inout CategoryResolutionContext
+    ) async throws -> CategoryResolutionResult {
         var createdCount = 0
 
-        let majorCategory = try resolveMajorCategory(
+        let majorCategory = try await resolveMajorCategory(
             name: context.majorName,
             cache: &context.majorCache,
             createdCount: &createdCount,
-            modelContext: context.modelContext,
         )
 
         var minorContext = MinorCategoryResolutionContext(
@@ -50,9 +47,8 @@ extension CSVImporter {
             majorCategory: majorCategory,
             cache: context.minorCache,
             createdCount: createdCount,
-            modelContext: context.modelContext,
         )
-        let minorCategory = try resolveMinorCategory(context: &minorContext)
+        let minorCategory = try await resolveMinorCategory(context: &minorContext)
         context.minorCache = minorContext.cache
 
         return CategoryResolutionResult(
@@ -65,10 +61,9 @@ extension CSVImporter {
     /// 大項目カテゴリを解決
     internal func resolveMajorCategory(
         name: String?,
-        cache: inout [String: Category],
-        createdCount: inout Int,
-        modelContext: ModelContext,
-    ) throws -> Category? {
+        cache: inout [String: CategoryDTO],
+        createdCount: inout Int
+    ) async throws -> CategoryDTO? {
         guard let name else {
             return nil
         }
@@ -78,19 +73,15 @@ extension CSVImporter {
             return cached
         }
 
-        let descriptor = CategoryQueries.firstMatching(
-            predicate: #Predicate { category in
-                category.name == name && category.parent == nil
-            },
-        )
-
-        if let existing = try modelContext.fetch(descriptor).first {
+        if let existing = try await budgetRepository.findCategoryByName(name, parentId: nil) {
             cache[key] = existing
             return existing
         }
 
-        let newCategory = Category(name: name)
-        modelContext.insert(newCategory)
+        let categoryId = try await budgetRepository.createCategory(name: name, parentId: nil)
+        guard let newCategory = try await budgetRepository.category(id: categoryId) else {
+            throw RepositoryError.notFound
+        }
         cache[key] = newCategory
         createdCount += 1
         return newCategory
@@ -98,8 +89,8 @@ extension CSVImporter {
 
     /// 中項目カテゴリを解決
     internal func resolveMinorCategory(
-        context: inout MinorCategoryResolutionContext,
-    ) throws -> Category? {
+        context: inout MinorCategoryResolutionContext
+    ) async throws -> CategoryDTO? {
         guard let name = context.name, let majorCategory = context.majorCategory else {
             return nil
         }
@@ -109,40 +100,17 @@ extension CSVImporter {
             return cached
         }
 
-        let descriptor = ModelFetchFactory.make(
-            predicate: #Predicate { (category: Category) in
-                category.name == name
-            },
-        )
-
-        let existing = try context.modelContext
-            .fetch(descriptor)
-            .first { (category: Category) in
-                category.parent?.id == majorCategory.id
-            }
-
-        if let existing {
+        if let existing = try await budgetRepository.findCategoryByName(name, parentId: majorCategory.id) {
             context.cache[key] = existing
             return existing
         }
 
-        let newCategory = Category(name: name, parent: majorCategory)
-        context.modelContext.insert(newCategory)
+        let categoryId = try await budgetRepository.createCategory(name: name, parentId: majorCategory.id)
+        guard let newCategory = try await budgetRepository.category(id: categoryId) else {
+            throw RepositoryError.notFound
+        }
         context.cache[key] = newCategory
         context.createdCount += 1
         return newCategory
-    }
-
-    /// IDでトランザクションを検索
-    internal func fetchTransaction(id: UUID, modelContext: ModelContext) throws -> Transaction? {
-        try modelContext.fetch(TransactionQueries.byId(id)).first
-    }
-
-    /// インポート識別子でトランザクションを検索
-    internal func fetchTransaction(importIdentifier: String, modelContext: ModelContext) throws -> Transaction? {
-        try modelContext.fetch(
-            TransactionQueries.byImportIdentifier(importIdentifier),
-        )
-        .first
     }
 }

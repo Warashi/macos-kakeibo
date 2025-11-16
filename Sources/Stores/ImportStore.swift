@@ -1,13 +1,13 @@
 import Foundation
 import Observation
-import SwiftData
 
 /// CSVインポート画面の状態を管理するストア
 @Observable
 internal final class ImportStore: @unchecked Sendable {
     // MARK: - Dependencies
 
-    private let modelContainer: ModelContainer
+    private let transactionRepository: TransactionRepository
+    private let budgetRepository: BudgetRepository
     private let parser: CSVParser
     private let importer: CSVImporter
 
@@ -31,13 +31,18 @@ internal final class ImportStore: @unchecked Sendable {
     // MARK: - Initialization
 
     internal init(
-        modelContainer: ModelContainer,
+        transactionRepository: TransactionRepository,
+        budgetRepository: BudgetRepository,
         parser: CSVParser = CSVParser(),
         importer: CSVImporter? = nil
     ) {
-        self.modelContainer = modelContainer
+        self.transactionRepository = transactionRepository
+        self.budgetRepository = budgetRepository
         self.parser = parser
-        self.importer = importer ?? CSVImporter(modelContainer: modelContainer)
+        self.importer = importer ?? CSVImporter(
+            transactionRepository: transactionRepository,
+            budgetRepository: budgetRepository
+        )
     }
 
     // MARK: - Actions

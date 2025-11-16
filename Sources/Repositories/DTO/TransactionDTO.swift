@@ -9,6 +9,7 @@ internal struct TransactionDTO: Sendable, Hashable, Equatable {
     internal let memo: String
     internal let isIncludedInCalculation: Bool
     internal let isTransfer: Bool
+    internal let importIdentifier: String?
     internal let financialInstitutionId: UUID?
     internal let majorCategoryId: UUID?
     internal let minorCategoryId: UUID?
@@ -23,6 +24,7 @@ internal struct TransactionDTO: Sendable, Hashable, Equatable {
         memo: String,
         isIncludedInCalculation: Bool,
         isTransfer: Bool,
+        importIdentifier: String?,
         financialInstitutionId: UUID?,
         majorCategoryId: UUID?,
         minorCategoryId: UUID?,
@@ -36,6 +38,7 @@ internal struct TransactionDTO: Sendable, Hashable, Equatable {
         self.memo = memo
         self.isIncludedInCalculation = isIncludedInCalculation
         self.isTransfer = isTransfer
+        self.importIdentifier = importIdentifier
         self.financialInstitutionId = financialInstitutionId
         self.majorCategoryId = majorCategoryId
         self.minorCategoryId = minorCategoryId
@@ -51,6 +54,7 @@ internal struct TransactionDTO: Sendable, Hashable, Equatable {
         self.memo = transaction.memo
         self.isIncludedInCalculation = transaction.isIncludedInCalculation
         self.isTransfer = transaction.isTransfer
+        self.importIdentifier = transaction.importIdentifier
         self.financialInstitutionId = transaction.financialInstitution?.id
         self.majorCategoryId = transaction.majorCategory?.id
         self.minorCategoryId = transaction.minorCategory?.id

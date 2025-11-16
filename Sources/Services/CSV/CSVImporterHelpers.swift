@@ -1,12 +1,11 @@
 import Foundation
-import SwiftData
 
 // MARK: - Result Types
 
 /// カテゴリ解決結果
 internal struct CategoryResolutionResult {
-    internal let majorCategory: Category?
-    internal let minorCategory: Category?
+    internal let majorCategory: CategoryDTO?
+    internal let minorCategory: CategoryDTO?
     internal let createdCount: Int
 }
 
@@ -14,9 +13,10 @@ internal struct CategoryResolutionResult {
 internal struct TransactionUpdateParameters {
     internal let draft: TransactionDraft
     internal let identifier: CSVTransactionIdentifier?
-    internal let institution: FinancialInstitution?
-    internal let majorCategory: Category?
-    internal let minorCategory: Category?
+    internal let institution: FinancialInstitutionDTO?
+    internal let majorCategory: CategoryDTO?
+    internal let minorCategory: CategoryDTO?
+    internal let existingImportIdentifier: String?
 }
 
 // MARK: - Import State
@@ -33,9 +33,9 @@ internal struct ImportState {
 
 /// エンティティキャッシュ
 internal struct EntityCache {
-    internal var institutions: [String: FinancialInstitution] = [:]
-    internal var majorCategories: [String: Category] = [:]
-    internal var minorCategories: [String: Category] = [:]
+    internal var institutions: [String: FinancialInstitutionDTO] = [:]
+    internal var majorCategories: [String: CategoryDTO] = [:]
+    internal var minorCategories: [String: CategoryDTO] = [:]
 }
 
 // MARK: - Field Extraction Results
@@ -61,9 +61,9 @@ internal struct OptionalFieldsResult {
 internal struct TransactionCreationParameters {
     internal let draft: TransactionDraft
     internal let identifier: CSVTransactionIdentifier?
-    internal let institution: FinancialInstitution?
-    internal let majorCategory: Category?
-    internal let minorCategory: Category?
+    internal let institution: FinancialInstitutionDTO?
+    internal let majorCategory: CategoryDTO?
+    internal let minorCategory: CategoryDTO?
 }
 
 // MARK: - Category Resolution Context
@@ -72,16 +72,14 @@ internal struct TransactionCreationParameters {
 internal struct CategoryResolutionContext {
     internal let majorName: String?
     internal let minorName: String?
-    internal var majorCache: [String: Category]
-    internal var minorCache: [String: Category]
-    internal let modelContext: ModelContext
+    internal var majorCache: [String: CategoryDTO]
+    internal var minorCache: [String: CategoryDTO]
 }
 
 /// 中項目カテゴリ解決用コンテキスト
 internal struct MinorCategoryResolutionContext {
     internal let name: String?
-    internal let majorCategory: Category?
-    internal var cache: [String: Category]
+    internal let majorCategory: CategoryDTO?
+    internal var cache: [String: CategoryDTO]
     internal var createdCount: Int
-    internal let modelContext: ModelContext
 }

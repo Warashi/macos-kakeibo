@@ -6,8 +6,7 @@ import Testing
 internal struct ImportStoreTests {
     @Test("CSVドキュメントを適用すると初期状態がセットされる")
     internal func applyDocument_setsInitialState() async throws {
-        let container = try makeInMemoryContainer()
-        let store = ImportStore(modelContainer: container)
+        let (store, _) = try await makeStore()
 
         await MainActor.run {
             store.applyDocument(sampleDocument(), fileName: "sample.csv")
@@ -28,8 +27,7 @@ internal struct ImportStoreTests {
 
     @Test("ファイル選択から列マッピングへ進める")
     internal func proceedToColumnMapping() async throws {
-        let container = try makeInMemoryContainer()
-        let store = ImportStore(modelContainer: container)
+        let (store, _) = try await makeStore()
         await MainActor.run {
             store.applyDocument(sampleDocument(), fileName: "sample.csv")
         }
@@ -43,8 +41,7 @@ internal struct ImportStoreTests {
 
     @Test("列マッピングから検証ステップに進める")
     internal func generatePreviewMovesToValidation() async throws {
-        let container = try makeInMemoryContainer()
-        let store = ImportStore(modelContainer: container)
+        let (store, _) = try await makeStore()
         await MainActor.run {
             store.applyDocument(sampleDocument(), fileName: "sample.csv")
         }
@@ -60,8 +57,7 @@ internal struct ImportStoreTests {
 
     @Test("検証ステップで取り込みを実行できる")
     internal func performImportCreatesTransactions() async throws {
-        let container = try makeInMemoryContainer()
-        let store = ImportStore(modelContainer: container)
+        let (store, container) = try await makeStore()
         await MainActor.run {
             store.applyDocument(sampleDocument(), fileName: "sample.csv")
         }
@@ -80,6 +76,17 @@ internal struct ImportStoreTests {
     }
 
     // MARK: - Helpers
+
+    private func makeStore() async throws -> (ImportStore, ModelContainer) {
+        let container = try makeInMemoryContainer()
+        let transactionRepository = await SwiftDataTransactionRepository(modelContainer: container)
+        let budgetRepository = await SwiftDataBudgetRepository(modelContainer: container)
+        let store = ImportStore(
+            transactionRepository: transactionRepository,
+            budgetRepository: budgetRepository
+        )
+        return (store, container)
+    }
 
     private func makeInMemoryContainer() throws -> ModelContainer {
         let container = try ModelContainer(

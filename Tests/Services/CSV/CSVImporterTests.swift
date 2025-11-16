@@ -7,8 +7,7 @@ import Testing
 internal struct CSVImporterTests {
     @Test("マッピング済みCSVからプレビューを生成できる")
     internal func makePreview_success() async throws {
-        let container = try makeInMemoryContainer()
-        let importer = CSVImporter(modelContainer: container)
+        let (importer, _) = try await makeImporter()
 
         let document = sampleDocument()
         let config = CSVImportConfiguration(hasHeaderRow: true)
@@ -35,8 +34,7 @@ internal struct CSVImporterTests {
 
     @Test("必須カラムの割り当てが無い場合はエラー")
     internal func makePreview_requiresMapping() async throws {
-        let container = try makeInMemoryContainer()
-        let importer = CSVImporter(modelContainer: container)
+        let (importer, _) = try await makeImporter()
 
         let document = sampleDocument()
         var mapping = CSVColumnMapping()
@@ -53,8 +51,7 @@ internal struct CSVImporterTests {
 
     @Test("プレビュー済みデータを取り込める")
     internal func performImport_createsTransactions() async throws {
-        let container = try makeInMemoryContainer()
-        let importer = CSVImporter(modelContainer: container)
+        let (importer, container) = try await makeImporter()
 
         let preview = try await importer.makePreview(
             document: sampleDocument(),
@@ -79,8 +76,7 @@ internal struct CSVImporterTests {
 
     @Test("同じIDの行は更新される")
     internal func performImport_updatesExistingTransactions() async throws {
-        let container = try makeInMemoryContainer()
-        let importer = CSVImporter(modelContainer: container)
+        let (importer, container) = try await makeImporter()
         let config = CSVImportConfiguration(hasHeaderRow: true)
 
         let preview = try await importer.makePreview(
@@ -133,6 +129,17 @@ internal struct CSVImporterTests {
         CSVRow(index: 0, values: [
             "ID", "日付", "内容", "金額", "メモ", "大項目", "中項目", "金融機関", "計算対象", "振替",
         ])
+    }
+
+    private func makeImporter() async throws -> (CSVImporter, ModelContainer) {
+        let container = try makeInMemoryContainer()
+        let transactionRepository = await SwiftDataTransactionRepository(modelContainer: container)
+        let budgetRepository = await SwiftDataBudgetRepository(modelContainer: container)
+        let importer = CSVImporter(
+            transactionRepository: transactionRepository,
+            budgetRepository: budgetRepository
+        )
+        return (importer, container)
     }
 
     private func makeInMemoryContainer() throws -> ModelContainer {

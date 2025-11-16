@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 
 /// CSVインポート処理を担当するヘルパー
 internal actor CSVImporter {
@@ -20,12 +19,17 @@ internal actor CSVImporter {
         }
     }
 
-    private let modelContainer: ModelContainer
+    let transactionRepository: TransactionRepository
+    let budgetRepository: BudgetRepository
     internal let dateFormatters: [DateFormatter]
     internal let locale: Foundation.Locale
 
-    internal init(modelContainer: ModelContainer) {
-        self.modelContainer = modelContainer
+    internal init(
+        transactionRepository: TransactionRepository,
+        budgetRepository: BudgetRepository
+    ) {
+        self.transactionRepository = transactionRepository
+        self.budgetRepository = budgetRepository
         self.dateFormatters = CSVImporter.makeDateFormatters()
         self.locale = AppConstants.Locale.default
     }
@@ -67,7 +71,6 @@ internal actor CSVImporter {
         }
 
         let startDate = Date()
-        let modelContext = ModelContext(modelContainer)
         var state = ImportState()
         var cache = EntityCache()
 
@@ -77,7 +80,11 @@ internal actor CSVImporter {
         for record in preview.validRecords {
             guard let draft = record.draft else { continue }
 
-            let isNew = try importRecord(draft: draft, state: &state, cache: &cache, modelContext: modelContext)
+            let isNew = try await importRecord(
+                draft: draft,
+                state: &state,
+                cache: &cache
+            )
 
             if isNew {
                 state.importedCount += 1
@@ -89,9 +96,7 @@ internal actor CSVImporter {
 
             // バッチごとに保存してUIスレッドを譲渡
             if processedCount % batchSize == 0 {
-                if modelContext.hasChanges {
-                    try modelContext.save()
-                }
+                try await transactionRepository.saveChanges()
                 if let onProgress {
                     await MainActor.run {
                         onProgress(processedCount, totalCount)
@@ -102,9 +107,8 @@ internal actor CSVImporter {
         }
 
         // 最後の残りを保存
-        if modelContext.hasChanges {
-            try modelContext.save()
-        }
+        try await transactionRepository.saveChanges()
+        try await budgetRepository.saveChanges()
         if let onProgress {
             await MainActor.run {
                 onProgress(totalCount, totalCount)
@@ -124,13 +128,11 @@ internal actor CSVImporter {
     private func importRecord(
         draft: TransactionDraft,
         state: inout ImportState,
-        cache: inout EntityCache,
-        modelContext: ModelContext,
-    ) throws -> Bool {
-        let (institution, institutionCreated) = try resolveFinancialInstitution(
+        cache: inout EntityCache
+    ) async throws -> Bool {
+        let (institution, institutionCreated) = try await resolveFinancialInstitution(
             named: draft.financialInstitutionName,
-            cache: &cache.institutions,
-            modelContext: modelContext,
+            cache: &cache.institutions
         )
         if institutionCreated {
             state.createdInstitutions += 1
@@ -140,13 +142,16 @@ internal actor CSVImporter {
             majorName: draft.majorCategoryName,
             minorName: draft.minorCategoryName,
             majorCache: cache.majorCategories,
-            minorCache: cache.minorCategories,
-            modelContext: modelContext,
+            minorCache: cache.minorCategories
         )
-        let categoryResult = try resolveCategories(context: &categoryContext)
+        let categoryResult = try await resolveCategories(context: &categoryContext)
         cache.majorCategories = categoryContext.majorCache
         cache.minorCategories = categoryContext.minorCache
         state.createdCategories += categoryResult.createdCount
+
+        if institutionCreated || categoryResult.createdCount > 0 {
+            try await budgetRepository.saveChanges()
+        }
 
         let creationParams = TransactionCreationParameters(
             draft: draft,
@@ -156,75 +161,67 @@ internal actor CSVImporter {
             minorCategory: categoryResult.minorCategory,
         )
 
-        let (transaction, isNew) = try getOrCreateTransaction(
-            parameters: creationParams,
-            modelContext: modelContext,
-        )
-
-        let updateParams = TransactionUpdateParameters(
-            draft: draft,
-            identifier: draft.identifier,
-            institution: institution,
-            majorCategory: categoryResult.majorCategory,
-            minorCategory: categoryResult.minorCategory,
-        )
-        applyDraft(updateParams, to: transaction)
-
-        return isNew
-    }
-
-    private func getOrCreateTransaction(
-        parameters: TransactionCreationParameters,
-        modelContext: ModelContext,
-    ) throws -> (Transaction, Bool) {
-        if let identifier = parameters.identifier {
-            if let uuid = identifier.uuid, let existing = try fetchTransaction(id: uuid, modelContext: modelContext) {
-                return (existing, false)
-            } else if let existing = try fetchTransaction(
-                importIdentifier: identifier.rawValue,
-                modelContext: modelContext,
-            ) {
-                return (existing, false)
-            } else {
-                let transaction = createTransaction(parameters)
-                modelContext.insert(transaction)
-                return (transaction, true)
-            }
+        if let existing = try await findExistingTransaction(identifier: draft.identifier) {
+            let updateParams = TransactionUpdateParameters(
+                draft: draft,
+                identifier: draft.identifier,
+                institution: institution,
+                majorCategory: categoryResult.majorCategory,
+                minorCategory: categoryResult.minorCategory,
+                existingImportIdentifier: existing.importIdentifier
+            )
+            let input = makeTransactionInput(parameters: updateParams)
+            try await transactionRepository.update(TransactionUpdateInput(id: existing.id, input: input))
+            return false
         } else {
-            let transaction = createTransaction(parameters)
-            modelContext.insert(transaction)
-            return (transaction, true)
+            let input = makeTransactionInput(parameters: creationParams)
+            _ = try await transactionRepository.insert(input)
+            return true
         }
     }
 
-    private nonisolated func createTransaction(_ parameters: TransactionCreationParameters) -> Transaction {
-        if let identifier = parameters.identifier {
-            Transaction(
-                id: identifier.uuid ?? UUID(),
-                date: parameters.draft.date,
-                title: parameters.draft.title,
-                amount: parameters.draft.amount,
-                memo: parameters.draft.memo,
-                isIncludedInCalculation: parameters.draft.isIncludedInCalculation,
-                isTransfer: parameters.draft.isTransfer,
-                importIdentifier: identifier.rawValue,
-                financialInstitution: parameters.institution,
-                majorCategory: parameters.majorCategory,
-                minorCategory: parameters.minorCategory,
-            )
-        } else {
-            Transaction(
-                date: parameters.draft.date,
-                title: parameters.draft.title,
-                amount: parameters.draft.amount,
-                memo: parameters.draft.memo,
-                isIncludedInCalculation: parameters.draft.isIncludedInCalculation,
-                isTransfer: parameters.draft.isTransfer,
-                financialInstitution: parameters.institution,
-                majorCategory: parameters.majorCategory,
-                minorCategory: parameters.minorCategory,
-            )
+    private func findExistingTransaction(
+        identifier: CSVTransactionIdentifier?
+    ) async throws -> TransactionDTO? {
+        guard let identifier else {
+            return nil
         }
+
+        if let uuid = identifier.uuid, let transaction = try await transactionRepository.findTransaction(id: uuid) {
+            return transaction
+        }
+
+        return try await transactionRepository.findByIdentifier(identifier.rawValue)
+    }
+
+    private nonisolated func makeTransactionInput(parameters: TransactionCreationParameters) -> TransactionInput {
+        TransactionInput(
+            date: parameters.draft.date,
+            title: parameters.draft.title,
+            memo: parameters.draft.memo,
+            amount: parameters.draft.amount,
+            isIncludedInCalculation: parameters.draft.isIncludedInCalculation,
+            isTransfer: parameters.draft.isTransfer,
+            financialInstitutionId: parameters.institution?.id,
+            majorCategoryId: parameters.majorCategory?.id,
+            minorCategoryId: parameters.minorCategory?.id,
+            importIdentifier: parameters.identifier?.rawValue
+        )
+    }
+
+    private nonisolated func makeTransactionInput(parameters: TransactionUpdateParameters) -> TransactionInput {
+        TransactionInput(
+            date: parameters.draft.date,
+            title: parameters.draft.title,
+            memo: parameters.draft.memo,
+            amount: parameters.draft.amount,
+            isIncludedInCalculation: parameters.draft.isIncludedInCalculation,
+            isTransfer: parameters.draft.isTransfer,
+            financialInstitutionId: parameters.institution?.id,
+            majorCategoryId: parameters.majorCategory?.id,
+            minorCategoryId: parameters.minorCategory?.id,
+            importIdentifier: parameters.identifier?.rawValue ?? parameters.existingImportIdentifier
+        )
     }
 
     // MARK: - Date Formatter Factory
@@ -246,26 +243,5 @@ internal actor CSVImporter {
             formatter.dateFormat = format
             return formatter
         }
-    }
-}
-
-// MARK: - Transaction Update
-
-private extension CSVImporter {
-    nonisolated func applyDraft(
-        _ parameters: TransactionUpdateParameters,
-        to transaction: Transaction,
-    ) {
-        transaction.date = parameters.draft.date
-        transaction.title = parameters.draft.title
-        transaction.amount = parameters.draft.amount
-        transaction.memo = parameters.draft.memo
-        transaction.isIncludedInCalculation = parameters.draft.isIncludedInCalculation
-        transaction.isTransfer = parameters.draft.isTransfer
-        transaction.financialInstitution = parameters.institution
-        transaction.majorCategory = parameters.majorCategory
-        transaction.minorCategory = parameters.minorCategory
-        transaction.importIdentifier = parameters.identifier?.rawValue ?? transaction.importIdentifier
-        transaction.updatedAt = Date()
     }
 }
