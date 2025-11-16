@@ -19,9 +19,9 @@ internal struct RecurringPaymentOccurrencesServiceTests {
 
         #expect(throws: RecurringPaymentDomainError.invalidRecurrence) {
             try service.synchronizeOccurrences(
-                for: definition,
+                definitionId: definition.id,
                 horizonMonths: 12,
-                referenceDate: nil,
+                referenceDate: nil
             )
         }
     }
@@ -51,13 +51,13 @@ internal struct RecurringPaymentOccurrencesServiceTests {
         let service = DefaultRecurringPaymentOccurrencesService(repository: repository)
 
         let result = try await service.markOccurrenceCompleted(
-            occurrence,
+            occurrenceId: occurrence.id,
             input: OccurrenceCompletionInput(
                 actualDate: referenceDate,
                 actualAmount: 210_000,
-                transaction: nil,
+                transaction: nil
             ),
-            horizonMonths: 12,
+            horizonMonths: 12
         )
 
         #expect(result.createdCount >= 0)
@@ -90,14 +90,14 @@ internal struct RecurringPaymentOccurrencesServiceTests {
         let service = DefaultRecurringPaymentOccurrencesService(repository: repository)
 
         let summary = try await service.updateOccurrence(
-            occurrence,
+            occurrenceId: occurrence.id,
             input: OccurrenceUpdateInput(
                 status: .planned,
                 actualDate: nil,
                 actualAmount: nil,
-                transaction: nil,
+                transaction: nil
             ),
-            horizonMonths: 6,
+            horizonMonths: 6
         )
 
         #expect(summary == nil)

@@ -64,20 +64,24 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         )
     }
 
-    internal func category(id: UUID) throws -> Category? {
-        try modelContext.fetch(CategoryQueries.byId(id)).first
+    internal func category(id: UUID) throws -> CategoryDTO? {
+        try modelContext.fetch(CategoryQueries.byId(id)).first.map { CategoryDTO(from: $0) }
     }
 
-    internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfig? {
-        try modelContext.fetch(BudgetQueries.annualConfig(for: year)).first
+    internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfigDTO? {
+        try modelContext.fetch(BudgetQueries.annualConfig(for: year)).first.map { AnnualBudgetConfigDTO(from: $0) }
     }
 
-    internal func insertBudget(_ budget: Budget) {
+    internal func addBudget(_ input: BudgetInput) throws {
+        let budget = Budget(
+            amount: input.amount,
+            category: try resolveCategory(id: input.categoryId),
+            startYear: input.startYear,
+            startMonth: input.startMonth,
+            endYear: input.endYear,
+            endMonth: input.endMonth
+        )
         modelContext.insert(budget)
-    }
-
-    internal func deleteBudget(_ budget: Budget) {
-        modelContext.delete(budget)
     }
 
     internal func updateBudget(input: BudgetUpdateInput) throws {
@@ -86,7 +90,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         }
         budget.amount = input.input.amount
         if let categoryId = input.input.categoryId {
-            budget.category = try category(id: categoryId)
+            budget.category = try resolveCategory(id: categoryId)
         } else {
             budget.category = nil
         }
@@ -104,15 +108,74 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         modelContext.delete(budget)
     }
 
-    internal func insertAnnualBudgetConfig(_ config: AnnualBudgetConfig) {
-        modelContext.insert(config)
-    }
+    internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) throws {
+        let config = try modelContext.fetch(BudgetQueries.annualConfig(for: input.year)).first
+            ?? AnnualBudgetConfig(
+                year: input.year,
+                totalAmount: input.totalAmount,
+                policy: input.policy
+            )
+        if config.modelContext == nil {
+            modelContext.insert(config)
+        }
 
-    internal func deleteAllocation(_ allocation: AnnualBudgetAllocation) {
-        modelContext.delete(allocation)
+        let now = Date()
+        config.totalAmount = input.totalAmount
+        config.policy = input.policy
+        config.updatedAt = now
+
+        var existingAllocations = Dictionary(uniqueKeysWithValues: config.allocations.map { allocation in
+            (allocation.category.id, allocation)
+        })
+        var seenCategoryIds: Set<UUID> = []
+
+        for draft in input.allocations {
+            guard let category = try resolveCategory(id: draft.categoryId) else {
+                throw RepositoryError.notFound
+            }
+
+            if !category.allowsAnnualBudget {
+                category.allowsAnnualBudget = true
+                category.updatedAt = now
+            }
+
+            seenCategoryIds.insert(category.id)
+
+            if let allocation = existingAllocations[category.id] {
+                allocation.amount = draft.amount
+                allocation.policyOverride = draft.policyOverride
+                allocation.updatedAt = now
+            } else {
+                let allocation = AnnualBudgetAllocation(
+                    amount: draft.amount,
+                    category: category,
+                    policyOverride: draft.policyOverride
+                )
+                allocation.updatedAt = now
+                config.allocations.append(allocation)
+            }
+        }
+
+        let allocationsToRemove = config.allocations.filter { !seenCategoryIds.contains($0.category.id) }
+        for allocation in allocationsToRemove {
+            if let index = config.allocations.firstIndex(where: { $0.id == allocation.id }) {
+                config.allocations.remove(at: index)
+            }
+            modelContext.delete(allocation)
+        }
     }
 
     internal func saveChanges() throws {
         try modelContext.save()
+    }
+}
+
+private extension SwiftDataBudgetRepository {
+    func resolveCategory(id: UUID?) throws -> Category? {
+        guard let id else { return nil }
+        guard let category = try modelContext.fetch(CategoryQueries.byId(id)).first else {
+            throw RepositoryError.notFound
+        }
+        return category
     }
 }

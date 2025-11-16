@@ -24,10 +24,10 @@ internal protocol TransactionRepository: Sendable {
         query: TransactionQuery,
         onChange: @escaping @MainActor ([TransactionDTO]) -> Void,
     ) throws -> ObservationToken
-    func findTransaction(id: UUID) throws -> Transaction?
-    func findInstitution(id: UUID) throws -> FinancialInstitution?
-    func findCategory(id: UUID) throws -> Category?
-    func insert(_ transaction: Transaction)
-    func delete(_ transaction: Transaction)
+    func findTransaction(id: UUID) throws -> TransactionDTO?
+    @discardableResult
+    func insert(_ input: TransactionInput) throws -> UUID
+    func update(_ input: TransactionUpdateInput) throws
+    func delete(id: UUID) throws
     func saveChanges() throws
 }

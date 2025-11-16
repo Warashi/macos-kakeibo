@@ -79,8 +79,6 @@ internal protocol RecurringPaymentRepository: Sendable {
         referenceDate: Date?,
     ) throws -> RecurringPaymentSynchronizationSummary
 
-    func findOccurrence(id: UUID) throws -> RecurringPaymentOccurrence
-
     @discardableResult
     func markOccurrenceCompleted(
         occurrenceId: UUID,

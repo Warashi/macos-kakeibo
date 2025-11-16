@@ -41,27 +41,71 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
         }
     }
 
-    internal func findTransaction(id: UUID) throws -> Transaction? {
-        try modelContext.fetch(TransactionQueries.byId(id)).first
+    internal func findTransaction(id: UUID) throws -> TransactionDTO? {
+        try modelContext.fetch(TransactionQueries.byId(id)).first.map { TransactionDTO(from: $0) }
     }
 
-    internal func findInstitution(id: UUID) throws -> FinancialInstitution? {
-        try modelContext.fetch(FinancialInstitutionQueries.byId(id)).first
-    }
-
-    internal func findCategory(id: UUID) throws -> Category? {
-        try modelContext.fetch(CategoryQueries.byId(id)).first
-    }
-
-    internal func insert(_ transaction: Transaction) {
+    @discardableResult
+    internal func insert(_ input: TransactionInput) throws -> UUID {
+        let transaction = Transaction(
+            date: input.date,
+            title: input.title,
+            amount: input.amount,
+            memo: input.memo,
+            isIncludedInCalculation: input.isIncludedInCalculation,
+            isTransfer: input.isTransfer,
+            importIdentifier: input.importIdentifier,
+            financialInstitution: try resolveInstitution(id: input.financialInstitutionId),
+            majorCategory: try resolveCategory(id: input.majorCategoryId),
+            minorCategory: try resolveCategory(id: input.minorCategoryId)
+        )
         modelContext.insert(transaction)
+        return transaction.id
     }
 
-    internal func delete(_ transaction: Transaction) {
+    internal func update(_ input: TransactionUpdateInput) throws {
+        guard let transaction = try modelContext.fetch(TransactionQueries.byId(input.id)).first else {
+            throw RepositoryError.notFound
+        }
+
+        transaction.date = input.input.date
+        transaction.title = input.input.title
+        transaction.memo = input.input.memo
+        transaction.amount = input.input.amount
+        transaction.isIncludedInCalculation = input.input.isIncludedInCalculation
+        transaction.isTransfer = input.input.isTransfer
+        transaction.financialInstitution = try resolveInstitution(id: input.input.financialInstitutionId)
+        transaction.majorCategory = try resolveCategory(id: input.input.majorCategoryId)
+        transaction.minorCategory = try resolveCategory(id: input.input.minorCategoryId)
+        transaction.updatedAt = Date()
+    }
+
+    internal func delete(id: UUID) throws {
+        guard let transaction = try modelContext.fetch(TransactionQueries.byId(id)).first else {
+            throw RepositoryError.notFound
+        }
         modelContext.delete(transaction)
     }
 
     internal func saveChanges() throws {
         try modelContext.save()
+    }
+}
+
+private extension SwiftDataTransactionRepository {
+    func resolveInstitution(id: UUID?) throws -> FinancialInstitution? {
+        guard let id else { return nil }
+        guard let institution = try modelContext.fetch(FinancialInstitutionQueries.byId(id)).first else {
+            throw RepositoryError.notFound
+        }
+        return institution
+    }
+
+    func resolveCategory(id: UUID?) throws -> Category? {
+        guard let id else { return nil }
+        guard let category = try modelContext.fetch(CategoryQueries.byId(id)).first else {
+            throw RepositoryError.notFound
+        }
+        return category
     }
 }

@@ -4,21 +4,21 @@ import Foundation
 internal protocol RecurringPaymentOccurrencesService: Sendable {
     @discardableResult
     func synchronizeOccurrences(
-        for definition: RecurringPaymentDefinition,
+        definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
     ) throws -> RecurringPaymentSynchronizationSummary
 
     @discardableResult
     func markOccurrenceCompleted(
-        _ occurrence: RecurringPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
     ) throws -> RecurringPaymentSynchronizationSummary
 
     @discardableResult
     func updateOccurrence(
-        _ occurrence: RecurringPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
     ) throws -> RecurringPaymentSynchronizationSummary?
@@ -33,44 +33,36 @@ internal final class DefaultRecurringPaymentOccurrencesService: RecurringPayment
     }
 
     internal func synchronizeOccurrences(
-        for definition: RecurringPaymentDefinition,
+        definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
     ) throws -> RecurringPaymentSynchronizationSummary {
-        guard definition.recurrenceIntervalMonths > 0 else {
-            throw RecurringPaymentDomainError.invalidRecurrence
-        }
-
-        guard horizonMonths >= 0 else {
-            throw RecurringPaymentDomainError.invalidHorizon
-        }
-
-        return try repository.synchronize(
-            definitionId: definition.id,
+        try repository.synchronize(
+            definitionId: definitionId,
             horizonMonths: horizonMonths,
-            referenceDate: referenceDate,
+            referenceDate: referenceDate
         )
     }
 
     internal func markOccurrenceCompleted(
-        _ occurrence: RecurringPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
     ) throws -> RecurringPaymentSynchronizationSummary {
         try repository.markOccurrenceCompleted(
-            occurrenceId: occurrence.id,
+            occurrenceId: occurrenceId,
             input: input,
             horizonMonths: horizonMonths,
         )
     }
 
     internal func updateOccurrence(
-        _ occurrence: RecurringPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
     ) throws -> RecurringPaymentSynchronizationSummary? {
         try repository.updateOccurrence(
-            occurrenceId: occurrence.id,
+            occurrenceId: occurrenceId,
             input: input,
             horizonMonths: horizonMonths,
         )

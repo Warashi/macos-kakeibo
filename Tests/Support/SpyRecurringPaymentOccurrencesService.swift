@@ -33,19 +33,19 @@ internal final class SpyRecurringPaymentOccurrencesService: RecurringPaymentOccu
 
     @discardableResult
     internal func synchronizeOccurrences(
-        for definition: RecurringPaymentDefinition,
+        definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
     ) throws -> RecurringPaymentSynchronizationSummary {
         synchronizeCalls.append(
             SynchronizeCall(
-                definitionId: definition.id,
+                definitionId: definitionId,
                 horizonMonths: horizonMonths,
                 referenceDate: referenceDate,
             ),
         )
         return try wrapped.synchronizeOccurrences(
-            for: definition,
+            definitionId: definitionId,
             horizonMonths: horizonMonths,
             referenceDate: referenceDate,
         )
@@ -53,19 +53,19 @@ internal final class SpyRecurringPaymentOccurrencesService: RecurringPaymentOccu
 
     @discardableResult
     internal func markOccurrenceCompleted(
-        _ occurrence: RecurringPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
     ) throws -> RecurringPaymentSynchronizationSummary {
         markCompletionCalls.append(
             MarkCompletionCall(
-                occurrenceId: occurrence.id,
+                occurrenceId: occurrenceId,
                 input: input,
                 horizonMonths: horizonMonths,
             ),
         )
         return try wrapped.markOccurrenceCompleted(
-            occurrence,
+            occurrenceId: occurrenceId,
             input: input,
             horizonMonths: horizonMonths,
         )
@@ -73,19 +73,19 @@ internal final class SpyRecurringPaymentOccurrencesService: RecurringPaymentOccu
 
     @discardableResult
     internal func updateOccurrence(
-        _ occurrence: RecurringPaymentOccurrence,
+        occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
     ) throws -> RecurringPaymentSynchronizationSummary? {
         updateCalls.append(
             UpdateCall(
-                occurrenceId: occurrence.id,
+                occurrenceId: occurrenceId,
                 input: input,
                 horizonMonths: horizonMonths,
             ),
         )
         return try wrapped.updateOccurrence(
-            occurrence,
+            occurrenceId: occurrenceId,
             input: input,
             horizonMonths: horizonMonths,
         )

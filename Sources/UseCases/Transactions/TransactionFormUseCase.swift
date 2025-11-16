@@ -78,10 +78,10 @@ internal final class DefaultTransactionFormUseCase: TransactionFormUseCaseProtoc
     }
 
     internal func delete(transactionId: UUID) async throws {
-        guard let transaction = try repository.findTransaction(id: transactionId) else {
+        guard try repository.findTransaction(id: transactionId) != nil else {
             throw TransactionFormError.persistenceFailed("取引が見つかりません")
         }
-        repository.delete(transaction)
+        try repository.delete(id: transactionId)
         do {
             try repository.saveChanges()
         } catch {
@@ -97,38 +97,15 @@ private extension DefaultTransactionFormUseCase {
         amount: Decimal,
         referenceData: TransactionReferenceData,
     ) async throws {
-        guard let transaction = try repository.findTransaction(id: transactionId) else {
+        guard try repository.findTransaction(id: transactionId) != nil else {
             throw TransactionFormError.persistenceFailed("更新対象の取引が見つかりません")
         }
 
-        let institution: FinancialInstitution? = if let institutionId = state.financialInstitutionId {
-            try repository.findInstitution(id: institutionId)
-        } else {
-            nil
-        }
-
-        let majorCategory: Category? = if let majorId = state.majorCategoryId {
-            try repository.findCategory(id: majorId)
-        } else {
-            nil
-        }
-
-        let minorCategory: Category? = if let minorId = state.minorCategoryId {
-            try repository.findCategory(id: minorId)
-        } else {
-            nil
-        }
-
-        transaction.title = state.title
-        transaction.memo = state.memo
-        transaction.date = state.date
-        transaction.amount = amount
-        transaction.isIncludedInCalculation = state.isIncludedInCalculation
-        transaction.isTransfer = state.isTransfer
-        transaction.financialInstitution = institution
-        transaction.majorCategory = majorCategory
-        transaction.minorCategory = minorCategory
-        transaction.updatedAt = Date()
+        let input = makeInput(
+            state: state,
+            amount: amount
+        )
+        try repository.update(TransactionUpdateInput(id: transactionId, input: input))
     }
 
     func createNewTransaction(
@@ -136,36 +113,11 @@ private extension DefaultTransactionFormUseCase {
         amount: Decimal,
         referenceData: TransactionReferenceData,
     ) async throws {
-        let institution: FinancialInstitution? = if let institutionId = state.financialInstitutionId {
-            try repository.findInstitution(id: institutionId)
-        } else {
-            nil
-        }
-
-        let majorCategory: Category? = if let majorId = state.majorCategoryId {
-            try repository.findCategory(id: majorId)
-        } else {
-            nil
-        }
-
-        let minorCategory: Category? = if let minorId = state.minorCategoryId {
-            try repository.findCategory(id: minorId)
-        } else {
-            nil
-        }
-
-        let transaction = Transaction(
-            date: state.date,
-            title: state.title,
-            amount: amount,
-            memo: state.memo,
-            isIncludedInCalculation: state.isIncludedInCalculation,
-            isTransfer: state.isTransfer,
-            financialInstitution: institution,
-            majorCategory: majorCategory,
-            minorCategory: minorCategory,
+        let input = makeInput(
+            state: state,
+            amount: amount
         )
-        repository.insert(transaction)
+        _ = try repository.insert(input)
     }
 
     func validate(state: TransactionFormState, referenceData: TransactionReferenceData) -> [String] {
@@ -195,5 +147,23 @@ private extension DefaultTransactionFormUseCase {
             .replacingOccurrences(of: "¥", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         return sanitized
+    }
+
+    func makeInput(
+        state: TransactionFormState,
+        amount: Decimal
+    ) -> TransactionInput {
+        TransactionInput(
+            date: state.date,
+            title: state.title,
+            memo: state.memo,
+            amount: amount,
+            isIncludedInCalculation: state.isIncludedInCalculation,
+            isTransfer: state.isTransfer,
+            financialInstitutionId: state.financialInstitutionId,
+            majorCategoryId: state.majorCategoryId,
+            minorCategoryId: state.minorCategoryId,
+            importIdentifier: nil
+        )
     }
 }

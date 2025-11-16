@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import SwiftData
 
 @Observable
 @MainActor
@@ -208,15 +207,13 @@ internal extension RecurringPaymentReconciliationStore {
                 actualAmount: amount,
                 transaction: transaction,
             )
-            let repo = repository
             let service = occurrencesService
             let horizon = horizonMonths
             try await Task { @DatabaseActor in
-                let occurrence = try repo.findOccurrence(id: occurrenceId)
                 try service.markOccurrenceCompleted(
-                    occurrence,
+                    occurrenceId: occurrenceId,
                     input: input,
-                    horizonMonths: horizon,
+                    horizonMonths: horizon
                 )
             }.value
             statusMessage = "実績を保存しました。"
@@ -246,20 +243,18 @@ internal extension RecurringPaymentReconciliationStore {
         defer { isSaving = false }
 
         do {
-            let repo = repository
             let service = occurrencesService
             let horizon = horizonMonths
             try await Task { @DatabaseActor in
-                let occurrence = try repo.findOccurrence(id: occurrenceId)
                 try service.updateOccurrence(
-                    occurrence,
+                    occurrenceId: occurrenceId,
                     input: OccurrenceUpdateInput(
                         status: .planned,
                         actualDate: nil,
                         actualAmount: nil,
-                        transaction: nil,
+                        transaction: nil
                     ),
-                    horizonMonths: horizon,
+                    horizonMonths: horizon
                 )
             }.value
             statusMessage = "取引リンクを解除しました。"

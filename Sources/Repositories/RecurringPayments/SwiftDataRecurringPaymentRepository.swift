@@ -267,13 +267,10 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
     internal func saveChanges() throws {
         // Each repository method persists immediately; no shared context to save.
     }
+}
 
-    internal func findOccurrence(id: UUID) throws -> RecurringPaymentOccurrence {
-        let context = makeContext()
-        return try findOccurrence(id: id, context: context)
-    }
-
-    internal func findOccurrence(id: UUID, context: ModelContext) throws -> RecurringPaymentOccurrence {
+private extension SwiftDataRecurringPaymentRepository {
+    func findOccurrence(id: UUID, context: ModelContext) throws -> RecurringPaymentOccurrence {
         let predicate = #Predicate<RecurringPaymentOccurrence> { occurrence in
             occurrence.id == id
         }
@@ -283,9 +280,6 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
         }
         return occurrence
     }
-}
-
-private extension SwiftDataRecurringPaymentRepository {
     func findDefinition(id: UUID, context: ModelContext) throws -> RecurringPaymentDefinition {
         let predicate = #Predicate<RecurringPaymentDefinition> { definition in
             definition.id == id
