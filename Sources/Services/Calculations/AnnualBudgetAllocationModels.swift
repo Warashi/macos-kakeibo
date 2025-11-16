@@ -87,7 +87,7 @@ internal struct MonthlyAllocation: Sendable {
 /// 年次特別枠計算パラメータ
 internal struct AllocationCalculationParams {
     /// 取引リスト
-    internal let transactions: [TransactionDTO]
+    internal let transactions: [Transaction]
 
     /// 予算リスト
     internal let budgets: [BudgetDTO]
@@ -99,7 +99,7 @@ internal struct AllocationCalculationParams {
     internal let filter: AggregationFilter
 
     internal init(
-        transactions: [TransactionDTO],
+        transactions: [Transaction],
         budgets: [BudgetDTO],
         annualBudgetConfig: AnnualBudgetConfigDTO,
         filter: AggregationFilter = .default,

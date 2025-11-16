@@ -72,7 +72,7 @@ internal struct SampleDataTests {
         #expect(food?.allowsAnnualBudget == false)
     }
 
-    // MARK: - Transaction Tests
+    // MARK: - TransactionEntity Tests
 
     @Test("サンプル取引データが生成できる")
     internal func sampleTransactionsData() {

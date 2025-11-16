@@ -32,7 +32,7 @@ internal struct MonthlyBudgetUseCaseTests {
     internal func categoryEntriesCalculateActuals() throws {
         let category = CategoryEntity(name: "食費", displayOrder: 1)
         let budget = Budget(amount: 5000, category: category, year: 2025, month: 11)
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date.from(year: 2025, month: 11, day: 5) ?? Date(),
             title: "ランチ",
             amount: -2000,
@@ -40,7 +40,7 @@ internal struct MonthlyBudgetUseCaseTests {
         )
         let snapshot = BudgetSnapshot(
             budgets: [BudgetDTO(from: budget)],
-            transactions: [TransactionDTO(from: transaction)],
+            transactions: [Transaction(from: transaction)],
             categories: [Category(from: category)],
             annualBudgetConfig: nil,
             recurringPaymentDefinitions: [],
@@ -59,14 +59,14 @@ internal struct MonthlyBudgetUseCaseTests {
     @Test("全体予算エントリを計算する")
     internal func overallEntryCalculatesTotals() {
         let overallBudget = Budget(amount: 10000, year: 2025, month: 11)
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date.from(year: 2025, month: 11, day: 1) ?? Date(),
             title: "家賃",
             amount: -8000,
         )
         let snapshot = BudgetSnapshot(
             budgets: [BudgetDTO(from: overallBudget)],
-            transactions: [TransactionDTO(from: transaction)],
+            transactions: [Transaction(from: transaction)],
             categories: [],
             annualBudgetConfig: nil,
             recurringPaymentDefinitions: [],

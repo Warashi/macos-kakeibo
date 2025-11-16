@@ -371,7 +371,7 @@ private struct CandidateRow: View {
     internal let isSelected: Bool
     internal let onSelect: () -> Void
 
-    private var transaction: TransactionDTO { candidate.transaction }
+    private var transaction: Transaction { candidate.transaction }
 
     internal var body: some View {
         Button(action: onSelect) {

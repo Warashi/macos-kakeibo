@@ -29,7 +29,7 @@ internal struct TransactionFormUseCaseTests {
     @Test("既存取引の編集内容が反映される")
     internal func updatesExistingTransaction() async throws {
         let repository = await InMemoryTransactionRepository()
-        let transaction = Transaction(date: sampleDate(), title: "昼食", amount: -800, memo: "Before")
+        let transaction = TransactionEntity(date: sampleDate(), title: "昼食", amount: -800, memo: "Before")
         repository.transactions = [transaction]
         let useCase = DefaultTransactionFormUseCase(repository: repository)
         var state = TransactionFormState.from(transaction: transaction)
@@ -69,7 +69,7 @@ internal struct TransactionFormUseCaseTests {
 
     @Test("削除処理でリポジトリから取引が除外される")
     internal func deletesTransaction() async throws {
-        let transaction = Transaction(date: sampleDate(), title: "外食", amount: -5000)
+        let transaction = TransactionEntity(date: sampleDate(), title: "外食", amount: -5000)
         let repository = await InMemoryTransactionRepository(transactions: [transaction])
         let useCase = DefaultTransactionFormUseCase(repository: repository)
 

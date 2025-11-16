@@ -26,9 +26,9 @@ internal struct AnnualBudgetProgressCalculatorTests {
         )
 
         // 取引データを作成
-        let transactions: [Transaction] = [
+        let transactions: [TransactionEntity] = [
             // 大項目のみの取引: 10,000円
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "食材購入",
                 amount: -10000,
@@ -36,7 +36,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 minorCategory: nil,
             ),
             // 中項目も設定された取引: 5,000円
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "ランチ",
                 amount: -5000,
@@ -44,7 +44,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 minorCategory: minorCategory,
             ),
             // 中項目も設定された取引: 8,000円
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: 2025, month: 2, day: 10) ?? Date(),
                 title: "ディナー",
                 amount: -8000,
@@ -57,7 +57,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         let categories = [Category(from: majorCategory), Category(from: minorCategory)]
         let result = calculator.calculate(
             budgets: [BudgetDTO(from: budget)],
-            transactions: transactions.map { TransactionDTO(from: $0) },
+            transactions: transactions.map { Transaction(from: $0) },
             categories: categories,
             year: 2025,
         )
@@ -109,9 +109,9 @@ internal struct AnnualBudgetProgressCalculatorTests {
         )
 
         // 取引データを作成
-        let transactions: [Transaction] = [
+        let transactions: [TransactionEntity] = [
             // 外食の取引: 5,000円
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "ランチ",
                 amount: -5000,
@@ -119,7 +119,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 minorCategory: minorCategory1,
             ),
             // 食材の取引: 10,000円（これは含まれない）
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "スーパー",
                 amount: -10000,
@@ -136,7 +136,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         ]
         let result = calculator.calculate(
             budgets: [BudgetDTO(from: budget)],
-            transactions: transactions.map { TransactionDTO(from: $0) },
+            transactions: transactions.map { Transaction(from: $0) },
             categories: categories,
             year: 2025,
         )
@@ -174,7 +174,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         ]
         let result = calculator.calculate(
             budgets: testData.budgets.map { BudgetDTO(from: $0) },
-            transactions: testData.transactions.map { TransactionDTO(from: $0) },
+            transactions: testData.transactions.map { Transaction(from: $0) },
             categories: categories,
             year: 2025,
         )
@@ -217,7 +217,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
 
     private struct MultipleCategoryTestData {
         let budgets: [Budget]
-        let transactions: [Transaction]
+        let transactions: [TransactionEntity]
         let foodCategory: Kakeibo.CategoryEntity
         let diningOutCategory: Kakeibo.CategoryEntity
         let transportCategory: Kakeibo.CategoryEntity
@@ -249,21 +249,21 @@ internal struct AnnualBudgetProgressCalculatorTests {
             ),
         ]
 
-        let transactions: [Transaction] = [
-            Transaction(
+        let transactions: [TransactionEntity] = [
+            TransactionEntity(
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "食材",
                 amount: -10000,
                 majorCategory: foodCategory,
             ),
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "ランチ",
                 amount: -5000,
                 majorCategory: foodCategory,
                 minorCategory: diningOut,
             ),
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: 2025, month: 1, day: 25) ?? Date(),
                 title: "電車",
                 amount: -3000,
@@ -307,16 +307,16 @@ internal struct AnnualBudgetProgressCalculatorTests {
         )
 
         // 取引データを作成
-        let transactions: [Transaction] = [
+        let transactions: [TransactionEntity] = [
             // 食費: 10,000円
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "食材",
                 amount: -10000,
                 majorCategory: foodCategory,
             ),
             // 交通費: 5,000円
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "電車",
                 amount: -5000,
@@ -329,7 +329,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         let categories = [Category(from: foodCategory), Category(from: transportCategory)]
         let result = calculator.calculate(
             budgets: [BudgetDTO(from: overallBudget), BudgetDTO(from: foodBudget)],
-            transactions: transactions.map { TransactionDTO(from: $0) },
+            transactions: transactions.map { Transaction(from: $0) },
             categories: categories,
             year: 2025,
             excludedCategoryIds: excludedCategoryIds,
@@ -373,23 +373,23 @@ internal struct AnnualBudgetProgressCalculatorTests {
         )
 
         // 取引データを作成
-        let transactions: [Transaction] = [
+        let transactions: [TransactionEntity] = [
             // 食費: 10,000円
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "食材",
                 amount: -10000,
                 majorCategory: foodCategory,
             ),
             // 交通費: 5,000円
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "電車",
                 amount: -5000,
                 majorCategory: transportCategory,
             ),
             // 娯楽費: 8,000円
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: 2025, month: 1, day: 25) ?? Date(),
                 title: "映画",
                 amount: -8000,
@@ -406,7 +406,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         ]
         let result = calculator.calculate(
             budgets: [BudgetDTO(from: overallBudget)],
-            transactions: transactions.map { TransactionDTO(from: $0) },
+            transactions: transactions.map { Transaction(from: $0) },
             categories: categories,
             year: 2025,
             excludedCategoryIds: excludedCategoryIds,

@@ -51,7 +51,7 @@ internal struct AnnualBudgetProgressCalculator {
 
     internal func calculate(
         budgets: [BudgetDTO],
-        transactions: [TransactionDTO],
+        transactions: [Transaction],
         categories: [Category],
         year: Int,
         filter: AggregationFilter = .default,

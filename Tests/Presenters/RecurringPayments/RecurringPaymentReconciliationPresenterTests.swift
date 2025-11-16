@@ -64,13 +64,13 @@ internal struct ReconciliationPresenterTests {
             status: .planned,
         )
 
-        let matchingTransaction = Transaction(
+        let matchingTransaction = TransactionEntity(
             date: Date.from(year: 2025, month: 6, day: 12) ?? Date(),
             title: "保険料",
             amount: -100_000,
         )
 
-        let distantTransaction = Transaction(
+        let distantTransaction = TransactionEntity(
             date: Date.from(year: 2025, month: 1, day: 1) ?? Date(),
             title: "別支払い",
             amount: -50000,
@@ -78,11 +78,11 @@ internal struct ReconciliationPresenterTests {
 
         let definitionDTO = RecurringPaymentDefinitionDTO(from: definition)
         let occurrenceDTO = RecurringPaymentOccurrenceDTO(from: occurrence)
-        let matchingTransactionDTO = TransactionDTO(from: matchingTransaction)
-        let distantTransactionDTO = TransactionDTO(from: distantTransaction)
+        let matchingTransaction = Transaction(from: matchingTransaction)
+        let distantTransaction = Transaction(from: distantTransaction)
 
         let context = RecurringPaymentReconciliationPresenter.TransactionCandidateSearchContext(
-            transactions: [matchingTransactionDTO, distantTransactionDTO],
+            transactions: [matchingTransaction, distantTransaction],
             linkedTransactionLookup: [:],
             windowDays: 30,
             limit: 5,
@@ -116,13 +116,13 @@ internal struct ReconciliationPresenterTests {
             status: .planned,
         )
 
-        let pastTransaction = Transaction(
+        let pastTransaction = TransactionEntity(
             date: Date.from(year: 2025, month: 6, day: 5) ?? Date(),
             title: "保険料",
             amount: -100_000,
         )
 
-        let futureTransaction = Transaction(
+        let futureTransaction = TransactionEntity(
             date: Date.from(year: 2025, month: 6, day: 20) ?? Date(),
             title: "保険料",
             amount: -100_000,
@@ -130,11 +130,11 @@ internal struct ReconciliationPresenterTests {
 
         let definitionDTO = RecurringPaymentDefinitionDTO(from: definition)
         let occurrenceDTO = RecurringPaymentOccurrenceDTO(from: occurrence)
-        let pastTransactionDTO = TransactionDTO(from: pastTransaction)
-        let futureTransactionDTO = TransactionDTO(from: futureTransaction)
+        let pastTransaction = Transaction(from: pastTransaction)
+        let futureTransaction = Transaction(from: futureTransaction)
 
         let context = RecurringPaymentReconciliationPresenter.TransactionCandidateSearchContext(
-            transactions: [pastTransactionDTO, futureTransactionDTO],
+            transactions: [pastTransaction, futureTransaction],
             linkedTransactionLookup: [:],
             windowDays: 30,
             limit: 5,

@@ -14,7 +14,7 @@ internal final class TransactionStore {
     /// 日毎の取引セクション
     internal struct TransactionSection: Identifiable {
         internal let date: Date
-        internal let transactions: [TransactionDTO]
+        internal let transactions: [Transaction]
 
         internal var id: Date { date }
         internal var title: String { date.longDateFormatted }
@@ -29,7 +29,7 @@ internal final class TransactionStore {
     @ObservationIgnored
     private var transactionsToken: ObservationToken?
 
-    internal var transactions: [TransactionDTO] = []
+    internal var transactions: [Transaction] = []
     internal var searchText: String = "" {
         didSet {
             Task { await reloadTransactions() }
@@ -156,7 +156,7 @@ internal extension TransactionStore {
     /// セクション化された取引
     var sections: [TransactionSection] {
         var order: [Date] = []
-        var grouped: [Date: [TransactionDTO]] = [:]
+        var grouped: [Date: [Transaction]] = [:]
         for transaction in transactions {
             let day = Calendar.current.startOfDay(for: transaction.date)
             if grouped[day] == nil {
@@ -233,9 +233,9 @@ internal extension TransactionStore {
     }
 
     /// 既存取引の編集を開始
-    func startEditing(transaction: TransactionDTO) {
+    func startEditing(transaction: Transaction) {
         editingTransactionId = transaction.id
-        formState = .from(transactionDTO: transaction)
+        formState = .from(transaction: transaction)
         formErrors = []
         isEditorPresented = true
     }

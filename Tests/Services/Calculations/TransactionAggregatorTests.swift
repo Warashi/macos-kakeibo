@@ -74,7 +74,7 @@ internal struct TransactionAggregatorTests {
         // Given
         var (transactions, categories) = createSampleTransactionsWithCategories()
         // 計算対象外の取引を追加
-        let excludedTx = createTransactionDTO(
+        let excludedTx = createTransaction(
             amount: 10000,
             isIncludedInCalculation: false,
         )
@@ -104,7 +104,7 @@ internal struct TransactionAggregatorTests {
         // Given
         var (transactions, categories) = createSampleTransactionsWithCategories()
         // 振替取引を追加
-        let transferTx = createTransactionDTO(
+        let transferTx = createTransaction(
             amount: 5000,
             isTransfer: true,
         )
@@ -135,8 +135,8 @@ internal struct TransactionAggregatorTests {
         var (transactions, categories) = createSampleTransactionsWithCategories()
 
         // 定期支払いとリンクされた取引を追加
-        let linkedTx1 = createTransactionDTO(amount: -10000)
-        let linkedTx2 = createTransactionDTO(amount: -5000)
+        let linkedTx1 = createTransaction(amount: -10000)
+        let linkedTx2 = createTransaction(amount: -5000)
         transactions.append(linkedTx1)
         transactions.append(linkedTx2)
 
@@ -170,7 +170,7 @@ internal struct TransactionAggregatorTests {
 
     // MARK: - Helper Methods
 
-    private func createSampleTransactionsWithCategories() -> ([TransactionDTO], [Kakeibo.Category]) {
+    private func createSampleTransactionsWithCategories() -> ([Transaction], [Kakeibo.Category]) {
         let categoryId = UUID()
         let category = CategoryEntity(
             id: categoryId,
@@ -181,24 +181,24 @@ internal struct TransactionAggregatorTests {
         )
 
         let transactions = [
-            createTransactionDTO(amount: 50000, categoryId: categoryId),
-            createTransactionDTO(amount: -30000, categoryId: categoryId),
-            createTransactionDTO(amount: -20000, categoryId: categoryId),
-            createTransactionDTO(amount: 100_000, categoryId: categoryId),
-            createTransactionDTO(amount: -15000, categoryId: categoryId),
+            createTransaction(amount: 50000, categoryId: categoryId),
+            createTransaction(amount: -30000, categoryId: categoryId),
+            createTransaction(amount: -20000, categoryId: categoryId),
+            createTransaction(amount: 100_000, categoryId: categoryId),
+            createTransaction(amount: -15000, categoryId: categoryId),
         ]
 
         return (transactions, [Category(from: category)])
     }
 
-    private func createTransactionDTO(
+    private func createTransaction(
         amount: Decimal,
         categoryId: UUID? = nil,
         financialInstitutionId: UUID? = nil,
         isIncludedInCalculation: Bool = true,
         isTransfer: Bool = false,
-    ) -> TransactionDTO {
-        TransactionDTO(
+    ) -> Transaction {
+        Transaction(
             id: UUID(),
             date: Date.from(year: 2025, month: 11) ?? Date(),
             title: "テスト取引",

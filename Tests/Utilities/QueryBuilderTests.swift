@@ -15,8 +15,8 @@ internal struct QueryBuilderTests {
         let targetMonth = try #require(Date.from(year: 2025, month: 5, day: 10))
         let outsideMonth = try #require(Date.from(year: 2025, month: 6, day: 3))
 
-        context.insert(Transaction(date: targetMonth, title: "今月", amount: -1000))
-        context.insert(Transaction(date: outsideMonth, title: "来月", amount: -2000))
+        context.insert(TransactionEntity(date: targetMonth, title: "今月", amount: -1000))
+        context.insert(TransactionEntity(date: outsideMonth, title: "来月", amount: -2000))
         try context.save()
 
         let query = TransactionQuery(

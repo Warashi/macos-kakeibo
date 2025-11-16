@@ -11,7 +11,7 @@ internal struct DatabaseAccessTests {
         let access = try ModelContainer.makeInMemoryAccess()
 
         let savedTitle = try await access.write { context -> String in
-            let transaction = Transaction(
+            let transaction = TransactionEntity(
                 date: Date(),
                 title: "テスト取引",
                 amount: -1_000
@@ -41,7 +41,7 @@ internal struct DatabaseAccessTests {
         let access = await DatabaseActor.shared.databaseAccess()
 
         let count = try await access.read { context -> Int in
-            try context.count(Transaction.self)
+            try context.count(TransactionEntity.self)
         }
 
         #expect(count == 0)

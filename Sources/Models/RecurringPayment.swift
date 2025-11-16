@@ -230,7 +230,7 @@ internal final class RecurringPaymentOccurrence {
     internal var actualAmount: Decimal?
 
     @Relationship(deleteRule: .nullify)
-    internal var transaction: Transaction?
+    internal var transaction: TransactionEntity?
 
     internal var createdAt: Date
     internal var updatedAt: Date
@@ -243,7 +243,7 @@ internal final class RecurringPaymentOccurrence {
         status: RecurringPaymentStatus = .planned,
         actualDate: Date? = nil,
         actualAmount: Decimal? = nil,
-        transaction: Transaction? = nil,
+        transaction: TransactionEntity? = nil,
     ) {
         self.id = id
         self.definition = definition

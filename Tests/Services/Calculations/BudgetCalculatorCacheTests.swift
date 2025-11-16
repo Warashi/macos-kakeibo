@@ -11,7 +11,7 @@ internal struct BudgetCalculatorCacheTests {
         let calculator = BudgetCalculator()
         let category = CategoryEntity(name: "食費", allowsAnnualBudget: true)
         let budget = Budget(amount: 50000, category: category, year: 2025, month: 1)
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "ランチ",
             amount: -30000,
@@ -19,7 +19,7 @@ internal struct BudgetCalculatorCacheTests {
         )
 
         let input = BudgetCalculator.MonthlyBudgetInput(
-            transactions: [TransactionDTO(from: transaction)],
+            transactions: [Transaction(from: transaction)],
             budgets: [BudgetDTO(from: budget)],
             categories: [Category(from: category)],
             year: 2025,
@@ -41,7 +41,7 @@ internal struct BudgetCalculatorCacheTests {
         let calculator = BudgetCalculator()
         let category = CategoryEntity(name: "日用品")
         let budget = Budget(amount: 40000, category: category, year: 2025, month: 2)
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date.from(year: 2025, month: 2) ?? Date(),
             title: "雑貨",
             amount: -10000,
@@ -49,7 +49,7 @@ internal struct BudgetCalculatorCacheTests {
         )
 
         let input1 = BudgetCalculator.MonthlyBudgetInput(
-            transactions: [TransactionDTO(from: transaction)],
+            transactions: [Transaction(from: transaction)],
             budgets: [BudgetDTO(from: budget)],
             categories: [Category(from: category)],
             year: 2025,
@@ -64,7 +64,7 @@ internal struct BudgetCalculatorCacheTests {
         transaction.updatedAt = Date().addingTimeInterval(60)
 
         let input2 = BudgetCalculator.MonthlyBudgetInput(
-            transactions: [TransactionDTO(from: transaction)],
+            transactions: [Transaction(from: transaction)],
             budgets: [BudgetDTO(from: budget)],
             categories: [Category(from: category)],
             year: 2025,

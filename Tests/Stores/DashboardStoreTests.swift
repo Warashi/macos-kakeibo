@@ -31,7 +31,7 @@ internal struct DashboardStoreTests {
         let category = CategoryEntity(name: "食費")
         context.insert(category)
 
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date.from(year: 2025, month: 11) ?? Date(),
             title: "スーパー",
             amount: -5000,
@@ -65,7 +65,7 @@ internal struct DashboardStoreTests {
         let decemberDate = try #require(Date.from(year: 2025, month: 12, day: 15))
         let januaryDate = try #require(Date.from(year: 2026, month: 1, day: 5))
         context.insert(
-            Transaction(
+            TransactionEntity(
                 date: decemberDate,
                 title: "年末出費",
                 amount: -8000,
@@ -73,7 +73,7 @@ internal struct DashboardStoreTests {
             ),
         )
         context.insert(
-            Transaction(
+            TransactionEntity(
                 date: januaryDate,
                 title: "年始出費",
                 amount: -4000,
@@ -113,9 +113,9 @@ internal struct DashboardStoreTests {
 
         let january = try #require(Date.from(year: 2025, month: 1, day: 10))
         let august = try #require(Date.from(year: 2025, month: 8, day: 3))
-        context.insert(Transaction(date: january, title: "初売り", amount: -5000))
-        context.insert(Transaction(date: august, title: "旅行", amount: -15000))
-        context.insert(Transaction(
+        context.insert(TransactionEntity(date: january, title: "初売り", amount: -5000))
+        context.insert(TransactionEntity(date: august, title: "旅行", amount: -15000))
+        context.insert(TransactionEntity(
             date: Date.from(year: 2024, month: 12, day: 25) ?? Date(),
             title: "前年",
             amount: -7000,
@@ -241,7 +241,7 @@ internal struct DashboardStoreTests {
             let category = CategoryEntity(name: "カテゴリ\(index)")
             context.insert(category)
 
-            let transaction = Transaction(
+            let transaction = TransactionEntity(
                 date: Date.from(year: 2025, month: 11) ?? Date(),
                 title: "取引\(index)",
                 amount: Decimal(-1000 * index),
@@ -273,7 +273,7 @@ internal struct DashboardStoreTests {
         let budget = Budget(amount: 120_000, year: 2025, month: 1)
         context.insert(budget)
 
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "光熱費",
             amount: -50000,
@@ -301,7 +301,7 @@ internal struct DashboardStoreTests {
         let budget = Budget(amount: 10000, category: food, year: 2025, month: 1)
         context.insert(budget)
 
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "ランチ",
             amount: -4000,
@@ -351,7 +351,7 @@ internal struct DashboardStoreTests {
         let category = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
         context.insert(category)
 
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "特別支出",
             amount: -40000,
@@ -401,13 +401,13 @@ internal struct DashboardStoreTests {
         context.insert(overallBudget)
 
         // 取引作成
-        let foodTransaction = Transaction(
+        let foodTransaction = TransactionEntity(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "食費",
             amount: -20000,
             majorCategory: foodCategory,
         )
-        let specialTransaction = Transaction(
+        let specialTransaction = TransactionEntity(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "特別支出",
             amount: -30000,
@@ -446,7 +446,7 @@ internal struct DashboardStoreTests {
 
     private func createInMemoryContainer() throws -> ModelContainer {
         try ModelContainer(
-            for: Transaction.self, CategoryEntity.self, Budget.self, AnnualBudgetConfig.self,
+            for: TransactionEntity.self, CategoryEntity.self, Budget.self, AnnualBudgetConfig.self,
             FinancialInstitutionEntity.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )

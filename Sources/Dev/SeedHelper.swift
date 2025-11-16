@@ -84,7 +84,7 @@ internal enum SeedHelper {
     /// - Throws: データ削除時のエラー
     internal static func clearAllData(in context: ModelContext) throws {
         // 削除は依存関係の逆順で行う
-        try context.delete(model: Transaction.self)
+        try context.delete(model: TransactionEntity.self)
         try context.delete(model: Budget.self)
         try context.delete(model: AnnualBudgetConfig.self)
         try deleteCategoriesSafely(in: context)

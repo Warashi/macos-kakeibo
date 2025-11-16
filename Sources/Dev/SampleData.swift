@@ -74,18 +74,18 @@ internal enum SampleData {
         return categories
     }
 
-    // MARK: - Transaction
+    // MARK: - TransactionEntity
 
     /// サンプル取引データ
     internal static func createSampleTransactions(
         categories: [CategoryEntity],
         institutions: [FinancialInstitutionEntity],
-    ) -> [Transaction] {
+    ) -> [TransactionEntity] {
         let refs = findCategoriesAndInstitutions(categories: categories, institutions: institutions)
         let calendar = Calendar.current
         let now = Date()
 
-        var transactions: [Transaction] = []
+        var transactions: [TransactionEntity] = []
         transactions.append(contentsOf: createIncomeTransactions(calendar: calendar, now: now, refs: refs))
         transactions.append(contentsOf: createExpenseTransactions(calendar: calendar, now: now, refs: refs))
 
@@ -147,9 +147,9 @@ private func createIncomeTransactions(
     calendar: Calendar,
     now: Date,
     refs: CategoryAndInstitutionRefs,
-) -> [Transaction] {
+) -> [TransactionEntity] {
     [
-        Transaction(
+        TransactionEntity(
             date: calendar.date(byAdding: .day, value: -25, to: now) ?? now,
             title: "給与",
             amount: 300_000,
@@ -166,8 +166,8 @@ private func createExpenseTransactions(
     calendar: Calendar,
     now: Date,
     refs: CategoryAndInstitutionRefs,
-) -> [Transaction] {
-    var transactions: [Transaction] = []
+) -> [TransactionEntity] {
+    var transactions: [TransactionEntity] = []
     transactions.append(contentsOf: createFoodTransactions(calendar: calendar, now: now, refs: refs))
     transactions.append(contentsOf: createTransportTransactions(calendar: calendar, now: now, refs: refs))
     transactions.append(contentsOf: createHobbyTransactions(calendar: calendar, now: now, refs: refs))
@@ -179,9 +179,9 @@ private func createFoodTransactions(
     calendar: Calendar,
     now: Date,
     refs: CategoryAndInstitutionRefs,
-) -> [Transaction] {
+) -> [TransactionEntity] {
     [
-        Transaction(
+        TransactionEntity(
             date: calendar.date(byAdding: .day, value: -1, to: now) ?? now,
             title: "ランチ",
             amount: -1200,
@@ -190,7 +190,7 @@ private func createFoodTransactions(
             majorCategory: refs.food,
             minorCategory: refs.eating,
         ),
-        Transaction(
+        TransactionEntity(
             date: calendar.date(byAdding: .day, value: -3, to: now) ?? now,
             title: "居酒屋",
             amount: -4500,
@@ -199,7 +199,7 @@ private func createFoodTransactions(
             majorCategory: refs.food,
             minorCategory: refs.eating,
         ),
-        Transaction(
+        TransactionEntity(
             date: calendar.date(byAdding: .day, value: -2, to: now) ?? now,
             title: "スターバックス",
             amount: -680,
@@ -207,7 +207,7 @@ private func createFoodTransactions(
             majorCategory: refs.food,
             minorCategory: refs.cafe,
         ),
-        Transaction(
+        TransactionEntity(
             date: calendar.date(byAdding: .day, value: -5, to: now) ?? now,
             title: "スーパー",
             amount: -3200,
@@ -224,9 +224,9 @@ private func createTransportTransactions(
     calendar: Calendar,
     now: Date,
     refs: CategoryAndInstitutionRefs,
-) -> [Transaction] {
+) -> [TransactionEntity] {
     [
-        Transaction(
+        TransactionEntity(
             date: calendar.date(byAdding: .day, value: -1, to: now) ?? now,
             title: "Suicaチャージ",
             amount: -3000,
@@ -242,9 +242,9 @@ private func createHobbyTransactions(
     calendar: Calendar,
     now: Date,
     refs: CategoryAndInstitutionRefs,
-) -> [Transaction] {
+) -> [TransactionEntity] {
     [
-        Transaction(
+        TransactionEntity(
             date: calendar.date(byAdding: .day, value: -7, to: now) ?? now,
             title: "技術書",
             amount: -3800,
@@ -253,7 +253,7 @@ private func createHobbyTransactions(
             majorCategory: refs.hobby,
             minorCategory: refs.book,
         ),
-        Transaction(
+        TransactionEntity(
             date: calendar.date(byAdding: .day, value: -10, to: now) ?? now,
             title: "Netflix",
             amount: -1490,

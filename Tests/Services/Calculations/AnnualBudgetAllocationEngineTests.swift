@@ -25,7 +25,7 @@ internal struct AnnualBudgetAllocationEngineTests {
             makeTransaction(amount: -60000, year: 2025, month: 2, category: category),
         ]
         let params = AllocationCalculationParams(
-            transactions: transactions.map { TransactionDTO(from: $0) },
+            transactions: transactions.map { Transaction(from: $0) },
             budgets: budgets.map { BudgetDTO(from: $0) },
             annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
@@ -68,7 +68,7 @@ internal struct AnnualBudgetAllocationEngineTests {
             makeTransaction(amount: -30000, year: 2025, month: 3, category: major, minorCategory: minor),
         ]
         let params = AllocationCalculationParams(
-            transactions: transactions.map { TransactionDTO(from: $0) },
+            transactions: transactions.map { Transaction(from: $0) },
             budgets: [],
             annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
@@ -123,8 +123,8 @@ internal struct AnnualBudgetAllocationEngineTests {
         month: Int,
         category: Kakeibo.CategoryEntity?,
         minorCategory: Kakeibo.CategoryEntity? = nil,
-    ) -> Transaction {
-        Transaction(
+    ) -> TransactionEntity {
+        TransactionEntity(
             date: Date.from(year: year, month: month) ?? Date(),
             title: "テスト取引",
             amount: amount,

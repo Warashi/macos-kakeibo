@@ -138,7 +138,7 @@ internal struct TransactionListContentView: View {
         }
     }
 
-    private func categoryFullName(for transaction: TransactionDTO) -> String {
+    private func categoryFullName(for transaction: Transaction) -> String {
         let majorName: String? = {
             guard let majorId = transaction.majorCategoryId else { return nil }
             return store.availableCategories.first { $0.id == majorId }?.name
@@ -158,7 +158,7 @@ internal struct TransactionListContentView: View {
         }
     }
 
-    private func institutionName(for transaction: TransactionDTO) -> String? {
+    private func institutionName(for transaction: Transaction) -> String? {
         guard let institutionId = transaction.financialInstitutionId else {
             return nil
         }

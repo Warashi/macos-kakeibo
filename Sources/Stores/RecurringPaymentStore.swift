@@ -49,12 +49,12 @@ internal struct RecurringPaymentDefinitionInput: Sendable {
 internal struct OccurrenceCompletionInput: Sendable {
     internal let actualDate: Date
     internal let actualAmount: Decimal
-    internal let transaction: TransactionDTO?
+    internal let transaction: Transaction?
 
     internal init(
         actualDate: Date,
         actualAmount: Decimal,
-        transaction: TransactionDTO? = nil,
+        transaction: Transaction? = nil,
     ) {
         self.actualDate = actualDate
         self.actualAmount = actualAmount
@@ -67,13 +67,13 @@ internal struct OccurrenceUpdateInput: Sendable {
     internal let status: RecurringPaymentStatus
     internal let actualDate: Date?
     internal let actualAmount: Decimal?
-    internal let transaction: TransactionDTO?
+    internal let transaction: Transaction?
 
     internal init(
         status: RecurringPaymentStatus,
         actualDate: Date? = nil,
         actualAmount: Decimal? = nil,
-        transaction: TransactionDTO? = nil,
+        transaction: Transaction? = nil,
     ) {
         self.status = status
         self.actualDate = actualDate

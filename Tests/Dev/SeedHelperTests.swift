@@ -16,7 +16,7 @@ internal struct SeedHelperTests {
         // データが投入されたことを確認
         #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) > 0)
         #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) > 0)
-        #expect(SeedHelper.count(Transaction.self, in: container) > 0)
+        #expect(SeedHelper.count(TransactionEntity.self, in: container) > 0)
         #expect(SeedHelper.count(Budget.self, in: container) > 0)
         #expect(SeedHelper.count(AnnualBudgetConfig.self, in: container) == 1)
     }
@@ -29,7 +29,7 @@ internal struct SeedHelperTests {
 
         #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) == 7)
         #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) == 0)
-        #expect(SeedHelper.count(Transaction.self, in: container) == 0)
+        #expect(SeedHelper.count(TransactionEntity.self, in: container) == 0)
     }
 
     @Test("カテゴリのみを投入できる")
@@ -40,7 +40,7 @@ internal struct SeedHelperTests {
 
         #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) > 0)
         #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) == 0)
-        #expect(SeedHelper.count(Transaction.self, in: container) == 0)
+        #expect(SeedHelper.count(TransactionEntity.self, in: container) == 0)
     }
 
     // MARK: - データクリアテスト
@@ -60,7 +60,7 @@ internal struct SeedHelperTests {
         // すべてのデータが削除されたことを確認
         #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) == 0)
         #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) == 0)
-        #expect(SeedHelper.count(Transaction.self, in: container) == 0)
+        #expect(SeedHelper.count(TransactionEntity.self, in: container) == 0)
         #expect(SeedHelper.count(Budget.self, in: container) == 0)
         #expect(SeedHelper.count(AnnualBudgetConfig.self, in: container) == 0)
     }
@@ -90,7 +90,7 @@ internal struct SeedHelperTests {
         let context = ModelContext(container)
 
         // すべての取引を取得
-        let transactions = try context.fetchAll(Transaction.self)
+        let transactions = try context.fetchAll(TransactionEntity.self)
 
         // すべての取引がバリデーションを通過することを確認
         for transaction in transactions {

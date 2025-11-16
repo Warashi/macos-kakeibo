@@ -15,8 +15,8 @@ internal struct TransactionQuery {
 
 @DatabaseActor
 internal protocol TransactionRepository: Sendable {
-    func fetchTransactions(query: TransactionQuery) throws -> [TransactionDTO]
-    func fetchAllTransactions() throws -> [TransactionDTO]
+    func fetchTransactions(query: TransactionQuery) throws -> [Transaction]
+    func fetchAllTransactions() throws -> [Transaction]
     func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot
     func countTransactions() throws -> Int
     func fetchInstitutions() throws -> [FinancialInstitution]
@@ -24,10 +24,10 @@ internal protocol TransactionRepository: Sendable {
     @discardableResult
     func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @MainActor ([TransactionDTO]) -> Void,
+        onChange: @escaping @MainActor ([Transaction]) -> Void,
     ) throws -> ObservationToken
-    func findTransaction(id: UUID) throws -> TransactionDTO?
-    func findByIdentifier(_ identifier: String) throws -> TransactionDTO?
+    func findTransaction(id: UUID) throws -> Transaction?
+    func findByIdentifier(_ identifier: String) throws -> Transaction?
     @discardableResult
     func insert(_ input: TransactionInput) throws -> UUID
     func update(_ input: TransactionUpdateInput) throws

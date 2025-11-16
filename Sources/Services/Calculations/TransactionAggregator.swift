@@ -143,7 +143,7 @@ internal struct TransactionAggregator: Sendable {
     ///   - filter: フィルタオプション
     /// - Returns: 月次集計結果
     internal func aggregateMonthly(
-        transactions: [TransactionDTO],
+        transactions: [Transaction],
         categories: [Category],
         year: Int,
         month: Int,
@@ -191,7 +191,7 @@ internal struct TransactionAggregator: Sendable {
     ///   - filter: フィルタオプション
     /// - Returns: 年次集計結果
     internal func aggregateAnnually(
-        transactions: [TransactionDTO],
+        transactions: [Transaction],
         categories: [Category],
         year: Int,
         filter: AggregationFilter = .default,
@@ -246,7 +246,7 @@ internal struct TransactionAggregator: Sendable {
     ///   - categories: カテゴリリスト
     /// - Returns: カテゴリ別集計結果のリスト
     internal func aggregateByCategory(
-        transactions: [TransactionDTO],
+        transactions: [Transaction],
         categories: [Category],
     ) -> [CategorySummary] {
         // カテゴリグループ化キー
@@ -301,7 +301,7 @@ internal struct TransactionAggregator: Sendable {
 
     /// フィルタを適用
     private func applyFilter(
-        transaction: TransactionDTO,
+        transaction: Transaction,
         filter: AggregationFilter,
     ) -> Bool {
         // 除外リストチェック（定期支払いとリンクされた取引など）

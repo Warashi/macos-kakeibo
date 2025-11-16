@@ -2,13 +2,13 @@ import Foundation
 @testable import Kakeibo
 
 internal final class InMemoryTransactionRepository: TransactionRepository {
-    internal var transactions: [Transaction]
+    internal var transactions: [TransactionEntity]
     internal var institutions: [FinancialInstitutionEntity]
     internal var categories: [Kakeibo.CategoryEntity]
     internal private(set) var saveCallCount: Int = 0
 
     internal init(
-        transactions: [Transaction] = [],
+        transactions: [TransactionEntity] = [],
         institutions: [FinancialInstitutionEntity] = [],
         categories: [Kakeibo.CategoryEntity] = [],
     ) {
@@ -17,14 +17,14 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         self.categories = categories
     }
 
-    internal func fetchTransactions(query: TransactionQuery) throws -> [TransactionDTO] {
+    internal func fetchTransactions(query: TransactionQuery) throws -> [Transaction] {
         transactions.filter { transaction in
             matches(transaction: transaction, query: query)
-        }.map { TransactionDTO(from: $0) }
+        }.map { Transaction(from: $0) }
     }
 
-    internal func fetchAllTransactions() throws -> [TransactionDTO] {
-        transactions.map { TransactionDTO(from: $0) }
+    internal func fetchAllTransactions() throws -> [Transaction] {
+        transactions.map { Transaction(from: $0) }
     }
 
     internal func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot {
@@ -50,7 +50,7 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
     @discardableResult
     internal func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @MainActor ([TransactionDTO]) -> Void,
+        onChange: @escaping @MainActor ([Transaction]) -> Void,
     ) throws -> ObservationToken {
         let snapshot = try fetchTransactions(query: query)
         MainActor.assumeIsolated {
@@ -59,17 +59,17 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         return ObservationToken {}
     }
 
-    internal func findTransaction(id: UUID) throws -> TransactionDTO? {
-        transactions.first { $0.id == id }.map { TransactionDTO(from: $0) }
+    internal func findTransaction(id: UUID) throws -> Transaction? {
+        transactions.first { $0.id == id }.map { Transaction(from: $0) }
     }
 
-    internal func findByIdentifier(_ identifier: String) throws -> TransactionDTO? {
-        transactions.first { $0.importIdentifier == identifier }.map { TransactionDTO(from: $0) }
+    internal func findByIdentifier(_ identifier: String) throws -> Transaction? {
+        transactions.first { $0.importIdentifier == identifier }.map { Transaction(from: $0) }
     }
 
     @discardableResult
     internal func insert(_ input: TransactionInput) throws -> UUID {
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: input.date,
             title: input.title,
             amount: input.amount,
@@ -118,7 +118,7 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
 }
 
 private extension InMemoryTransactionRepository {
-    func matches(transaction: Transaction, query: TransactionQuery) -> Bool {
+    func matches(transaction: TransactionEntity, query: TransactionQuery) -> Bool {
         matchMonth(transaction: transaction, month: query.month) &&
             matchCalculation(transaction: transaction, includeOnlyTarget: query.includeOnlyCalculationTarget) &&
             matchTransfer(transaction: transaction, excludeTransfers: query.excludeTransfers) &&
@@ -127,19 +127,19 @@ private extension InMemoryTransactionRepository {
             matchCategoryEntity(transaction: transaction, majorId: query.majorCategoryId, minorId: query.minorCategoryId)
     }
 
-    func matchMonth(transaction: Transaction, month: Date) -> Bool {
+    func matchMonth(transaction: TransactionEntity, month: Date) -> Bool {
         transaction.date.year == month.year && transaction.date.month == month.month
     }
 
-    func matchCalculation(transaction: Transaction, includeOnlyTarget: Bool) -> Bool {
+    func matchCalculation(transaction: TransactionEntity, includeOnlyTarget: Bool) -> Bool {
         !includeOnlyTarget || transaction.isIncludedInCalculation
     }
 
-    func matchTransfer(transaction: Transaction, excludeTransfers: Bool) -> Bool {
+    func matchTransfer(transaction: TransactionEntity, excludeTransfers: Bool) -> Bool {
         !excludeTransfers || !transaction.isTransfer
     }
 
-    func matchKind(transaction: Transaction, filterKind: TransactionFilterKind) -> Bool {
+    func matchKind(transaction: TransactionEntity, filterKind: TransactionFilterKind) -> Bool {
         switch filterKind {
         case .all:
             true
@@ -150,12 +150,12 @@ private extension InMemoryTransactionRepository {
         }
     }
 
-    func matchInstitution(transaction: Transaction, institutionId: UUID?) -> Bool {
+    func matchInstitution(transaction: TransactionEntity, institutionId: UUID?) -> Bool {
         guard let institutionId else { return true }
         return transaction.financialInstitution?.id == institutionId
     }
 
-    func matchCategoryEntity(transaction: Transaction, majorId: UUID?, minorId: UUID?) -> Bool {
+    func matchCategoryEntity(transaction: TransactionEntity, majorId: UUID?, minorId: UUID?) -> Bool {
         if let minorId {
             return transaction.minorCategory?.id == minorId
         }

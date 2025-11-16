@@ -291,11 +291,11 @@ private extension SwiftDataRecurringPaymentRepository {
         return definition
     }
 
-    func findTransaction(id: UUID, context: ModelContext) throws -> Transaction {
-        let predicate = #Predicate<Transaction> { transaction in
+    func findTransaction(id: UUID, context: ModelContext) throws -> TransactionEntity {
+        let predicate = #Predicate<TransactionEntity> { transaction in
             transaction.id == id
         }
-        let descriptor = FetchDescriptor<Transaction>(predicate: predicate)
+        let descriptor = FetchDescriptor<TransactionEntity>(predicate: predicate)
         guard let transaction = try context.fetch(descriptor).first else {
             throw RecurringPaymentDomainError.validationFailed(["取引が見つかりません"])
         }

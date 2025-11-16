@@ -48,7 +48,7 @@ private extension SwiftDataDashboardRepository {
         context: ModelContext,
         year: Int,
         month: Int?
-    ) throws -> [TransactionDTO] {
+    ) throws -> [Transaction] {
         guard let startDate = Date.from(year: year, month: month ?? 1) else {
             return []
         }
@@ -67,6 +67,6 @@ private extension SwiftDataDashboardRepository {
             endDate: endDate
         )
         let transactions = try context.fetch(descriptor)
-        return transactions.map { TransactionDTO(from: $0) }
+        return transactions.map { Transaction(from: $0) }
     }
 }

@@ -12,7 +12,7 @@ internal struct AnnualBudgetUseCaseTests {
             Budget(amount: 120_000, year: year, month: 2),
         ]
         let transactions = [
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: year, month: 1, day: 10) ?? Date(),
                 title: "家賃",
                 amount: -80000,
@@ -20,7 +20,7 @@ internal struct AnnualBudgetUseCaseTests {
         ]
         let snapshot = BudgetSnapshot(
             budgets: budgets.map { BudgetDTO(from: $0) },
-            transactions: transactions.map { TransactionDTO(from: $0) },
+            transactions: transactions.map { Transaction(from: $0) },
             categories: [],
             annualBudgetConfig: nil,
             recurringPaymentDefinitions: [],
@@ -44,7 +44,7 @@ internal struct AnnualBudgetUseCaseTests {
             Budget(amount: 60000, category: food, year: year, month: 2),
         ]
         let transactions = [
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: year, month: 1, day: 5) ?? Date(),
                 title: "スーパー",
                 amount: -20000,
@@ -53,7 +53,7 @@ internal struct AnnualBudgetUseCaseTests {
         ]
         let snapshot = BudgetSnapshot(
             budgets: budgets.map { BudgetDTO(from: $0) },
-            transactions: transactions.map { TransactionDTO(from: $0) },
+            transactions: transactions.map { Transaction(from: $0) },
             categories: [Category(from: food)],
             annualBudgetConfig: nil,
             recurringPaymentDefinitions: [],
@@ -78,7 +78,7 @@ internal struct AnnualBudgetUseCaseTests {
             AnnualBudgetAllocation(amount: 200_000, category: food, policyOverride: .automatic),
         ]
         let transactions = [
-            Transaction(
+            TransactionEntity(
                 date: Date.from(year: year, month: 1, day: 1) ?? Date(),
                 title: "家電",
                 amount: -50000,
@@ -87,7 +87,7 @@ internal struct AnnualBudgetUseCaseTests {
         ]
         let snapshot = BudgetSnapshot(
             budgets: [],
-            transactions: transactions.map { TransactionDTO(from: $0) },
+            transactions: transactions.map { Transaction(from: $0) },
             categories: [Category(from: food)],
             annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
             recurringPaymentDefinitions: [],

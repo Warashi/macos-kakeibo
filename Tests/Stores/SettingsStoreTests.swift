@@ -160,7 +160,7 @@ internal struct SettingsStoreTests {
         let major = CategoryEntity(name: "食費")
         let minor = CategoryEntity(name: "外食", parent: major)
         let institution = FinancialInstitutionEntity(name: "銀行")
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "テスト",
             amount: -1_000,
@@ -168,7 +168,7 @@ internal struct SettingsStoreTests {
             majorCategory: major,
             minorCategory: minor
         )
-        let transactionDTO = TransactionDTO(from: transaction)
+        let transactionDTO = Transaction(from: transaction)
         let categoryDTOs = [Category(from: major), Category(from: minor)]
         let institutionDTO = FinancialInstitution(from: institution)
         let transactionRepository = await makeTransactionRepository { repository in
@@ -214,7 +214,7 @@ internal struct SettingsStoreTests {
             transactionRepository: transactionRepository
         )
 
-        #expect(try targetContext.count(Transaction.self) == 0)
+        #expect(try targetContext.count(TransactionEntity.self) == 0)
 
         // When
         let summary = try await store.restoreBackup(from: archive.data)
@@ -225,7 +225,7 @@ internal struct SettingsStoreTests {
         #expect(store.lastBackupMetadata?.generatedAt == summary.metadata.generatedAt)
         #expect(store.statistics.transactions == 1)
         #expect(store.statusMessage?.contains("復元") == true)
-        #expect(try targetContext.count(Transaction.self) == 1)
+        #expect(try targetContext.count(TransactionEntity.self) == 1)
         #expect(store.isProcessingBackup == false)
     }
 }
@@ -236,7 +236,7 @@ internal struct SettingsStoreTests {
 private func seedTransaction(in context: ModelContext) throws {
     let category = CategoryEntity(name: "食費")
     let institution = FinancialInstitutionEntity(name: "銀行")
-    let transaction = Transaction(
+    let transaction = TransactionEntity(
         date: Date(),
         title: "テスト",
         amount: -1000,
@@ -310,16 +310,16 @@ private func makeBudgetRepository(
 @DatabaseActor
 private final class MockTransactionRepository: TransactionRepository {
     internal var transactionCount: Int = 0
-    internal var snapshotTransactions: [TransactionDTO] = []
+    internal var snapshotTransactions: [Transaction] = []
     internal var snapshotCategories: [Kakeibo.Category] = []
     internal var snapshotInstitutions: [FinancialInstitution] = []
     internal private(set) var deleteAllTransactionsCallCount: Int = 0
 
-    internal func fetchTransactions(query: TransactionQuery) throws -> [TransactionDTO] {
+    internal func fetchTransactions(query: TransactionQuery) throws -> [Transaction] {
         unsupported(#function)
     }
 
-    internal func fetchAllTransactions() throws -> [TransactionDTO] {
+    internal func fetchAllTransactions() throws -> [Transaction] {
         snapshotTransactions
     }
 
@@ -346,16 +346,16 @@ private final class MockTransactionRepository: TransactionRepository {
     @discardableResult
     internal func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @MainActor ([TransactionDTO]) -> Void
+        onChange: @escaping @MainActor ([Transaction]) -> Void
     ) throws -> ObservationToken {
         unsupported(#function)
     }
 
-    internal func findTransaction(id: UUID) throws -> TransactionDTO? {
+    internal func findTransaction(id: UUID) throws -> Transaction? {
         unsupported(#function)
     }
 
-    internal func findByIdentifier(_ identifier: String) throws -> TransactionDTO? {
+    internal func findByIdentifier(_ identifier: String) throws -> Transaction? {
         unsupported(#function)
     }
 

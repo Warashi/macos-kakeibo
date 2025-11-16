@@ -78,7 +78,7 @@ internal final class RecurringPaymentReconciliationStore {
     private var occurrenceLookup: [UUID: RecurringPaymentOccurrenceDTO] = [:]
     private var definitionsLookup: [UUID: RecurringPaymentDefinitionDTO] = [:]
     private var linkedTransactionLookup: [UUID: UUID] = [:]
-    private var transactions: [TransactionDTO] = []
+    private var transactions: [Transaction] = []
 
     // MARK: - Initialization
 
@@ -339,7 +339,7 @@ private extension RecurringPaymentReconciliationStore {
             ?? Decimal(string: normalized)
     }
 
-    private func transactionById(_ id: UUID) -> TransactionDTO? {
+    private func transactionById(_ id: UUID) -> Transaction? {
         transactions.first { $0.id == id }
     }
 }

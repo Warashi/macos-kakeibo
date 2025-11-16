@@ -24,7 +24,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { TransactionDTO(from: $0) },
+            transactions: transactions.map { Transaction(from: $0) },
             budgets: [],
             annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
@@ -74,7 +74,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { TransactionDTO(from: $0) },
+            transactions: transactions.map { Transaction(from: $0) },
             budgets: budgets.map { BudgetDTO(from: $0) },
             annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
@@ -114,7 +114,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { TransactionDTO(from: $0) },
+            transactions: transactions.map { Transaction(from: $0) },
             budgets: [],
             annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
@@ -142,8 +142,8 @@ internal struct AnnualBudgetAllocatorCategoryTests {
         minorCategory: Kakeibo.CategoryEntity? = nil,
         year: Int = 2025,
         month: Int = 11,
-    ) -> Transaction {
-        Transaction(
+    ) -> TransactionEntity {
+        TransactionEntity(
             date: Date.from(year: year, month: month) ?? Date(),
             title: "テスト取引",
             amount: amount,

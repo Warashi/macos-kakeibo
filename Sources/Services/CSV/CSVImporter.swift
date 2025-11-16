@@ -182,7 +182,7 @@ internal actor CSVImporter {
 
     private func findExistingTransaction(
         identifier: CSVTransactionIdentifier?
-    ) async throws -> TransactionDTO? {
+    ) async throws -> Transaction? {
         guard let identifier else {
             return nil
         }

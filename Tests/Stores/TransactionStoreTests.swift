@@ -7,7 +7,7 @@ import Testing
 internal struct TransactionStoreTests {
     @Test("初期化時に取引と参照データが読み込まれる")
     internal func initializationLoadsData() async {
-        let transaction = TransactionDTO(
+        let transaction = Transaction(
             id: UUID(),
             date: sampleMonth(),
             title: "ランチ",
@@ -92,7 +92,7 @@ internal struct TransactionStoreTests {
 
     @Test("削除成功時に再読込が走る")
     internal func deleteTransactionRefreshesList() async {
-        let transaction = TransactionDTO(
+        let transaction = Transaction(
             id: UUID(),
             date: sampleMonth(),
             title: "外食",
@@ -142,12 +142,12 @@ private extension TransactionStoreTests {
 
 @DatabaseActor
 private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol, @unchecked Sendable {
-    internal var transactions: [TransactionDTO]
+    internal var transactions: [Transaction]
     internal var referenceData: TransactionReferenceData
     internal var receivedFilters: [TransactionListFilter] = []
     internal var observedFilters: [TransactionListFilter] = []
 
-    internal init(transactions: [TransactionDTO]) {
+    internal init(transactions: [Transaction]) {
         self.transactions = transactions
         let institution = FinancialInstitutionEntity(name: "メイン銀行")
         let major = CategoryEntity(name: "食費", displayOrder: 1)
@@ -162,7 +162,7 @@ private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol, 
         referenceData
     }
 
-    internal func loadTransactions(filter: TransactionListFilter) async throws -> [TransactionDTO] {
+    internal func loadTransactions(filter: TransactionListFilter) async throws -> [Transaction] {
         receivedFilters.append(filter)
         return transactions
     }
@@ -170,7 +170,7 @@ private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol, 
     @discardableResult
     internal func observeTransactions(
         filter: TransactionListFilter,
-        onChange: @escaping @MainActor ([TransactionDTO]) -> Void,
+        onChange: @escaping @MainActor ([Transaction]) -> Void,
     ) async throws -> ObservationToken {
         observedFilters.append(filter)
         await onChange(transactions)

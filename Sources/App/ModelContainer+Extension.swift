@@ -5,7 +5,7 @@ internal extension ModelContainer {
     /// Kakeiboアプリ用のModelContainerを作成
     static func createKakeiboContainer() throws -> ModelContainer {
         let schema = Schema([
-            Transaction.self,
+            TransactionEntity.self,
             CategoryEntity.self,
             Budget.self,
             AnnualBudgetConfig.self,
@@ -30,7 +30,7 @@ internal extension ModelContainer {
     /// テスト用のインメモリModelContainerを作成
     static func createInMemoryContainer() throws -> ModelContainer {
         let schema = Schema([
-            Transaction.self,
+            TransactionEntity.self,
             CategoryEntity.self,
             Budget.self,
             AnnualBudgetConfig.self,

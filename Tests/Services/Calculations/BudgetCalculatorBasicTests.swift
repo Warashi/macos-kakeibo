@@ -79,7 +79,7 @@ internal struct BudgetCalculatorBasicTests {
         // When
         let result = calculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
-                transactions: transactions.map { TransactionDTO(from: $0) },
+                transactions: transactions.map { Transaction(from: $0) },
                 budgets: budgets.map { BudgetDTO(from: $0) },
                 categories: [Category(from: category)],
                 year: 2025,
@@ -112,7 +112,7 @@ internal struct BudgetCalculatorBasicTests {
 
         let result = calculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
-                transactions: transactions.map { TransactionDTO(from: $0) },
+                transactions: transactions.map { Transaction(from: $0) },
                 budgets: budgets.map { BudgetDTO(from: $0) },
                 categories: [Category(from: category)],
                 year: 2025,
@@ -146,7 +146,7 @@ internal struct BudgetCalculatorBasicTests {
 
         let result = calculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
-                transactions: transactions.map { TransactionDTO(from: $0) },
+                transactions: transactions.map { Transaction(from: $0) },
                 budgets: budgets.map { BudgetDTO(from: $0) },
                 categories: [special, travel, general].map { Category(from: $0) },
                 year: 2025,
@@ -196,7 +196,7 @@ internal struct BudgetCalculatorBasicTests {
         majorCategory.addChild(minorCategory)
 
         // 取引：大項目のみの取引と中項目を持つ取引を混在
-        let transactions: [Transaction] = [
+        let transactions: [TransactionEntity] = [
             // 大項目のみの取引（食費）
             createTransaction(amount: -10000, majorCategory: majorCategory, minorCategory: nil),
             // 中項目を持つ取引（食費＞外食）
@@ -212,7 +212,7 @@ internal struct BudgetCalculatorBasicTests {
         // When: 月次予算計算を実行
         let result = calculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
-                transactions: transactions.map { TransactionDTO(from: $0) },
+                transactions: transactions.map { Transaction(from: $0) },
                 budgets: budgets.map { BudgetDTO(from: $0) },
                 categories: [majorCategory, minorCategory].map { Category(from: $0) },
                 year: 2025,
@@ -231,7 +231,7 @@ internal struct BudgetCalculatorBasicTests {
 
     // MARK: - Helper Methods
 
-    private func createSampleTransactions(category: Kakeibo.CategoryEntity) -> [Transaction] {
+    private func createSampleTransactions(category: Kakeibo.CategoryEntity) -> [TransactionEntity] {
         [
             createTransaction(amount: -30000, category: category),
             createTransaction(amount: -20000, category: category),
@@ -242,7 +242,7 @@ internal struct BudgetCalculatorBasicTests {
     private func createTransaction(
         amount: Decimal,
         category: Kakeibo.CategoryEntity,
-    ) -> Transaction {
+    ) -> TransactionEntity {
         createTransaction(amount: amount, majorCategory: category)
     }
 
@@ -250,8 +250,8 @@ internal struct BudgetCalculatorBasicTests {
         amount: Decimal,
         majorCategory: Kakeibo.CategoryEntity?,
         minorCategory: Kakeibo.CategoryEntity? = nil,
-    ) -> Transaction {
-        Transaction(
+    ) -> TransactionEntity {
+        TransactionEntity(
             date: Date.from(year: 2025, month: 11) ?? Date(),
             title: "テスト取引",
             amount: amount,
@@ -264,8 +264,8 @@ internal struct BudgetCalculatorBasicTests {
         amount: Decimal,
         majorCategory: Kakeibo.CategoryEntity,
         minorCategory: Kakeibo.CategoryEntity?,
-    ) -> Transaction {
-        Transaction(
+    ) -> TransactionEntity {
+        TransactionEntity(
             date: Date.from(year: 2025, month: 11) ?? Date(),
             title: "テスト取引",
             amount: amount,

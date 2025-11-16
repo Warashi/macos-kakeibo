@@ -70,7 +70,7 @@ internal struct ImportStoreTests {
         #expect(summary.updatedCount == 0)
 
         let transactions = await Task { @DatabaseActor in
-            transactionRepository.transactions.map { TransactionDTO(from: $0) }
+            transactionRepository.transactions.map { Transaction(from: $0) }
         }.value
         #expect(transactions.count == 1)
         #expect(transactions.first?.title == "ランチ")

@@ -13,7 +13,7 @@ internal struct BudgetStoreTestsAggregation {
         let food = CategoryEntity(name: "食費", allowsAnnualBudget: true, displayOrder: 1)
         context.insert(food)
 
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date.from(year: store.currentYear, month: store.currentMonth) ?? Date(),
             title: "ランチ",
             amount: -2000,
@@ -62,20 +62,20 @@ internal struct BudgetStoreTestsAggregation {
         ]
         budgets.forEach(context.insert)
 
-        let transactions: [Transaction] = [
-            Transaction(
+        let transactions: [TransactionEntity] = [
+            TransactionEntity(
                 date: makeDate(year: year, month: 1, day: 10),
                 title: "食費1",
                 amount: -20000,
                 majorCategory: food,
             ),
-            Transaction(
+            TransactionEntity(
                 date: makeDate(year: year, month: 2, day: 5),
                 title: "食費2",
                 amount: -30000,
                 majorCategory: food,
             ),
-            Transaction(
+            TransactionEntity(
                 date: makeDate(year: year, month: 1, day: 15),
                 title: "交通費",
                 amount: -10000,

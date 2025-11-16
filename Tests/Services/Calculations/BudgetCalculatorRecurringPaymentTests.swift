@@ -219,7 +219,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
 
     // MARK: - Helper Methods
 
-    private func createSampleTransactions(category: Kakeibo.CategoryEntity) -> [Transaction] {
+    private func createSampleTransactions(category: Kakeibo.CategoryEntity) -> [TransactionEntity] {
         [
             createTransaction(amount: -30000, category: category),
             createTransaction(amount: -20000, category: category),
@@ -230,8 +230,8 @@ internal struct BudgetCalculatorRecurringPaymentTests {
     private func createTransaction(
         amount: Decimal,
         category: Kakeibo.CategoryEntity,
-    ) -> Transaction {
-        Transaction(
+    ) -> TransactionEntity {
+        TransactionEntity(
             date: Date.from(year: 2025, month: 11) ?? Date(),
             title: "テスト取引",
             amount: amount,

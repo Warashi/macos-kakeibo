@@ -21,7 +21,7 @@ internal struct TransactionRepositoryObservationTests {
             sortOption: .dateDescending,
         )
 
-        var snapshots: [[TransactionDTO]] = []
+        var snapshots: [[Transaction]] = []
         let token = try await repository.observeTransactions(query: query) { transactions in
             snapshots.append(transactions)
         }

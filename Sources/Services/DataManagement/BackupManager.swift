@@ -67,7 +67,7 @@ internal actor BackupManager {
     /// バックアップペイロードを構築
     internal func buildPayload() throws -> BackupPayload {
         let modelContext = ModelContext(modelContainer)
-        let transactions = try modelContext.fetchAll(Transaction.self)
+        let transactions = try modelContext.fetchAll(TransactionEntity.self)
         let categories = try modelContext.fetchAll(CategoryEntity.self)
         let budgets = try modelContext.fetchAll(Budget.self)
         let configs = try modelContext.fetchAll(AnnualBudgetConfig.self)
@@ -137,7 +137,7 @@ internal actor BackupManager {
     // MARK: - Clear
 
     private func clearAllData(in context: ModelContext) throws {
-        try deleteAll(Transaction.self, in: context)
+        try deleteAll(TransactionEntity.self, in: context)
         try deleteAll(Budget.self, in: context)
         try deleteAll(AnnualBudgetConfig.self, in: context)
         try deleteCategoriesSafely(in: context)
@@ -265,7 +265,7 @@ internal actor BackupManager {
         context: ModelContext,
     ) throws {
         for dto in dtos {
-            let transaction = Transaction(
+            let transaction = TransactionEntity(
                 id: dto.id,
                 date: dto.date,
                 title: dto.title,
@@ -319,7 +319,7 @@ internal struct BackupTransactionDTO: Codable {
     internal let createdAt: Date
     internal let updatedAt: Date
 
-    internal init(transaction: Transaction) {
+    internal init(transaction: TransactionEntity) {
         self.id = transaction.id
         self.date = transaction.date
         self.title = transaction.title

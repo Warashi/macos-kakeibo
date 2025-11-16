@@ -350,11 +350,11 @@ private struct ActualExpenseMaps {
 // MARK: - Filtering Helpers
 
 private func filterTransactions(
-    transactions: [TransactionDTO],
+    transactions: [Transaction],
     year: Int,
     month: Int,
     filter: AggregationFilter,
-) -> [TransactionDTO] {
+) -> [Transaction] {
     transactions.filter { transaction in
         guard transaction.date.year == year,
               transaction.date.month == month else {
@@ -365,7 +365,7 @@ private func filterTransactions(
 }
 
 private func matchesFilter(
-    transaction: TransactionDTO,
+    transaction: Transaction,
     filter: AggregationFilter,
 ) -> Bool {
     if filter.includeOnlyCalculationTarget, !transaction.isIncludedInCalculation {
@@ -394,7 +394,7 @@ private func matchesFilter(
 }
 
 private func makeActualExpenseMaps(
-    from transactions: [TransactionDTO],
+    from transactions: [Transaction],
     categories: [Category],
 ) -> ActualExpenseMaps {
     var categoryExpenses: [UUID: Decimal] = [:]
@@ -423,7 +423,7 @@ private func makeActualExpenseMaps(
 }
 
 private func buildChildFallbackMap(
-    from transactions: [TransactionDTO],
+    from transactions: [Transaction],
     categories: [Category],
 ) -> [UUID: Set<UUID>] {
     let categoryMap = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })

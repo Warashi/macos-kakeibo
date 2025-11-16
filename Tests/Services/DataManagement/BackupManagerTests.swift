@@ -45,7 +45,7 @@ internal struct BackupManagerTests {
 
         // Then
         #expect(summary.restoredCounts.transactions == 1)
-        #expect(try restoreContext.count(Transaction.self) == 1)
+        #expect(try restoreContext.count(TransactionEntity.self) == 1)
         #expect(try restoreContext.count(CategoryEntity.self) == 2)
         #expect(try restoreContext.count(Budget.self) == 1)
         #expect(try restoreContext.count(FinancialInstitutionEntity.self) == 1)
@@ -61,7 +61,7 @@ private func seedSampleData(in context: ModelContext) throws {
     let minor = CategoryEntity(name: "外食", parent: major, allowsAnnualBudget: false, displayOrder: 1)
     let budget = Budget(amount: 50000, category: major, year: 2025, month: 11)
     let config = AnnualBudgetConfig(year: 2025, totalAmount: 100_000, policy: .automatic)
-    let transaction = Transaction(
+    let transaction = TransactionEntity(
         date: Date(),
         title: "テストディナー",
         amount: -8000,

@@ -100,7 +100,7 @@ internal struct RecurringPaymentReconciliationPresenter {
 
     internal struct TransactionCandidate: Identifiable, Hashable, Comparable {
         internal var id: UUID { transaction.id }
-        internal let transaction: TransactionDTO
+        internal let transaction: Transaction
         internal let score: TransactionCandidateScore
         internal let isCurrentLink: Bool
 
@@ -116,7 +116,7 @@ internal struct RecurringPaymentReconciliationPresenter {
     }
 
     internal struct TransactionCandidateSearchContext {
-        internal let transactions: [TransactionDTO]
+        internal let transactions: [Transaction]
         internal let linkedTransactionLookup: [UUID: UUID]
         internal let windowDays: Int
         internal let limit: Int
@@ -171,7 +171,7 @@ internal struct RecurringPaymentReconciliationPresenter {
         internal func score(
             occurrence: RecurringPaymentOccurrenceDTO,
             definition: RecurringPaymentDefinitionDTO,
-            transaction: TransactionDTO,
+            transaction: Transaction,
         ) -> TransactionCandidateScore {
             let expectedAmount = occurrence.expectedAmount
             let actualAmount = transaction.absoluteAmount

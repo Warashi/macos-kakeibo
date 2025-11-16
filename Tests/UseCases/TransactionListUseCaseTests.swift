@@ -11,8 +11,8 @@ internal struct TransactionListUseCaseTests {
         let previousMonth = Calendar.current.date(byAdding: .month, value: -1, to: targetMonth) ?? targetMonth
         let repository = InMemoryTransactionRepository(
             transactions: [
-                Transaction(date: targetMonth, title: "今月のランチ", amount: -1200),
-                Transaction(date: previousMonth, title: "先月のランチ", amount: -800),
+                TransactionEntity(date: targetMonth, title: "今月のランチ", amount: -1200),
+                TransactionEntity(date: previousMonth, title: "先月のランチ", amount: -800),
             ],
         )
         let useCase = DefaultTransactionListUseCase(repository: repository)
@@ -28,8 +28,8 @@ internal struct TransactionListUseCaseTests {
         let targetMonth = Date.from(year: 2025, month: 11) ?? Date()
         let repository = InMemoryTransactionRepository(
             transactions: [
-                Transaction(date: targetMonth, title: "給与", amount: 300_000),
-                Transaction(date: targetMonth, title: "家賃", amount: -80000),
+                TransactionEntity(date: targetMonth, title: "給与", amount: 300_000),
+                TransactionEntity(date: targetMonth, title: "家賃", amount: -80000),
             ],
         )
         let useCase = DefaultTransactionListUseCase(repository: repository)
@@ -48,8 +48,8 @@ internal struct TransactionListUseCaseTests {
         let targetMonth = Date.from(year: 2025, month: 11) ?? Date()
         let repository = InMemoryTransactionRepository(
             transactions: [
-                Transaction(date: targetMonth, title: "スタバ", amount: -640, memo: "カフェ", isIncludedInCalculation: true),
-                Transaction(date: targetMonth, title: "スーパー", amount: -1200),
+                TransactionEntity(date: targetMonth, title: "スタバ", amount: -640, memo: "カフェ", isIncludedInCalculation: true),
+                TransactionEntity(date: targetMonth, title: "スーパー", amount: -1200),
             ],
         )
         let useCase = DefaultTransactionListUseCase(repository: repository)

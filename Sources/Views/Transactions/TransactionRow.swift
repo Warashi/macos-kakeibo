@@ -1,10 +1,10 @@
 import SwiftUI
 
 internal struct TransactionRow: View {
-    internal let transaction: TransactionDTO
+    internal let transaction: Transaction
     internal let categoryFullName: String
     internal let institutionName: String?
-    internal let onEdit: (TransactionDTO) -> Void
+    internal let onEdit: (Transaction) -> Void
     internal let onDelete: (UUID) -> Void
 
     private var accentColor: Color {

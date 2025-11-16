@@ -3,12 +3,12 @@ import Foundation
 import SwiftData
 import Testing
 
-@Suite("Transaction Initialization Tests")
+@Suite("TransactionEntity Initialization Tests")
 internal struct TransactionInitializationTests {
     @Test("取引を初期化できる")
     internal func initializeTransaction() {
         let date = Date()
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: date,
             title: "コンビニ",
             amount: -680,
@@ -33,7 +33,7 @@ internal struct TransactionInitializationTests {
         let majorCategory = CategoryEntity(name: "食費")
         let minorCategory = CategoryEntity(name: "外食", parent: majorCategory)
 
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: date,
             title: "ランチ",
             amount: -1200,
@@ -58,11 +58,11 @@ internal struct TransactionInitializationTests {
     }
 }
 
-@Suite("Transaction Computed Property Tests")
+@Suite("TransactionEntity Computed Property Tests")
 internal struct TransactionComputedPropertyTests {
     @Test("isExpenseはマイナス金額の場合にtrueを返す")
     internal func checkIsExpense() {
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "買い物",
             amount: -1000,
@@ -73,7 +73,7 @@ internal struct TransactionComputedPropertyTests {
 
     @Test("isIncomeはプラス金額の場合にtrueを返す")
     internal func checkIsIncome() {
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "給料",
             amount: 300_000,
@@ -84,7 +84,7 @@ internal struct TransactionComputedPropertyTests {
 
     @Test("ゼロ金額の場合、isExpenseとisIncomeは両方falseを返す")
     internal func checkZeroAmount() {
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "テスト",
             amount: 0,
@@ -95,8 +95,8 @@ internal struct TransactionComputedPropertyTests {
 
     @Test("absoluteAmountは絶対値を返す")
     internal func absoluteAmount() {
-        let transaction1 = Transaction(date: Date(), title: "支出", amount: -1000)
-        let transaction2 = Transaction(date: Date(), title: "収入", amount: 5000)
+        let transaction1 = TransactionEntity(date: Date(), title: "支出", amount: -1000)
+        let transaction2 = TransactionEntity(date: Date(), title: "収入", amount: 5000)
 
         #expect(transaction1.absoluteAmount == 1000)
         #expect(transaction2.absoluteAmount == 5000)
@@ -107,7 +107,7 @@ internal struct TransactionComputedPropertyTests {
         let major = CategoryEntity(name: "食費")
         let minor = CategoryEntity(name: "外食", parent: major)
 
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "ランチ",
             amount: -1000,
@@ -122,7 +122,7 @@ internal struct TransactionComputedPropertyTests {
     internal func categoryFullNameWithMajorCategoryOnly() {
         let major = CategoryEntity(name: "食費")
 
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "買い物",
             amount: -1000,
@@ -134,7 +134,7 @@ internal struct TransactionComputedPropertyTests {
 
     @Test("categoryFullNameはカテゴリ未設定の場合「未分類」を返す")
     internal func categoryFullNameUncategorized() {
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "買い物",
             amount: -1000,
@@ -144,14 +144,14 @@ internal struct TransactionComputedPropertyTests {
     }
 }
 
-@Suite("Transaction Validation Tests")
+@Suite("TransactionEntity Validation Tests")
 internal struct TransactionValidationTests {
     @Test("有効な取引データの場合、バリデーションエラーがない")
     internal func validateValidTransaction() {
         let major = CategoryEntity(name: "食費")
         let minor = CategoryEntity(name: "外食", parent: major)
 
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "ランチ",
             amount: -1000,
@@ -166,7 +166,7 @@ internal struct TransactionValidationTests {
 
     @Test("内容が空の場合、バリデーションエラーが発生する")
     internal func validateEmptyTitle() {
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "",
             amount: -1000,
@@ -180,7 +180,7 @@ internal struct TransactionValidationTests {
 
     @Test("金額が0の場合、バリデーションエラーが発生する")
     internal func validateZeroAmount() {
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "テスト",
             amount: 0,
@@ -196,7 +196,7 @@ internal struct TransactionValidationTests {
     internal func validateMinorCategoryOnly() {
         let minor = CategoryEntity(name: "外食")
 
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "ランチ",
             amount: -1000,
@@ -215,7 +215,7 @@ internal struct TransactionValidationTests {
         let major2 = CategoryEntity(name: "日用品")
         let minor = CategoryEntity(name: "外食", parent: major1)
 
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "ランチ",
             amount: -1000,
@@ -231,7 +231,7 @@ internal struct TransactionValidationTests {
 
     @Test("複数のバリデーションエラーがある場合、すべて検出される")
     internal func validateMultipleErrors() {
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "",
             amount: 0,
@@ -244,17 +244,17 @@ internal struct TransactionValidationTests {
     }
 }
 
-@Suite("Transaction Flag Tests")
+@Suite("TransactionEntity Flag Tests")
 internal struct TransactionFlagTests {
     @Test("計算対象フラグを設定できる")
     internal func checkIsIncludedInCalculationFlag() {
-        let transaction1 = Transaction(
+        let transaction1 = TransactionEntity(
             date: Date(),
             title: "テスト1",
             amount: -1000,
             isIncludedInCalculation: true,
         )
-        let transaction2 = Transaction(
+        let transaction2 = TransactionEntity(
             date: Date(),
             title: "テスト2",
             amount: -1000,
@@ -267,13 +267,13 @@ internal struct TransactionFlagTests {
 
     @Test("振替フラグを設定できる")
     internal func checkIsTransferFlag() {
-        let transaction1 = Transaction(
+        let transaction1 = TransactionEntity(
             date: Date(),
             title: "振替",
             amount: -10000,
             isTransfer: true,
         )
-        let transaction2 = Transaction(
+        let transaction2 = TransactionEntity(
             date: Date(),
             title: "買い物",
             amount: -1000,
@@ -285,12 +285,12 @@ internal struct TransactionFlagTests {
     }
 }
 
-@Suite("Transaction Timestamp Tests")
+@Suite("TransactionEntity Timestamp Tests")
 internal struct TransactionTimestampTests {
     @Test("作成日時と更新日時が設定される")
     internal func setCreatedAndUpdatedDates() {
         let before = Date()
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(),
             title: "テスト",
             amount: -1000,

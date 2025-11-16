@@ -9,14 +9,14 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
         self.modelContext = ModelContext(modelContainer)
     }
 
-    internal func fetchTransactions(query: TransactionQuery) throws -> [TransactionDTO] {
+    internal func fetchTransactions(query: TransactionQuery) throws -> [Transaction] {
         let transactions = try modelContext.fetch(TransactionQueries.list(query: query))
-        return transactions.map { TransactionDTO(from: $0) }
+        return transactions.map { Transaction(from: $0) }
     }
 
-    internal func fetchAllTransactions() throws -> [TransactionDTO] {
+    internal func fetchAllTransactions() throws -> [Transaction] {
         let transactions = try modelContext.fetch(TransactionQueries.allSorted())
-        return transactions.map { TransactionDTO(from: $0) }
+        return transactions.map { Transaction(from: $0) }
     }
 
     internal func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot {
@@ -28,7 +28,7 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
     }
 
     internal func countTransactions() throws -> Int {
-        try modelContext.count(Transaction.self)
+        try modelContext.count(TransactionEntity.self)
     }
 
     internal func fetchInstitutions() throws -> [FinancialInstitution] {
@@ -44,26 +44,26 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
     @discardableResult
     internal func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @MainActor ([TransactionDTO]) -> Void,
+        onChange: @escaping @MainActor ([Transaction]) -> Void,
     ) throws -> ObservationToken {
         let descriptor = TransactionQueries.observation(query: query)
         return modelContext.observe(descriptor: descriptor) { transactions in
-            let dtos = transactions.map { TransactionDTO(from: $0) }
+            let dtos = transactions.map { Transaction(from: $0) }
             onChange(dtos)
         }
     }
 
-    internal func findTransaction(id: UUID) throws -> TransactionDTO? {
-        try modelContext.fetch(TransactionQueries.byId(id)).first.map { TransactionDTO(from: $0) }
+    internal func findTransaction(id: UUID) throws -> Transaction? {
+        try modelContext.fetch(TransactionQueries.byId(id)).first.map { Transaction(from: $0) }
     }
 
-    internal func findByIdentifier(_ identifier: String) throws -> TransactionDTO? {
-        try modelContext.fetch(TransactionQueries.byImportIdentifier(identifier)).first.map { TransactionDTO(from: $0) }
+    internal func findByIdentifier(_ identifier: String) throws -> Transaction? {
+        try modelContext.fetch(TransactionQueries.byImportIdentifier(identifier)).first.map { Transaction(from: $0) }
     }
 
     @discardableResult
     internal func insert(_ input: TransactionInput) throws -> UUID {
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: input.date,
             title: input.title,
             amount: input.amount,
@@ -97,7 +97,7 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
     }
 
     internal func deleteAllTransactions() throws {
-        let descriptor: ModelFetchRequest<Transaction> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<TransactionEntity> = ModelFetchFactory.make()
         let transactions = try modelContext.fetch(descriptor)
         for transaction in transactions {
             modelContext.delete(transaction)

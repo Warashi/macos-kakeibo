@@ -28,11 +28,11 @@ internal struct TransactionListFilter {
 @DatabaseActor
 internal protocol TransactionListUseCaseProtocol: Sendable {
     func loadReferenceData() async throws -> TransactionReferenceData
-    func loadTransactions(filter: TransactionListFilter) async throws -> [TransactionDTO]
+    func loadTransactions(filter: TransactionListFilter) async throws -> [Transaction]
     @discardableResult
     func observeTransactions(
         filter: TransactionListFilter,
-        onChange: @escaping @MainActor ([TransactionDTO]) -> Void,
+        onChange: @escaping @MainActor ([Transaction]) -> Void,
     ) async throws -> ObservationToken
 }
 
@@ -50,7 +50,7 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
         return TransactionReferenceData(institutions: institutions, categories: categories)
     }
 
-    internal func loadTransactions(filter: TransactionListFilter) async throws -> [TransactionDTO] {
+    internal func loadTransactions(filter: TransactionListFilter) async throws -> [Transaction] {
         let transactions = try repository.fetchTransactions(query: filter.asQuery)
         return Self.filterTransactions(transactions, filter: filter)
     }
@@ -58,7 +58,7 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
     @discardableResult
     internal func observeTransactions(
         filter: TransactionListFilter,
-        onChange: @escaping @MainActor ([TransactionDTO]) -> Void,
+        onChange: @escaping @MainActor ([Transaction]) -> Void,
     ) async throws -> ObservationToken {
         let token = try repository.observeTransactions(query: filter.asQuery) { transactions in
             let filtered = Self.filterTransactions(transactions, filter: filter)
@@ -79,9 +79,9 @@ internal final class DefaultTransactionListUseCase: TransactionListUseCaseProtoc
 
 private extension DefaultTransactionListUseCase {
     nonisolated static func filterTransactions(
-        _ transactions: [TransactionDTO],
+        _ transactions: [Transaction],
         filter: TransactionListFilter,
-    ) -> [TransactionDTO] {
+    ) -> [Transaction] {
         let keyword = filter.searchText.comparisonValue
         return Self.sort(
             transactions: transactions.filter { transaction in
@@ -92,7 +92,7 @@ private extension DefaultTransactionListUseCase {
     }
 
     nonisolated static func matchesFilter(
-        transaction: TransactionDTO,
+        transaction: Transaction,
         filter: TransactionListFilter,
         keyword: String?,
     ) -> Bool {
@@ -130,15 +130,15 @@ private extension DefaultTransactionListUseCase {
         return true
     }
 
-    nonisolated static func matchesCalculationTarget(transaction: TransactionDTO, includeOnly: Bool) -> Bool {
+    nonisolated static func matchesCalculationTarget(transaction: Transaction, includeOnly: Bool) -> Bool {
         !includeOnly || transaction.isIncludedInCalculation
     }
 
-    nonisolated static func matchesTransfer(transaction: TransactionDTO, excludeTransfers: Bool) -> Bool {
+    nonisolated static func matchesTransfer(transaction: Transaction, excludeTransfers: Bool) -> Bool {
         !excludeTransfers || !transaction.isTransfer
     }
 
-    nonisolated static func matchesKind(transaction: TransactionDTO, filterKind: TransactionFilterKind) -> Bool {
+    nonisolated static func matchesKind(transaction: Transaction, filterKind: TransactionFilterKind) -> Bool {
         switch filterKind {
         case .income:
             transaction.isIncome
@@ -149,12 +149,12 @@ private extension DefaultTransactionListUseCase {
         }
     }
 
-    nonisolated static func matchesInstitution(transaction: TransactionDTO, institutionId: UUID?) -> Bool {
+    nonisolated static func matchesInstitution(transaction: Transaction, institutionId: UUID?) -> Bool {
         guard let institutionId else { return true }
         return transaction.financialInstitutionId == institutionId
     }
 
-    nonisolated static func matchesSearch(transaction: TransactionDTO, keyword: String) -> Bool {
+    nonisolated static func matchesSearch(transaction: Transaction, keyword: String) -> Bool {
         let haystacks = [
             transaction.title,
             transaction.memo,
@@ -163,7 +163,7 @@ private extension DefaultTransactionListUseCase {
         return haystacks.contains { $0.lowercased().contains(loweredKeyword) }
     }
 
-    nonisolated static func sort(transactions: [TransactionDTO], option: TransactionSortOption) -> [TransactionDTO] {
+    nonisolated static func sort(transactions: [Transaction], option: TransactionSortOption) -> [Transaction] {
         transactions.sorted { lhs, rhs in
             switch option {
             case .dateDescending:

@@ -62,7 +62,7 @@ internal struct BudgetCalculator: Sendable {
 
     /// 月次予算計算の入力パラメータ
     internal struct MonthlyBudgetInput {
-        internal let transactions: [TransactionDTO]
+        internal let transactions: [Transaction]
         internal let budgets: [BudgetDTO]
         internal let categories: [Category]
         internal let year: Int
@@ -239,7 +239,7 @@ internal struct BudgetCalculator: Sendable {
     }
 
     private struct MonthlyBudgetComputationContext {
-        let transactions: [TransactionDTO]
+        let transactions: [Transaction]
         let budgets: [BudgetDTO]
         let categories: [Category]
         let year: Int

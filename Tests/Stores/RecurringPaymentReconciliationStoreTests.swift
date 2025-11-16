@@ -73,14 +73,14 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         definition.occurrences = [occurrence]
 
-        let perfectMatch = Transaction(
+        let perfectMatch = TransactionEntity(
             date: referenceDate,
             title: "固定資産税 支払い",
             amount: -150_000,
             memo: "",
         )
 
-        let farMatch = Transaction(
+        let farMatch = TransactionEntity(
             date: referenceDate.addingTimeInterval(-60 * 60 * 24 * 30),
             title: "別支出",
             amount: -170_000,
@@ -124,7 +124,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         definition.occurrences = [occurrence]
 
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: referenceDate,
             title: "旅行費用",
             amount: -82000,
@@ -183,7 +183,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         definition.occurrences = [occurrence]
 
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: referenceDate,
             title: "大型備品支払い",
             amount: -100_000,

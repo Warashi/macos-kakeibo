@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 @Model
-internal final class Transaction {
+internal final class TransactionEntity {
     internal var id: UUID
 
     /// 取引の基本情報
@@ -60,7 +60,7 @@ internal final class Transaction {
 
 // MARK: - Computed Properties
 
-internal extension Transaction {
+internal extension TransactionEntity {
     /// 支出かどうか（金額がマイナス）
     var isExpense: Bool {
         amount < 0
@@ -89,7 +89,7 @@ internal extension Transaction {
 
 // MARK: - Validation
 
-internal extension Transaction {
+internal extension TransactionEntity {
     /// データの検証
     func validate() -> [String] {
         var errors: [String] = []

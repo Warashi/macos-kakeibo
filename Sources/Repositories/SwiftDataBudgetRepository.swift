@@ -31,7 +31,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         let budgets = try modelContext.fetch(BudgetQueries.allBudgets())
 
         // 年の範囲の取引のみ取得（パフォーマンス最適化）
-        let transactions: [Transaction] = if let startDate = Date.from(year: year, month: 1),
+        let transactions: [TransactionEntity] = if let startDate = Date.from(year: year, month: 1),
                                              let endDate = Date.from(year: year + 1, month: 1) {
             try modelContext.fetch(TransactionQueries.between(
                 startDate: startDate,
@@ -49,7 +49,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
 
         // SwiftDataモデルをDTOに変換
         let budgetDTOs = budgets.map { BudgetDTO(from: $0) }
-        let transactionDTOs = transactions.map { TransactionDTO(from: $0) }
+        let transactionDTOs = transactions.map { Transaction(from: $0) }
         let categoryDTOs = categories.map { Category(from: $0) }
         let configDTO = config.map { AnnualBudgetConfigDTO(from: $0) }
 

@@ -10,7 +10,7 @@ internal struct CSVExporterTests {
         let major = CategoryEntity(name: "食費")
         let minor = CategoryEntity(name: "外食", parent: major)
         let institution = FinancialInstitutionEntity(name: "テスト銀行")
-        let transaction = Transaction(
+        let transaction = TransactionEntity(
             date: Date(timeIntervalSince1970: 0),
             title: "テスト,取引",
             amount: -1200,
@@ -20,7 +20,7 @@ internal struct CSVExporterTests {
             minorCategory: minor,
         )
         let snapshot = TransactionCSVExportSnapshot(
-            transactions: [TransactionDTO(from: transaction)],
+            transactions: [Transaction(from: transaction)],
             categories: [Category(from: major), Category(from: minor)],
             institutions: [FinancialInstitution(from: institution)]
         )
