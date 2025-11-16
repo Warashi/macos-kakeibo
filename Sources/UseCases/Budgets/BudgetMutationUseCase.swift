@@ -3,8 +3,8 @@ import Foundation
 @DatabaseActor
 internal protocol BudgetMutationUseCaseProtocol: Sendable {
     func addBudget(input: BudgetInput) async throws
-    func updateBudget(_ budget: BudgetDTO, input: BudgetInput) async throws
-    func deleteBudget(_ budget: BudgetDTO) async throws
+    func updateBudget(_ budget: Budget, input: BudgetInput) async throws
+    func deleteBudget(_ budget: Budget) async throws
     func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) async throws
 }
 
@@ -28,7 +28,7 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
         try repository.saveChanges()
     }
 
-    internal func updateBudget(_ budget: BudgetDTO, input: BudgetInput) async throws {
+    internal func updateBudget(_ budget: Budget, input: BudgetInput) async throws {
         try validatePeriod(
             startYear: input.startYear,
             startMonth: input.startMonth,
@@ -45,7 +45,7 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
         try repository.saveChanges()
     }
 
-    internal func deleteBudget(_ budget: BudgetDTO) async throws {
+    internal func deleteBudget(_ budget: Budget) async throws {
         try repository.deleteBudget(id: budget.id)
         try repository.saveChanges()
     }

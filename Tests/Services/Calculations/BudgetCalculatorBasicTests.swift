@@ -80,7 +80,7 @@ internal struct BudgetCalculatorBasicTests {
         let result = calculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
                 transactions: transactions.map { Transaction(from: $0) },
-                budgets: budgets.map { BudgetDTO(from: $0) },
+                budgets: budgets.map { Budget(from: $0) },
                 categories: [Category(from: category)],
                 year: 2025,
                 month: 11,
@@ -113,7 +113,7 @@ internal struct BudgetCalculatorBasicTests {
         let result = calculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
                 transactions: transactions.map { Transaction(from: $0) },
-                budgets: budgets.map { BudgetDTO(from: $0) },
+                budgets: budgets.map { Budget(from: $0) },
                 categories: [Category(from: category)],
                 year: 2025,
                 month: 11,
@@ -147,7 +147,7 @@ internal struct BudgetCalculatorBasicTests {
         let result = calculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
                 transactions: transactions.map { Transaction(from: $0) },
-                budgets: budgets.map { BudgetDTO(from: $0) },
+                budgets: budgets.map { Budget(from: $0) },
                 categories: [special, travel, general].map { Category(from: $0) },
                 year: 2025,
                 month: 11,
@@ -213,7 +213,7 @@ internal struct BudgetCalculatorBasicTests {
         let result = calculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
                 transactions: transactions.map { Transaction(from: $0) },
-                budgets: budgets.map { BudgetDTO(from: $0) },
+                budgets: budgets.map { Budget(from: $0) },
                 categories: [majorCategory, minorCategory].map { Category(from: $0) },
                 year: 2025,
                 month: 11,

@@ -25,7 +25,7 @@ internal struct AnnualBudgetEntry: Identifiable {
     }
 
     internal let id: EntryID
-    internal let budget: BudgetDTO
+    internal let budget: Budget
     internal let title: String
     internal let calculation: BudgetCalculation
     internal let isOverallBudget: Bool
@@ -50,7 +50,7 @@ internal struct AnnualBudgetProgressCalculator {
     }
 
     internal func calculate(
-        budgets: [BudgetDTO],
+        budgets: [Budget],
         transactions: [Transaction],
         categories: [Category],
         year: Int,
@@ -119,7 +119,7 @@ internal struct AnnualBudgetProgressCalculator {
 
     private func makeOverallEntry(
         year: Int,
-        budgets: [BudgetDTO],
+        budgets: [Budget],
         annualSummary: AnnualSummary,
         excludedCategoryIds: Set<UUID>,
     ) -> AnnualBudgetEntry? {
@@ -159,13 +159,13 @@ internal struct AnnualBudgetProgressCalculator {
 
     private func makeCategoryEntries(
         year: Int,
-        budgets: [BudgetDTO],
+        budgets: [Budget],
         categories: [Category],
         actualMap: [UUID: Decimal],
     ) -> [AnnualBudgetEntry] {
         let categoryMap = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
 
-        let categoryBudgets = budgets.compactMap { budget -> (Category, BudgetDTO)? in
+        let categoryBudgets = budgets.compactMap { budget -> (Category, Budget)? in
             guard let categoryId = budget.categoryId,
                   let category = categoryMap[categoryId] else { return nil }
             return (category, budget)

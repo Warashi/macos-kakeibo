@@ -12,7 +12,7 @@ internal struct MonthlyBudgetUseCaseTests {
             BudgetEntity(amount: 6000, category: category, year: 2025, month: 12),
         ]
         let snapshot = BudgetSnapshot(
-            budgets: budgets.map { BudgetDTO(from: $0) },
+            budgets: budgets.map { Budget(from: $0) },
             transactions: [],
             categories: [Category(from: category)],
             annualBudgetConfig: nil,
@@ -39,7 +39,7 @@ internal struct MonthlyBudgetUseCaseTests {
             majorCategory: category,
         )
         let snapshot = BudgetSnapshot(
-            budgets: [BudgetDTO(from: budget)],
+            budgets: [Budget(from: budget)],
             transactions: [Transaction(from: transaction)],
             categories: [Category(from: category)],
             annualBudgetConfig: nil,
@@ -65,7 +65,7 @@ internal struct MonthlyBudgetUseCaseTests {
             amount: -8000,
         )
         let snapshot = BudgetSnapshot(
-            budgets: [BudgetDTO(from: overallBudget)],
+            budgets: [Budget(from: overallBudget)],
             transactions: [Transaction(from: transaction)],
             categories: [],
             annualBudgetConfig: nil,

@@ -63,7 +63,7 @@ internal struct BudgetCalculator: Sendable {
     /// 月次予算計算の入力パラメータ
     internal struct MonthlyBudgetInput {
         internal let transactions: [Transaction]
-        internal let budgets: [BudgetDTO]
+        internal let budgets: [Budget]
         internal let categories: [Category]
         internal let year: Int
         internal let month: Int
@@ -147,12 +147,12 @@ internal struct BudgetCalculator: Sendable {
 
     private func budgetsForMonth(
         context: MonthlyBudgetComputationContext,
-    ) -> [BudgetDTO] {
+    ) -> [Budget] {
         context.budgets.filter { $0.contains(year: context.year, month: context.month) }
     }
 
     private func overallMonthlyCalculation(
-        monthlyBudgets: [BudgetDTO],
+        monthlyBudgets: [Budget],
         summary: MonthlySummary,
         excludedCategoryIds: Set<UUID>,
     ) -> BudgetCalculation? {
@@ -184,7 +184,7 @@ internal struct BudgetCalculator: Sendable {
     }
 
     private func categoryBudgetCalculations(
-        monthlyBudgets: [BudgetDTO],
+        monthlyBudgets: [Budget],
         categories: [Category],
         summary: MonthlySummary,
     ) -> [CategoryBudgetCalculation] {
@@ -240,7 +240,7 @@ internal struct BudgetCalculator: Sendable {
 
     private struct MonthlyBudgetComputationContext {
         let transactions: [Transaction]
-        let budgets: [BudgetDTO]
+        let budgets: [Budget]
         let categories: [Category]
         let year: Int
         let month: Int

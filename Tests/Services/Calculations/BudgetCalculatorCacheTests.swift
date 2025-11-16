@@ -20,7 +20,7 @@ internal struct BudgetCalculatorCacheTests {
 
         let input = BudgetCalculator.MonthlyBudgetInput(
             transactions: [Transaction(from: transaction)],
-            budgets: [BudgetDTO(from: budget)],
+            budgets: [Budget(from: budget)],
             categories: [Category(from: category)],
             year: 2025,
             month: 1,
@@ -50,7 +50,7 @@ internal struct BudgetCalculatorCacheTests {
 
         let input1 = BudgetCalculator.MonthlyBudgetInput(
             transactions: [Transaction(from: transaction)],
-            budgets: [BudgetDTO(from: budget)],
+            budgets: [Budget(from: budget)],
             categories: [Category(from: category)],
             year: 2025,
             month: 2,
@@ -65,7 +65,7 @@ internal struct BudgetCalculatorCacheTests {
 
         let input2 = BudgetCalculator.MonthlyBudgetInput(
             transactions: [Transaction(from: transaction)],
-            budgets: [BudgetDTO(from: budget)],
+            budgets: [Budget(from: budget)],
             categories: [Category(from: category)],
             year: 2025,
             month: 2,

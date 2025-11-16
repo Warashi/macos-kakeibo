@@ -1,7 +1,7 @@
 import Foundation
 
-/// 予算のDTO（Sendable）
-internal struct BudgetDTO: Sendable, Hashable, Equatable {
+/// ドメイン層で扱う予算モデル
+internal struct Budget: Sendable, Hashable, Equatable {
     internal let id: UUID
     internal let amount: Decimal
     internal let categoryId: UUID?

@@ -75,7 +75,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
 
         let params = AllocationCalculationParams(
             transactions: transactions.map { Transaction(from: $0) },
-            budgets: budgets.map { BudgetDTO(from: $0) },
+            budgets: budgets.map { Budget(from: $0) },
             annualBudgetConfig: AnnualBudgetConfigDTO(from: config),
         )
 

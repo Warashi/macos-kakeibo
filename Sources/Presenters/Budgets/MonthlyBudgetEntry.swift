@@ -2,7 +2,7 @@ import Foundation
 
 /// 月次予算の表示用エントリ
 internal struct MonthlyBudgetEntry: Identifiable {
-    internal let budget: BudgetDTO
+    internal let budget: Budget
     internal let title: String
     internal let calculation: BudgetCalculation
     internal let categoryDisplayOrder: Int

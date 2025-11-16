@@ -59,7 +59,7 @@ internal final class BudgetStore {
     // MARK: - Cached Data
 
     /// 現在の月の予算一覧
-    internal var monthlyBudgets: [BudgetDTO] = []
+    internal var monthlyBudgets: [Budget] = []
 
     /// カテゴリ選択肢
     internal var selectableCategories: [Category] = []
@@ -283,12 +283,12 @@ internal extension BudgetStore {
         await reloadSnapshot()
     }
 
-    func updateBudget(budget: BudgetDTO, input: BudgetInput) async throws {
+    func updateBudget(budget: Budget, input: BudgetInput) async throws {
         try await mutationUseCase.updateBudget(budget, input: input)
         await reloadSnapshot()
     }
 
-    func deleteBudget(_ budget: BudgetDTO) async throws {
+    func deleteBudget(_ budget: Budget) async throws {
         try await mutationUseCase.deleteBudget(budget)
         await reloadSnapshot()
     }

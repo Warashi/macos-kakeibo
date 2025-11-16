@@ -19,7 +19,7 @@ internal struct AnnualBudgetUseCaseTests {
             ),
         ]
         let snapshot = BudgetSnapshot(
-            budgets: budgets.map { BudgetDTO(from: $0) },
+            budgets: budgets.map { Budget(from: $0) },
             transactions: transactions.map { Transaction(from: $0) },
             categories: [],
             annualBudgetConfig: nil,
@@ -52,7 +52,7 @@ internal struct AnnualBudgetUseCaseTests {
             ),
         ]
         let snapshot = BudgetSnapshot(
-            budgets: budgets.map { BudgetDTO(from: $0) },
+            budgets: budgets.map { Budget(from: $0) },
             transactions: transactions.map { Transaction(from: $0) },
             categories: [Category(from: food)],
             annualBudgetConfig: nil,

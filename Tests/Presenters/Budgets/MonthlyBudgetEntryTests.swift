@@ -19,7 +19,7 @@ internal struct MonthlyBudgetEntryTests {
         )
 
         let entry = MonthlyBudgetEntry(
-            budget: BudgetDTO(from: budget),
+            budget: Budget(from: budget),
             title: child.fullName,
             calculation: BudgetCalculation(
                 budgetAmount: 80000,
@@ -48,7 +48,7 @@ internal struct MonthlyBudgetEntryTests {
         )
 
         let entry = MonthlyBudgetEntry(
-            budget: BudgetDTO(from: budget),
+            budget: Budget(from: budget),
             title: "全体予算",
             calculation: BudgetCalculation(
                 budgetAmount: 100_000,

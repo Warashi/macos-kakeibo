@@ -56,7 +56,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         // When: 年次予算進捗を計算
         let categories = [Category(from: majorCategory), Category(from: minorCategory)]
         let result = calculator.calculate(
-            budgets: [BudgetDTO(from: budget)],
+            budgets: [Budget(from: budget)],
             transactions: transactions.map { Transaction(from: $0) },
             categories: categories,
             year: 2025,
@@ -135,7 +135,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
             Category(from: minorCategory2),
         ]
         let result = calculator.calculate(
-            budgets: [BudgetDTO(from: budget)],
+            budgets: [Budget(from: budget)],
             transactions: transactions.map { Transaction(from: $0) },
             categories: categories,
             year: 2025,
@@ -173,7 +173,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
             Category(from: testData.transportCategory),
         ]
         let result = calculator.calculate(
-            budgets: testData.budgets.map { BudgetDTO(from: $0) },
+            budgets: testData.budgets.map { Budget(from: $0) },
             transactions: testData.transactions.map { Transaction(from: $0) },
             categories: categories,
             year: 2025,
@@ -328,7 +328,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         let excludedCategoryIds: Set<UUID> = [foodCategory.id]
         let categories = [Category(from: foodCategory), Category(from: transportCategory)]
         let result = calculator.calculate(
-            budgets: [BudgetDTO(from: overallBudget), BudgetDTO(from: foodBudget)],
+            budgets: [Budget(from: overallBudget), Budget(from: foodBudget)],
             transactions: transactions.map { Transaction(from: $0) },
             categories: categories,
             year: 2025,
@@ -405,7 +405,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
             Category(from: entertainmentCategory),
         ]
         let result = calculator.calculate(
-            budgets: [BudgetDTO(from: overallBudget)],
+            budgets: [Budget(from: overallBudget)],
             transactions: transactions.map { Transaction(from: $0) },
             categories: categories,
             year: 2025,

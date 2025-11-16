@@ -48,7 +48,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         let config = try modelContext.fetch(BudgetQueries.annualConfig(for: year)).first
 
         // SwiftDataモデルをDTOに変換
-        let budgetDTOs = budgets.map { BudgetDTO(from: $0) }
+        let budgetDTOs = budgets.map { Budget(from: $0) }
         let transactionDTOs = transactions.map { Transaction(from: $0) }
         let categoryDTOs = categories.map { Category(from: $0) }
         let configDTO = config.map { AnnualBudgetConfigDTO(from: $0) }

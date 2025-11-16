@@ -95,7 +95,7 @@ internal struct BudgetStoreTestsBasic {
         context.insert(budget)
         try context.save()
 
-        let budgetDTO = BudgetDTO(from: budget)
+        let budgetDTO = Budget(from: budget)
 
         let input = BudgetInput(
             amount: 12000,
@@ -123,7 +123,7 @@ internal struct BudgetStoreTestsBasic {
         context.insert(budget)
         try context.save()
 
-        let budgetDTO = BudgetDTO(from: budget)
+        let budgetDTO = Budget(from: budget)
         try await store.deleteBudget(budgetDTO)
 
         #expect(store.monthlyBudgets.isEmpty)

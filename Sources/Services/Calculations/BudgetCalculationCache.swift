@@ -215,7 +215,7 @@ internal enum BudgetCalculationCacheHasher {
         versionHash(for: transactions, id: { $0.id }, updatedAt: { $0.updatedAt })
     }
 
-    internal static func budgetsVersion(for budgets: [BudgetDTO]) -> Int {
+    internal static func budgetsVersion(for budgets: [Budget]) -> Int {
         versionHash(for: budgets, id: { $0.id }, updatedAt: { $0.updatedAt })
     }
 

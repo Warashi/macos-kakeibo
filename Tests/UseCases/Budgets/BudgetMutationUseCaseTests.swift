@@ -46,7 +46,7 @@ internal struct BudgetMutationUseCaseTests {
             endYear: 2025,
             endMonth: 12,
         )
-        let budgetDTO = BudgetDTO(from: budget)
+        let budgetDTO = Budget(from: budget)
         try await useCase.updateBudget(budgetDTO, input: input)
 
         #expect(budget.amount == 6000)

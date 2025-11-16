@@ -8,9 +8,9 @@ internal struct MonthlyBudgetGrid: View {
     internal let overallEntry: MonthlyBudgetEntry?
     internal let categoryEntries: [MonthlyBudgetEntry]
     internal let onAdd: () -> Void
-    internal let onEdit: (BudgetDTO) -> Void
-    internal let onDuplicate: (BudgetDTO) -> Void
-    internal let onDelete: (BudgetDTO) -> Void
+    internal let onEdit: (Budget) -> Void
+    internal let onDuplicate: (Budget) -> Void
+    internal let onDelete: (Budget) -> Void
 
     private var rows: [MonthlyBudgetEntry] {
         var items: [MonthlyBudgetEntry] = []

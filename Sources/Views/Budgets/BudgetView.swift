@@ -23,7 +23,7 @@ internal struct BudgetView: View {
     @State private var annualFormError: String?
     @State private var recurringPaymentFormError: String?
 
-    @State private var budgetPendingDeletion: BudgetDTO?
+    @State private var budgetPendingDeletion: Budget?
     @State private var recurringPaymentPendingDeletion: RecurringPaymentDefinition?
     @State private var errorMessage: String?
     @State private var isShowingErrorAlert: Bool = false
@@ -216,7 +216,7 @@ private extension BudgetView {
 // MARK: - Budget Editor
 
 private extension BudgetView {
-    func presentBudgetEditor(for budget: BudgetDTO?) {
+    func presentBudgetEditor(for budget: Budget?) {
         guard let store else { return }
         budgetFormError = nil
         if let budget {
@@ -232,7 +232,7 @@ private extension BudgetView {
         isPresentingBudgetEditor = true
     }
 
-    func presentBudgetEditor(forDuplicating budget: BudgetDTO) {
+    func presentBudgetEditor(forDuplicating budget: Budget) {
         guard let store else { return }
         budgetFormError = nil
         budgetEditorMode = .create

@@ -14,7 +14,7 @@ internal struct BudgetEditorFormState {
         selectedMinorCategoryId ?? selectedMajorCategoryId
     }
 
-    internal mutating func load(from budget: BudgetDTO) {
+    internal mutating func load(from budget: Budget) {
         amountText = budget.amount.plainString
         startDate = budget.targetDate
         endDate = budget.endDate
@@ -243,7 +243,7 @@ internal struct AnnualBudgetAllocationRowState: Identifiable {
 
 internal enum BudgetEditorMode {
     case create
-    case edit(BudgetDTO)
+    case edit(Budget)
 
     internal var title: String {
         switch self {

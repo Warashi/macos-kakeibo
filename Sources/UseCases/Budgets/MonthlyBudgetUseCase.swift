@@ -5,7 +5,7 @@ internal protocol MonthlyBudgetUseCaseProtocol {
         snapshot: BudgetSnapshot,
         year: Int,
         month: Int,
-    ) -> [BudgetDTO]
+    ) -> [Budget]
 
     func monthlyCalculation(
         snapshot: BudgetSnapshot,
@@ -37,7 +37,7 @@ internal final class DefaultMonthlyBudgetUseCase: MonthlyBudgetUseCaseProtocol {
         snapshot: BudgetSnapshot,
         year: Int,
         month: Int,
-    ) -> [BudgetDTO] {
+    ) -> [Budget] {
         snapshot.budgets.filter { $0.contains(year: year, month: month) }
     }
 

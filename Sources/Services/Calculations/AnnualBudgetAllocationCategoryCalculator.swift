@@ -93,7 +93,7 @@ internal struct AnnualBudgetAllocationCategoryCalculator: Sendable {
     }
 
     private func calculateAllocationsForMonthlyBudgets(
-        budgets: [BudgetDTO],
+        budgets: [Budget],
         categories: [Category],
         context: AllocationComputationContext,
         processedCategoryIds: inout Set<UUID>,
