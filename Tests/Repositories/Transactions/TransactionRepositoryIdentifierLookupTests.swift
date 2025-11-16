@@ -32,6 +32,7 @@ internal struct TransactionRepositoryIdentifierLookupTests {
     }
 
     @Test("インメモリ実装で識別子検索できる")
+    @DatabaseActor
     internal func inMemoryRepositoryFindsIdentifier() throws {
         let repository = InMemoryTransactionRepository()
 

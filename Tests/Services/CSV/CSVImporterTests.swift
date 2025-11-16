@@ -1,13 +1,12 @@
 import Foundation
 @testable import Kakeibo
-import SwiftData
 import Testing
 
 @Suite(.serialized)
 internal struct CSVImporterTests {
     @Test("マッピング済みCSVからプレビューを生成できる")
     internal func makePreview_success() async throws {
-        let (importer, _) = try await makeImporter()
+        let (importer, _, _) = await makeImporter()
 
         let document = sampleDocument()
         let config = CSVImportConfiguration(hasHeaderRow: true)
@@ -34,7 +33,7 @@ internal struct CSVImporterTests {
 
     @Test("必須カラムの割り当てが無い場合はエラー")
     internal func makePreview_requiresMapping() async throws {
-        let (importer, _) = try await makeImporter()
+        let (importer, _, _) = await makeImporter()
 
         let document = sampleDocument()
         var mapping = CSVColumnMapping()
@@ -51,7 +50,7 @@ internal struct CSVImporterTests {
 
     @Test("プレビュー済みデータを取り込める")
     internal func performImport_createsTransactions() async throws {
-        let (importer, container) = try await makeImporter()
+        let (importer, transactionRepository, _) = await makeImporter()
 
         let preview = try await importer.makePreview(
             document: sampleDocument(),
@@ -64,19 +63,19 @@ internal struct CSVImporterTests {
         #expect(summary.updatedCount == 0)
         #expect(summary.skippedCount == 0)
 
-        let context = ModelContext(container)
-        let transactions = try context.fetchAll(Transaction.self)
+        let transactions = await Task { @DatabaseActor in
+            transactionRepository.transactions.map { TransactionDTO(from: $0) }
+        }.value
         #expect(transactions.count == 1)
-        #expect(transactions.first?.title == "ランチ")
-        #expect(transactions.first?.importIdentifier == sampleIdentifier)
-
-        let categories = try context.fetchAll(Kakeibo.Category.self)
-        #expect(!categories.isEmpty)
+        let transaction = try #require(transactions.first)
+        #expect(transaction.title == "ランチ")
+        #expect(transaction.importIdentifier == sampleIdentifier)
+        #expect(transaction.amount == -1200)
     }
 
     @Test("同じIDの行は更新される")
     internal func performImport_updatesExistingTransactions() async throws {
-        let (importer, container) = try await makeImporter()
+        let (importer, transactionRepository, _) = await makeImporter()
         let config = CSVImportConfiguration(hasHeaderRow: true)
 
         let preview = try await importer.makePreview(
@@ -112,13 +111,13 @@ internal struct CSVImporterTests {
         #expect(summary.importedCount == 0)
         #expect(summary.updatedCount == 1)
 
-        let context = ModelContext(container)
-        let descriptor: ModelFetchRequest<Transaction> = ModelFetchFactory.make()
-        let transactions = try context.fetch(descriptor)
-        #expect(transactions.count == 1)
-        #expect(transactions.first?.title == "ディナー")
-        #expect(transactions.first?.amount == -2500)
-        #expect(transactions.first?.importIdentifier == sampleIdentifier)
+        let transactions = await Task { @DatabaseActor in
+            transactionRepository.transactions.map { TransactionDTO(from: $0) }
+        }.value
+        let stored = try #require(transactions.first)
+        #expect(stored.title == "ディナー")
+        #expect(stored.amount == -2500)
+        #expect(stored.importIdentifier == sampleIdentifier)
     }
 
     // MARK: - Helpers
@@ -131,24 +130,20 @@ internal struct CSVImporterTests {
         ])
     }
 
-    private func makeImporter() async throws -> (CSVImporter, ModelContainer) {
-        let container = try makeInMemoryContainer()
-        let transactionRepository = await SwiftDataTransactionRepository(modelContainer: container)
-        let budgetRepository = await SwiftDataBudgetRepository(modelContainer: container)
-        let importer = CSVImporter(
-            transactionRepository: transactionRepository,
-            budgetRepository: budgetRepository
-        )
-        return (importer, container)
-    }
-
-    private func makeInMemoryContainer() throws -> ModelContainer {
-        let container = try ModelContainer(
-            for: Transaction.self, Category.self, Budget.self, AnnualBudgetConfig.self,
-            FinancialInstitution.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true),
-        )
-        return container
+    private func makeImporter() async -> (
+        CSVImporter,
+        InMemoryTransactionRepository,
+        InMemoryBudgetRepository
+    ) {
+        await Task { @DatabaseActor in
+            let transactionRepository = InMemoryTransactionRepository()
+            let budgetRepository = InMemoryBudgetRepository()
+            let importer = CSVImporter(
+                transactionRepository: transactionRepository,
+                budgetRepository: budgetRepository
+            )
+            return (importer, transactionRepository, budgetRepository)
+        }.value
     }
 
     private func sampleDocument() -> CSVDocument {

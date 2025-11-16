@@ -1,12 +1,11 @@
 @testable import Kakeibo
-import SwiftData
 import Testing
 
 @Suite(.serialized)
 internal struct ImportStoreTests {
     @Test("CSVドキュメントを適用すると初期状態がセットされる")
     internal func applyDocument_setsInitialState() async throws {
-        let (store, _) = try await makeStore()
+        let (store, _, _) = await makeStore()
 
         await MainActor.run {
             store.applyDocument(sampleDocument(), fileName: "sample.csv")
@@ -27,7 +26,7 @@ internal struct ImportStoreTests {
 
     @Test("ファイル選択から列マッピングへ進める")
     internal func proceedToColumnMapping() async throws {
-        let (store, _) = try await makeStore()
+        let (store, _, _) = await makeStore()
         await MainActor.run {
             store.applyDocument(sampleDocument(), fileName: "sample.csv")
         }
@@ -41,7 +40,7 @@ internal struct ImportStoreTests {
 
     @Test("列マッピングから検証ステップに進める")
     internal func generatePreviewMovesToValidation() async throws {
-        let (store, _) = try await makeStore()
+        let (store, _, _) = await makeStore()
         await MainActor.run {
             store.applyDocument(sampleDocument(), fileName: "sample.csv")
         }
@@ -57,7 +56,7 @@ internal struct ImportStoreTests {
 
     @Test("検証ステップで取り込みを実行できる")
     internal func performImportCreatesTransactions() async throws {
-        let (store, container) = try await makeStore()
+        let (store, transactionRepository, _) = await makeStore()
         await MainActor.run {
             store.applyDocument(sampleDocument(), fileName: "sample.csv")
         }
@@ -70,31 +69,29 @@ internal struct ImportStoreTests {
         #expect(summary.importedCount == 1)
         #expect(summary.updatedCount == 0)
 
-        let context = ModelContext(container)
-        let transactions = try context.fetchAll(Transaction.self)
+        let transactions = await Task { @DatabaseActor in
+            transactionRepository.transactions.map { TransactionDTO(from: $0) }
+        }.value
         #expect(transactions.count == 1)
+        #expect(transactions.first?.title == "ランチ")
     }
 
     // MARK: - Helpers
 
-    private func makeStore() async throws -> (ImportStore, ModelContainer) {
-        let container = try makeInMemoryContainer()
-        let transactionRepository = await SwiftDataTransactionRepository(modelContainer: container)
-        let budgetRepository = await SwiftDataBudgetRepository(modelContainer: container)
-        let store = ImportStore(
-            transactionRepository: transactionRepository,
-            budgetRepository: budgetRepository
-        )
-        return (store, container)
-    }
-
-    private func makeInMemoryContainer() throws -> ModelContainer {
-        let container = try ModelContainer(
-            for: Transaction.self, Category.self, Budget.self, AnnualBudgetConfig.self,
-            FinancialInstitution.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true),
-        )
-        return container
+    private func makeStore() async -> (
+        ImportStore,
+        InMemoryTransactionRepository,
+        InMemoryBudgetRepository
+    ) {
+        await Task { @DatabaseActor in
+            let transactionRepository = InMemoryTransactionRepository()
+            let budgetRepository = InMemoryBudgetRepository()
+            let store = ImportStore(
+                transactionRepository: transactionRepository,
+                budgetRepository: budgetRepository
+            )
+            return (store, transactionRepository, budgetRepository)
+        }.value
     }
 
     private func sampleDocument() -> CSVDocument {
