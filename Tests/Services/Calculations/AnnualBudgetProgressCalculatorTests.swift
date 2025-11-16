@@ -16,7 +16,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         majorCategory.addChild(minorCategory)
 
         // 大項目「食費」に対して年次予算を設定（12ヶ月 × 50,000円 = 600,000円）
-        let budget = Budget(
+        let budget = BudgetEntity(
             amount: 50000,
             category: majorCategory,
             startYear: 2025,
@@ -99,7 +99,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         majorCategory.addChild(minorCategory2)
 
         // 中項目「外食」に対して年次予算を設定
-        let budget = Budget(
+        let budget = BudgetEntity(
             amount: 30000,
             category: minorCategory1,
             startYear: 2025,
@@ -216,7 +216,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
     }
 
     private struct MultipleCategoryTestData {
-        let budgets: [Budget]
+        let budgets: [BudgetEntity]
         let transactions: [TransactionEntity]
         let foodCategory: Kakeibo.CategoryEntity
         let diningOutCategory: Kakeibo.CategoryEntity
@@ -231,7 +231,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         let transportCategory = CategoryEntity(name: "交通費", displayOrder: 2)
 
         let budgets = [
-            Budget(
+            BudgetEntity(
                 amount: 50000,
                 category: foodCategory,
                 startYear: 2025,
@@ -239,7 +239,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 endYear: 2025,
                 endMonth: 12,
             ),
-            Budget(
+            BudgetEntity(
                 amount: 20000,
                 category: transportCategory,
                 startYear: 2025,
@@ -287,7 +287,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         let transportCategory = CategoryEntity(name: "交通費", displayOrder: 2)
 
         // 全体予算: 600,000円/年（50,000円/月 × 12ヶ月）
-        let overallBudget = Budget(
+        let overallBudget = BudgetEntity(
             amount: 50000,
             category: nil,
             startYear: 2025,
@@ -297,7 +297,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         )
 
         // カテゴリ別予算
-        let foodBudget = Budget(
+        let foodBudget = BudgetEntity(
             amount: 30000,
             category: foodCategory,
             startYear: 2025,
@@ -363,7 +363,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
         let entertainmentCategory = CategoryEntity(name: "娯楽費", displayOrder: 3)
 
         // 全体予算: 600,000円/年
-        let overallBudget = Budget(
+        let overallBudget = BudgetEntity(
             amount: 50000,
             category: nil,
             startYear: 2025,

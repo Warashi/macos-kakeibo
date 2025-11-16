@@ -45,7 +45,7 @@ internal extension AnnualBudgetConfig {
 
 /// 月次予算（期間指定）
 @Model
-internal final class Budget {
+internal final class BudgetEntity {
     internal var id: UUID
 
     /// 予算額
@@ -113,7 +113,7 @@ internal final class Budget {
 
 // MARK: - Computed Properties
 
-internal extension Budget {
+internal extension BudgetEntity {
     /// 開始年月の文字列表現（例: "2025-11"）
     var yearMonthString: String {
         String(format: "%04d-%02d", startYear, startMonth)
@@ -185,7 +185,7 @@ internal extension Budget {
 
 // MARK: - Validation
 
-internal extension Budget {
+internal extension BudgetEntity {
     /// データの検証
     func validate() -> [String] {
         var errors: [String] = []

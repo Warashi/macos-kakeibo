@@ -63,9 +63,9 @@ internal struct AnnualBudgetAllocatorCategoryTests {
             createTransaction(amount: -20000, category: category, month: 4),
         ]
         let budgets = [
-            Budget(amount: 30000, category: category, year: 2025, month: 1),
-            Budget(amount: 30000, category: category, year: 2025, month: 2),
-            Budget(amount: 30000, category: category, year: 2025, month: 4),
+            BudgetEntity(amount: 30000, category: category, year: 2025, month: 1),
+            BudgetEntity(amount: 30000, category: category, year: 2025, month: 2),
+            BudgetEntity(amount: 30000, category: category, year: 2025, month: 4),
         ]
         let config = makeConfig(
             allocations: [

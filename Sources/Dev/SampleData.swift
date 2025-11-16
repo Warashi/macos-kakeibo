@@ -95,7 +95,7 @@ internal enum SampleData {
     // MARK: - Budget
 
     /// サンプル予算データ
-    internal static func createSampleBudgets(categories: [CategoryEntity]) -> [Budget] {
+    internal static func createSampleBudgets(categories: [CategoryEntity]) -> [BudgetEntity] {
         let calendar = Calendar.current
         let now = Date()
         let components = calendar.dateComponents([.year, .month], from: now)
@@ -103,22 +103,22 @@ internal enum SampleData {
             return []
         }
 
-        var budgets: [Budget] = []
+        var budgets: [BudgetEntity] = []
 
         // 全体予算
-        budgets.append(Budget(amount: 200_000, year: year, month: month))
+        budgets.append(BudgetEntity(amount: 200_000, year: year, month: month))
 
         // カテゴリ別予算
         if let food = categories.first(where: { $0.name == "食費" && $0.isMajor }) {
-            budgets.append(Budget(amount: 50000, category: food, year: year, month: month))
+            budgets.append(BudgetEntity(amount: 50000, category: food, year: year, month: month))
         }
 
         if let transport = categories.first(where: { $0.name == "交通費" && $0.isMajor }) {
-            budgets.append(Budget(amount: 15000, category: transport, year: year, month: month))
+            budgets.append(BudgetEntity(amount: 15000, category: transport, year: year, month: month))
         }
 
         if let hobby = categories.first(where: { $0.name == "趣味・娯楽" && $0.isMajor }) {
-            budgets.append(Budget(amount: 30000, category: hobby, year: year, month: month))
+            budgets.append(BudgetEntity(amount: 30000, category: hobby, year: year, month: month))
         }
 
         return budgets

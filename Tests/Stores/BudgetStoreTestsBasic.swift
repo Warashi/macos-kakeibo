@@ -86,7 +86,7 @@ internal struct BudgetStoreTestsBasic {
         context.insert(food)
         context.insert(transport)
 
-        let budget = Budget(
+        let budget = BudgetEntity(
             amount: 10000,
             category: food,
             year: store.currentYear,
@@ -115,7 +115,7 @@ internal struct BudgetStoreTestsBasic {
     @Test("予算削除：削除後にリストから除外される")
     internal func deleteBudget_removesBudget() async throws {
         let (store, context) = try await makeStore()
-        let budget = Budget(
+        let budget = BudgetEntity(
             amount: 8000,
             year: store.currentYear,
             month: store.currentMonth,

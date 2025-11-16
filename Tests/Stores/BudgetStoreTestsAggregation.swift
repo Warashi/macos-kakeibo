@@ -53,12 +53,12 @@ internal struct BudgetStoreTestsAggregation {
 
         let year = store.currentYear
 
-        let budgets: [Budget] = [
-            Budget(amount: 100_000, year: year, month: 1),
-            Budget(amount: 120_000, year: year, month: 2),
-            Budget(amount: 50000, category: food, year: year, month: 1),
-            Budget(amount: 60000, category: food, year: year, month: 2),
-            Budget(amount: 40000, category: transport, year: year, month: 1),
+        let budgets: [BudgetEntity] = [
+            BudgetEntity(amount: 100_000, year: year, month: 1),
+            BudgetEntity(amount: 120_000, year: year, month: 2),
+            BudgetEntity(amount: 50000, category: food, year: year, month: 1),
+            BudgetEntity(amount: 60000, category: food, year: year, month: 2),
+            BudgetEntity(amount: 40000, category: transport, year: year, month: 1),
         ]
         budgets.forEach(context.insert)
 

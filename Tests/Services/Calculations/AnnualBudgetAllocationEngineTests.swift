@@ -17,8 +17,8 @@ internal struct AnnualBudgetAllocationEngineTests {
             ],
         )
         let budgets = [
-            Budget(amount: 50000, category: category, year: 2025, month: 1),
-            Budget(amount: 50000, category: category, year: 2025, month: 2),
+            BudgetEntity(amount: 50000, category: category, year: 2025, month: 1),
+            BudgetEntity(amount: 50000, category: category, year: 2025, month: 2),
         ]
         let transactions = [
             makeTransaction(amount: -80000, year: 2025, month: 1, category: category),

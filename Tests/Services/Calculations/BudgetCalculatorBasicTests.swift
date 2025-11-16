@@ -72,8 +72,8 @@ internal struct BudgetCalculatorBasicTests {
         let category = CategoryEntity(name: "食費")
         let transactions = createSampleTransactions(category: category)
         let budgets = [
-            Budget(amount: 100_000, year: 2025, month: 11), // 全体予算
-            Budget(amount: 50000, category: category, year: 2025, month: 11), // カテゴリ別予算
+            BudgetEntity(amount: 100_000, year: 2025, month: 11), // 全体予算
+            BudgetEntity(amount: 50000, category: category, year: 2025, month: 11), // カテゴリ別予算
         ]
 
         // When
@@ -101,7 +101,7 @@ internal struct BudgetCalculatorBasicTests {
         let category = CategoryEntity(name: "食費")
         let transactions = createSampleTransactions(category: category)
         let budgets = [
-            Budget(
+            BudgetEntity(
                 amount: 80000,
                 startYear: 2025,
                 startMonth: 10,
@@ -139,7 +139,7 @@ internal struct BudgetCalculatorBasicTests {
         ]
 
         let budgets = [
-            Budget(amount: 100_000, year: 2025, month: 11),
+            BudgetEntity(amount: 100_000, year: 2025, month: 11),
         ]
 
         let excludedIds: Set<UUID> = [special.id, travel.id]
@@ -206,7 +206,7 @@ internal struct BudgetCalculatorBasicTests {
 
         // 予算：大項目「食費」に対して50,000円
         let budgets = [
-            Budget(amount: 50000, category: majorCategory, year: 2025, month: 11),
+            BudgetEntity(amount: 50000, category: majorCategory, year: 2025, month: 11),
         ]
 
         // When: 月次予算計算を実行

@@ -270,7 +270,7 @@ internal struct DashboardStoreTests {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
 
-        let budget = Budget(amount: 120_000, year: 2025, month: 1)
+        let budget = BudgetEntity(amount: 120_000, year: 2025, month: 1)
         context.insert(budget)
 
         let transaction = TransactionEntity(
@@ -298,7 +298,7 @@ internal struct DashboardStoreTests {
         let food = CategoryEntity(name: "食費")
         context.insert(food)
 
-        let budget = Budget(amount: 10000, category: food, year: 2025, month: 1)
+        let budget = BudgetEntity(amount: 10000, category: food, year: 2025, month: 1)
         context.insert(budget)
 
         let transaction = TransactionEntity(
@@ -359,7 +359,7 @@ internal struct DashboardStoreTests {
         )
         context.insert(transaction)
 
-        let budget = Budget(amount: 30000, category: category, year: 2025, month: 1)
+        let budget = BudgetEntity(amount: 30000, category: category, year: 2025, month: 1)
         context.insert(budget)
 
         let config = AnnualBudgetConfig(year: 2025, totalAmount: 200_000, policy: .automatic)
@@ -397,7 +397,7 @@ internal struct DashboardStoreTests {
         context.insert(specialCategory)
 
         // 全体予算
-        let overallBudget = Budget(amount: 100_000, category: nil, year: 2025, month: 1)
+        let overallBudget = BudgetEntity(amount: 100_000, category: nil, year: 2025, month: 1)
         context.insert(overallBudget)
 
         // 取引作成
@@ -446,7 +446,7 @@ internal struct DashboardStoreTests {
 
     private func createInMemoryContainer() throws -> ModelContainer {
         try ModelContainer(
-            for: TransactionEntity.self, CategoryEntity.self, Budget.self, AnnualBudgetConfig.self,
+            for: TransactionEntity.self, CategoryEntity.self, BudgetEntity.self, AnnualBudgetConfig.self,
             FinancialInstitutionEntity.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )

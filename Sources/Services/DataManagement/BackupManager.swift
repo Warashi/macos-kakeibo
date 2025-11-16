@@ -69,7 +69,7 @@ internal actor BackupManager {
         let modelContext = ModelContext(modelContainer)
         let transactions = try modelContext.fetchAll(TransactionEntity.self)
         let categories = try modelContext.fetchAll(CategoryEntity.self)
-        let budgets = try modelContext.fetchAll(Budget.self)
+        let budgets = try modelContext.fetchAll(BudgetEntity.self)
         let configs = try modelContext.fetchAll(AnnualBudgetConfig.self)
         let institutions = try modelContext.fetchAll(FinancialInstitutionEntity.self)
 
@@ -138,7 +138,7 @@ internal actor BackupManager {
 
     private func clearAllData(in context: ModelContext) throws {
         try deleteAll(TransactionEntity.self, in: context)
-        try deleteAll(Budget.self, in: context)
+        try deleteAll(BudgetEntity.self, in: context)
         try deleteAll(AnnualBudgetConfig.self, in: context)
         try deleteCategoriesSafely(in: context)
         try deleteAll(FinancialInstitutionEntity.self, in: context)
@@ -226,7 +226,7 @@ internal actor BackupManager {
         context: ModelContext,
     ) throws {
         for dto in dtos {
-            let budget = Budget(
+            let budget = BudgetEntity(
                 id: dto.id,
                 amount: dto.amount,
                 category: dto.categoryId.flatMap { categories[$0] },
@@ -366,7 +366,7 @@ internal struct BackupBudgetDTO: Codable {
     internal let createdAt: Date
     internal let updatedAt: Date
 
-    internal init(budget: Budget) {
+    internal init(budget: BudgetEntity) {
         self.id = budget.id
         self.amount = budget.amount
         self.categoryId = budget.category?.id

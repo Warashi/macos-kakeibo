@@ -17,7 +17,7 @@ internal struct SeedHelperTests {
         #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) > 0)
         #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) > 0)
         #expect(SeedHelper.count(TransactionEntity.self, in: container) > 0)
-        #expect(SeedHelper.count(Budget.self, in: container) > 0)
+        #expect(SeedHelper.count(BudgetEntity.self, in: container) > 0)
         #expect(SeedHelper.count(AnnualBudgetConfig.self, in: container) == 1)
     }
 
@@ -61,7 +61,7 @@ internal struct SeedHelperTests {
         #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) == 0)
         #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) == 0)
         #expect(SeedHelper.count(TransactionEntity.self, in: container) == 0)
-        #expect(SeedHelper.count(Budget.self, in: container) == 0)
+        #expect(SeedHelper.count(BudgetEntity.self, in: container) == 0)
         #expect(SeedHelper.count(AnnualBudgetConfig.self, in: container) == 0)
     }
 

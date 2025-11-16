@@ -7,7 +7,7 @@ internal extension ModelContainer {
         let schema = Schema([
             TransactionEntity.self,
             CategoryEntity.self,
-            Budget.self,
+            BudgetEntity.self,
             AnnualBudgetConfig.self,
             FinancialInstitutionEntity.self,
             RecurringPaymentDefinition.self,
@@ -32,7 +32,7 @@ internal extension ModelContainer {
         let schema = Schema([
             TransactionEntity.self,
             CategoryEntity.self,
-            Budget.self,
+            BudgetEntity.self,
             AnnualBudgetConfig.self,
             FinancialInstitutionEntity.self,
             RecurringPaymentDefinition.self,

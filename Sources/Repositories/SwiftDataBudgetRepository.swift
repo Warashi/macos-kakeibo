@@ -120,7 +120,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func addBudget(_ input: BudgetInput) throws {
-        let budget = Budget(
+        let budget = BudgetEntity(
             amount: input.amount,
             category: try resolveCategory(id: input.categoryId),
             startYear: input.startYear,
@@ -132,7 +132,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func countBudgets() throws -> Int {
-        try modelContext.count(Budget.self)
+        try modelContext.count(BudgetEntity.self)
     }
 
     internal func updateBudget(input: BudgetUpdateInput) throws {
@@ -160,7 +160,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func deleteAllBudgets() throws {
-        let descriptor: ModelFetchRequest<Budget> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<BudgetEntity> = ModelFetchFactory.make()
         let budgets = try modelContext.fetch(descriptor)
         for budget in budgets {
             modelContext.delete(budget)

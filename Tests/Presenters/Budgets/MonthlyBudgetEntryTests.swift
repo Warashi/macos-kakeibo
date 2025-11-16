@@ -11,7 +11,7 @@ internal struct MonthlyBudgetEntryTests {
         let child = CategoryEntity(name: "家賃", parent: parent, displayOrder: 10)
         parent.addChild(child)
 
-        let budget = Budget(
+        let budget = BudgetEntity(
             amount: 80000,
             category: child,
             year: 2025,
@@ -41,7 +41,7 @@ internal struct MonthlyBudgetEntryTests {
 
     @Test("全体予算はisOverallBudgetがtrueになる")
     internal func overallBudget_flagsCorrectly() throws {
-        let budget = Budget(
+        let budget = BudgetEntity(
             amount: 100_000,
             year: 2025,
             month: 5,

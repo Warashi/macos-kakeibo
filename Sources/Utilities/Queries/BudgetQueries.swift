@@ -3,7 +3,7 @@ import SwiftData
 
 /// 予算関連のフェッチビルダー
 internal enum BudgetQueries {
-    internal static func allBudgets() -> ModelFetchRequest<Budget> {
+    internal static func allBudgets() -> ModelFetchRequest<BudgetEntity> {
         ModelFetchFactory.make()
     }
 
@@ -30,20 +30,20 @@ internal enum BudgetQueries {
         )
     }
 
-    internal static func budgets(overlapping year: Int) -> ModelFetchRequest<Budget> {
+    internal static func budgets(overlapping year: Int) -> ModelFetchRequest<BudgetEntity> {
         ModelFetchFactory.make(
             predicate: #Predicate {
                 $0.startYear <= year && $0.endYear >= year
             },
             sortBy: [
-                SortDescriptor(\Budget.startYear),
-                SortDescriptor(\Budget.startMonth),
-                SortDescriptor(\Budget.createdAt),
+                SortDescriptor(\BudgetEntity.startYear),
+                SortDescriptor(\BudgetEntity.startMonth),
+                SortDescriptor(\BudgetEntity.createdAt),
             ],
         )
     }
 
-    internal static func byId(_ id: UUID) -> ModelFetchRequest<Budget> {
+    internal static func byId(_ id: UUID) -> ModelFetchRequest<BudgetEntity> {
         ModelFetchFactory.make(
             predicate: #Predicate { $0.id == id },
             fetchLimit: 1,

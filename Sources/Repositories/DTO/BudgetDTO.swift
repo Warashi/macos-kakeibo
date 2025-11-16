@@ -34,7 +34,7 @@ internal struct BudgetDTO: Sendable, Hashable, Equatable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from budget: Budget) {
+    internal init(from budget: BudgetEntity) {
         self.id = budget.id
         self.amount = budget.amount
         self.categoryId = budget.category?.id

@@ -10,7 +10,7 @@ internal struct BudgetCalculatorCacheTests {
     internal func monthlyBudgetCachesResult() throws {
         let calculator = BudgetCalculator()
         let category = CategoryEntity(name: "食費", allowsAnnualBudget: true)
-        let budget = Budget(amount: 50000, category: category, year: 2025, month: 1)
+        let budget = BudgetEntity(amount: 50000, category: category, year: 2025, month: 1)
         let transaction = TransactionEntity(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "ランチ",
@@ -40,7 +40,7 @@ internal struct BudgetCalculatorCacheTests {
     internal func monthlyBudgetInvalidatesOnTransactionChange() throws {
         let calculator = BudgetCalculator()
         let category = CategoryEntity(name: "日用品")
-        let budget = Budget(amount: 40000, category: category, year: 2025, month: 2)
+        let budget = BudgetEntity(amount: 40000, category: category, year: 2025, month: 2)
         let transaction = TransactionEntity(
             date: Date.from(year: 2025, month: 2) ?? Date(),
             title: "雑貨",

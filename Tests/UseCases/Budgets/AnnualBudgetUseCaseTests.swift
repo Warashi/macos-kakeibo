@@ -8,8 +8,8 @@ internal struct AnnualBudgetUseCaseTests {
     internal func calculatesAnnualOverallEntry() {
         let year = 2025
         let budgets = [
-            Budget(amount: 100_000, year: year, month: 1),
-            Budget(amount: 120_000, year: year, month: 2),
+            BudgetEntity(amount: 100_000, year: year, month: 1),
+            BudgetEntity(amount: 120_000, year: year, month: 2),
         ]
         let transactions = [
             TransactionEntity(
@@ -40,8 +40,8 @@ internal struct AnnualBudgetUseCaseTests {
         let year = 2025
         let food = CategoryEntity(name: "食費", displayOrder: 1)
         let budgets = [
-            Budget(amount: 50000, category: food, year: year, month: 1),
-            Budget(amount: 60000, category: food, year: year, month: 2),
+            BudgetEntity(amount: 50000, category: food, year: year, month: 1),
+            BudgetEntity(amount: 60000, category: food, year: year, month: 2),
         ]
         let transactions = [
             TransactionEntity(

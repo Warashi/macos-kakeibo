@@ -14,7 +14,7 @@ internal struct AnnualBudgetAllocatorUsageTests {
         let category = CategoryEntity(name: "食費", allowsAnnualBudget: true)
         let transactions = createSampleTransactions(category: category)
         let budgets = [
-            Budget(amount: 30000, category: category, year: 2025, month: 11),
+            BudgetEntity(amount: 30000, category: category, year: 2025, month: 11),
         ]
         let config = AnnualBudgetConfig(
             year: 2025,
@@ -52,7 +52,7 @@ internal struct AnnualBudgetAllocatorUsageTests {
             createTransaction(amount: -80000, category: category),
         ]
         let budgets = [
-            Budget(amount: 50000, category: category, year: 2025, month: 11),
+            BudgetEntity(amount: 50000, category: category, year: 2025, month: 11),
         ]
         let config = AnnualBudgetConfig(
             year: 2025,
@@ -151,7 +151,7 @@ internal struct BudgetAllocatorMonthlyTests {
         let category = CategoryEntity(name: "食費", allowsAnnualBudget: true)
         let transactions = createSampleTransactions(category: category)
         let budgets = [
-            Budget(amount: 30000, category: category, year: 2025, month: 11),
+            BudgetEntity(amount: 30000, category: category, year: 2025, month: 11),
         ]
         let config = AnnualBudgetConfig(
             year: 2025,
@@ -189,7 +189,7 @@ internal struct BudgetAllocatorMonthlyTests {
             createTransaction(amount: -20000, category: category),
         ]
         let budgets = [
-            Budget(amount: 50000, category: category, year: 2025, month: 11),
+            BudgetEntity(amount: 50000, category: category, year: 2025, month: 11),
         ]
         let config = AnnualBudgetConfig(
             year: 2025,
@@ -227,7 +227,7 @@ internal struct BudgetAllocatorMonthlyTests {
             createTransaction(amount: -80000, category: category),
         ]
         let budgets = [
-            Budget(amount: 50000, category: category, year: 2025, month: 11),
+            BudgetEntity(amount: 50000, category: category, year: 2025, month: 11),
         ]
         let config = AnnualBudgetConfig(
             year: 2025,
@@ -268,7 +268,7 @@ internal struct BudgetAllocatorMonthlyTests {
             createTransaction(amount: -40000, category: category),
         ]
         let budgets = [
-            Budget(amount: 50000, category: category, year: 2025, month: 11),
+            BudgetEntity(amount: 50000, category: category, year: 2025, month: 11),
         ]
         let config = makeConfig(
             policy: AnnualBudgetPolicy.manual,
@@ -311,7 +311,7 @@ internal struct BudgetAllocatorMonthlyTests {
         let transactions = [
             createTransaction(amount: -60000, category: category),
         ]
-        let budgets: [Budget] = []
+        let budgets: [BudgetEntity] = []
         let config = makeConfig(
             allocations: [
                 AllocationSeed(category: category, amount: 90000, override: .fullCoverage),
@@ -352,7 +352,7 @@ internal struct BudgetAllocatorMonthlyTests {
         let transactions = [
             createTransaction(amount: -20000, category: category),
         ]
-        let budgets: [Budget] = []
+        let budgets: [BudgetEntity] = []
         let config = makeConfig(
             allocations: [
                 AllocationSeed(category: category, amount: 150_000, override: nil),
@@ -464,7 +464,7 @@ internal struct BudgetAllocatorMonthlyTests {
             createTransaction(amount: -80000, category: category),
         ]
         let budgets = [
-            Budget(amount: 50000, category: category, year: 2025, month: 11),
+            BudgetEntity(amount: 50000, category: category, year: 2025, month: 11),
         ]
         let config = AnnualBudgetConfig(
             year: 2025,
