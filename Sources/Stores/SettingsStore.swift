@@ -183,7 +183,13 @@ internal final class SettingsStore {
 
         let container = modelContainer
         try await Task { @DatabaseActor in
-            try clearAllData(in: ModelContext(container))
+            let transactionRepository = SwiftDataTransactionRepository(modelContainer: container)
+            let budgetRepository = SwiftDataBudgetRepository(modelContainer: container)
+            try transactionRepository.deleteAllTransactions()
+            try budgetRepository.deleteAllBudgets()
+            try budgetRepository.deleteAllAnnualBudgetConfigs()
+            try budgetRepository.deleteAllCategories()
+            try budgetRepository.deleteAllFinancialInstitutions()
         }.value
         await refreshStatistics()
         lastRestoreSummary = nil
@@ -223,32 +229,4 @@ private func makeStatistics(modelContext: ModelContext) throws -> SettingsStore.
         annualBudgetConfigs: modelContext.count(AnnualBudgetConfig.self),
         financialInstitutions: modelContext.count(FinancialInstitution.self),
     )
-}
-
-private func clearAllData(in context: ModelContext) throws {
-    try deleteAll(Transaction.self, in: context)
-    try deleteAll(Budget.self, in: context)
-    try deleteAll(AnnualBudgetConfig.self, in: context)
-    try deleteCategoriesSafely(in: context)
-    try deleteAll(FinancialInstitution.self, in: context)
-    try context.save()
-}
-
-private func deleteAll<T: PersistentModel>(_ type: T.Type, in context: ModelContext) throws {
-    let descriptor: ModelFetchRequest<T> = ModelFetchFactory.make()
-    let items = try context.fetch(descriptor)
-    for item in items {
-        context.delete(item)
-    }
-}
-
-private func deleteCategoriesSafely(in context: ModelContext) throws {
-    let descriptor: ModelFetchRequest<Category> = ModelFetchFactory.make()
-    let categories = try context.fetch(descriptor)
-    let minors = categories.filter(\.isMinor)
-    let majors = categories.filter(\.isMajor)
-
-    for category in minors + majors {
-        context.delete(category)
-    }
 }
