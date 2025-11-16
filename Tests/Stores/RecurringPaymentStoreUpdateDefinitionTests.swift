@@ -37,12 +37,19 @@ internal struct RecurringPaymentStoreUpdateDefinitionTests {
         )
         try await store.updateDefinition(definitionId: definition.id, input: input)
 
-        #expect(definition.name == "自動車税（更新）")
-        #expect(definition.notes == "メモを追加")
-        #expect(definition.amount == 55000)
-        #expect(definition.leadTimeMonths == 3)
-        #expect(definition.savingStrategy == .customMonthly)
-        #expect(definition.customMonthlySavingAmount == 5000)
+        let definitionId = definition.id
+        let refreshed = try #require(
+            context.fetch(RecurringPaymentQueries.definitions(
+                predicate: #Predicate { $0.id == definitionId }
+            )).first
+        )
+
+        #expect(refreshed.name == "自動車税（更新）")
+        #expect(refreshed.notes == "メモを追加")
+        #expect(refreshed.amount == 55000)
+        #expect(refreshed.leadTimeMonths == 3)
+        #expect(refreshed.savingStrategy == .customMonthly)
+        #expect(refreshed.customMonthlySavingAmount == 5000)
     }
 
     @Test("定義更新：バリデーションエラー")
@@ -84,7 +91,7 @@ internal struct RecurringPaymentStoreUpdateDefinitionTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = await SwiftDataRecurringPaymentRepository(
-            modelContext: context,
+            modelContainer: container,
             currentDateProvider: { referenceDate },
         )
         let store = RecurringPaymentStore(

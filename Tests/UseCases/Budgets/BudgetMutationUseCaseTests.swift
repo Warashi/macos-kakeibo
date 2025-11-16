@@ -8,8 +8,8 @@ import Testing
 internal struct BudgetMutationUseCaseTests {
     @Test("月次予算を追加できる")
     internal func addsBudget() async throws {
-        let (_, context) = try makeContainerAndContext()
-        let repository = await SwiftDataBudgetRepository(modelContext: context)
+        let (container, context) = try makeContainerAndContext()
+        let repository = await SwiftDataBudgetRepository(modelContext: context, modelContainer: container)
         let useCase = await DefaultBudgetMutationUseCase(repository: repository)
 
         let input = BudgetInput(
@@ -29,8 +29,8 @@ internal struct BudgetMutationUseCaseTests {
 
     @Test("予算更新で期間とカテゴリを変更できる")
     internal func updatesBudget() async throws {
-        let (_, context) = try makeContainerAndContext()
-        let repository = await SwiftDataBudgetRepository(modelContext: context)
+        let (container, context) = try makeContainerAndContext()
+        let repository = await SwiftDataBudgetRepository(modelContext: context, modelContainer: container)
         let useCase = await DefaultBudgetMutationUseCase(repository: repository)
         let category = Category(name: "食費", displayOrder: 1)
         context.insert(category)
@@ -56,8 +56,8 @@ internal struct BudgetMutationUseCaseTests {
 
     @Test("年次特別枠を新規登録できる")
     internal func upsertsAnnualBudgetConfig() async throws {
-        let (_, context) = try makeContainerAndContext()
-        let repository = await SwiftDataBudgetRepository(modelContext: context)
+        let (container, context) = try makeContainerAndContext()
+        let repository = await SwiftDataBudgetRepository(modelContext: context, modelContainer: container)
         let useCase = await DefaultBudgetMutationUseCase(repository: repository)
         let category = Category(name: "教育費", allowsAnnualBudget: true, displayOrder: 1)
         context.insert(category)
@@ -81,8 +81,8 @@ internal struct BudgetMutationUseCaseTests {
 
     @Test("不正な期間はエラーになる")
     internal func invalidPeriodThrows() async throws {
-        let (_, context) = try makeContainerAndContext()
-        let repository = await SwiftDataBudgetRepository(modelContext: context)
+        let (container, context) = try makeContainerAndContext()
+        let repository = await SwiftDataBudgetRepository(modelContext: context, modelContainer: container)
         let useCase = await DefaultBudgetMutationUseCase(repository: repository)
 
         let input = BudgetInput(

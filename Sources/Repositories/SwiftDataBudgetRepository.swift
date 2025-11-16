@@ -8,11 +8,12 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
 
     internal init(
         modelContext: ModelContext,
+        modelContainer: ModelContainer,
         recurringPaymentRepository: RecurringPaymentRepository? = nil,
     ) {
         self.modelContext = modelContext
         self.recurringPaymentRepository = recurringPaymentRepository
-            ?? RecurringPaymentRepositoryFactory.make(modelContext: modelContext)
+            ?? RecurringPaymentRepositoryFactory.make(modelContainer: modelContainer)
     }
 
     internal convenience init(
@@ -21,6 +22,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     ) {
         self.init(
             modelContext: ModelContext(modelContainer),
+            modelContainer: modelContainer,
             recurringPaymentRepository: recurringPaymentRepository
         )
     }

@@ -437,8 +437,7 @@ private extension BudgetView {
                 assertionFailure("ModelContainer is unavailable")
                 return
             }
-            let context = ModelContext(container)
-            let repository = SwiftDataRecurringPaymentRepository(modelContext: context)
+            let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
             let recurringPaymentStore = RecurringPaymentStore(repository: repository)
 
             do {
@@ -496,8 +495,7 @@ private extension BudgetView {
                 assertionFailure("ModelContainer is unavailable")
                 return
             }
-            let context = ModelContext(container)
-            let repository = SwiftDataRecurringPaymentRepository(modelContext: context)
+            let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
             let recurringPaymentStore = RecurringPaymentStore(repository: repository)
             do {
                 try await recurringPaymentStore.deleteDefinition(definitionId: definitionId)

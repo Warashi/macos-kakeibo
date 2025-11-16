@@ -141,9 +141,16 @@ internal struct RecurringPaymentReconciliationStoreTests {
 
         await store.saveSelectedOccurrence()
 
-        #expect(occurrence.status == .completed)
-        #expect(occurrence.transaction?.id == transaction.id)
-        #expect(occurrence.actualAmount == transaction.absoluteAmount)
+        let occurrenceId = occurrence.id
+        let refreshedOccurrence = try #require(
+            context.fetch(RecurringPaymentQueries.occurrences(
+                predicate: #Predicate { $0.id == occurrenceId }
+            )).first
+        )
+
+        #expect(refreshedOccurrence.status == .completed)
+        #expect(refreshedOccurrence.transaction?.id == transaction.id)
+        #expect(refreshedOccurrence.actualAmount == transaction.absoluteAmount)
         #expect(store.errorMessage == nil)
         let markCompletionCalls = await spy.markCompletionCalls
         #expect(markCompletionCalls.count == 1)
@@ -190,9 +197,16 @@ internal struct RecurringPaymentReconciliationStoreTests {
         store.selectedOccurrenceId = occurrence.id
         await store.unlinkSelectedOccurrence()
 
-        #expect(occurrence.status != .completed)
-        #expect(occurrence.transaction == nil)
-        #expect(occurrence.actualAmount == nil)
+        let occurrenceId = occurrence.id
+        let refreshedOccurrence = try #require(
+            context.fetch(RecurringPaymentQueries.occurrences(
+                predicate: #Predicate { $0.id == occurrenceId }
+            )).first
+        )
+
+        #expect(refreshedOccurrence.status != .completed)
+        #expect(refreshedOccurrence.transaction == nil)
+        #expect(refreshedOccurrence.actualAmount == nil)
         let updateCalls = await spy.updateCalls
         #expect(updateCalls.count == 1)
         #expect(store.errorMessage == nil)
@@ -205,7 +219,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = await RecurringPaymentRepositoryFactory.make(
-            modelContext: context,
+            modelContainer: container,
             currentDateProvider: { referenceDate },
         )
         let baseService = await DefaultRecurringPaymentOccurrencesService(repository: repository)

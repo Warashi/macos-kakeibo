@@ -11,7 +11,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
     internal func definitionsFilter() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = SwiftDataRecurringPaymentRepository(modelContext: context)
+        let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
 
         let housing = Category(name: "住宅")
         let dining = Category(name: "外食", parent: housing)
@@ -51,7 +51,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
     internal func occurrencesFilter() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = SwiftDataRecurringPaymentRepository(modelContext: context)
+        let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
 
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 1))
         let definition = RecurringPaymentDefinition(
@@ -102,7 +102,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         let context = ModelContext(container)
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
         let repository = SwiftDataRecurringPaymentRepository(
-            modelContext: context,
+            modelContainer: container,
             currentDateProvider: { referenceDate },
         )
 
@@ -123,7 +123,13 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         )
 
         #expect(summary.createdCount >= 2)
-        #expect(definition.occurrences.count == summary.createdCount)
+        let definitionId = definition.id
+        let refreshed = try #require(
+            context.fetch(RecurringPaymentQueries.definitions(
+                predicate: #Predicate { $0.id == definitionId }
+            )).first
+        )
+        #expect(refreshed.occurrences.count == summary.createdCount)
     }
 
     @Test("markOccurrenceCompletedで完了と再同期が行われる")
@@ -132,7 +138,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         let context = ModelContext(container)
         let today = try #require(Date.from(year: 2025, month: 1, day: 1))
         let repository = SwiftDataRecurringPaymentRepository(
-            modelContext: context,
+            modelContainer: container,
             currentDateProvider: { today },
         )
 
@@ -152,7 +158,13 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
             referenceDate: today,
         )
 
-        let occurrence = try #require(definition.occurrences.first)
+        let definitionId = definition.id
+        let refreshedDefinition = try #require(
+            context.fetch(RecurringPaymentQueries.definitions(
+                predicate: #Predicate { $0.id == definitionId }
+            )).first
+        )
+        let occurrence = try #require(refreshedDefinition.occurrences.first)
 
         let summary = try repository.markOccurrenceCompleted(
             occurrenceId: occurrence.id,
@@ -163,7 +175,13 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
             horizonMonths: 12,
         )
 
-        #expect(occurrence.status == RecurringPaymentStatus.completed)
+        let occurrenceId = occurrence.id
+        let refreshedOccurrence = try #require(
+            context.fetch(RecurringPaymentQueries.occurrences(
+                predicate: #Predicate { $0.id == occurrenceId }
+            )).first
+        )
+        #expect(refreshedOccurrence.status == RecurringPaymentStatus.completed)
         #expect(summary.syncedAt == today)
     }
 }

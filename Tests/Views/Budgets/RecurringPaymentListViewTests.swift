@@ -17,7 +17,7 @@ internal struct RecurringPaymentListViewTests {
     internal func recurringPaymentListContentViewInitialization() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+        let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
         let store = RecurringPaymentListStore(repository: repository)
 
         let view = RecurringPaymentListContentView(store: store)
@@ -28,7 +28,7 @@ internal struct RecurringPaymentListViewTests {
     internal func emptyStoreHasNoEntries() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+        let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
         let store = RecurringPaymentListStore(repository: repository)
 
         let entries = await store.entries()
@@ -60,7 +60,7 @@ internal struct RecurringPaymentListViewTests {
         try context.save()
 
         // ストアを作成
-        let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+        let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
         let store = RecurringPaymentListStore(repository: repository)
         store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
         store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
@@ -213,7 +213,7 @@ internal struct RecurringPaymentListViewTests {
         context.insert(occurrence3)
         try context.save()
 
-        let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+        let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
         let store = RecurringPaymentListStore(repository: repository)
         store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
         store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()

@@ -4,7 +4,7 @@ import SwiftData
 internal enum RecurringPaymentRepositoryFactory {
     @DatabaseActor
     internal static func make(
-        modelContext: ModelContext,
+        modelContainer: ModelContainer,
         calendar: Calendar = Calendar(identifier: .gregorian),
         businessDayService: BusinessDayService? = nil,
         holidayProvider: HolidayProvider? = nil,
@@ -17,7 +17,7 @@ internal enum RecurringPaymentRepositoryFactory {
         )
 
         return SwiftDataRecurringPaymentRepository(
-            modelContext: modelContext,
+            modelContainer: modelContainer,
             scheduleService: scheduleService,
             currentDateProvider: currentDateProvider,
         )

@@ -154,7 +154,7 @@ internal struct RecurringPaymentStoreDayPatternTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = await SwiftDataRecurringPaymentRepository(
-            modelContext: context,
+            modelContainer: container,
             currentDateProvider: { referenceDate },
         )
         let store = RecurringPaymentStore(

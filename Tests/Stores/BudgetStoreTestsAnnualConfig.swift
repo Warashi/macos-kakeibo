@@ -85,15 +85,15 @@ internal struct BudgetStoreTestsAnnualConfig {
     private func makeStore() async throws -> (BudgetStore, ModelContext) {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let store = try await makeBudgetStore(context: context)
+        let store = try await makeBudgetStore(container: container, context: context)
         store.currentYear = 2025
         store.currentMonth = 11
         return (store, context)
     }
 
     @DatabaseActor
-    private func makeBudgetStore(context: ModelContext) async throws -> BudgetStore {
-        let repository = SwiftDataBudgetRepository(modelContext: context)
+    private func makeBudgetStore(container: ModelContainer, context: ModelContext) async throws -> BudgetStore {
+        let repository = SwiftDataBudgetRepository(modelContext: context, modelContainer: container)
         let calculator = BudgetCalculator()
         let monthlyUseCase = DefaultMonthlyBudgetUseCase(calculator: calculator)
         let annualUseCase = DefaultAnnualBudgetUseCase()

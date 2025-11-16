@@ -3,7 +3,7 @@ import SwiftUI
 
 /// 定期支払い一覧ビュー
 internal struct RecurringPaymentListView: View {
-    @Environment(\.modelContext) private var modelContext: ModelContext
+    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
     @State private var store: RecurringPaymentListStore?
 
     internal var body: some View {
@@ -20,9 +20,12 @@ internal struct RecurringPaymentListView: View {
 
     private func prepareStore() {
         guard store == nil else { return }
-        let context = modelContext
+        guard let container = modelContainer else {
+            assertionFailure("ModelContainer is unavailable")
+            return
+        }
         Task {
-            let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+            let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
             let listStore = RecurringPaymentListStore(repository: repository)
             await listStore.refreshEntries()
             await MainActor.run {

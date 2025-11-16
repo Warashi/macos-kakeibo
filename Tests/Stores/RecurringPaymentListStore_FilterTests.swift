@@ -319,7 +319,7 @@ internal struct RecurringPaymentListStoreFilterTests {
     private func makeStore() async throws -> (RecurringPaymentListStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await RecurringPaymentRepositoryFactory.make(modelContext: context)
+        let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
         let store = RecurringPaymentListStore(repository: repository)
         return (store, context)
     }

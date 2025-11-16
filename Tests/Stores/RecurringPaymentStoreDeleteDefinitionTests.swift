@@ -51,10 +51,16 @@ internal struct RecurringPaymentStoreDeleteDefinitionTests {
         try context.save()
 
         try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 24)
-        #expect(!definition.occurrences.isEmpty)
+        let definitionId = definition.id
+        let refreshedDefinition = try #require(
+            context.fetch(RecurringPaymentQueries.definitions(
+                predicate: #Predicate { $0.id == definitionId }
+            )).first
+        )
+        #expect(!refreshedDefinition.occurrences.isEmpty)
 
         // Occurrence数を記録
-        let occurrenceCountBefore = definition.occurrences.count
+        let occurrenceCountBefore = refreshedDefinition.occurrences.count
 
         try await store.deleteDefinition(definitionId: definition.id)
 
@@ -71,7 +77,7 @@ internal struct RecurringPaymentStoreDeleteDefinitionTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = await SwiftDataRecurringPaymentRepository(
-            modelContext: context,
+            modelContainer: container,
             currentDateProvider: { referenceDate },
         )
         let store = RecurringPaymentStore(

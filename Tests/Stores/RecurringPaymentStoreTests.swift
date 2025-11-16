@@ -24,11 +24,17 @@ internal struct RecurringPaymentStoreTests {
         context.insert(definition)
         try context.save()
 
-        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 24)
+        let definitionId = definition.id
+        try await store.synchronizeOccurrences(definitionId: definitionId, horizonMonths: 24)
 
-        #expect(definition.occurrences.count == 2)
-        let first = try #require(definition.occurrences.first)
-        let second = try #require(definition.occurrences.last)
+        let refreshedDefinition = try #require(
+            context.fetch(RecurringPaymentQueries.definitions(
+                predicate: #Predicate { $0.id == definitionId }
+            )).first
+        )
+        #expect(refreshedDefinition.occurrences.count == 2)
+        let first = try #require(refreshedDefinition.occurrences.first)
+        let second = try #require(refreshedDefinition.occurrences.last)
 
         #expect(first.scheduledDate.month == 3)
         #expect(first.status == .saving)
@@ -50,17 +56,30 @@ internal struct RecurringPaymentStoreTests {
         context.insert(definition)
         try context.save()
 
-        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 18)
-        #expect(definition.occurrences.count == 2)
+        let trackedDefinitionId = definition.id
+        try await store.synchronizeOccurrences(definitionId: trackedDefinitionId, horizonMonths: 18)
+        var refreshedDefinition = try #require(
+            context.fetch(RecurringPaymentQueries.definitions(
+                predicate: #Predicate { $0.id == trackedDefinitionId }
+            )).first
+        )
+        #expect(refreshedDefinition.occurrences.count == 2)
 
-        definition.recurrenceIntervalMonths = 6
-        definition.amount = 240_000
+        refreshedDefinition.recurrenceIntervalMonths = 6
+        refreshedDefinition.amount = 240_000
+        try context.save()
 
-        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 18)
+        try await store.synchronizeOccurrences(definitionId: trackedDefinitionId, horizonMonths: 18)
 
-        #expect(definition.occurrences.count == 4)
-        #expect(definition.occurrences.allSatisfy { $0.expectedAmount == 240_000 })
-        let intervalMonths = zip(definition.occurrences, definition.occurrences.dropFirst())
+        refreshedDefinition = try #require(
+            context.fetch(RecurringPaymentQueries.definitions(
+                predicate: #Predicate { $0.id == trackedDefinitionId }
+            )).first
+        )
+
+        #expect(refreshedDefinition.occurrences.count == 4)
+        #expect(refreshedDefinition.occurrences.allSatisfy { $0.expectedAmount == 240_000 })
+        let intervalMonths = zip(refreshedDefinition.occurrences, refreshedDefinition.occurrences.dropFirst())
             .map { current, next in
                 current.scheduledDate.monthsBetween(next.scheduledDate)
             }
@@ -83,7 +102,13 @@ internal struct RecurringPaymentStoreTests {
         try context.save()
 
         try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 36)
-        let occurrence = try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
+        let definitionId = definition.id
+        let refreshedDefinitionBeforeCompletion = try #require(
+            context.fetch(RecurringPaymentQueries.definitions(
+                predicate: #Predicate { $0.id == definitionId }
+            )).first
+        )
+        let occurrence = try #require(refreshedDefinitionBeforeCompletion.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
 
         let actualDate = try #require(Date.from(year: 2024, month: 1, day: 16))
         let input = OccurrenceCompletionInput(
@@ -95,10 +120,23 @@ internal struct RecurringPaymentStoreTests {
             input: input,
         )
 
-        #expect(occurrence.status == .completed)
-        #expect(occurrence.actualAmount == 98000)
-        #expect(definition.occurrences.contains { $0.scheduledDate.year == 2025 })
-        #expect(definition.occurrences.contains { $0.scheduledDate.year == 2026 })
+        let occurrenceId = occurrence.id
+        let refreshedDefinitionId = definition.id
+        let refreshedOccurrence = try #require(
+            context.fetch(RecurringPaymentQueries.occurrences(
+                predicate: #Predicate { $0.id == occurrenceId }
+            )).first
+        )
+        let refreshedDefinition = try #require(
+            context.fetch(RecurringPaymentQueries.definitions(
+                predicate: #Predicate { $0.id == refreshedDefinitionId }
+            )).first
+        )
+
+        #expect(refreshedOccurrence.status == .completed)
+        #expect(refreshedOccurrence.actualAmount == 98000)
+        #expect(refreshedDefinition.occurrences.contains { $0.scheduledDate.year == 2025 })
+        #expect(refreshedDefinition.occurrences.contains { $0.scheduledDate.year == 2026 })
     }
 
     // MARK: - Helpers
@@ -107,7 +145,7 @@ internal struct RecurringPaymentStoreTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = await SwiftDataRecurringPaymentRepository(
-            modelContext: context,
+            modelContainer: container,
             currentDateProvider: { referenceDate },
         )
         let store = RecurringPaymentStore(
