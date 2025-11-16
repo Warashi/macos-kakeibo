@@ -8,7 +8,7 @@ import Testing
 internal struct BudgetMutationUseCaseTests {
     @Test("月次予算を追加できる")
     internal func addsBudget() async throws {
-        let context = try makeContext()
+        let (_, context) = try makeContainerAndContext()
         let repository = await SwiftDataBudgetRepository(modelContext: context)
         let useCase = await DefaultBudgetMutationUseCase(repository: repository)
 
@@ -29,7 +29,7 @@ internal struct BudgetMutationUseCaseTests {
 
     @Test("予算更新で期間とカテゴリを変更できる")
     internal func updatesBudget() async throws {
-        let context = try makeContext()
+        let (_, context) = try makeContainerAndContext()
         let repository = await SwiftDataBudgetRepository(modelContext: context)
         let useCase = await DefaultBudgetMutationUseCase(repository: repository)
         let category = Category(name: "食費", displayOrder: 1)
@@ -56,7 +56,7 @@ internal struct BudgetMutationUseCaseTests {
 
     @Test("年次特別枠を新規登録できる")
     internal func upsertsAnnualBudgetConfig() async throws {
-        let context = try makeContext()
+        let (_, context) = try makeContainerAndContext()
         let repository = await SwiftDataBudgetRepository(modelContext: context)
         let useCase = await DefaultBudgetMutationUseCase(repository: repository)
         let category = Category(name: "教育費", allowsAnnualBudget: true, displayOrder: 1)
@@ -81,7 +81,7 @@ internal struct BudgetMutationUseCaseTests {
 
     @Test("不正な期間はエラーになる")
     internal func invalidPeriodThrows() async throws {
-        let context = try makeContext()
+        let (_, context) = try makeContainerAndContext()
         let repository = await SwiftDataBudgetRepository(modelContext: context)
         let useCase = await DefaultBudgetMutationUseCase(repository: repository)
 
@@ -101,8 +101,8 @@ internal struct BudgetMutationUseCaseTests {
 }
 
 private extension BudgetMutationUseCaseTests {
-    func makeContext() throws -> ModelContext {
+    func makeContainerAndContext() throws -> (ModelContainer, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
-        return ModelContext(container)
+        return (container, ModelContext(container))
     }
 }

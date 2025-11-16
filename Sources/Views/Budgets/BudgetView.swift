@@ -194,8 +194,7 @@ private extension BudgetView {
                 assertionFailure("ModelContainer is unavailable")
                 return
             }
-            let context = ModelContext(container)
-            let repository = SwiftDataBudgetRepository(modelContext: context)
+            let repository = SwiftDataBudgetRepository(modelContainer: container)
             let monthlyUseCase = DefaultMonthlyBudgetUseCase()
             let annualUseCase = DefaultAnnualBudgetUseCase()
             let recurringPaymentUseCase = DefaultRecurringPaymentSavingsUseCase()

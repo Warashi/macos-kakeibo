@@ -15,6 +15,16 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
             ?? RecurringPaymentRepositoryFactory.make(modelContext: modelContext)
     }
 
+    internal convenience init(
+        modelContainer: ModelContainer,
+        recurringPaymentRepository: RecurringPaymentRepository? = nil,
+    ) {
+        self.init(
+            modelContext: ModelContext(modelContainer),
+            recurringPaymentRepository: recurringPaymentRepository
+        )
+    }
+
     internal func fetchSnapshot(for year: Int) throws -> BudgetSnapshot {
         let budgets = try modelContext.fetch(BudgetQueries.allBudgets())
 
