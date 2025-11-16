@@ -363,7 +363,7 @@ internal struct DashboardStoreTests {
         context.insert(budget)
 
         let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 200_000, policy: .automatic)
-        let allocation = AnnualBudgetAllocation(amount: 100_000, category: category)
+        let allocation = AnnualBudgetAllocationEntity(amount: 100_000, category: category)
         allocation.config = config
         context.insert(config)
         context.insert(allocation)
@@ -418,7 +418,7 @@ internal struct DashboardStoreTests {
 
         // 年次特別枠設定（specialCategoryをfullCoverageに設定）
         let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 200_000, policy: .automatic)
-        let allocation = AnnualBudgetAllocation(
+        let allocation = AnnualBudgetAllocationEntity(
             amount: 100_000,
             category: specialCategory,
             policyOverride: .fullCoverage,

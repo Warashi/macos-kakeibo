@@ -28,7 +28,7 @@ internal struct AnnualBudgetAllocationDTO: Sendable, Hashable, Equatable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from allocation: AnnualBudgetAllocation) {
+    internal init(from allocation: AnnualBudgetAllocationEntity) {
         self.id = allocation.id
         self.amount = allocation.amount
         self.categoryId = allocation.category.id

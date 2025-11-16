@@ -100,7 +100,7 @@ internal struct AnnualBudgetAllocationEngineTests {
             policy: policy,
         )
         config.allocations = allocations.map { seed in
-            let allocation = AnnualBudgetAllocation(
+            let allocation = AnnualBudgetAllocationEntity(
                 amount: seed.amount,
                 category: seed.category,
                 policyOverride: seed.override,

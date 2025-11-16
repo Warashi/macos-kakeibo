@@ -235,7 +235,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
                 allocation.policyOverride = draft.policyOverride
                 allocation.updatedAt = now
             } else {
-                let allocation = AnnualBudgetAllocation(
+                let allocation = AnnualBudgetAllocationEntity(
                     amount: draft.amount,
                     category: category,
                     policyOverride: draft.policyOverride

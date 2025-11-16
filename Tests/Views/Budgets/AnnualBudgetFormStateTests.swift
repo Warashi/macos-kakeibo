@@ -9,7 +9,7 @@ internal struct AnnualBudgetFormStateTests {
     internal func loadKeepsZeroAmountText() throws {
         let category = CategoryEntity(name: "特別", allowsAnnualBudget: true)
         let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 100_000, policy: .automatic)
-        let allocation = AnnualBudgetAllocation(amount: 0, category: category)
+        let allocation = AnnualBudgetAllocationEntity(amount: 0, category: category)
         config.allocations = [allocation]
 
         var state = AnnualBudgetFormState()

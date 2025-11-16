@@ -30,7 +30,7 @@ internal struct AnnualBudgetAllocationValidatorTests {
     @Test("ポリシーが無効でもカテゴリ毎の上書きがあれば計算を継続する")
     internal func disabledPolicyWithOverrides() throws {
         let category = CategoryEntity(name: "特別支出", allowsAnnualBudget: true)
-        let allocation = AnnualBudgetAllocation(
+        let allocation = AnnualBudgetAllocationEntity(
             amount: 100_000,
             category: category,
             policyOverride: .automatic,
@@ -58,7 +58,7 @@ internal struct AnnualBudgetAllocationValidatorTests {
 
     private func makeParams(
         policy: AnnualBudgetPolicy,
-        allocations: [AnnualBudgetAllocation] = [],
+        allocations: [AnnualBudgetAllocationEntity] = [],
     ) -> AllocationCalculationParams {
         let config = AnnualBudgetConfigEntity(
             year: 2025,

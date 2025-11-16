@@ -75,7 +75,7 @@ internal struct AnnualBudgetUseCaseTests {
         let food = CategoryEntity(name: "食費", displayOrder: 1)
         let config = AnnualBudgetConfigEntity(year: year, totalAmount: 200_000, policy: .automatic)
         config.allocations = [
-            AnnualBudgetAllocation(amount: 200_000, category: food, policyOverride: .automatic),
+            AnnualBudgetAllocationEntity(amount: 200_000, category: food, policyOverride: .automatic),
         ]
         let transactions = [
             TransactionEntity(

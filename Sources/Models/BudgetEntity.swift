@@ -239,8 +239,8 @@ internal final class AnnualBudgetConfigEntity {
     internal var policyRawValue: String
 
     /// カテゴリ別配分
-    @Relationship(deleteRule: .cascade, inverse: \AnnualBudgetAllocation.config)
-    internal var allocations: [AnnualBudgetAllocation]
+    @Relationship(deleteRule: .cascade, inverse: \AnnualBudgetAllocationEntity.config)
+    internal var allocations: [AnnualBudgetAllocationEntity]
 
     /// 作成・更新日時
     internal var createdAt: Date
@@ -301,7 +301,7 @@ internal extension AnnualBudgetConfigEntity {
 // MARK: - Annual Budget Allocation
 
 @Model
-internal final class AnnualBudgetAllocation {
+internal final class AnnualBudgetAllocationEntity {
     internal var id: UUID
     internal var amount: Decimal
     internal var category: CategoryEntity

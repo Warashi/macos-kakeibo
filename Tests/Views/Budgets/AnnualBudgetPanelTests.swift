@@ -10,7 +10,7 @@ internal struct AnnualBudgetPanelTests {
     internal func annualBudgetPanelInitialization() {
         let category = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
         let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 100_000, policy: .automatic)
-        let allocation = AnnualBudgetAllocation(amount: 60000, category: category)
+        let allocation = AnnualBudgetAllocationEntity(amount: 60000, category: category)
         allocation.config = config
         config.allocations = [allocation]
 
@@ -49,7 +49,7 @@ internal struct AnnualBudgetPanelTests {
     internal func contentBuilderReflectsUsage() {
         let category = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
         let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 100_000, policy: .automatic)
-        let allocation = AnnualBudgetAllocation(amount: 60000, category: category, policyOverride: .manual)
+        let allocation = AnnualBudgetAllocationEntity(amount: 60000, category: category, policyOverride: .manual)
         allocation.config = config
         config.allocations = [allocation]
 
@@ -97,7 +97,7 @@ internal struct AnnualBudgetPanelTests {
     internal func contentBuilderHandlesMissingUsage() {
         let category = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
         let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 80000, policy: .automatic)
-        let allocation = AnnualBudgetAllocation(amount: 50000, category: category)
+        let allocation = AnnualBudgetAllocationEntity(amount: 50000, category: category)
         allocation.config = config
         config.allocations = [allocation]
 
@@ -142,7 +142,7 @@ internal struct AnnualBudgetPanelTests {
     internal func remainingAmountBecomesNegativeWhenOverBudget() {
         let category = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
         let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 100_000, policy: .automatic)
-        let allocation = AnnualBudgetAllocation(amount: 60000, category: category)
+        let allocation = AnnualBudgetAllocationEntity(amount: 60000, category: category)
         allocation.config = config
         config.allocations = [allocation]
 
