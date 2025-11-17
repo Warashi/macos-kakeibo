@@ -84,11 +84,11 @@ internal enum SeedHelper {
     /// - Throws: データ削除時のエラー
     internal static func clearAllData(in context: ModelContext) throws {
         // 削除は依存関係の逆順で行う
-        try context.delete(model: TransactionEntity.self)
-        try context.delete(model: BudgetEntity.self)
-        try context.delete(model: AnnualBudgetConfigEntity.self)
+        try context.delete(model: SwiftDataTransaction.self)
+        try context.delete(model: SwiftDataBudget.self)
+        try context.delete(model: SwiftDataAnnualBudgetConfig.self)
         try deleteCategoriesSafely(in: context)
-        try context.delete(model: FinancialInstitutionEntity.self)
+        try context.delete(model: SwiftDataFinancialInstitution.self)
 
         try context.save()
     }
@@ -97,7 +97,7 @@ internal enum SeedHelper {
     /// SwiftDataのバッチ削除では親子リンクのnullifyが許容されないため個別に削除する
     /// - Parameter context: 対象のModelContext
     private static func deleteCategoriesSafely(in context: ModelContext) throws {
-        let descriptor: ModelFetchRequest<CategoryEntity> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<SwiftDataCategory> = ModelFetchFactory.make()
         let categories = try context.fetch(descriptor)
 
         let minors = categories.filter(\.isMinor)
