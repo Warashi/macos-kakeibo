@@ -33,10 +33,12 @@ targets:
       - path: Sources
         excludes:
           - Domain/**
+          - Infrastructure/**
       - path: Sources/Domain
         includes:
           - Models/**
           - Repositories/**
+      - path: Sources/Infrastructure
       - path: Config/AppIcon.icon
     entitlements:
       path: Config/Kakeibo.entitlements
