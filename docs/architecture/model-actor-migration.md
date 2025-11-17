@@ -36,6 +36,24 @@ SwiftData の `@ModelActor` を採用するための移行方針と、層ごと�
 - `docs/architecture/fetch-queries.md` / `repository-observation.md` / 本ドキュメントを合わせて読み、クエリと監視の共通 API を経由するルールを確認する。
 - View で Repository/UseCase を直接生成しない。`TransactionStackBuilder` のようなビルダーにまとめ、将来の actor 差し替えポイントを限定する。
 
+## スタック別の移行メモ
+
+### 取引スタック
+
+- **初期化経路**: `TransactionListView.prepareStore()` が `TransactionStackBuilder.makeStore(modelContainer:)` を呼び、`SwiftDataTransactionRepository` / `DefaultTransactionListUseCase` / `DefaultTransactionFormUseCase` をまとめて生成している。`@ModelActor` 化ではこのビルダーを actor 版の repository / use case に差し替えればよく、View / Store には差分が波及しない。
+- **UseCase/API**: `TransactionListUseCase` / `TransactionFormUseCase` は `@DatabaseActor` 属性が付いた純粋 Swift API で、Store との境界条件が明確。`observeTransactions` は `ObservationToken` で MainActor へ橋渡ししているため、ModelActor 版でもライフサイクル管理を再利用できる。
+- **二次利用ポイント**: `SettingsStackBuilder` や `RecurringPaymentStackBuilder`（突合ストア用）が同じ `SwiftDataTransactionRepository` を生成している。将来的には Transaction 用の `@ModelActor` を 1 箇所で生成し、各ビルダーから共有できるよう factory を束ねる必要がある。
+- **View / Store 側の Task**: `TransactionListView` は `Task { await TransactionStackBuilder.makeStore(...) }` で非同期初期化するのみで `@DatabaseActor` を直接指定していない。ModelActor へ切り替えても Task 呼び出しを書き換える必要はない。
+- **テストカバレッジ**: `TransactionStackBuilderTests` / `TransactionStoreTests` / `TransactionListViewTests` が In-Memory Container を使った初期化と UI レベルの動作を確認している。ModelActor 導入時はこれらを `TransactionModelActorStackBuilder` へ向け直すことで回帰を検知できる。
+
+### 予算 / 定期支払いスタック
+
+- **初期化経路**: `BudgetStackBuilder` と `RecurringPaymentStackBuilder` がそれぞれ `BudgetView` / `RecurringPaymentListView` / `RecurringPaymentReconciliationView` から呼ばれ、SwiftData Repository と UseCase / Service（`DefaultMonthlyBudgetUseCase`, `DefaultRecurringPaymentSavingsUseCase`, `RecurringPaymentOccurrencesService` など）をまとめて生成している。ModelActor 化ではこれらのビルダーを差し替えることで、複数画面の初期化コードを同時に移行できる。
+- **View からの直接操作**: `BudgetView` の定期支払い CRUD ハンドラは `Task { @DatabaseActor in ... }` 内で `RecurringPaymentStackBuilder.makeStore` を呼び出し、`RecurringPaymentStore` を一時的に構築して操作している。ModelActor 移行時はここが `Task { @ModelActor in ... }` への書き換えポイントになるため、Budget/RecurringPayment actor を共通 DI できる API を準備する。
+- **Recurrence/Service 層**: `RecurringPaymentStore` / `BudgetStore` は Repository 経由でのみ永続化しており、`RecurringPaymentRepository` や `BudgetRepository` の差し替えだけで動作が完結する。`BudgetCalculator` や `RecurringPaymentScheduleService` は純粋 Swift なので actor 隔離の影響を受けない。
+- **二次利用ポイント**: `SettingsStore.deleteAllData()` や `DashboardStackBuilder` からも `BudgetRepository` / `RecurringPaymentRepository` が利用される。ModelActor 版では該当 actor の初期化が単一箇所にまとまるよう、StackBuilder のファクトリを経由させる。
+- **テストカバレッジ**: `BudgetStackBuilderTests` / `RecurringPaymentStackBuilderTests` / `BudgetStoreTests*` / `RecurringPaymentStore*Tests` / `RecurringPaymentReconciliationStoreTests` などが層ごとの差分検証を担っている。ModelActor 化では新しい StackBuilder を使ったテストケースを追加することで移行の安全性を担保する。
+
 ## レビュー/追加時のチェックリスト
 
 1. 新しい Domain ファイルが `SwiftData` / `SwiftUI` / `ModelContext` を import していないか。
