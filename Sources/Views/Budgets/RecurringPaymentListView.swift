@@ -25,8 +25,7 @@ internal struct RecurringPaymentListView: View {
             return
         }
         Task {
-            let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
-            let listStore = RecurringPaymentListStore(repository: repository)
+            let listStore = await RecurringPaymentStackBuilder.makeListStore(modelContainer: container)
             await listStore.refreshEntries()
             await MainActor.run {
                 store = listStore

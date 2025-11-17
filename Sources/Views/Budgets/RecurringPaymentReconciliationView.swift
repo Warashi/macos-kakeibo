@@ -29,22 +29,7 @@ internal struct RecurringPaymentReconciliationView: View {
             return
         }
 
-        let dependencies = await Task { @DatabaseActor () -> (
-            RecurringPaymentRepository,
-            TransactionRepository,
-            RecurringPaymentOccurrencesService
-        ) in
-            let recurringPaymentRepository = RecurringPaymentRepositoryFactory.make(modelContainer: container)
-            let transactionRepository = SwiftDataTransactionRepository(modelContainer: container)
-            let occurrencesService = DefaultRecurringPaymentOccurrencesService(repository: recurringPaymentRepository)
-            return (recurringPaymentRepository, transactionRepository, occurrencesService)
-        }.value
-
-        let reconciliationStore = RecurringPaymentReconciliationStore(
-            repository: dependencies.0,
-            transactionRepository: dependencies.1,
-            occurrencesService: dependencies.2,
-        )
+        let reconciliationStore = await RecurringPaymentStackBuilder.makeReconciliationStore(modelContainer: container)
         store = reconciliationStore
         await reconciliationStore.refresh()
     }
