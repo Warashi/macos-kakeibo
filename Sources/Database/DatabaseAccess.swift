@@ -3,10 +3,17 @@ import SwiftData
 
 /// SwiftData の ModelContainer から短命 ModelContext を供給するヘルパー
 internal final class DatabaseAccess: Sendable {
-    private let scheduler: AccessScheduler
+    private let scheduler: any DatabaseScheduling
+    private let modelContainer: ModelContainer
 
     internal init(container: ModelContainer) {
+        self.modelContainer = container
         self.scheduler = AccessScheduler(container: container)
+    }
+
+    internal init(container: ModelContainer, scheduler: any DatabaseScheduling) {
+        self.modelContainer = container
+        self.scheduler = scheduler
     }
 
     /// 読み取り処理を並列実行
@@ -14,8 +21,8 @@ internal final class DatabaseAccess: Sendable {
         _ block: @escaping @Sendable (ModelContext) throws -> T,
     ) async throws -> T {
         try await scheduler.executeRead { context in
-            Result { try block(context) }
-        }.get()
+            try block(context)
+        }
     }
 
     /// 書き込み処理を直列実行
@@ -30,7 +37,7 @@ internal final class DatabaseAccess: Sendable {
 
     /// 任意の用途向けに新しい ModelContext を生成
     internal func makeContext() -> ModelContext {
-        ModelContext(scheduler.container)
+        ModelContext(modelContainer)
     }
 }
 

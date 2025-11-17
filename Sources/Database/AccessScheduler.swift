@@ -59,10 +59,12 @@ public actor AccessScheduler {
     ///
     /// - Parameter block: 読取処理（ModelContextを受け取る）
     /// - Returns: 処理結果
-    public func executeRead<T>(block: @Sendable @escaping (ModelContext) -> T) async -> T where T: Sendable {
-        await _execute(type: .read) {
-            await Task.detached {
-                block(ModelContext(self.container))
+    public func executeRead<T>(
+        block: @escaping @Sendable (ModelContext) throws -> T
+    ) async rethrows -> T where T: Sendable {
+        try await _execute(type: .read) {
+            try await Task.detached {
+                try block(ModelContext(self.container))
             }.value
         }
     }
@@ -106,3 +108,5 @@ public actor AccessScheduler {
         }
     }
 }
+
+extension AccessScheduler: DatabaseScheduling {}

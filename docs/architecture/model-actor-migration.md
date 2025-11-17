@@ -23,7 +23,7 @@ SwiftData の `@ModelActor` を採用するための移行方針と、層ごと�
    - Repository プロトコルへ `@DatabaseActor` 属性を付与し、SwiftData モデルは Infrastructure に閉じ込める。
    - `TransactionStackBuilder` など Store 構築のビルダーを用意し、View からの依存生成を一元化する。
 2. **Bootstrap**
-   - `DatabaseActor` を `ModelContainer` から初期化する経路を統一し、AccessScheduler で直列 executor を管理。
+   - `DatabaseActor` を `ModelContainer` から初期化する経路を統一し、`DatabaseScheduling` 準拠の AccessScheduler で直列 executor を管理。
    - `Task { @DatabaseActor in ... }` の呼び出し箇所を洗い出しておく（`rg "@DatabaseActor"`）。
 3. **Adoption**
    - `@DatabaseActor` 属性を `@ModelActor` へ置換し、Repository 実装を `isolated ModelContext` で再構成。
@@ -31,6 +31,7 @@ SwiftData の `@ModelActor` を採用するための移行方針と、層ごと�
 
 ## サポートコード
 
+- `DatabaseScheduling` (`Sources/Database/DatabaseScheduling.swift`) を境界インターフェースとして導入。AccessScheduler もこのプロトコルに準拠しており、将来的に `@ModelActor` ベースの executor を差し込む際は同じ API を実装するだけでよい。
 - `Tests/Utilities/Architecture/ModelActorIsolationTests.swift` で Domain 層が `import SwiftData` や `ModelContext` を参照していないことを自動検査。ModelActor 化の前提条件をテストで担保する。
 - `docs/architecture/fetch-queries.md` / `repository-observation.md` / 本ドキュメントを合わせて読み、クエリと監視の共通 API を経由するルールを確認する。
 - View で Repository/UseCase を直接生成しない。`TransactionStackBuilder` のようなビルダーにまとめ、将来の actor 差し替えポイントを限定する。
