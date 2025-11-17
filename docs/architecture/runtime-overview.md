@@ -24,6 +24,7 @@ View ──binds──> Store (@Observable)
 ### 初期化ヘルパー
 
 - 取引スタックは `TransactionStackBuilder` で Repository / UseCase をまとめて生成し、`TransactionListView` などの SwiftUI View はこのビルダー経由で `TransactionStore` を準備します。`@ModelActor` 化時はビルダー内の初期化コードのみ差し替えればよく、View/Store の変更を最小限に抑えられます。
+- 予算スタックは `BudgetStackBuilder` で `BudgetStore` の依存（Repository / Monthly & Annual / RecurringPayment UseCase / Mutation UseCase）を一元化し、`BudgetView` からはビルダーを呼び出すだけで済むようにしています。ModelActor へ切り替える際はこのビルダーで Repository の実装を差し替えます。
 
 ## 計算チェーンとキャッシュ
 
