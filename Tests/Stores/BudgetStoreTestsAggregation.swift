@@ -10,10 +10,10 @@ internal struct BudgetStoreTestsAggregation {
     @Test("予算追加：カテゴリ別予算を集計できる")
     internal func categoryBudgetEntries_calculatesActuals() async throws {
         let (store, context) = try await makeStore()
-        let food = CategoryEntity(name: "食費", allowsAnnualBudget: true, displayOrder: 1)
+        let food = SwiftDataCategory(name: "食費", allowsAnnualBudget: true, displayOrder: 1)
         context.insert(food)
 
-        let transaction = TransactionEntity(
+        let transaction = SwiftDataTransaction(
             date: Date.from(year: store.currentYear, month: store.currentMonth) ?? Date(),
             title: "ランチ",
             amount: -2000,
@@ -46,36 +46,36 @@ internal struct BudgetStoreTestsAggregation {
     @Test("年次予算：全体とカテゴリ別の集計を算出する")
     internal func annualBudgetEntries_calculatesYearlyTotals() async throws {
         let (store, context) = try await makeStore()
-        let food = CategoryEntity(name: "食費", displayOrder: 1)
-        let transport = CategoryEntity(name: "交通", displayOrder: 2)
+        let food = SwiftDataCategory(name: "食費", displayOrder: 1)
+        let transport = SwiftDataCategory(name: "交通", displayOrder: 2)
         context.insert(food)
         context.insert(transport)
 
         let year = store.currentYear
 
-        let budgets: [BudgetEntity] = [
-            BudgetEntity(amount: 100_000, year: year, month: 1),
-            BudgetEntity(amount: 120_000, year: year, month: 2),
-            BudgetEntity(amount: 50000, category: food, year: year, month: 1),
-            BudgetEntity(amount: 60000, category: food, year: year, month: 2),
-            BudgetEntity(amount: 40000, category: transport, year: year, month: 1),
+        let budgets: [SwiftDataBudget] = [
+            SwiftDataBudget(amount: 100_000, year: year, month: 1),
+            SwiftDataBudget(amount: 120_000, year: year, month: 2),
+            SwiftDataBudget(amount: 50000, category: food, year: year, month: 1),
+            SwiftDataBudget(amount: 60000, category: food, year: year, month: 2),
+            SwiftDataBudget(amount: 40000, category: transport, year: year, month: 1),
         ]
         budgets.forEach(context.insert)
 
-        let transactions: [TransactionEntity] = [
-            TransactionEntity(
+        let transactions: [SwiftDataTransaction] = [
+            SwiftDataTransaction(
                 date: makeDate(year: year, month: 1, day: 10),
                 title: "食費1",
                 amount: -20000,
                 majorCategory: food,
             ),
-            TransactionEntity(
+            SwiftDataTransaction(
                 date: makeDate(year: year, month: 2, day: 5),
                 title: "食費2",
                 amount: -30000,
                 majorCategory: food,
             ),
-            TransactionEntity(
+            SwiftDataTransaction(
                 date: makeDate(year: year, month: 1, day: 15),
                 title: "交通費",
                 amount: -10000,

@@ -1,1 +1,0 @@
-typealias CustomHoliday = SwiftDataCustomHoliday

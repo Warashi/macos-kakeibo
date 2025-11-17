@@ -13,7 +13,7 @@ internal struct RecurringPaymentStoreUpdateDefinitionTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "自動車税",
             amount: 50000,
             recurrenceIntervalMonths: 12,
@@ -58,7 +58,7 @@ internal struct RecurringPaymentStoreUpdateDefinitionTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 50000,
             recurrenceIntervalMonths: 12,

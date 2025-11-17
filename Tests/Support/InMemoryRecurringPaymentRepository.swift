@@ -2,22 +2,22 @@ import Foundation
 @testable import Kakeibo
 
 internal final class InMemoryRecurringPaymentRepository: RecurringPaymentRepository {
-    private var definitionsStorage: [UUID: RecurringPaymentDefinitionEntity]
-    private var balancesStorage: [UUID: RecurringPaymentSavingBalanceEntity]
-    private var categoryLookup: [UUID: Kakeibo.CategoryEntity]
+    private var definitionsStorage: [UUID: SwiftDataRecurringPaymentDefinition]
+    private var balancesStorage: [UUID: SwiftDataRecurringPaymentSavingBalance]
+    private var categoryLookup: [UUID: Kakeibo.SwiftDataCategory]
     private let scheduleService: RecurringPaymentScheduleService
     private let currentDateProvider: () -> Date
 
     internal init(
-        definitions: [RecurringPaymentDefinitionEntity] = [],
-        balances: [RecurringPaymentSavingBalanceEntity] = [],
-        categories: [Kakeibo.CategoryEntity] = [],
+        definitions: [SwiftDataRecurringPaymentDefinition] = [],
+        balances: [SwiftDataRecurringPaymentSavingBalance] = [],
+        categories: [Kakeibo.SwiftDataCategory] = [],
         scheduleService: RecurringPaymentScheduleService = RecurringPaymentScheduleService(),
         currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         self.definitionsStorage = Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
         self.balancesStorage = Dictionary(uniqueKeysWithValues: balances.map { ($0.definition.id, $0) })
-        var lookup: [UUID: Kakeibo.CategoryEntity] = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
+        var lookup: [UUID: Kakeibo.SwiftDataCategory] = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
         for definition in definitions {
             if let category = definition.category {
                 lookup[category.id] = category
@@ -72,9 +72,9 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
 
     @discardableResult
     internal func createDefinition(_ input: RecurringPaymentDefinitionInput) throws -> UUID {
-        let category = try resolvedCategoryEntity(id: input.categoryId)
+        let category = try resolvedSwiftDataCategory(id: input.categoryId)
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: input.name,
             notes: input.notes,
             amount: input.amount,
@@ -108,7 +108,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
             throw RecurringPaymentDomainError.definitionNotFound
         }
 
-        let category = try resolvedCategoryEntity(id: input.categoryId)
+        let category = try resolvedSwiftDataCategory(id: input.categoryId)
 
         definition.name = input.name
         definition.notes = input.notes
@@ -254,7 +254,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         // No-op for in-memory implementation
     }
 
-    private func resolvedCategoryEntity(id: UUID?) throws -> Kakeibo.CategoryEntity? {
+    private func resolvedSwiftDataCategory(id: UUID?) throws -> Kakeibo.SwiftDataCategory? {
         guard let id else { return nil }
         guard let category = categoryLookup[id] else {
             throw RecurringPaymentDomainError.categoryNotFound
@@ -262,7 +262,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         return category
     }
 
-    private func findOccurrence(id: UUID) -> RecurringPaymentOccurrenceEntity? {
+    private func findOccurrence(id: UUID) -> SwiftDataRecurringPaymentOccurrence? {
         definitionsStorage.values.flatMap(\.occurrences).first { $0.id == id }
     }
 }

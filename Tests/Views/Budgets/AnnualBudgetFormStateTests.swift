@@ -7,9 +7,9 @@ import Testing
 internal struct AnnualBudgetFormStateTests {
     @Test("ロード時、0円でも文字列として保持する")
     internal func loadKeepsZeroAmountText() throws {
-        let category = CategoryEntity(name: "特別", allowsAnnualBudget: true)
-        let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 100_000, policy: .automatic)
-        let allocation = AnnualBudgetAllocationEntity(amount: 0, category: category)
+        let category = SwiftDataCategory(name: "特別", allowsAnnualBudget: true)
+        let config = SwiftDataAnnualBudgetConfig(year: 2025, totalAmount: 100_000, policy: .automatic)
+        let allocation = SwiftDataAnnualBudgetAllocation(amount: 0, category: category)
         config.allocations = [allocation]
 
         var state = AnnualBudgetFormState()

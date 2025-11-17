@@ -27,7 +27,7 @@ internal struct TransactionFormState: Equatable {
         )
     }
 
-    internal static func from(transaction: TransactionEntity) -> TransactionFormState {
+    internal static func from(transaction: SwiftDataTransaction) -> TransactionFormState {
         TransactionFormState(
             date: transaction.date,
             title: transaction.title,

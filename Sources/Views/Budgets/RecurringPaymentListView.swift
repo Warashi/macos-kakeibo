@@ -38,7 +38,7 @@ internal struct RecurringPaymentListView: View {
 /// 定期支払い一覧コンテンツビュー
 internal struct RecurringPaymentListContentView: View {
     @Bindable internal var store: RecurringPaymentListStore
-    @Query private var allCategoryEntities: [CategoryEntity]
+    @Query private var allCategoryEntities: [SwiftDataCategory]
     @State private var csvDocument: DataFileDocument?
     @State private var isExportingCSV: Bool = false
     @State private var exportError: String?

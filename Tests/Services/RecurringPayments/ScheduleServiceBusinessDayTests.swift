@@ -78,7 +78,7 @@ internal struct ScheduleServiceBusinessDayTests {
         let firstDate = try #require(Date.from(year: 2025, month: 2, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト支払い",
             amount: 10000,
             recurrenceIntervalMonths: 1,
@@ -105,7 +105,7 @@ internal struct ScheduleServiceBusinessDayTests {
         let firstDate = try #require(Date.from(year: 2025, month: 2, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト支払い",
             amount: 10000,
             recurrenceIntervalMonths: 1,

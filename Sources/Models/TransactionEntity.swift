@@ -1,1 +1,0 @@
-typealias TransactionEntity = SwiftDataTransaction

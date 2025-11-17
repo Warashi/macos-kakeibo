@@ -157,10 +157,10 @@ internal struct SettingsStoreTests {
         // Given
         let defaults = makeUserDefaults(suffix: "csv")
         let container = try ModelContainer.createInMemoryContainer()
-        let major = CategoryEntity(name: "食費")
-        let minor = CategoryEntity(name: "外食", parent: major)
-        let institution = FinancialInstitutionEntity(name: "銀行")
-        let transaction = TransactionEntity(
+        let major = SwiftDataCategory(name: "食費")
+        let minor = SwiftDataCategory(name: "外食", parent: major)
+        let institution = SwiftDataFinancialInstitution(name: "銀行")
+        let transaction = SwiftDataTransaction(
             date: Date(),
             title: "テスト",
             amount: -1_000,
@@ -214,7 +214,7 @@ internal struct SettingsStoreTests {
             transactionRepository: transactionRepository
         )
 
-        #expect(try targetContext.count(TransactionEntity.self) == 0)
+        #expect(try targetContext.count(SwiftDataTransaction.self) == 0)
 
         // When
         let summary = try await store.restoreBackup(from: archive.data)
@@ -225,7 +225,7 @@ internal struct SettingsStoreTests {
         #expect(store.lastBackupMetadata?.generatedAt == summary.metadata.generatedAt)
         #expect(store.statistics.transactions == 1)
         #expect(store.statusMessage?.contains("復元") == true)
-        #expect(try targetContext.count(TransactionEntity.self) == 1)
+        #expect(try targetContext.count(SwiftDataTransaction.self) == 1)
         #expect(store.isProcessingBackup == false)
     }
 }
@@ -234,9 +234,9 @@ internal struct SettingsStoreTests {
 
 @MainActor
 private func seedTransaction(in context: ModelContext) throws {
-    let category = CategoryEntity(name: "食費")
-    let institution = FinancialInstitutionEntity(name: "銀行")
-    let transaction = TransactionEntity(
+    let category = SwiftDataCategory(name: "食費")
+    let institution = SwiftDataFinancialInstitution(name: "銀行")
+    let transaction = SwiftDataTransaction(
         date: Date(),
         title: "テスト",
         amount: -1000,

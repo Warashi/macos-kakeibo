@@ -45,10 +45,10 @@ internal struct BackupManagerTests {
 
         // Then
         #expect(summary.restoredCounts.transactions == 1)
-        #expect(try restoreContext.count(TransactionEntity.self) == 1)
-        #expect(try restoreContext.count(CategoryEntity.self) == 2)
-        #expect(try restoreContext.count(BudgetEntity.self) == 1)
-        #expect(try restoreContext.count(FinancialInstitutionEntity.self) == 1)
+        #expect(try restoreContext.count(SwiftDataTransaction.self) == 1)
+        #expect(try restoreContext.count(SwiftDataCategory.self) == 2)
+        #expect(try restoreContext.count(SwiftDataBudget.self) == 1)
+        #expect(try restoreContext.count(SwiftDataFinancialInstitution.self) == 1)
     }
 }
 
@@ -56,12 +56,12 @@ internal struct BackupManagerTests {
 
 @MainActor
 private func seedSampleData(in context: ModelContext) throws {
-    let institution = FinancialInstitutionEntity(name: "メインバンク", displayOrder: 1)
-    let major = CategoryEntity(name: "食費", allowsAnnualBudget: false, displayOrder: 1)
-    let minor = CategoryEntity(name: "外食", parent: major, allowsAnnualBudget: false, displayOrder: 1)
-let budget = BudgetEntity(amount: 50000, category: major, year: 2025, month: 11)
-    let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 100_000, policy: .automatic)
-    let transaction = TransactionEntity(
+    let institution = SwiftDataFinancialInstitution(name: "メインバンク", displayOrder: 1)
+    let major = SwiftDataCategory(name: "食費", allowsAnnualBudget: false, displayOrder: 1)
+    let minor = SwiftDataCategory(name: "外食", parent: major, allowsAnnualBudget: false, displayOrder: 1)
+let budget = SwiftDataBudget(amount: 50000, category: major, year: 2025, month: 11)
+    let config = SwiftDataAnnualBudgetConfig(year: 2025, totalAmount: 100_000, policy: .automatic)
+    let transaction = SwiftDataTransaction(
         date: Date(),
         title: "テストディナー",
         amount: -8000,

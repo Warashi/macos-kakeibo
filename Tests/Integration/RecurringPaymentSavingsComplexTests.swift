@@ -19,8 +19,8 @@ internal struct RecurringPaymentSavingsComplexTests {
         let context = ModelContext(container)
 
         // Given: 複数の定期支払い定義
-        let categoryTax = CategoryEntity(name: "保険・税金")
-        let categoryEducation = CategoryEntity(name: "教育費")
+        let categoryTax = SwiftDataCategory(name: "保険・税金")
+        let categoryEducation = SwiftDataCategory(name: "教育費")
         context.insert(categoryTax)
         context.insert(categoryEducation)
 
@@ -98,7 +98,7 @@ internal struct RecurringPaymentSavingsComplexTests {
         internal let amount: Decimal
         internal let year: Int
         internal let month: Int
-        internal let category: Kakeibo.CategoryEntity?
+        internal let category: Kakeibo.SwiftDataCategory?
         internal let strategy: RecurringPaymentSavingStrategy
         internal let customAmount: Decimal?
 
@@ -107,7 +107,7 @@ internal struct RecurringPaymentSavingsComplexTests {
             amount: Decimal,
             year: Int,
             month: Int,
-            category: Kakeibo.CategoryEntity? = nil,
+            category: Kakeibo.SwiftDataCategory? = nil,
             strategy: RecurringPaymentSavingStrategy,
             customAmount: Decimal? = nil,
         ) {
@@ -122,8 +122,8 @@ internal struct RecurringPaymentSavingsComplexTests {
     }
 
     /// 定期支払い定義を作成するヘルパー
-    private func makeDefinition(params: DefinitionParams) -> RecurringPaymentDefinitionEntity {
-        RecurringPaymentDefinitionEntity(
+    private func makeDefinition(params: DefinitionParams) -> SwiftDataRecurringPaymentDefinition {
+        SwiftDataRecurringPaymentDefinition(
             name: params.name,
             amount: params.amount,
             recurrenceIntervalMonths: 12,
@@ -136,11 +136,11 @@ internal struct RecurringPaymentSavingsComplexTests {
 
     /// 複数の定期支払い定義を作成するヘルパー関数
     private func createMultipleDefinitions(
-        categoryTax: Kakeibo.CategoryEntity,
-        categoryEducation: Kakeibo.CategoryEntity,
+        categoryTax: Kakeibo.SwiftDataCategory,
+        categoryEducation: Kakeibo.SwiftDataCategory,
         context: ModelContext,
-    ) -> [RecurringPaymentDefinitionEntity] {
-        let definitions: [RecurringPaymentDefinitionEntity] = [
+    ) -> [SwiftDataRecurringPaymentDefinition] {
+        let definitions: [SwiftDataRecurringPaymentDefinition] = [
             makeDefinition(params: DefinitionParams(
                 name: "自動車税",
                 amount: 45000,
@@ -181,13 +181,13 @@ internal struct RecurringPaymentSavingsComplexTests {
 
     /// 複数定義の積立残高を作成するヘルパー関数
     private func createBalancesForDefinitions(
-        definitions: [RecurringPaymentDefinitionEntity],
+        definitions: [SwiftDataRecurringPaymentDefinition],
         months: Int,
         year: Int
-    ) -> [RecurringPaymentSavingBalanceEntity] {
-        var balances: [RecurringPaymentSavingBalanceEntity] = []
+    ) -> [SwiftDataRecurringPaymentSavingBalance] {
+        var balances: [SwiftDataRecurringPaymentSavingBalance] = []
         for definition in definitions {
-            var balance: RecurringPaymentSavingBalanceEntity?
+            var balance: SwiftDataRecurringPaymentSavingBalance?
             for month in 1 ... months {
                 balance = balanceService.recordMonthlySavings(
                     params: RecurringPaymentBalanceService.MonthlySavingsParameters(

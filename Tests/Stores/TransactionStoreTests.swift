@@ -149,9 +149,9 @@ private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol, 
 
     internal init(transactions: [Transaction]) {
         self.transactions = transactions
-        let institution = FinancialInstitutionEntity(name: "メイン銀行")
-        let major = CategoryEntity(name: "食費", displayOrder: 1)
-        let minor = CategoryEntity(name: "外食", parent: major, displayOrder: 1)
+        let institution = SwiftDataFinancialInstitution(name: "メイン銀行")
+        let major = SwiftDataCategory(name: "食費", displayOrder: 1)
+        let minor = SwiftDataCategory(name: "外食", parent: major, displayOrder: 1)
         self.referenceData = TransactionReferenceData(
             institutions: [FinancialInstitution(from: institution)],
             categories: [Category(from: major), Category(from: minor)],

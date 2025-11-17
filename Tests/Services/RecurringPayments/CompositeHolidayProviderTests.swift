@@ -18,7 +18,7 @@ internal struct CompositeHolidayProviderTests {
         let context = ModelContext(container)
 
         // カスタム祝日を追加
-        let customHoliday = CustomHoliday(
+        let customHoliday = SwiftDataCustomHoliday(
             date: makeDate(year: 2025, month: 6, day: 15),
             name: "会社創立記念日",
             isRecurring: false,
@@ -70,7 +70,7 @@ internal struct CompositeHolidayProviderTests {
         let context = ModelContext(container)
 
         // カスタム祝日を追加
-        let customHoliday = CustomHoliday(
+        let customHoliday = SwiftDataCustomHoliday(
             date: makeDate(year: 2025, month: 5, day: 6),
             name: "特別休日",
             isRecurring: false,

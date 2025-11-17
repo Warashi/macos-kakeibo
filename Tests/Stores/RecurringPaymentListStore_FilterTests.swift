@@ -11,7 +11,7 @@ internal struct RecurringPaymentListStoreFilterTests {
     internal func entries_periodFilter() async throws {
         let (store, context) = try await makeStore()
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -19,7 +19,7 @@ internal struct RecurringPaymentListStoreFilterTests {
         )
 
         // 期間内
-        let occurrence1 = RecurringPaymentOccurrenceEntity(
+        let occurrence1 = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 45000,
@@ -27,7 +27,7 @@ internal struct RecurringPaymentListStoreFilterTests {
         )
 
         // 期間外（過去）
-        let occurrence2 = RecurringPaymentOccurrenceEntity(
+        let occurrence2 = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 1) ?? Date(),
             expectedAmount: 45000,
@@ -35,7 +35,7 @@ internal struct RecurringPaymentListStoreFilterTests {
         )
 
         // 期間外（未来）
-        let occurrence3 = RecurringPaymentOccurrenceEntity(
+        let occurrence3 = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2027, month: 1) ?? Date(),
             expectedAmount: 45000,
@@ -62,28 +62,28 @@ internal struct RecurringPaymentListStoreFilterTests {
     internal func entries_searchTextFilter() async throws {
         let (store, context) = try await makeStore()
 
-        let definition1 = RecurringPaymentDefinitionEntity(
+        let definition1 = SwiftDataRecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 5) ?? Date(),
         )
 
-        let definition2 = RecurringPaymentDefinitionEntity(
+        let definition2 = SwiftDataRecurringPaymentDefinition(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 4) ?? Date(),
         )
 
-        let occurrence1 = RecurringPaymentOccurrenceEntity(
+        let occurrence1 = SwiftDataRecurringPaymentOccurrence(
             definition: definition1,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
             status: .saving,
         )
 
-        let occurrence2 = RecurringPaymentOccurrenceEntity(
+        let occurrence2 = SwiftDataRecurringPaymentOccurrence(
             definition: definition2,
             scheduledDate: Date.from(year: 2026, month: 4) ?? Date(),
             expectedAmount: 150_000,
@@ -112,21 +112,21 @@ internal struct RecurringPaymentListStoreFilterTests {
     internal func entries_statusFilter() async throws {
         let (store, context) = try await makeStore()
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 10000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence1 = RecurringPaymentOccurrenceEntity(
+        let occurrence1 = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 10000,
             status: .saving,
         )
 
-        let occurrence2 = RecurringPaymentOccurrenceEntity(
+        let occurrence2 = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 4) ?? Date(),
             expectedAmount: 10000,
@@ -156,15 +156,15 @@ internal struct RecurringPaymentListStoreFilterTests {
     internal func entries_majorCategoryFilterIncludesChildren() async throws {
         let (store, context) = try await makeStore()
 
-        let major = CategoryEntity(name: "生活費")
-        let minor = CategoryEntity(name: "食費", parent: major)
-        let otherMajor = CategoryEntity(name: "趣味")
+        let major = SwiftDataCategory(name: "生活費")
+        let minor = SwiftDataCategory(name: "食費", parent: major)
+        let otherMajor = SwiftDataCategory(name: "趣味")
 
         context.insert(major)
         context.insert(minor)
         context.insert(otherMajor)
 
-        let definitionMajor = RecurringPaymentDefinitionEntity(
+        let definitionMajor = SwiftDataRecurringPaymentDefinition(
             name: "家賃",
             amount: 80000,
             recurrenceIntervalMonths: 1,
@@ -172,7 +172,7 @@ internal struct RecurringPaymentListStoreFilterTests {
             category: major,
         )
 
-        let definitionMinor = RecurringPaymentDefinitionEntity(
+        let definitionMinor = SwiftDataRecurringPaymentDefinition(
             name: "外食",
             amount: 15000,
             recurrenceIntervalMonths: 1,
@@ -180,7 +180,7 @@ internal struct RecurringPaymentListStoreFilterTests {
             category: minor,
         )
 
-        let definitionOther = RecurringPaymentDefinitionEntity(
+        let definitionOther = SwiftDataRecurringPaymentDefinition(
             name: "サブスク",
             amount: 2000,
             recurrenceIntervalMonths: 1,
@@ -188,21 +188,21 @@ internal struct RecurringPaymentListStoreFilterTests {
             category: otherMajor,
         )
 
-        let occurrence1 = RecurringPaymentOccurrenceEntity(
+        let occurrence1 = SwiftDataRecurringPaymentOccurrence(
             definition: definitionMajor,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 80000,
             status: .saving,
         )
 
-        let occurrence2 = RecurringPaymentOccurrenceEntity(
+        let occurrence2 = SwiftDataRecurringPaymentOccurrence(
             definition: definitionMinor,
             scheduledDate: Date.from(year: 2026, month: 2) ?? Date(),
             expectedAmount: 15000,
             status: .saving,
         )
 
-        let occurrence3 = RecurringPaymentOccurrenceEntity(
+        let occurrence3 = SwiftDataRecurringPaymentOccurrence(
             definition: definitionOther,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 2000,
@@ -233,15 +233,15 @@ internal struct RecurringPaymentListStoreFilterTests {
     internal func entries_minorCategoryFilterIsPrecise() async throws {
         let (store, context) = try await makeStore()
 
-        let major = CategoryEntity(name: "生活費")
-        let minor = CategoryEntity(name: "食費", parent: major)
-        let anotherMinor = CategoryEntity(name: "日用品", parent: major)
+        let major = SwiftDataCategory(name: "生活費")
+        let minor = SwiftDataCategory(name: "食費", parent: major)
+        let anotherMinor = SwiftDataCategory(name: "日用品", parent: major)
 
         context.insert(major)
         context.insert(minor)
         context.insert(anotherMinor)
 
-        let definitionMinor = RecurringPaymentDefinitionEntity(
+        let definitionMinor = SwiftDataRecurringPaymentDefinition(
             name: "外食",
             amount: 15000,
             recurrenceIntervalMonths: 1,
@@ -249,7 +249,7 @@ internal struct RecurringPaymentListStoreFilterTests {
             category: minor,
         )
 
-        let definitionAnother = RecurringPaymentDefinitionEntity(
+        let definitionAnother = SwiftDataRecurringPaymentDefinition(
             name: "日用品",
             amount: 8000,
             recurrenceIntervalMonths: 1,
@@ -257,14 +257,14 @@ internal struct RecurringPaymentListStoreFilterTests {
             category: anotherMinor,
         )
 
-        let occurrence1 = RecurringPaymentOccurrenceEntity(
+        let occurrence1 = SwiftDataRecurringPaymentOccurrence(
             definition: definitionMinor,
             scheduledDate: Date.from(year: 2026, month: 2) ?? Date(),
             expectedAmount: 15000,
             status: .saving,
         )
 
-        let occurrence2 = RecurringPaymentOccurrenceEntity(
+        let occurrence2 = SwiftDataRecurringPaymentOccurrence(
             definition: definitionAnother,
             scheduledDate: Date.from(year: 2026, month: 2) ?? Date(),
             expectedAmount: 8000,

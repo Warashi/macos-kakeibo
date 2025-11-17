@@ -8,14 +8,14 @@ import Testing
 internal struct EntryAmountPropertiesTests {
     @Test("discrepancyAmount: ぴったり支払いの場合")
     internal func discrepancyAmount_exact() {
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 1) ?? Date(),
             expectedAmount: 100_000,
@@ -40,14 +40,14 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("discrepancyAmount: 超過払いの場合")
     internal func discrepancyAmount_overpaid() {
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 1) ?? Date(),
             expectedAmount: 100_000,
@@ -72,14 +72,14 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("discrepancyAmount: 過少払いの場合")
     internal func discrepancyAmount_underpaid() {
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 1) ?? Date(),
             expectedAmount: 100_000,
@@ -104,14 +104,14 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("discrepancyAmount: 実績なしの場合")
     internal func discrepancyAmount_notCompleted() {
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 1) ?? Date(),
             expectedAmount: 100_000,
@@ -134,21 +134,21 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("savingsProgress: 0%の場合")
     internal func savingsProgress_zero() {
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 100_000,
             status: .saving,
         )
 
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 0,
             totalPaidAmount: 0,
@@ -172,21 +172,21 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("savingsProgress: 50%の場合")
     internal func savingsProgress_half() {
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 100_000,
             status: .saving,
         )
 
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 50000,
             totalPaidAmount: 0,
@@ -210,21 +210,21 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("savingsProgress: 100%の場合")
     internal func savingsProgress_full() {
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 100_000,
             status: .saving,
         )
 
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 100_000,
             totalPaidAmount: 0,
@@ -248,21 +248,21 @@ internal struct EntryAmountPropertiesTests {
 
     @Test("savingsProgress: 100%超過の場合は1.0にクランプ")
     internal func savingsProgress_overflow() {
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 100_000,
             status: .saving,
         )
 
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 120_000,
             totalPaidAmount: 0,

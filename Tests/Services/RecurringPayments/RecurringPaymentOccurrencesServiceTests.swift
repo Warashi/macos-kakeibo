@@ -8,7 +8,7 @@ internal struct RecurringPaymentOccurrencesServiceTests {
     @Test("同期で不正な周期を検出する")
     @DatabaseActor
     internal func synchronizeValidatesRecurrence() async throws {
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "不正定義",
             amount: 10000,
             recurrenceIntervalMonths: 0,
@@ -30,8 +30,8 @@ internal struct RecurringPaymentOccurrencesServiceTests {
     @DatabaseActor
     internal func markOccurrenceCompletedUpdatesModel() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 3, day: 1))
-        let occurrence = RecurringPaymentOccurrenceEntity(
-            definition: RecurringPaymentDefinitionEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
+            definition: SwiftDataRecurringPaymentDefinition(
                 name: "引越し費用",
                 amount: 200_000,
                 recurrenceIntervalMonths: 12,
@@ -69,8 +69,8 @@ internal struct RecurringPaymentOccurrencesServiceTests {
     @DatabaseActor
     internal func updateOccurrenceSkipsSyncWhenStatusUnchanged() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 7, day: 15))
-        let occurrence = RecurringPaymentOccurrenceEntity(
-            definition: RecurringPaymentDefinitionEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
+            definition: SwiftDataRecurringPaymentDefinition(
                 name: "車検",
                 amount: 110_000,
                 recurrenceIntervalMonths: 24,

@@ -20,7 +20,7 @@ internal struct LabeledField<Content: View>: View {
 // MARK: - Special Payment Row
 
 internal struct RecurringPaymentRow: View {
-    internal let definition: RecurringPaymentDefinitionEntity
+    internal let definition: SwiftDataRecurringPaymentDefinition
     internal let onEdit: () -> Void
     internal let onDelete: () -> Void
 

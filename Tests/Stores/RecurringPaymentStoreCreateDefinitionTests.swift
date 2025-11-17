@@ -28,7 +28,7 @@ internal struct RecurringPaymentStoreCreateDefinitionTests {
         )
         try await store.createDefinition(input, horizonMonths: 24)
 
-        let descriptor: ModelFetchRequest<RecurringPaymentDefinitionEntity> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<SwiftDataRecurringPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
 
         #expect(definitions.count == 1)
@@ -44,11 +44,11 @@ internal struct RecurringPaymentStoreCreateDefinitionTests {
     }
 
     @Test("定義作成：カテゴリ付きで作成")
-    internal func createDefinition_withCategoryEntity() async throws {
+    internal func createDefinition_withSwiftDataCategory() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
-        let category = CategoryEntity(name: "税金", displayOrder: 0)
+        let category = SwiftDataCategory(name: "税金", displayOrder: 0)
         context.insert(category)
         try context.save()
 
@@ -62,7 +62,7 @@ internal struct RecurringPaymentStoreCreateDefinitionTests {
         )
         try await store.createDefinition(input)
 
-        let descriptor: ModelFetchRequest<RecurringPaymentDefinitionEntity> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<SwiftDataRecurringPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
         let definition = try #require(definitions.first)
 

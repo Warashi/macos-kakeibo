@@ -28,7 +28,7 @@ internal struct RecurringPaymentStoreDayPatternTests {
         )
         try await store.createDefinition(input, horizonMonths: 6)
 
-        let descriptor: ModelFetchRequest<RecurringPaymentDefinitionEntity> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<SwiftDataRecurringPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
 
         #expect(definitions.count == 1)
@@ -61,7 +61,7 @@ internal struct RecurringPaymentStoreDayPatternTests {
         )
         try await store.createDefinition(input, horizonMonths: 6)
 
-        let descriptor: ModelFetchRequest<RecurringPaymentDefinitionEntity> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<SwiftDataRecurringPaymentDefinition> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
 
         #expect(definitions.count == 1)
@@ -76,7 +76,7 @@ internal struct RecurringPaymentStoreDayPatternTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "給料日",
             amount: 250_000,
             recurrenceIntervalMonths: 1,
@@ -116,7 +116,7 @@ internal struct RecurringPaymentStoreDayPatternTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "家賃",
             amount: 100_000,
             recurrenceIntervalMonths: 1,

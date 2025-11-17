@@ -9,8 +9,8 @@ internal struct SwiftDataBudgetRepositoryCategoryInstitutionTests {
     @Test("親情報付きでカテゴリを検索できる")
     internal func findsCategoryByNameWithParent() throws {
         let (repository, context) = try makeRepository()
-        let major = CategoryEntity(name: "食費")
-        let minor = CategoryEntity(name: "外食", parent: major)
+        let major = SwiftDataCategory(name: "食費")
+        let minor = SwiftDataCategory(name: "外食", parent: major)
         context.insert(major)
         context.insert(minor)
         try context.save()
@@ -42,7 +42,7 @@ internal struct SwiftDataBudgetRepositoryCategoryInstitutionTests {
     @Test("金融機関を名前で検索できる")
     internal func findsInstitutionByName() throws {
         let (repository, context) = try makeRepository()
-        let institution = FinancialInstitutionEntity(name: "メイン口座")
+        let institution = SwiftDataFinancialInstitution(name: "メイン口座")
         context.insert(institution)
         try context.save()
 

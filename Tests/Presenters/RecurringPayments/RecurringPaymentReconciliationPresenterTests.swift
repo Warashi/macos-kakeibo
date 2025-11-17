@@ -8,19 +8,19 @@ internal struct ReconciliationPresenterTests {
     @Test("makePresentation builds sorted rows and lookups")
     internal func makePresentation_buildsRows() throws {
         let presenter = RecurringPaymentReconciliationPresenter()
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 5, day: 1) ?? Date(),
         )
-        let earlier = RecurringPaymentOccurrenceEntity(
+        let earlier = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 5, day: 1) ?? Date(),
             expectedAmount: 45000,
             status: .planned,
         )
-        let later = RecurringPaymentOccurrenceEntity(
+        let later = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5, day: 1) ?? Date(),
             expectedAmount: 46000,
@@ -51,26 +51,26 @@ internal struct ReconciliationPresenterTests {
     @Test("transactionCandidates scores transactions and limits count")
     internal func transactionCandidates_scoresTransactions() throws {
         let presenter = RecurringPaymentReconciliationPresenter()
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "保険料",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
         )
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 6, day: 10) ?? Date(),
             expectedAmount: 100_000,
             status: .planned,
         )
 
-        let matchingTransactionEntity = TransactionEntity(
+        let matchingSwiftDataTransaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 6, day: 12) ?? Date(),
             title: "保険料",
             amount: -100_000,
         )
 
-        let distantTransactionEntity = TransactionEntity(
+        let distantSwiftDataTransaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 1, day: 1) ?? Date(),
             title: "別支払い",
             amount: -50000,
@@ -78,8 +78,8 @@ internal struct ReconciliationPresenterTests {
 
         let definitionModel = RecurringPaymentDefinition(from: definition)
         let occurrenceModel = RecurringPaymentOccurrence(from: occurrence)
-        let matchingTransaction = Transaction(from: matchingTransactionEntity)
-        let distantTransaction = Transaction(from: distantTransactionEntity)
+        let matchingTransaction = Transaction(from: matchingSwiftDataTransaction)
+        let distantTransaction = Transaction(from: distantSwiftDataTransaction)
 
         let context = RecurringPaymentReconciliationPresenter.TransactionCandidateSearchContext(
             transactions: [matchingTransaction, distantTransaction],
@@ -103,26 +103,26 @@ internal struct ReconciliationPresenterTests {
     @Test("transactionCandidates excludes future transactions")
     internal func transactionCandidates_excludesFutureTransactions() throws {
         let presenter = RecurringPaymentReconciliationPresenter()
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "保険料",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
         )
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 6, day: 10) ?? Date(),
             expectedAmount: 100_000,
             status: .planned,
         )
 
-        let pastTransactionEntity = TransactionEntity(
+        let pastSwiftDataTransaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 6, day: 5) ?? Date(),
             title: "保険料",
             amount: -100_000,
         )
 
-        let futureTransactionEntity = TransactionEntity(
+        let futureSwiftDataTransaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 6, day: 20) ?? Date(),
             title: "保険料",
             amount: -100_000,
@@ -130,8 +130,8 @@ internal struct ReconciliationPresenterTests {
 
         let definitionModel = RecurringPaymentDefinition(from: definition)
         let occurrenceModel = RecurringPaymentOccurrence(from: occurrence)
-        let pastTransaction = Transaction(from: pastTransactionEntity)
-        let futureTransaction = Transaction(from: futureTransactionEntity)
+        let pastTransaction = Transaction(from: pastSwiftDataTransaction)
+        let futureTransaction = Transaction(from: futureSwiftDataTransaction)
 
         let context = RecurringPaymentReconciliationPresenter.TransactionCandidateSearchContext(
             transactions: [pastTransaction, futureTransaction],

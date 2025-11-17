@@ -15,8 +15,8 @@ internal struct QueryBuilderTests {
         let targetMonth = try #require(Date.from(year: 2025, month: 5, day: 10))
         let outsideMonth = try #require(Date.from(year: 2025, month: 6, day: 3))
 
-        context.insert(TransactionEntity(date: targetMonth, title: "今月", amount: -1000))
-        context.insert(TransactionEntity(date: outsideMonth, title: "来月", amount: -2000))
+        context.insert(SwiftDataTransaction(date: targetMonth, title: "今月", amount: -1000))
+        context.insert(SwiftDataTransaction(date: outsideMonth, title: "来月", amount: -2000))
         try context.save()
 
         let query = TransactionQuery(
@@ -41,8 +41,8 @@ internal struct QueryBuilderTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
-        context.insert(AnnualBudgetConfigEntity(year: 2024, totalAmount: 100_000, policy: .automatic))
-        context.insert(AnnualBudgetConfigEntity(year: 2025, totalAmount: 120_000, policy: .automatic))
+        context.insert(SwiftDataAnnualBudgetConfig(year: 2024, totalAmount: 100_000, policy: .automatic))
+        context.insert(SwiftDataAnnualBudgetConfig(year: 2025, totalAmount: 120_000, policy: .automatic))
         try context.save()
 
         let descriptor = BudgetQueries.annualConfig(for: 2025)
@@ -57,7 +57,7 @@ internal struct QueryBuilderTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
-        let earlier = RecurringPaymentDefinitionEntity(
+        let earlier = SwiftDataRecurringPaymentDefinition(
             name: "古い支払い",
             amount: 10000,
             recurrenceIntervalMonths: 12,
@@ -66,7 +66,7 @@ internal struct QueryBuilderTests {
         )
         earlier.createdAt = Date(timeIntervalSince1970: 1000)
 
-        let latest = RecurringPaymentDefinitionEntity(
+        let latest = SwiftDataRecurringPaymentDefinition(
             name: "新しい支払い",
             amount: 20000,
             recurrenceIntervalMonths: 12,

@@ -7,8 +7,8 @@ import Testing
 internal struct PaymentBalanceRecalculationTests {
     private let service: RecurringPaymentBalanceService = RecurringPaymentBalanceService()
 
-    private func sampleDefinition() -> RecurringPaymentDefinitionEntity {
-        RecurringPaymentDefinitionEntity(
+    private func sampleDefinition() -> SwiftDataRecurringPaymentDefinition {
+        SwiftDataRecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -24,7 +24,7 @@ internal struct PaymentBalanceRecalculationTests {
 
         let definition = sampleDefinition()
 
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 0,
             totalPaidAmount: 0,
@@ -33,7 +33,7 @@ internal struct PaymentBalanceRecalculationTests {
         )
 
         // 完了済みのOccurrenceを追加
-        let occurrence1 = RecurringPaymentOccurrenceEntity(
+        let occurrence1 = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -41,7 +41,7 @@ internal struct PaymentBalanceRecalculationTests {
             actualDate: Date(),
             actualAmount: 45000,
         )
-        let occurrence2 = RecurringPaymentOccurrenceEntity(
+        let occurrence2 = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -49,7 +49,7 @@ internal struct PaymentBalanceRecalculationTests {
             actualDate: Date(),
             actualAmount: 50000,
         )
-        let occurrence3 = RecurringPaymentOccurrenceEntity(
+        let occurrence3 = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2027, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -91,7 +91,7 @@ internal struct PaymentBalanceRecalculationTests {
         let context = ModelContext(container)
 
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 1000, // 古いデータ
             totalPaidAmount: 500, // 古いデータ

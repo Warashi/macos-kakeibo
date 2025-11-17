@@ -8,14 +8,14 @@ import Testing
 internal struct EntryBooleanPropertiesTests {
     @Test("isOverdue: 未完了で過去日の場合true")
     internal func isOverdue_pastAndIncomplete() {
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 10000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2024, month: 1) ?? Date(),
             expectedAmount: 10000,
@@ -39,14 +39,14 @@ internal struct EntryBooleanPropertiesTests {
 
     @Test("isOverdue: 完了済みの場合false")
     internal func isOverdue_completed() {
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 10000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2024, month: 1) ?? Date(),
             expectedAmount: 10000,
@@ -72,21 +72,21 @@ internal struct EntryBooleanPropertiesTests {
 
     @Test("isFullySaved: 100%積立完了の場合true")
     internal func isFullySaved_full() {
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 50000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 50000,
             status: .saving,
         )
 
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 50000,
             totalPaidAmount: 0,
@@ -110,21 +110,21 @@ internal struct EntryBooleanPropertiesTests {
 
     @Test("isFullySaved: 一部積立の場合false")
     internal func isFullySaved_partial() {
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "テスト",
             amount: 50000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 50000,
             status: .saving,
         )
 
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 25000,
             totalPaidAmount: 0,

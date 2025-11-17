@@ -28,10 +28,10 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let category = CategoryEntity(name: "食費")
+        let category = SwiftDataCategory(name: "食費")
         context.insert(category)
 
-        let transaction = TransactionEntity(
+        let transaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 11) ?? Date(),
             title: "スーパー",
             amount: -5000,
@@ -59,13 +59,13 @@ internal struct DashboardStoreTests {
     internal func monthlySummary_handlesYearBoundary() async throws {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let category = CategoryEntity(name: "雑費")
+        let category = SwiftDataCategory(name: "雑費")
         context.insert(category)
 
         let decemberDate = try #require(Date.from(year: 2025, month: 12, day: 15))
         let januaryDate = try #require(Date.from(year: 2026, month: 1, day: 5))
         context.insert(
-            TransactionEntity(
+            SwiftDataTransaction(
                 date: decemberDate,
                 title: "年末出費",
                 amount: -8000,
@@ -73,7 +73,7 @@ internal struct DashboardStoreTests {
             ),
         )
         context.insert(
-            TransactionEntity(
+            SwiftDataTransaction(
                 date: januaryDate,
                 title: "年始出費",
                 amount: -4000,
@@ -113,9 +113,9 @@ internal struct DashboardStoreTests {
 
         let january = try #require(Date.from(year: 2025, month: 1, day: 10))
         let august = try #require(Date.from(year: 2025, month: 8, day: 3))
-        context.insert(TransactionEntity(date: january, title: "初売り", amount: -5000))
-        context.insert(TransactionEntity(date: august, title: "旅行", amount: -15000))
-        context.insert(TransactionEntity(
+        context.insert(SwiftDataTransaction(date: january, title: "初売り", amount: -5000))
+        context.insert(SwiftDataTransaction(date: august, title: "旅行", amount: -15000))
+        context.insert(SwiftDataTransaction(
             date: Date.from(year: 2024, month: 12, day: 25) ?? Date(),
             title: "前年",
             amount: -7000,
@@ -238,10 +238,10 @@ internal struct DashboardStoreTests {
 
         // 15カテゴリ作成
         for index in 1 ... 15 {
-            let category = CategoryEntity(name: "カテゴリ\(index)")
+            let category = SwiftDataCategory(name: "カテゴリ\(index)")
             context.insert(category)
 
-            let transaction = TransactionEntity(
+            let transaction = SwiftDataTransaction(
                 date: Date.from(year: 2025, month: 11) ?? Date(),
                 title: "取引\(index)",
                 amount: Decimal(-1000 * index),
@@ -270,10 +270,10 @@ internal struct DashboardStoreTests {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
 
-        let budget = BudgetEntity(amount: 120_000, year: 2025, month: 1)
+        let budget = SwiftDataBudget(amount: 120_000, year: 2025, month: 1)
         context.insert(budget)
 
-        let transaction = TransactionEntity(
+        let transaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "光熱費",
             amount: -50000,
@@ -295,13 +295,13 @@ internal struct DashboardStoreTests {
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
 
-        let food = CategoryEntity(name: "食費")
+        let food = SwiftDataCategory(name: "食費")
         context.insert(food)
 
-        let budget = BudgetEntity(amount: 10000, category: food, year: 2025, month: 1)
+        let budget = SwiftDataBudget(amount: 10000, category: food, year: 2025, month: 1)
         context.insert(budget)
 
-        let transaction = TransactionEntity(
+        let transaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "ランチ",
             amount: -4000,
@@ -333,7 +333,7 @@ internal struct DashboardStoreTests {
         let context = ModelContext(container)
 
         let fallbackYear = Date().year - 1
-        let config = AnnualBudgetConfigEntity(year: fallbackYear, totalAmount: 100_000, policy: .automatic)
+        let config = SwiftDataAnnualBudgetConfig(year: fallbackYear, totalAmount: 100_000, policy: .automatic)
         context.insert(config)
         try context.save()
 
@@ -348,10 +348,10 @@ internal struct DashboardStoreTests {
         // Given
         let container = try createInMemoryContainer()
         let context = ModelContext(container)
-        let category = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
+        let category = SwiftDataCategory(name: "特別費", allowsAnnualBudget: true)
         context.insert(category)
 
-        let transaction = TransactionEntity(
+        let transaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "特別支出",
             amount: -40000,
@@ -359,11 +359,11 @@ internal struct DashboardStoreTests {
         )
         context.insert(transaction)
 
-        let budget = BudgetEntity(amount: 30000, category: category, year: 2025, month: 1)
+        let budget = SwiftDataBudget(amount: 30000, category: category, year: 2025, month: 1)
         context.insert(budget)
 
-        let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 200_000, policy: .automatic)
-        let allocation = AnnualBudgetAllocationEntity(amount: 100_000, category: category)
+        let config = SwiftDataAnnualBudgetConfig(year: 2025, totalAmount: 200_000, policy: .automatic)
+        let allocation = SwiftDataAnnualBudgetAllocation(amount: 100_000, category: category)
         allocation.config = config
         context.insert(config)
         context.insert(allocation)
@@ -391,23 +391,23 @@ internal struct DashboardStoreTests {
         let context = ModelContext(container)
 
         // カテゴリ作成
-        let foodCategory = CategoryEntity(name: "食費", allowsAnnualBudget: false)
-        let specialCategory = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
+        let foodCategory = SwiftDataCategory(name: "食費", allowsAnnualBudget: false)
+        let specialCategory = SwiftDataCategory(name: "特別費", allowsAnnualBudget: true)
         context.insert(foodCategory)
         context.insert(specialCategory)
 
         // 全体予算
-        let overallBudget = BudgetEntity(amount: 100_000, category: nil, year: 2025, month: 1)
+        let overallBudget = SwiftDataBudget(amount: 100_000, category: nil, year: 2025, month: 1)
         context.insert(overallBudget)
 
         // 取引作成
-        let foodTransaction = TransactionEntity(
+        let foodTransaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "食費",
             amount: -20000,
             majorCategory: foodCategory,
         )
-        let specialTransaction = TransactionEntity(
+        let specialTransaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "特別支出",
             amount: -30000,
@@ -417,8 +417,8 @@ internal struct DashboardStoreTests {
         context.insert(specialTransaction)
 
         // 年次特別枠設定（specialCategoryをfullCoverageに設定）
-        let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 200_000, policy: .automatic)
-        let allocation = AnnualBudgetAllocationEntity(
+        let config = SwiftDataAnnualBudgetConfig(year: 2025, totalAmount: 200_000, policy: .automatic)
+        let allocation = SwiftDataAnnualBudgetAllocation(
             amount: 100_000,
             category: specialCategory,
             policyOverride: .fullCoverage,
@@ -446,8 +446,8 @@ internal struct DashboardStoreTests {
 
     private func createInMemoryContainer() throws -> ModelContainer {
         try ModelContainer(
-            for: TransactionEntity.self, CategoryEntity.self, BudgetEntity.self, AnnualBudgetConfigEntity.self,
-            FinancialInstitutionEntity.self,
+            for: SwiftDataTransaction.self, SwiftDataCategory.self, SwiftDataBudget.self, SwiftDataAnnualBudgetConfig.self,
+            SwiftDataFinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
     }

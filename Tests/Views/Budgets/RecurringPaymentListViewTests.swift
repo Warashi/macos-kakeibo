@@ -41,14 +41,14 @@ internal struct RecurringPaymentListViewTests {
         let context = ModelContext(container)
 
         // サンプルデータを投入
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 5) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -161,35 +161,35 @@ internal struct RecurringPaymentListViewTests {
         let context = ModelContext(container)
 
         // 複数のサンプルデータを作成
-        let definition1 = RecurringPaymentDefinitionEntity(
+        let definition1 = SwiftDataRecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 5) ?? Date(),
         )
 
-        let definition2 = RecurringPaymentDefinitionEntity(
+        let definition2 = SwiftDataRecurringPaymentDefinition(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 4) ?? Date(),
         )
 
-        let definition3 = RecurringPaymentDefinitionEntity(
+        let definition3 = SwiftDataRecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
             firstOccurrenceDate: Date.from(year: 2026, month: 3) ?? Date(),
         )
 
-        let occurrence1 = RecurringPaymentOccurrenceEntity(
+        let occurrence1 = SwiftDataRecurringPaymentOccurrence(
             definition: definition1,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
             status: .saving,
         )
 
-        let occurrence2 = RecurringPaymentOccurrenceEntity(
+        let occurrence2 = SwiftDataRecurringPaymentOccurrence(
             definition: definition2,
             scheduledDate: Date.from(year: 2026, month: 4) ?? Date(),
             expectedAmount: 150_000,
@@ -198,7 +198,7 @@ internal struct RecurringPaymentListViewTests {
             actualAmount: 150_000,
         )
 
-        let occurrence3 = RecurringPaymentOccurrenceEntity(
+        let occurrence3 = SwiftDataRecurringPaymentOccurrence(
             definition: definition3,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 120_000,

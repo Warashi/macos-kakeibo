@@ -8,9 +8,9 @@ import Testing
 internal struct AnnualBudgetPanelTests {
     @Test("年次特別枠パネルを初期化できる")
     internal func annualBudgetPanelInitialization() {
-        let category = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
-        let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 100_000, policy: .automatic)
-        let allocation = AnnualBudgetAllocationEntity(amount: 60000, category: category)
+        let category = SwiftDataCategory(name: "特別費", allowsAnnualBudget: true)
+        let config = SwiftDataAnnualBudgetConfig(year: 2025, totalAmount: 100_000, policy: .automatic)
+        let allocation = SwiftDataAnnualBudgetAllocation(amount: 60000, category: category)
         allocation.config = config
         config.allocations = [allocation]
 
@@ -47,9 +47,9 @@ internal struct AnnualBudgetPanelTests {
 
     @Test("コンテンツビルダーは使用状況を反映する")
     internal func contentBuilderReflectsUsage() {
-        let category = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
-        let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 100_000, policy: .automatic)
-        let allocation = AnnualBudgetAllocationEntity(amount: 60000, category: category, policyOverride: .manual)
+        let category = SwiftDataCategory(name: "特別費", allowsAnnualBudget: true)
+        let config = SwiftDataAnnualBudgetConfig(year: 2025, totalAmount: 100_000, policy: .automatic)
+        let allocation = SwiftDataAnnualBudgetAllocation(amount: 60000, category: category, policyOverride: .manual)
         allocation.config = config
         config.allocations = [allocation]
 
@@ -95,9 +95,9 @@ internal struct AnnualBudgetPanelTests {
 
     @Test("コンテンツビルダーは使用状況がなくても配分を返す")
     internal func contentBuilderHandlesMissingUsage() {
-        let category = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
-        let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 80000, policy: .automatic)
-        let allocation = AnnualBudgetAllocationEntity(amount: 50000, category: category)
+        let category = SwiftDataCategory(name: "特別費", allowsAnnualBudget: true)
+        let config = SwiftDataAnnualBudgetConfig(year: 2025, totalAmount: 80000, policy: .automatic)
+        let allocation = SwiftDataAnnualBudgetAllocation(amount: 50000, category: category)
         allocation.config = config
         config.allocations = [allocation]
 
@@ -140,9 +140,9 @@ internal struct AnnualBudgetPanelTests {
 
     @Test("予算超過時に残額がマイナスになる")
     internal func remainingAmountBecomesNegativeWhenOverBudget() {
-        let category = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
-        let config = AnnualBudgetConfigEntity(year: 2025, totalAmount: 100_000, policy: .automatic)
-        let allocation = AnnualBudgetAllocationEntity(amount: 60000, category: category)
+        let category = SwiftDataCategory(name: "特別費", allowsAnnualBudget: true)
+        let config = SwiftDataAnnualBudgetConfig(year: 2025, totalAmount: 100_000, policy: .automatic)
+        let allocation = SwiftDataAnnualBudgetAllocation(amount: 60000, category: category)
         allocation.config = config
         config.allocations = [allocation]
 

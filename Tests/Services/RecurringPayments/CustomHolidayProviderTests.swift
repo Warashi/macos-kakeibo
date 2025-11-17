@@ -18,7 +18,7 @@ internal struct CustomHolidayProviderTests {
         let context = ModelContext(container)
 
         // カスタム祝日を追加（繰り返しなし）
-        let customHoliday = CustomHoliday(
+        let customHoliday = SwiftDataCustomHoliday(
             date: makeDate(year: 2025, month: 6, day: 15),
             name: "会社創立記念日",
             isRecurring: false,
@@ -41,7 +41,7 @@ internal struct CustomHolidayProviderTests {
         let context = ModelContext(container)
 
         // 繰り返しカスタム祝日を追加
-        let recurringHoliday = CustomHoliday(
+        let recurringHoliday = SwiftDataCustomHoliday(
             date: makeDate(year: 2024, month: 8, day: 10),
             name: "会社記念日",
             isRecurring: true,
@@ -69,7 +69,7 @@ internal struct CustomHolidayProviderTests {
         let context = ModelContext(container)
 
         // 繰り返しなしのカスタム祝日を追加
-        let oneTimeHoliday = CustomHoliday(
+        let oneTimeHoliday = SwiftDataCustomHoliday(
             date: makeDate(year: 2025, month: 7, day: 20),
             name: "特別休日",
             isRecurring: false,
@@ -96,17 +96,17 @@ internal struct CustomHolidayProviderTests {
         let context = ModelContext(container)
 
         // 複数のカスタム祝日を追加
-        let holiday1 = CustomHoliday(
+        let holiday1 = SwiftDataCustomHoliday(
             date: makeDate(year: 2025, month: 4, day: 1),
             name: "カスタム祝日1",
             isRecurring: false,
         )
-        let holiday2 = CustomHoliday(
+        let holiday2 = SwiftDataCustomHoliday(
             date: makeDate(year: 2025, month: 4, day: 15),
             name: "カスタム祝日2",
             isRecurring: false,
         )
-        let holiday3 = CustomHoliday(
+        let holiday3 = SwiftDataCustomHoliday(
             date: makeDate(year: 2025, month: 9, day: 30),
             name: "カスタム祝日3",
             isRecurring: true,
@@ -139,12 +139,12 @@ internal struct CustomHolidayProviderTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
-        let holiday1 = CustomHoliday(
+        let holiday1 = SwiftDataCustomHoliday(
             date: makeDate(year: 2025, month: 6, day: 10),
             name: "6月の祝日",
             isRecurring: false,
         )
-        let holiday2 = CustomHoliday(
+        let holiday2 = SwiftDataCustomHoliday(
             date: makeDate(year: 2025, month: 7, day: 10),
             name: "7月の祝日",
             isRecurring: false,

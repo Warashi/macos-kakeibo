@@ -72,7 +72,7 @@ internal struct SampleDataTests {
         #expect(food?.allowsAnnualBudget == false)
     }
 
-    // MARK: - TransactionEntity Tests
+    // MARK: - SwiftDataTransaction Tests
 
     @Test("サンプル取引データが生成できる")
     internal func sampleTransactionsData() {
@@ -147,7 +147,7 @@ internal struct SampleDataTests {
         }
     }
 
-    // MARK: - AnnualBudgetConfigEntity Tests
+    // MARK: - SwiftDataAnnualBudgetConfig Tests
 
     @Test("サンプル年次特別枠設定が生成できる")
     internal func sampleAnnualBudgetConfig() {

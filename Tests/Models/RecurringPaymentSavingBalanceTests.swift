@@ -3,10 +3,10 @@ import Foundation
 import SwiftData
 import Testing
 
-@Suite("RecurringPaymentSavingBalanceEntity Tests")
+@Suite("SwiftDataRecurringPaymentSavingBalance Tests")
 internal struct RecurringPaymentSavingBalanceTests {
-    private func sampleDefinition() -> RecurringPaymentDefinitionEntity {
-        RecurringPaymentDefinitionEntity(
+    private func sampleDefinition() -> SwiftDataRecurringPaymentDefinition {
+        SwiftDataRecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -17,7 +17,7 @@ internal struct RecurringPaymentSavingBalanceTests {
     @Test("積立残高を初期化できる")
     internal func initializeBalance() {
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 50000,
             totalPaidAmount: 0,
@@ -36,7 +36,7 @@ internal struct RecurringPaymentSavingBalanceTests {
     @Test("残高は累計積立額から累計支払額を差し引いて計算される")
     internal func balanceCalculation() {
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 120_000,
             totalPaidAmount: 100_000,
@@ -50,7 +50,7 @@ internal struct RecurringPaymentSavingBalanceTests {
     @Test("残高がマイナスの場合、不足フラグが立つ")
     internal func insufficientBalanceDetection() {
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 50000,
             totalPaidAmount: 80000,
@@ -65,7 +65,7 @@ internal struct RecurringPaymentSavingBalanceTests {
     @Test("残高がプラスの場合、不足フラグは立たない")
     internal func sufficientBalance() {
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 100_000,
             totalPaidAmount: 50000,
@@ -80,7 +80,7 @@ internal struct RecurringPaymentSavingBalanceTests {
     @Test("最終更新年月の文字列表現が正しい")
     internal func yearMonthStringFormat() {
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 10000,
             totalPaidAmount: 0,
@@ -94,7 +94,7 @@ internal struct RecurringPaymentSavingBalanceTests {
     @Test("累計積立額がマイナスの場合バリデーションエラーになる")
     internal func validateNegativeSavedAmount() {
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: -1000,
             totalPaidAmount: 0,
@@ -110,7 +110,7 @@ internal struct RecurringPaymentSavingBalanceTests {
     @Test("累計支払額がマイナスの場合バリデーションエラーになる")
     internal func validateNegativePaidAmount() {
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 10000,
             totalPaidAmount: -5000,
@@ -126,7 +126,7 @@ internal struct RecurringPaymentSavingBalanceTests {
     @Test("不正な年月はバリデーションエラーになる")
     internal func validateInvalidYearMonth() {
         let definition = sampleDefinition()
-        let balance1 = RecurringPaymentSavingBalanceEntity(
+        let balance1 = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 10000,
             totalPaidAmount: 0,
@@ -138,7 +138,7 @@ internal struct RecurringPaymentSavingBalanceTests {
         #expect(errors1.contains { $0.contains("最終更新年が不正") })
         #expect(!balance1.isValid)
 
-        let balance2 = RecurringPaymentSavingBalanceEntity(
+        let balance2 = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 10000,
             totalPaidAmount: 0,
@@ -154,7 +154,7 @@ internal struct RecurringPaymentSavingBalanceTests {
     @Test("有効なデータはバリデーションを通過する")
     internal func validateValidBalance() {
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 120_000,
             totalPaidAmount: 100_000,
@@ -172,7 +172,7 @@ internal struct RecurringPaymentSavingBalanceTests {
         let context = ModelContext(container)
 
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 60000,
             totalPaidAmount: 0,
@@ -185,7 +185,7 @@ internal struct RecurringPaymentSavingBalanceTests {
 
         try context.save()
 
-        let descriptor: ModelFetchRequest<RecurringPaymentSavingBalanceEntity> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<SwiftDataRecurringPaymentSavingBalance> = ModelFetchFactory.make()
         let storedBalances = try context.fetch(descriptor)
 
         #expect(storedBalances.count == 1)
@@ -198,7 +198,7 @@ internal struct RecurringPaymentSavingBalanceTests {
     @Test("積立と支払いを繰り返すシナリオ")
     internal func savingsAndPaymentScenario() {
         let definition = sampleDefinition()
-        var balance = RecurringPaymentSavingBalanceEntity(
+        var balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 0,
             totalPaidAmount: 0,

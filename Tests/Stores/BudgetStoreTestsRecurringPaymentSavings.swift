@@ -11,8 +11,8 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
     internal func recurringPaymentSavings_monthlyTotal() async throws {
         let (store, context) = try await makeStore()
 
-        let category = CategoryEntity(name: "保険・税金")
-        let definition1 = RecurringPaymentDefinitionEntity(
+        let category = SwiftDataCategory(name: "保険・税金")
+        let definition1 = SwiftDataRecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -20,7 +20,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
             category: category,
             savingStrategy: .evenlyDistributed,
         )
-        let definition2 = RecurringPaymentDefinitionEntity(
+        let definition2 = SwiftDataRecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -45,13 +45,13 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
     }
 
     @Test("定期支払い積立：カテゴリ別積立金額を取得")
-    internal func recurringPaymentSavings_byCategoryEntity() async throws {
+    internal func recurringPaymentSavings_bySwiftDataCategory() async throws {
         let (store, context) = try await makeStore()
 
-        let categoryTax = CategoryEntity(name: "保険・税金")
-        let categoryEducation = CategoryEntity(name: "教育費")
+        let categoryTax = SwiftDataCategory(name: "保険・税金")
+        let categoryEducation = SwiftDataCategory(name: "教育費")
 
-        let definition1 = RecurringPaymentDefinitionEntity(
+        let definition1 = SwiftDataRecurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -59,7 +59,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
             category: categoryTax,
             savingStrategy: .evenlyDistributed,
         )
-        let definition2 = RecurringPaymentDefinitionEntity(
+        let definition2 = SwiftDataRecurringPaymentDefinition(
             name: "学資保険",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
@@ -91,7 +91,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
 
         let balanceService = RecurringPaymentBalanceService()
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -101,7 +101,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
         context.insert(definition)
 
         // 12ヶ月分の積立を記録
-        var balance: RecurringPaymentSavingBalanceEntity?
+        var balance: SwiftDataRecurringPaymentSavingBalance?
         for month in 1 ... 12 {
             let nextBalance = balanceService.recordMonthlySavings(
                 params: RecurringPaymentBalanceService.MonthlySavingsParameters(
@@ -138,7 +138,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
     internal func recurringPaymentSavings_alertFlag() async throws {
         let (store, context) = try await makeStore()
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -146,7 +146,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
             savingStrategy: .evenlyDistributed,
         )
 
-        let balance = RecurringPaymentSavingBalanceEntity(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 100_000,
             totalPaidAmount: 120_000, // 超過払い

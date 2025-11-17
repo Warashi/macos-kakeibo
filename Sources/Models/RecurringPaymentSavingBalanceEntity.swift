@@ -1,1 +1,0 @@
-typealias RecurringPaymentSavingBalanceEntity = SwiftDataRecurringPaymentSavingBalance

@@ -14,7 +14,7 @@ internal struct ScheduleServiceRecurrenceTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 15))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "四半期支払い",
             amount: 30000,
             recurrenceIntervalMonths: 3,
@@ -40,7 +40,7 @@ internal struct ScheduleServiceRecurrenceTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "1.5年周期支払い",
             amount: 100_000,
             recurrenceIntervalMonths: 18,
@@ -70,7 +70,7 @@ internal struct ScheduleServiceRecurrenceTests {
         let firstDate = try #require(Date.from(year: 2025, month: 6, day: 15))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "3年周期支払い",
             amount: 500_000,
             recurrenceIntervalMonths: 36,
@@ -96,7 +96,7 @@ internal struct ScheduleServiceRecurrenceTests {
         let firstDate = try #require(Date.from(year: 2025, month: 4, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "年次支払い",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
@@ -123,7 +123,7 @@ internal struct ScheduleServiceRecurrenceTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "隔年支払い",
             amount: 200_000,
             recurrenceIntervalMonths: 24,

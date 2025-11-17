@@ -14,7 +14,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         let store = harness.store
         let context = harness.context
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
@@ -22,13 +22,13 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         context.insert(definition)
 
-        let pending = RecurringPaymentOccurrenceEntity(
+        let pending = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: referenceDate.addingTimeInterval(-60 * 60 * 24),
             expectedAmount: 120_000,
             status: .planned,
         )
-        let completed = RecurringPaymentOccurrenceEntity(
+        let completed = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: referenceDate.addingTimeInterval(-60 * 60 * 24 * 100),
             expectedAmount: 120_000,
@@ -57,7 +57,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         let store = harness.store
         let context = harness.context
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
@@ -65,7 +65,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         context.insert(definition)
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: referenceDate,
             expectedAmount: 150_000,
@@ -73,14 +73,14 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         definition.occurrences = [occurrence]
 
-        let perfectMatch = TransactionEntity(
+        let perfectMatch = SwiftDataTransaction(
             date: referenceDate,
             title: "固定資産税 支払い",
             amount: -150_000,
             memo: "",
         )
 
-        let farMatch = TransactionEntity(
+        let farMatch = SwiftDataTransaction(
             date: referenceDate.addingTimeInterval(-60 * 60 * 24 * 30),
             title: "別支出",
             amount: -170_000,
@@ -108,7 +108,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         let context = harness.context
         let spy = harness.occurrencesService
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "旅行積立",
             amount: 80000,
             recurrenceIntervalMonths: 6,
@@ -116,7 +116,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         context.insert(definition)
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: referenceDate,
             expectedAmount: 80000,
@@ -124,7 +124,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         definition.occurrences = [occurrence]
 
-        let transaction = TransactionEntity(
+        let transaction = SwiftDataTransaction(
             date: referenceDate,
             title: "旅行費用",
             amount: -82000,
@@ -164,7 +164,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         let context = harness.context
         let spy = harness.occurrencesService
 
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "大型備品",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
@@ -173,7 +173,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         context.insert(definition)
 
-        let occurrence = RecurringPaymentOccurrenceEntity(
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: referenceDate,
             expectedAmount: 100_000,
@@ -183,7 +183,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         definition.occurrences = [occurrence]
 
-        let transaction = TransactionEntity(
+        let transaction = SwiftDataTransaction(
             date: referenceDate,
             title: "大型備品支払い",
             amount: -100_000,

@@ -17,7 +17,7 @@ internal struct RecurringPaymentMultiplePaymentsTests {
         let context = ModelContext(container)
 
         // Given: 年次支払い
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = SwiftDataRecurringPaymentDefinition(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
@@ -26,7 +26,7 @@ internal struct RecurringPaymentMultiplePaymentsTests {
         )
         context.insert(definition)
 
-        var balance: RecurringPaymentSavingBalanceEntity?
+        var balance: SwiftDataRecurringPaymentSavingBalance?
 
         // 1回目のサイクル: 12ヶ月積立 + 支払い
         balance = performFirstCycle(definition: definition, balance: balance, context: context)
@@ -57,10 +57,10 @@ internal struct RecurringPaymentMultiplePaymentsTests {
     /// 1回目のサイクルを実行
     @DatabaseActor
     private func performFirstCycle(
-        definition: RecurringPaymentDefinitionEntity,
-        balance: RecurringPaymentSavingBalanceEntity?,
+        definition: SwiftDataRecurringPaymentDefinition,
+        balance: SwiftDataRecurringPaymentSavingBalance?,
         context: ModelContext,
-    ) -> RecurringPaymentSavingBalanceEntity? {
+    ) -> SwiftDataRecurringPaymentSavingBalance? {
         let params: CycleParams = CycleParams(
             startMonth: 1,
             endMonth: 12,
@@ -69,7 +69,7 @@ internal struct RecurringPaymentMultiplePaymentsTests {
             actualAmount: 150_000,
         )
 
-        let updatedBalance: RecurringPaymentSavingBalanceEntity? = performSavingCycle(
+        let updatedBalance: SwiftDataRecurringPaymentSavingBalance? = performSavingCycle(
             definition: definition,
             balance: balance,
             params: params,
@@ -86,10 +86,10 @@ internal struct RecurringPaymentMultiplePaymentsTests {
     /// 2回目のサイクルを実行
     @DatabaseActor
     private func performSecondCycle(
-        definition: RecurringPaymentDefinitionEntity,
-        balance: RecurringPaymentSavingBalanceEntity?,
+        definition: SwiftDataRecurringPaymentDefinition,
+        balance: SwiftDataRecurringPaymentSavingBalance?,
         context: ModelContext,
-    ) -> RecurringPaymentSavingBalanceEntity? {
+    ) -> SwiftDataRecurringPaymentSavingBalance? {
         let params: CycleParams = CycleParams(
             startMonth: 13,
             endMonth: 24,
@@ -98,7 +98,7 @@ internal struct RecurringPaymentMultiplePaymentsTests {
             actualAmount: 155_000,
         )
 
-        let updatedBalance: RecurringPaymentSavingBalanceEntity? = performSavingCycle(
+        let updatedBalance: SwiftDataRecurringPaymentSavingBalance? = performSavingCycle(
             definition: definition,
             balance: balance,
             params: params,
@@ -115,10 +115,10 @@ internal struct RecurringPaymentMultiplePaymentsTests {
     /// 3回目のサイクルを実行
     @DatabaseActor
     private func performThirdCycle(
-        definition: RecurringPaymentDefinitionEntity,
-        balance: RecurringPaymentSavingBalanceEntity?,
+        definition: SwiftDataRecurringPaymentDefinition,
+        balance: SwiftDataRecurringPaymentSavingBalance?,
         context: ModelContext,
-    ) throws -> RecurringPaymentSavingBalanceEntity {
+    ) throws -> SwiftDataRecurringPaymentSavingBalance {
         let params: CycleParams = CycleParams(
             startMonth: 25,
             endMonth: 36,
@@ -127,7 +127,7 @@ internal struct RecurringPaymentMultiplePaymentsTests {
             actualAmount: 145_000,
         )
 
-        let updatedBalance: RecurringPaymentSavingBalanceEntity? = performSavingCycle(
+        let updatedBalance: SwiftDataRecurringPaymentSavingBalance? = performSavingCycle(
             definition: definition,
             balance: balance,
             params: params,
@@ -142,11 +142,11 @@ internal struct RecurringPaymentMultiplePaymentsTests {
     /// 指定範囲の月次積立を実行するヘルパー関数
     @DatabaseActor
     private func performSavingCycle(
-        definition: RecurringPaymentDefinitionEntity,
-        balance: RecurringPaymentSavingBalanceEntity?,
+        definition: SwiftDataRecurringPaymentDefinition,
+        balance: SwiftDataRecurringPaymentSavingBalance?,
         params: CycleParams
-    ) -> RecurringPaymentSavingBalanceEntity? {
-        var currentBalance: RecurringPaymentSavingBalanceEntity? = balance
+    ) -> SwiftDataRecurringPaymentSavingBalance? {
+        var currentBalance: SwiftDataRecurringPaymentSavingBalance? = balance
         for month in params.startMonth ... params.endMonth {
             currentBalance = balanceService.recordMonthlySavings(
                 params: RecurringPaymentBalanceService.MonthlySavingsParameters(
@@ -163,11 +163,11 @@ internal struct RecurringPaymentMultiplePaymentsTests {
     /// 支払い実績を作成するヘルパー関数
     @DatabaseActor
     private func createOccurrence(
-        definition: RecurringPaymentDefinitionEntity,
+        definition: SwiftDataRecurringPaymentDefinition,
         params: CycleParams,
         context: ModelContext,
-    ) -> RecurringPaymentOccurrenceEntity {
-        let occurrence: RecurringPaymentOccurrenceEntity = RecurringPaymentOccurrenceEntity(
+    ) -> SwiftDataRecurringPaymentOccurrence {
+        let occurrence: SwiftDataRecurringPaymentOccurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: params.year, month: params.month) ?? Date(),
             expectedAmount: 150_000,

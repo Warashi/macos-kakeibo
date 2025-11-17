@@ -1,2 +1,0 @@
-typealias RecurringPaymentDefinitionEntity = SwiftDataRecurringPaymentDefinition
-typealias RecurringPaymentOccurrenceEntity = SwiftDataRecurringPaymentOccurrence

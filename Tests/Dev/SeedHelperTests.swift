@@ -14,11 +14,11 @@ internal struct SeedHelperTests {
         try SeedHelper.seedSampleData(to: container)
 
         // データが投入されたことを確認
-        #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) > 0)
-        #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) > 0)
-        #expect(SeedHelper.count(TransactionEntity.self, in: container) > 0)
-        #expect(SeedHelper.count(BudgetEntity.self, in: container) > 0)
-        #expect(SeedHelper.count(AnnualBudgetConfigEntity.self, in: container) == 1)
+        #expect(SeedHelper.count(SwiftDataFinancialInstitution.self, in: container) > 0)
+        #expect(SeedHelper.count(Kakeibo.SwiftDataCategory.self, in: container) > 0)
+        #expect(SeedHelper.count(SwiftDataTransaction.self, in: container) > 0)
+        #expect(SeedHelper.count(SwiftDataBudget.self, in: container) > 0)
+        #expect(SeedHelper.count(SwiftDataAnnualBudgetConfig.self, in: container) == 1)
     }
 
     @Test("金融機関のみを投入できる")
@@ -27,9 +27,9 @@ internal struct SeedHelperTests {
 
         try SeedHelper.seedFinancialInstitutions(to: container)
 
-        #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) == 7)
-        #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) == 0)
-        #expect(SeedHelper.count(TransactionEntity.self, in: container) == 0)
+        #expect(SeedHelper.count(SwiftDataFinancialInstitution.self, in: container) == 7)
+        #expect(SeedHelper.count(Kakeibo.SwiftDataCategory.self, in: container) == 0)
+        #expect(SeedHelper.count(SwiftDataTransaction.self, in: container) == 0)
     }
 
     @Test("カテゴリのみを投入できる")
@@ -38,9 +38,9 @@ internal struct SeedHelperTests {
 
         try SeedHelper.seedCategories(to: container)
 
-        #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) > 0)
-        #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) == 0)
-        #expect(SeedHelper.count(TransactionEntity.self, in: container) == 0)
+        #expect(SeedHelper.count(Kakeibo.SwiftDataCategory.self, in: container) > 0)
+        #expect(SeedHelper.count(SwiftDataFinancialInstitution.self, in: container) == 0)
+        #expect(SeedHelper.count(SwiftDataTransaction.self, in: container) == 0)
     }
 
     // MARK: - データクリアテスト
@@ -51,18 +51,18 @@ internal struct SeedHelperTests {
 
         // まずデータを投入
         try SeedHelper.seedSampleData(to: container)
-        #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) > 0)
+        #expect(SeedHelper.count(SwiftDataFinancialInstitution.self, in: container) > 0)
 
         // データをクリア
         let context = ModelContext(container)
         try SeedHelper.clearAllData(in: context)
 
         // すべてのデータが削除されたことを確認
-        #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) == 0)
-        #expect(SeedHelper.count(Kakeibo.CategoryEntity.self, in: container) == 0)
-        #expect(SeedHelper.count(TransactionEntity.self, in: container) == 0)
-        #expect(SeedHelper.count(BudgetEntity.self, in: container) == 0)
-        #expect(SeedHelper.count(AnnualBudgetConfigEntity.self, in: container) == 0)
+        #expect(SeedHelper.count(SwiftDataFinancialInstitution.self, in: container) == 0)
+        #expect(SeedHelper.count(Kakeibo.SwiftDataCategory.self, in: container) == 0)
+        #expect(SeedHelper.count(SwiftDataTransaction.self, in: container) == 0)
+        #expect(SeedHelper.count(SwiftDataBudget.self, in: container) == 0)
+        #expect(SeedHelper.count(SwiftDataAnnualBudgetConfig.self, in: container) == 0)
     }
 
     // MARK: - カウントテスト
@@ -72,11 +72,11 @@ internal struct SeedHelperTests {
         let container = try ModelContainer.createInMemoryContainer()
 
         // 初期状態は0件
-        #expect(SeedHelper.count(FinancialInstitutionEntity.self, in: container) == 0)
+        #expect(SeedHelper.count(SwiftDataFinancialInstitution.self, in: container) == 0)
 
         // データ投入後はカウントが増える
         try SeedHelper.seedFinancialInstitutions(to: container)
-        let count = SeedHelper.count(FinancialInstitutionEntity.self, in: container)
+        let count = SeedHelper.count(SwiftDataFinancialInstitution.self, in: container)
         #expect(count == 7)
     }
 
@@ -90,7 +90,7 @@ internal struct SeedHelperTests {
         let context = ModelContext(container)
 
         // すべての取引を取得
-        let transactions = try context.fetchAll(TransactionEntity.self)
+        let transactions = try context.fetchAll(SwiftDataTransaction.self)
 
         // すべての取引がバリデーションを通過することを確認
         for transaction in transactions {
@@ -112,17 +112,17 @@ internal struct SeedHelperTests {
         let context = ModelContext(container)
 
         // すべてのカテゴリを取得
-        let categories = try context.fetchAll(Kakeibo.CategoryEntity.self)
+        let categories = try context.fetchAll(Kakeibo.SwiftDataCategory.self)
 
         // 中項目（子カテゴリ）は親を持つことを確認
-        let minorCategories = categories.filter(\Kakeibo.CategoryEntity.isMinor)
+        let minorCategories = categories.filter(\Kakeibo.SwiftDataCategory.isMinor)
         for minor in minorCategories {
             #expect(minor.parent != nil)
             #expect(minor.parent?.children.contains { $0.id == minor.id } == true)
         }
 
         // 大項目（親カテゴリ）は子を持つことを確認
-        let majorCategories = categories.filter(\Kakeibo.CategoryEntity.isMajor)
+        let majorCategories = categories.filter(\Kakeibo.SwiftDataCategory.isMajor)
         for major in majorCategories where !major.children.isEmpty {
             for child in major.children {
                 #expect(child.parent?.id == major.id)

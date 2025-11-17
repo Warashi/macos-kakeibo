@@ -76,7 +76,7 @@ internal struct AnnualBudgetFormState {
     internal var policy: AnnualBudgetPolicy = .automatic
     internal var allocationRows: [AnnualBudgetAllocationRowState] = []
 
-    internal mutating func load(from config: AnnualBudgetConfigEntity) {
+    internal mutating func load(from config: SwiftDataAnnualBudgetConfig) {
         totalAmountText = config.totalAmount.plainString
         policy = config.policy
         allocationRows = config.allocations.map { allocation in
@@ -276,7 +276,7 @@ internal struct RecurringPaymentFormState {
         selectedMinorCategoryId ?? selectedMajorCategoryId
     }
 
-    internal mutating func load(from definition: RecurringPaymentDefinitionEntity) {
+    internal mutating func load(from definition: SwiftDataRecurringPaymentDefinition) {
         nameText = definition.name
         notesText = definition.notes
         amountText = definition.amount.plainString
@@ -372,7 +372,7 @@ internal struct RecurringPaymentFormState {
 
 internal enum RecurringPaymentEditorMode {
     case create
-    case edit(RecurringPaymentDefinitionEntity)
+    case edit(SwiftDataRecurringPaymentDefinition)
 
     internal var title: String {
         switch self {

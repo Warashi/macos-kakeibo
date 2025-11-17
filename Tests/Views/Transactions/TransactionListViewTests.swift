@@ -4,7 +4,7 @@ import Testing
 
 @testable import Kakeibo
 
-@Suite("TransactionEntity View Tests")
+@Suite("SwiftDataTransaction View Tests")
 @MainActor
 internal struct TransactionListViewTests {
     @Test("TransactionListView本体を初期化できる")
@@ -16,7 +16,7 @@ internal struct TransactionListViewTests {
     @Test("TransactionListContentViewにストアを渡して初期化できる")
     internal func transactionListContentInitialization() async throws {
         let container = try ModelContainer(
-            for: TransactionEntity.self, CategoryEntity.self, FinancialInstitutionEntity.self,
+            for: SwiftDataTransaction.self, SwiftDataCategory.self, SwiftDataFinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
         let repository = await SwiftDataTransactionRepository(modelContainer: container)
@@ -31,7 +31,7 @@ internal struct TransactionListViewTests {
     @Test("TransactionFilterBarはストアを受け取って初期化できる")
     internal func transactionFilterBarInitialization() async throws {
         let container = try ModelContainer(
-            for: TransactionEntity.self, CategoryEntity.self, FinancialInstitutionEntity.self,
+            for: SwiftDataTransaction.self, SwiftDataCategory.self, SwiftDataFinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
         let repository = await SwiftDataTransactionRepository(modelContainer: container)

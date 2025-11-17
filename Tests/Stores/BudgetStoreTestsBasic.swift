@@ -81,12 +81,12 @@ internal struct BudgetStoreTestsBasic {
     @Test("予算更新：金額とカテゴリを変更できる")
     internal func updateBudget_changesValues() async throws {
         let (store, context) = try await makeStore()
-        let food = CategoryEntity(name: "食費", displayOrder: 1)
-        let transport = CategoryEntity(name: "交通", displayOrder: 2)
+        let food = SwiftDataCategory(name: "食費", displayOrder: 1)
+        let transport = SwiftDataCategory(name: "交通", displayOrder: 2)
         context.insert(food)
         context.insert(transport)
 
-        let budget = BudgetEntity(
+        let budget = SwiftDataBudget(
             amount: 10000,
             category: food,
             year: store.currentYear,
@@ -115,7 +115,7 @@ internal struct BudgetStoreTestsBasic {
     @Test("予算削除：削除後にリストから除外される")
     internal func deleteBudget_removesBudget() async throws {
         let (store, context) = try await makeStore()
-        let budget = BudgetEntity(
+        let budget = SwiftDataBudget(
             amount: 8000,
             year: store.currentYear,
             month: store.currentMonth,

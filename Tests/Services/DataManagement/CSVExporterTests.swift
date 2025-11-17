@@ -7,10 +7,10 @@ internal struct CSVExporterTests {
     @Test("取引をCSVに変換できる")
     internal func exportTransactions_containsHeaderAndRow() throws {
         // Given
-        let major = CategoryEntity(name: "食費")
-        let minor = CategoryEntity(name: "外食", parent: major)
-        let institution = FinancialInstitutionEntity(name: "テスト銀行")
-        let transaction = TransactionEntity(
+        let major = SwiftDataCategory(name: "食費")
+        let minor = SwiftDataCategory(name: "外食", parent: major)
+        let institution = SwiftDataFinancialInstitution(name: "テスト銀行")
+        let transaction = SwiftDataTransaction(
             date: Date(timeIntervalSince1970: 0),
             title: "テスト,取引",
             amount: -1200,
