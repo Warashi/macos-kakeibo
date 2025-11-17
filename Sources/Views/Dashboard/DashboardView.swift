@@ -156,10 +156,10 @@ private extension DashboardView {
                 assertionFailure("ModelContainer is unavailable")
                 return
             }
-            let repository = SwiftDataDashboardRepository(modelContainer: container)
+            let dashboardStore = await DashboardStackBuilder.makeStore(modelContainer: container)
             await MainActor.run {
                 guard store == nil else { return }
-                store = DashboardStore(repository: repository)
+                store = dashboardStore
             }
         }
     }
