@@ -11,7 +11,7 @@ internal struct RecurringPaymentListStoreFilterTests {
     internal func entries_periodFilter() async throws {
         let (store, context) = try await makeStore()
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -19,7 +19,7 @@ internal struct RecurringPaymentListStoreFilterTests {
         )
 
         // 期間内
-        let occurrence1 = RecurringPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 45000,
@@ -27,7 +27,7 @@ internal struct RecurringPaymentListStoreFilterTests {
         )
 
         // 期間外（過去）
-        let occurrence2 = RecurringPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 1) ?? Date(),
             expectedAmount: 45000,
@@ -35,7 +35,7 @@ internal struct RecurringPaymentListStoreFilterTests {
         )
 
         // 期間外（未来）
-        let occurrence3 = RecurringPaymentOccurrence(
+        let occurrence3 = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2027, month: 1) ?? Date(),
             expectedAmount: 45000,
@@ -62,28 +62,28 @@ internal struct RecurringPaymentListStoreFilterTests {
     internal func entries_searchTextFilter() async throws {
         let (store, context) = try await makeStore()
 
-        let definition1 = RecurringPaymentDefinition(
+        let definition1 = RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 5) ?? Date(),
         )
 
-        let definition2 = RecurringPaymentDefinition(
+        let definition2 = RecurringPaymentDefinitionEntity(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 4) ?? Date(),
         )
 
-        let occurrence1 = RecurringPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrenceEntity(
             definition: definition1,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
             status: .saving,
         )
 
-        let occurrence2 = RecurringPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrenceEntity(
             definition: definition2,
             scheduledDate: Date.from(year: 2026, month: 4) ?? Date(),
             expectedAmount: 150_000,
@@ -112,21 +112,21 @@ internal struct RecurringPaymentListStoreFilterTests {
     internal func entries_statusFilter() async throws {
         let (store, context) = try await makeStore()
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト",
             amount: 10000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence1 = RecurringPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 10000,
             status: .saving,
         )
 
-        let occurrence2 = RecurringPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 4) ?? Date(),
             expectedAmount: 10000,
@@ -164,7 +164,7 @@ internal struct RecurringPaymentListStoreFilterTests {
         context.insert(minor)
         context.insert(otherMajor)
 
-        let definitionMajor = RecurringPaymentDefinition(
+        let definitionMajor = RecurringPaymentDefinitionEntity(
             name: "家賃",
             amount: 80000,
             recurrenceIntervalMonths: 1,
@@ -172,7 +172,7 @@ internal struct RecurringPaymentListStoreFilterTests {
             category: major,
         )
 
-        let definitionMinor = RecurringPaymentDefinition(
+        let definitionMinor = RecurringPaymentDefinitionEntity(
             name: "外食",
             amount: 15000,
             recurrenceIntervalMonths: 1,
@@ -180,7 +180,7 @@ internal struct RecurringPaymentListStoreFilterTests {
             category: minor,
         )
 
-        let definitionOther = RecurringPaymentDefinition(
+        let definitionOther = RecurringPaymentDefinitionEntity(
             name: "サブスク",
             amount: 2000,
             recurrenceIntervalMonths: 1,
@@ -188,21 +188,21 @@ internal struct RecurringPaymentListStoreFilterTests {
             category: otherMajor,
         )
 
-        let occurrence1 = RecurringPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrenceEntity(
             definition: definitionMajor,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 80000,
             status: .saving,
         )
 
-        let occurrence2 = RecurringPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrenceEntity(
             definition: definitionMinor,
             scheduledDate: Date.from(year: 2026, month: 2) ?? Date(),
             expectedAmount: 15000,
             status: .saving,
         )
 
-        let occurrence3 = RecurringPaymentOccurrence(
+        let occurrence3 = RecurringPaymentOccurrenceEntity(
             definition: definitionOther,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 2000,
@@ -241,7 +241,7 @@ internal struct RecurringPaymentListStoreFilterTests {
         context.insert(minor)
         context.insert(anotherMinor)
 
-        let definitionMinor = RecurringPaymentDefinition(
+        let definitionMinor = RecurringPaymentDefinitionEntity(
             name: "外食",
             amount: 15000,
             recurrenceIntervalMonths: 1,
@@ -249,7 +249,7 @@ internal struct RecurringPaymentListStoreFilterTests {
             category: minor,
         )
 
-        let definitionAnother = RecurringPaymentDefinition(
+        let definitionAnother = RecurringPaymentDefinitionEntity(
             name: "日用品",
             amount: 8000,
             recurrenceIntervalMonths: 1,
@@ -257,14 +257,14 @@ internal struct RecurringPaymentListStoreFilterTests {
             category: anotherMinor,
         )
 
-        let occurrence1 = RecurringPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrenceEntity(
             definition: definitionMinor,
             scheduledDate: Date.from(year: 2026, month: 2) ?? Date(),
             expectedAmount: 15000,
             status: .saving,
         )
 
-        let occurrence2 = RecurringPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrenceEntity(
             definition: definitionAnother,
             scheduledDate: Date.from(year: 2026, month: 2) ?? Date(),
             expectedAmount: 8000,

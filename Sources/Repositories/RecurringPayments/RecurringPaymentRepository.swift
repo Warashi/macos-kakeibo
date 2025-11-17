@@ -63,9 +63,9 @@ internal struct RecurringPaymentSynchronizationSummary {
 
 @DatabaseActor
 internal protocol RecurringPaymentRepository: Sendable {
-    func definitions(filter: RecurringPaymentDefinitionFilter?) throws -> [RecurringPaymentDefinitionDTO]
-    func occurrences(query: RecurringPaymentOccurrenceQuery?) throws -> [RecurringPaymentOccurrenceDTO]
-    func balances(query: RecurringPaymentBalanceQuery?) throws -> [RecurringPaymentSavingBalanceDTO]
+    func definitions(filter: RecurringPaymentDefinitionFilter?) throws -> [RecurringPaymentDefinition]
+    func occurrences(query: RecurringPaymentOccurrenceQuery?) throws -> [RecurringPaymentOccurrence]
+    func balances(query: RecurringPaymentBalanceQuery?) throws -> [RecurringPaymentSavingBalance]
 
     @discardableResult
     func createDefinition(_ input: RecurringPaymentDefinitionInput) throws -> UUID

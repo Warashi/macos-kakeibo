@@ -11,21 +11,21 @@ internal struct RecurringPaymentListEntryFactoryTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 5) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
             status: .saving,
         )
 
-        let balance = RecurringPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 30000,
             totalPaidAmount: 0,
@@ -42,10 +42,10 @@ internal struct RecurringPaymentListEntryFactoryTests {
         let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
             input: RecurringPaymentListPresenter.EntryInput(
-                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
-                definition: RecurringPaymentDefinitionDTO(from: definition),
+                occurrence: RecurringPaymentOccurrence(from: occurrence),
+                definition: RecurringPaymentDefinition(from: definition),
                 categoryName: definition.category?.name,
-                balance: RecurringPaymentSavingBalanceDTO(from: balance),
+                balance: RecurringPaymentSavingBalance(from: balance),
                 now: now,
             ),
         )
@@ -70,14 +70,14 @@ internal struct RecurringPaymentListEntryFactoryTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
             firstOccurrenceDate: Date.from(year: 2027, month: 3) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2027, month: 3) ?? Date(),
             expectedAmount: 120_000,
@@ -91,8 +91,8 @@ internal struct RecurringPaymentListEntryFactoryTests {
         let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
             input: RecurringPaymentListPresenter.EntryInput(
-                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
-                definition: RecurringPaymentDefinitionDTO(from: definition),
+                occurrence: RecurringPaymentOccurrence(from: occurrence),
+                definition: RecurringPaymentDefinition(from: definition),
                 categoryName: definition.category?.name,
                 balance: nil,
                 now: Date(),
@@ -109,14 +109,14 @@ internal struct RecurringPaymentListEntryFactoryTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 4) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 4) ?? Date(),
             expectedAmount: 150_000,
@@ -132,8 +132,8 @@ internal struct RecurringPaymentListEntryFactoryTests {
         let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
             input: RecurringPaymentListPresenter.EntryInput(
-                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
-                definition: RecurringPaymentDefinitionDTO(from: definition),
+                occurrence: RecurringPaymentOccurrence(from: occurrence),
+                definition: RecurringPaymentDefinition(from: definition),
                 categoryName: definition.category?.name,
                 balance: nil,
                 now: Date(),

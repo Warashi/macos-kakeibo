@@ -14,7 +14,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         let store = harness.store
         let context = harness.context
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
@@ -22,13 +22,13 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         context.insert(definition)
 
-        let pending = RecurringPaymentOccurrence(
+        let pending = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: referenceDate.addingTimeInterval(-60 * 60 * 24),
             expectedAmount: 120_000,
             status: .planned,
         )
-        let completed = RecurringPaymentOccurrence(
+        let completed = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: referenceDate.addingTimeInterval(-60 * 60 * 24 * 100),
             expectedAmount: 120_000,
@@ -57,7 +57,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         let store = harness.store
         let context = harness.context
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
@@ -65,7 +65,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         context.insert(definition)
 
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: referenceDate,
             expectedAmount: 150_000,
@@ -108,7 +108,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         let context = harness.context
         let spy = harness.occurrencesService
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "旅行積立",
             amount: 80000,
             recurrenceIntervalMonths: 6,
@@ -116,7 +116,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         context.insert(definition)
 
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: referenceDate,
             expectedAmount: 80000,
@@ -164,7 +164,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         let context = harness.context
         let spy = harness.occurrencesService
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "大型備品",
             amount: 100_000,
             recurrenceIntervalMonths: 12,
@@ -173,7 +173,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
         )
         context.insert(definition)
 
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: referenceDate,
             expectedAmount: 100_000,

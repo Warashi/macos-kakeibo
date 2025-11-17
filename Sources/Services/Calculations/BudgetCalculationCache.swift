@@ -219,11 +219,11 @@ internal enum BudgetCalculationCacheHasher {
         versionHash(for: budgets, id: { $0.id }, updatedAt: { $0.updatedAt })
     }
 
-    internal static func balancesVersion(for balances: [RecurringPaymentSavingBalanceDTO]) -> Int {
+    internal static func balancesVersion(for balances: [RecurringPaymentSavingBalance]) -> Int {
         versionHash(for: balances, id: { $0.id }, updatedAt: { $0.updatedAt })
     }
 
-    internal static func definitionsVersion(_ definitions: [RecurringPaymentDefinitionDTO]) -> Int {
+    internal static func definitionsVersion(_ definitions: [RecurringPaymentDefinition]) -> Int {
         versionHash(for: definitions, id: { $0.id }, updatedAt: { $0.updatedAt })
     }
 

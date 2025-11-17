@@ -29,7 +29,7 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
 
     // Convenience initializer removed to encourage ModelContainer-based usage.
 
-    internal func definitions(filter: RecurringPaymentDefinitionFilter?) throws -> [RecurringPaymentDefinitionDTO] {
+    internal func definitions(filter: RecurringPaymentDefinitionFilter?) throws -> [RecurringPaymentDefinition] {
         let context = makeContext()
         let descriptor = RecurringPaymentQueries.definitions(
             predicate: definitionPredicate(for: filter),
@@ -49,10 +49,10 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
             }
         }
 
-        return results.map { RecurringPaymentDefinitionDTO(from: $0) }
+        return results.map { RecurringPaymentDefinition(from: $0) }
     }
 
-    internal func occurrences(query: RecurringPaymentOccurrenceQuery?) throws -> [RecurringPaymentOccurrenceDTO] {
+    internal func occurrences(query: RecurringPaymentOccurrenceQuery?) throws -> [RecurringPaymentOccurrence] {
         let context = makeContext()
         let descriptor = RecurringPaymentQueries.occurrences(
             predicate: occurrencePredicate(for: query),
@@ -68,16 +68,16 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
             results = results.filter { definitionIds.contains($0.definition.id) }
         }
 
-        return results.map { RecurringPaymentOccurrenceDTO(from: $0) }
+        return results.map { RecurringPaymentOccurrence(from: $0) }
     }
 
-    internal func balances(query: RecurringPaymentBalanceQuery?) throws -> [RecurringPaymentSavingBalanceDTO] {
+    internal func balances(query: RecurringPaymentBalanceQuery?) throws -> [RecurringPaymentSavingBalance] {
         let context = makeContext()
         let descriptor = RecurringPaymentQueries.balances(
             predicate: balancePredicate(for: query),
         )
 
-        return try context.fetch(descriptor).map { RecurringPaymentSavingBalanceDTO(from: $0) }
+        return try context.fetch(descriptor).map { RecurringPaymentSavingBalance(from: $0) }
     }
 
     @discardableResult
@@ -85,7 +85,7 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
         let context = makeContext()
         let category = try resolvedCategory(id: input.categoryId, context: context)
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: input.name,
             notes: input.notes,
             amount: input.amount,
@@ -270,8 +270,8 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
 }
 
 private extension SwiftDataRecurringPaymentRepository {
-    func findOccurrence(id: UUID, context: ModelContext) throws -> RecurringPaymentOccurrence {
-        let predicate = #Predicate<RecurringPaymentOccurrence> { occurrence in
+    func findOccurrence(id: UUID, context: ModelContext) throws -> RecurringPaymentOccurrenceEntity {
+        let predicate = #Predicate<RecurringPaymentOccurrenceEntity> { occurrence in
             occurrence.id == id
         }
         let descriptor = RecurringPaymentQueries.occurrences(predicate: predicate)
@@ -280,8 +280,8 @@ private extension SwiftDataRecurringPaymentRepository {
         }
         return occurrence
     }
-    func findDefinition(id: UUID, context: ModelContext) throws -> RecurringPaymentDefinition {
-        let predicate = #Predicate<RecurringPaymentDefinition> { definition in
+    func findDefinition(id: UUID, context: ModelContext) throws -> RecurringPaymentDefinitionEntity {
+        let predicate = #Predicate<RecurringPaymentDefinitionEntity> { definition in
             definition.id == id
         }
         let descriptor = RecurringPaymentQueries.definitions(predicate: predicate)
@@ -304,19 +304,19 @@ private extension SwiftDataRecurringPaymentRepository {
 
     func definitionPredicate(
         for filter: RecurringPaymentDefinitionFilter?,
-    ) -> Predicate<RecurringPaymentDefinition>? {
+    ) -> Predicate<RecurringPaymentDefinitionEntity>? {
         guard let identifiers = filter?.ids, !identifiers.isEmpty else {
             return nil
         }
 
-        return #Predicate<RecurringPaymentDefinition> { definition in
+        return #Predicate<RecurringPaymentDefinitionEntity> { definition in
             identifiers.contains(definition.id)
         }
     }
 
     func occurrencePredicate(
         for query: RecurringPaymentOccurrenceQuery?,
-    ) -> Predicate<RecurringPaymentOccurrence>? {
+    ) -> Predicate<RecurringPaymentOccurrenceEntity>? {
         guard let range = query?.range else {
             return nil
         }
@@ -324,19 +324,19 @@ private extension SwiftDataRecurringPaymentRepository {
         let start = range.startDate
         let end = range.endDate
 
-        return #Predicate<RecurringPaymentOccurrence> { occurrence in
+        return #Predicate<RecurringPaymentOccurrenceEntity> { occurrence in
             occurrence.scheduledDate >= start && occurrence.scheduledDate <= end
         }
     }
 
     func balancePredicate(
         for query: RecurringPaymentBalanceQuery?,
-    ) -> Predicate<RecurringPaymentSavingBalance>? {
+    ) -> Predicate<RecurringPaymentSavingBalanceEntity>? {
         guard let identifiers = query?.definitionIds, !identifiers.isEmpty else {
             return nil
         }
 
-        return #Predicate<RecurringPaymentSavingBalance> { balance in
+        return #Predicate<RecurringPaymentSavingBalanceEntity> { balance in
             identifiers.contains(balance.definition.id)
         }
     }

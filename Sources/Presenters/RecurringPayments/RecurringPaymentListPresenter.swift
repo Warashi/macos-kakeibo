@@ -24,9 +24,9 @@ internal struct RecurringPaymentListPresenter {
     }
 
     internal struct EntriesInput {
-        internal let occurrences: [RecurringPaymentOccurrenceDTO]
-        internal let definitions: [UUID: RecurringPaymentDefinitionDTO]
-        internal let balances: [UUID: RecurringPaymentSavingBalanceDTO]
+        internal let occurrences: [RecurringPaymentOccurrence]
+        internal let definitions: [UUID: RecurringPaymentDefinition]
+        internal let balances: [UUID: RecurringPaymentSavingBalance]
         internal let categories: [UUID: String]
         internal let filter: RecurringPaymentListFilter
         internal let now: Date
@@ -67,8 +67,8 @@ internal struct RecurringPaymentListPresenter {
     }
 
     private func matches(
-        occurrence: RecurringPaymentOccurrenceDTO,
-        definition: RecurringPaymentDefinitionDTO,
+        occurrence: RecurringPaymentOccurrence,
+        definition: RecurringPaymentDefinition,
         categoryName: String?,
         filter: RecurringPaymentListFilter,
     ) -> Bool {
@@ -104,10 +104,10 @@ internal struct RecurringPaymentListPresenter {
     }
 
     internal struct EntryInput {
-        internal let occurrence: RecurringPaymentOccurrenceDTO
-        internal let definition: RecurringPaymentDefinitionDTO
+        internal let occurrence: RecurringPaymentOccurrence
+        internal let definition: RecurringPaymentDefinition
         internal let categoryName: String?
-        internal let balance: RecurringPaymentSavingBalanceDTO?
+        internal let balance: RecurringPaymentSavingBalance?
         internal let now: Date
     }
 

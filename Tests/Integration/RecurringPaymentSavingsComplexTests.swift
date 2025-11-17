@@ -33,7 +33,7 @@ internal struct RecurringPaymentSavingsComplexTests {
         try context.save()
 
         // When: 月次積立金額を計算
-        let definitionDTOs = definitions.map { RecurringPaymentDefinitionDTO(from: $0) }
+        let definitionDTOs = definitions.map { RecurringPaymentDefinition(from: $0) }
         let totalAllocation = calculator.calculateMonthlySavingsAllocation(
             definitions: definitionDTOs,
             year: 2025,
@@ -66,7 +66,7 @@ internal struct RecurringPaymentSavingsComplexTests {
             year: 2025
         )
 
-        let balanceDTOs = balances.map { RecurringPaymentSavingBalanceDTO(from: $0) }
+        let balanceDTOs = balances.map { RecurringPaymentSavingBalance(from: $0) }
         let savingsInput = RecurringPaymentSavingsCalculationInput(
             definitions: definitionDTOs,
             balances: balanceDTOs,
@@ -122,8 +122,8 @@ internal struct RecurringPaymentSavingsComplexTests {
     }
 
     /// 定期支払い定義を作成するヘルパー
-    private func makeDefinition(params: DefinitionParams) -> RecurringPaymentDefinition {
-        RecurringPaymentDefinition(
+    private func makeDefinition(params: DefinitionParams) -> RecurringPaymentDefinitionEntity {
+        RecurringPaymentDefinitionEntity(
             name: params.name,
             amount: params.amount,
             recurrenceIntervalMonths: 12,
@@ -139,8 +139,8 @@ internal struct RecurringPaymentSavingsComplexTests {
         categoryTax: Kakeibo.CategoryEntity,
         categoryEducation: Kakeibo.CategoryEntity,
         context: ModelContext,
-    ) -> [RecurringPaymentDefinition] {
-        let definitions: [RecurringPaymentDefinition] = [
+    ) -> [RecurringPaymentDefinitionEntity] {
+        let definitions: [RecurringPaymentDefinitionEntity] = [
             makeDefinition(params: DefinitionParams(
                 name: "自動車税",
                 amount: 45000,
@@ -181,13 +181,13 @@ internal struct RecurringPaymentSavingsComplexTests {
 
     /// 複数定義の積立残高を作成するヘルパー関数
     private func createBalancesForDefinitions(
-        definitions: [RecurringPaymentDefinition],
+        definitions: [RecurringPaymentDefinitionEntity],
         months: Int,
         year: Int
-    ) -> [RecurringPaymentSavingBalance] {
-        var balances: [RecurringPaymentSavingBalance] = []
+    ) -> [RecurringPaymentSavingBalanceEntity] {
+        var balances: [RecurringPaymentSavingBalanceEntity] = []
         for definition in definitions {
-            var balance: RecurringPaymentSavingBalance?
+            var balance: RecurringPaymentSavingBalanceEntity?
             for month in 1 ... months {
                 balance = balanceService.recordMonthlySavings(
                     params: RecurringPaymentBalanceService.MonthlySavingsParameters(

@@ -18,7 +18,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         context.insert(housing)
         context.insert(dining)
 
-        let definitionWithCategory = try RecurringPaymentDefinition(
+        let definitionWithCategory = try RecurringPaymentDefinitionEntity(
             name: "住宅ローン",
             amount: 200_000,
             recurrenceIntervalMonths: 1,
@@ -26,7 +26,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
             category: housing,
         )
 
-        let definitionWithoutCategory = try RecurringPaymentDefinition(
+        let definitionWithoutCategory = try RecurringPaymentDefinitionEntity(
             name: "旅行積立",
             amount: 50000,
             recurrenceIntervalMonths: 6,
@@ -54,21 +54,21 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
 
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: firstDate,
         )
 
-        let upcoming = try RecurringPaymentOccurrence(
+        let upcoming = try RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: #require(Date.from(year: 2025, month: 5, day: 31)),
             expectedAmount: 45000,
             status: .planned,
         )
 
-        let completed = try RecurringPaymentOccurrence(
+        let completed = try RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: #require(Date.from(year: 2024, month: 5, day: 31)),
             expectedAmount: 42000,
@@ -106,7 +106,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
             currentDateProvider: { referenceDate },
         )
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "保険料",
             amount: 50000,
             recurrenceIntervalMonths: 6,
@@ -142,7 +142,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
             currentDateProvider: { today },
         )
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "固定資産税",
             amount: 120_000,
             recurrenceIntervalMonths: 12,

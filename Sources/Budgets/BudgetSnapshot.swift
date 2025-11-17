@@ -5,7 +5,7 @@ internal struct BudgetSnapshot: Sendable {
     internal let transactions: [Transaction]
     internal let categories: [Category]
     internal let annualBudgetConfig: AnnualBudgetConfig?
-    internal let recurringPaymentDefinitions: [RecurringPaymentDefinitionDTO]
-    internal let recurringPaymentBalances: [RecurringPaymentSavingBalanceDTO]
-    internal let recurringPaymentOccurrences: [RecurringPaymentOccurrenceDTO]
+    internal let recurringPaymentDefinitions: [RecurringPaymentDefinition]
+    internal let recurringPaymentBalances: [RecurringPaymentSavingBalance]
+    internal let recurringPaymentOccurrences: [RecurringPaymentOccurrence]
 }

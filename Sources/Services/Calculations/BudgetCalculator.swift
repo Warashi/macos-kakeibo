@@ -328,7 +328,7 @@ internal struct BudgetCalculator: Sendable {
     ///   - month: 対象月
     /// - Returns: 月次積立金額の合計
     internal func calculateMonthlySavingsAllocation(
-        definitions: [RecurringPaymentDefinitionDTO],
+        definitions: [RecurringPaymentDefinition],
         year: Int,
         month: Int,
     ) -> Decimal {
@@ -361,7 +361,7 @@ internal struct BudgetCalculator: Sendable {
     ///   - month: 対象月
     /// - Returns: カテゴリIDと積立金額のマップ
     internal func calculateCategorySavingsAllocation(
-        definitions: [RecurringPaymentDefinitionDTO],
+        definitions: [RecurringPaymentDefinition],
         year: Int,
         month: Int,
     ) -> [UUID: Decimal] {

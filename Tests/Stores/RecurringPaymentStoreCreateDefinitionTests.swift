@@ -28,7 +28,7 @@ internal struct RecurringPaymentStoreCreateDefinitionTests {
         )
         try await store.createDefinition(input, horizonMonths: 24)
 
-        let descriptor: ModelFetchRequest<RecurringPaymentDefinition> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<RecurringPaymentDefinitionEntity> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
 
         #expect(definitions.count == 1)
@@ -62,7 +62,7 @@ internal struct RecurringPaymentStoreCreateDefinitionTests {
         )
         try await store.createDefinition(input)
 
-        let descriptor: ModelFetchRequest<RecurringPaymentDefinition> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<RecurringPaymentDefinitionEntity> = ModelFetchFactory.make()
         let definitions = try context.fetch(descriptor)
         let definition = try #require(definitions.first)
 

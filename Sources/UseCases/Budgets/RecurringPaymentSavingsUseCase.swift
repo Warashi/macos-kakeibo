@@ -91,7 +91,7 @@ internal final class DefaultRecurringPaymentSavingsUseCase: RecurringPaymentSavi
 private extension DefaultRecurringPaymentSavingsUseCase {
     func progress(
         for calculation: RecurringPaymentSavingsCalculation,
-        definitions: [RecurringPaymentDefinitionDTO],
+        definitions: [RecurringPaymentDefinition],
     ) -> Double {
         guard let definition = definitions.first(where: { $0.id == calculation.definitionId }) else {
             return 0

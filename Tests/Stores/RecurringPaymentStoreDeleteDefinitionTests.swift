@@ -13,7 +13,7 @@ internal struct RecurringPaymentStoreDeleteDefinitionTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 50000,
             recurrenceIntervalMonths: 12,
@@ -23,7 +23,7 @@ internal struct RecurringPaymentStoreDeleteDefinitionTests {
         try context.save()
 
         // 削除前の確認
-        var descriptor: ModelFetchRequest<RecurringPaymentDefinition> = ModelFetchFactory.make()
+        var descriptor: ModelFetchRequest<RecurringPaymentDefinitionEntity> = ModelFetchFactory.make()
         var definitions = try context.fetch(descriptor)
         #expect(definitions.count == 1)
 
@@ -41,7 +41,7 @@ internal struct RecurringPaymentStoreDeleteDefinitionTests {
         let (store, context) = try await makeStore(referenceDate: referenceDate)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 50000,
             recurrenceIntervalMonths: 12,
@@ -65,7 +65,7 @@ internal struct RecurringPaymentStoreDeleteDefinitionTests {
         try await store.deleteDefinition(definitionId: definition.id)
 
         // Occurrenceも削除されていることを確認
-        let descriptor: ModelFetchRequest<RecurringPaymentOccurrence> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<RecurringPaymentOccurrenceEntity> = ModelFetchFactory.make()
         let occurrences = try context.fetch(descriptor)
         #expect(occurrences.isEmpty)
         #expect(occurrenceCountBefore > 0) // 削除前には存在していたことを確認

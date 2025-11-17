@@ -2,15 +2,15 @@ import Foundation
 @testable import Kakeibo
 
 internal final class InMemoryRecurringPaymentRepository: RecurringPaymentRepository {
-    private var definitionsStorage: [UUID: RecurringPaymentDefinition]
-    private var balancesStorage: [UUID: RecurringPaymentSavingBalance]
+    private var definitionsStorage: [UUID: RecurringPaymentDefinitionEntity]
+    private var balancesStorage: [UUID: RecurringPaymentSavingBalanceEntity]
     private var categoryLookup: [UUID: Kakeibo.CategoryEntity]
     private let scheduleService: RecurringPaymentScheduleService
     private let currentDateProvider: () -> Date
 
     internal init(
-        definitions: [RecurringPaymentDefinition] = [],
-        balances: [RecurringPaymentSavingBalance] = [],
+        definitions: [RecurringPaymentDefinitionEntity] = [],
+        balances: [RecurringPaymentSavingBalanceEntity] = [],
         categories: [Kakeibo.CategoryEntity] = [],
         scheduleService: RecurringPaymentScheduleService = RecurringPaymentScheduleService(),
         currentDateProvider: @escaping () -> Date = { Date() },
@@ -28,7 +28,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         self.currentDateProvider = currentDateProvider
     }
 
-    internal func definitions(filter: RecurringPaymentDefinitionFilter?) throws -> [RecurringPaymentDefinitionDTO] {
+    internal func definitions(filter: RecurringPaymentDefinitionFilter?) throws -> [RecurringPaymentDefinition] {
         var results = Array(definitionsStorage.values)
         if let ids = filter?.ids {
             results = results.filter { ids.contains($0.id) }
@@ -44,10 +44,10 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
                 return categoryIds.contains(categoryId)
             }
         }
-        return results.map { RecurringPaymentDefinitionDTO(from: $0) }
+        return results.map { RecurringPaymentDefinition(from: $0) }
     }
 
-    internal func occurrences(query: RecurringPaymentOccurrenceQuery?) throws -> [RecurringPaymentOccurrenceDTO] {
+    internal func occurrences(query: RecurringPaymentOccurrenceQuery?) throws -> [RecurringPaymentOccurrence] {
         var results = definitionsStorage.values.flatMap(\.occurrences)
         if let ids = query?.definitionIds {
             results = results.filter { ids.contains($0.definition.id) }
@@ -59,22 +59,22 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
             results = results.filter { statuses.contains($0.status) }
         }
         return results.sorted(by: { $0.scheduledDate < $1.scheduledDate })
-            .map { RecurringPaymentOccurrenceDTO(from: $0) }
+            .map { RecurringPaymentOccurrence(from: $0) }
     }
 
-    internal func balances(query: RecurringPaymentBalanceQuery?) throws -> [RecurringPaymentSavingBalanceDTO] {
+    internal func balances(query: RecurringPaymentBalanceQuery?) throws -> [RecurringPaymentSavingBalance] {
         var results = Array(balancesStorage.values)
         if let ids = query?.definitionIds {
             results = results.filter { ids.contains($0.definition.id) }
         }
-        return results.map { RecurringPaymentSavingBalanceDTO(from: $0) }
+        return results.map { RecurringPaymentSavingBalance(from: $0) }
     }
 
     @discardableResult
     internal func createDefinition(_ input: RecurringPaymentDefinitionInput) throws -> UUID {
         let category = try resolvedCategoryEntity(id: input.categoryId)
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: input.name,
             notes: input.notes,
             amount: input.amount,
@@ -262,7 +262,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         return category
     }
 
-    private func findOccurrence(id: UUID) -> RecurringPaymentOccurrence? {
+    private func findOccurrence(id: UUID) -> RecurringPaymentOccurrenceEntity? {
         definitionsStorage.values.flatMap(\.occurrences).first { $0.id == id }
     }
 }

@@ -12,7 +12,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
         let (store, context) = try await makeStore()
 
         let category = CategoryEntity(name: "保険・税金")
-        let definition1 = RecurringPaymentDefinition(
+        let definition1 = RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -20,7 +20,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
             category: category,
             savingStrategy: .evenlyDistributed,
         )
-        let definition2 = RecurringPaymentDefinition(
+        let definition2 = RecurringPaymentDefinitionEntity(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -51,7 +51,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
         let categoryTax = CategoryEntity(name: "保険・税金")
         let categoryEducation = CategoryEntity(name: "教育費")
 
-        let definition1 = RecurringPaymentDefinition(
+        let definition1 = RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -59,7 +59,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
             category: categoryTax,
             savingStrategy: .evenlyDistributed,
         )
-        let definition2 = RecurringPaymentDefinition(
+        let definition2 = RecurringPaymentDefinitionEntity(
             name: "学資保険",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
@@ -91,7 +91,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
 
         let balanceService = RecurringPaymentBalanceService()
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -101,7 +101,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
         context.insert(definition)
 
         // 12ヶ月分の積立を記録
-        var balance: RecurringPaymentSavingBalance?
+        var balance: RecurringPaymentSavingBalanceEntity?
         for month in 1 ... 12 {
             let nextBalance = balanceService.recordMonthlySavings(
                 params: RecurringPaymentBalanceService.MonthlySavingsParameters(
@@ -138,7 +138,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
     internal func recurringPaymentSavings_alertFlag() async throws {
         let (store, context) = try await makeStore()
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -146,7 +146,7 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
             savingStrategy: .evenlyDistributed,
         )
 
-        let balance = RecurringPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 100_000,
             totalPaidAmount: 120_000, // 超過払い

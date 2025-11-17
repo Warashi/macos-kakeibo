@@ -11,21 +11,21 @@ internal struct RecurringPaymentListStoreSortTests {
     internal func entries_sortByDateAscending() async throws {
         let (store, context) = try await makeStore()
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト",
             amount: 10000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence1 = RecurringPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 10000,
             status: .saving,
         )
 
-        let occurrence2 = RecurringPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 10000,
@@ -53,28 +53,28 @@ internal struct RecurringPaymentListStoreSortTests {
     internal func entries_sortByNameAscending() async throws {
         let (store, context) = try await makeStore()
 
-        let definition1 = RecurringPaymentDefinition(
+        let definition1 = RecurringPaymentDefinitionEntity(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
             firstOccurrenceDate: Date.from(year: 2026, month: 3) ?? Date(),
         )
 
-        let definition2 = RecurringPaymentDefinition(
+        let definition2 = RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 5) ?? Date(),
         )
 
-        let occurrence1 = RecurringPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrenceEntity(
             definition: definition1,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 120_000,
             status: .saving,
         )
 
-        let occurrence2 = RecurringPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrenceEntity(
             definition: definition2,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,

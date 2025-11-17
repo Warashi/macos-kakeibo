@@ -1,7 +1,7 @@
 import Foundation
 
-/// RecurringPaymentOccurrenceのDTO（Sendable）
-internal struct RecurringPaymentOccurrenceDTO: Sendable {
+/// ドメイン層で扱う定期支払い発生レコード
+internal struct RecurringPaymentOccurrence: Sendable {
     internal let id: UUID
     internal let definitionId: UUID
     internal let scheduledDate: Date
@@ -37,7 +37,7 @@ internal struct RecurringPaymentOccurrenceDTO: Sendable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from occurrence: RecurringPaymentOccurrence) {
+    internal init(from occurrence: RecurringPaymentOccurrenceEntity) {
         self.id = occurrence.id
         self.definitionId = occurrence.definition.id
         self.scheduledDate = occurrence.scheduledDate

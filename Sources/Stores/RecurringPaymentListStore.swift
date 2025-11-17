@@ -113,7 +113,7 @@ internal final class RecurringPaymentListStore {
 
     // MARK: - Helper Methods
 
-    private func fetchOccurrences() async -> [RecurringPaymentOccurrenceDTO] {
+    private func fetchOccurrences() async -> [RecurringPaymentOccurrence] {
         let range = RecurringPaymentOccurrenceRange(
             startDate: dateRange.startDate,
             endDate: dateRange.endDate,
@@ -127,19 +127,19 @@ internal final class RecurringPaymentListStore {
         return await (try? repository.occurrences(query: query)) ?? []
     }
 
-    private func fetchDefinitions() async -> [UUID: RecurringPaymentDefinitionDTO] {
+    private func fetchDefinitions() async -> [UUID: RecurringPaymentDefinition] {
         let definitions = await (try? repository.definitions(filter: nil)) ?? []
         return Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
     }
 
-    private func balanceLookup(for definitionIds: [UUID]) async -> [UUID: RecurringPaymentSavingBalanceDTO] {
+    private func balanceLookup(for definitionIds: [UUID]) async -> [UUID: RecurringPaymentSavingBalance] {
         guard !definitionIds.isEmpty else { return [:] }
         let query = RecurringPaymentBalanceQuery(definitionIds: Set(definitionIds))
         let balances = await (try? repository.balances(query: query)) ?? []
         return Dictionary(uniqueKeysWithValues: balances.map { ($0.definitionId, $0) })
     }
 
-    private func fetchCategoryNames(from definitions: [UUID: RecurringPaymentDefinitionDTO]) async -> [UUID: String] {
+    private func fetchCategoryNames(from definitions: [UUID: RecurringPaymentDefinition]) async -> [UUID: String] {
         var categoryNames: [UUID: String] = [:]
         for definition in definitions.values {
             if let categoryId = definition.categoryId {
@@ -150,7 +150,7 @@ internal final class RecurringPaymentListStore {
     }
 
     private func updateCategoryOptionsIfNeeded(
-        from definitions: [UUID: RecurringPaymentDefinitionDTO],
+        from definitions: [UUID: RecurringPaymentDefinition],
         categories: [UUID: String],
     ) async {
         guard categoryFilter.availableCategories.isEmpty else { return }

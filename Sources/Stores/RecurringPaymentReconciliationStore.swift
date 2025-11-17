@@ -75,8 +75,8 @@ internal final class RecurringPaymentReconciliationStore {
 
     // MARK: - Caches
 
-    private var occurrenceLookup: [UUID: RecurringPaymentOccurrenceDTO] = [:]
-    private var definitionsLookup: [UUID: RecurringPaymentDefinitionDTO] = [:]
+    private var occurrenceLookup: [UUID: RecurringPaymentOccurrence] = [:]
+    private var definitionsLookup: [UUID: RecurringPaymentDefinition] = [:]
     private var linkedTransactionLookup: [UUID: UUID] = [:]
     private var transactions: [Transaction] = []
 
@@ -272,7 +272,7 @@ internal extension RecurringPaymentReconciliationStore {
 // MARK: - Private Helpers
 
 private extension RecurringPaymentReconciliationStore {
-    var selectedOccurrence: RecurringPaymentOccurrenceDTO? {
+    var selectedOccurrence: RecurringPaymentOccurrence? {
         guard let id = selectedOccurrenceId else { return nil }
         return occurrenceLookup[id]
     }
@@ -310,7 +310,7 @@ private extension RecurringPaymentReconciliationStore {
         recomputeCandidates(for: occurrence)
     }
 
-    private func recomputeCandidates(for occurrence: RecurringPaymentOccurrenceDTO) {
+    private func recomputeCandidates(for occurrence: RecurringPaymentOccurrence) {
         guard let definition = definitionsLookup[occurrence.definitionId] else {
             candidateTransactions = []
             return

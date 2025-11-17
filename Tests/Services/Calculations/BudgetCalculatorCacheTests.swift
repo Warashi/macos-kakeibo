@@ -82,13 +82,13 @@ internal struct BudgetCalculatorCacheTests {
     @Test("定期支払い積立計算のキャッシュヒットを測定する")
     internal func recurringPaymentSavingsCaching() throws {
         let calculator = BudgetCalculator()
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 60000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 5) ?? Date(),
         )
-        let balance = RecurringPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 20000,
             totalPaidAmount: 10000,
@@ -97,8 +97,8 @@ internal struct BudgetCalculatorCacheTests {
         )
 
         let input = RecurringPaymentSavingsCalculationInput(
-            definitions: [RecurringPaymentDefinitionDTO(from: definition)],
-            balances: [RecurringPaymentSavingBalanceDTO(from: balance)],
+            definitions: [RecurringPaymentDefinition(from: definition)],
+            balances: [RecurringPaymentSavingBalance(from: balance)],
             occurrences: [],
             year: 2025,
             month: 4,
@@ -115,13 +115,13 @@ internal struct BudgetCalculatorCacheTests {
     @Test("残高更新で定期支払いキャッシュが失効する")
     internal func recurringPaymentSavingsInvalidatesOnBalanceChange() throws {
         let calculator = BudgetCalculator()
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "家財保険",
             amount: 36000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
-        let balance = RecurringPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 12000,
             totalPaidAmount: 0,
@@ -130,8 +130,8 @@ internal struct BudgetCalculatorCacheTests {
         )
 
         let input1 = RecurringPaymentSavingsCalculationInput(
-            definitions: [RecurringPaymentDefinitionDTO(from: definition)],
-            balances: [RecurringPaymentSavingBalanceDTO(from: balance)],
+            definitions: [RecurringPaymentDefinition(from: definition)],
+            balances: [RecurringPaymentSavingBalance(from: balance)],
             occurrences: [],
             year: 2025,
             month: 1,
@@ -142,8 +142,8 @@ internal struct BudgetCalculatorCacheTests {
         balance.updatedAt = Date().addingTimeInterval(120)
 
         let input2 = RecurringPaymentSavingsCalculationInput(
-            definitions: [RecurringPaymentDefinitionDTO(from: definition)],
-            balances: [RecurringPaymentSavingBalanceDTO(from: balance)],
+            definitions: [RecurringPaymentDefinition(from: definition)],
+            balances: [RecurringPaymentSavingBalance(from: balance)],
             occurrences: [],
             year: 2025,
             month: 1,

@@ -6,7 +6,7 @@ import Testing
 internal struct RecurringPaymentSavingsUseCaseTests {
     @Test("月次積立合計を算出する")
     internal func calculatesMonthlySavingsTotal() {
-        let definitionDTO = RecurringPaymentDefinitionDTO(
+        let definitionDTO = RecurringPaymentDefinition(
             id: UUID(),
             name: "自動車税",
             notes: "",
@@ -42,7 +42,7 @@ internal struct RecurringPaymentSavingsUseCaseTests {
     @Test("表示用エントリを生成する")
     internal func buildsEntries() throws {
         let definitionId = UUID()
-        let definitionDTO = RecurringPaymentDefinitionDTO(
+        let definitionDTO = RecurringPaymentDefinition(
             id: definitionId,
             name: "旅行",
             notes: "",
@@ -59,7 +59,7 @@ internal struct RecurringPaymentSavingsUseCaseTests {
             createdAt: Date(),
             updatedAt: Date(),
         )
-        let balanceDTO = RecurringPaymentSavingBalanceDTO(
+        let balanceDTO = RecurringPaymentSavingBalance(
             id: UUID(),
             definitionId: definitionId,
             totalSavedAmount: 30000,

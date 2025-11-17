@@ -8,14 +8,14 @@ import Testing
 internal struct EntryBooleanPropertiesTests {
     @Test("isOverdue: 未完了で過去日の場合true")
     internal func isOverdue_pastAndIncomplete() {
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト",
             amount: 10000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2024, month: 1) ?? Date(),
             expectedAmount: 10000,
@@ -26,8 +26,8 @@ internal struct EntryBooleanPropertiesTests {
         let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
             input: RecurringPaymentListPresenter.EntryInput(
-                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
-                definition: RecurringPaymentDefinitionDTO(from: definition),
+                occurrence: RecurringPaymentOccurrence(from: occurrence),
+                definition: RecurringPaymentDefinition(from: definition),
                 categoryName: definition.category?.name,
                 balance: nil,
                 now: now,
@@ -39,14 +39,14 @@ internal struct EntryBooleanPropertiesTests {
 
     @Test("isOverdue: 完了済みの場合false")
     internal func isOverdue_completed() {
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト",
             amount: 10000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2024, month: 1) ?? Date(),
             expectedAmount: 10000,
@@ -59,8 +59,8 @@ internal struct EntryBooleanPropertiesTests {
         let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
             input: RecurringPaymentListPresenter.EntryInput(
-                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
-                definition: RecurringPaymentDefinitionDTO(from: definition),
+                occurrence: RecurringPaymentOccurrence(from: occurrence),
+                definition: RecurringPaymentDefinition(from: definition),
                 categoryName: definition.category?.name,
                 balance: nil,
                 now: now,
@@ -72,21 +72,21 @@ internal struct EntryBooleanPropertiesTests {
 
     @Test("isFullySaved: 100%積立完了の場合true")
     internal func isFullySaved_full() {
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト",
             amount: 50000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 50000,
             status: .saving,
         )
 
-        let balance = RecurringPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 50000,
             totalPaidAmount: 0,
@@ -97,10 +97,10 @@ internal struct EntryBooleanPropertiesTests {
         let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
             input: RecurringPaymentListPresenter.EntryInput(
-                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
-                definition: RecurringPaymentDefinitionDTO(from: definition),
+                occurrence: RecurringPaymentOccurrence(from: occurrence),
+                definition: RecurringPaymentDefinition(from: definition),
                 categoryName: definition.category?.name,
-                balance: RecurringPaymentSavingBalanceDTO(from: balance),
+                balance: RecurringPaymentSavingBalance(from: balance),
                 now: Date(),
             ),
         )
@@ -110,21 +110,21 @@ internal struct EntryBooleanPropertiesTests {
 
     @Test("isFullySaved: 一部積立の場合false")
     internal func isFullySaved_partial() {
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト",
             amount: 50000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 1) ?? Date(),
         )
 
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 1) ?? Date(),
             expectedAmount: 50000,
             status: .saving,
         )
 
-        let balance = RecurringPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 25000,
             totalPaidAmount: 0,
@@ -135,10 +135,10 @@ internal struct EntryBooleanPropertiesTests {
         let presenter = RecurringPaymentListPresenter()
         let entry = presenter.entry(
             input: RecurringPaymentListPresenter.EntryInput(
-                occurrence: RecurringPaymentOccurrenceDTO(from: occurrence),
-                definition: RecurringPaymentDefinitionDTO(from: definition),
+                occurrence: RecurringPaymentOccurrence(from: occurrence),
+                definition: RecurringPaymentDefinition(from: definition),
                 categoryName: definition.category?.name,
-                balance: RecurringPaymentSavingBalanceDTO(from: balance),
+                balance: RecurringPaymentSavingBalance(from: balance),
                 now: Date(),
             ),
         )

@@ -3,7 +3,7 @@ import Foundation
 internal struct RecurringPaymentReconciliationPresenter {
     internal struct Presentation {
         internal let rows: [OccurrenceRow]
-        internal let occurrenceLookup: [UUID: RecurringPaymentOccurrenceDTO]
+        internal let occurrenceLookup: [UUID: RecurringPaymentOccurrence]
         internal let linkedTransactionLookup: [UUID: UUID]
     }
 
@@ -20,8 +20,8 @@ internal struct RecurringPaymentReconciliationPresenter {
         internal let isOverdue: Bool
 
         internal init(
-            occurrence: RecurringPaymentOccurrenceDTO,
-            definition: RecurringPaymentDefinitionDTO,
+            occurrence: RecurringPaymentOccurrence,
+            definition: RecurringPaymentDefinition,
             categoryName: String?,
             transactionTitle: String?,
             referenceDate: Date,
@@ -169,8 +169,8 @@ internal struct RecurringPaymentReconciliationPresenter {
         }
 
         internal func score(
-            occurrence: RecurringPaymentOccurrenceDTO,
-            definition: RecurringPaymentDefinitionDTO,
+            occurrence: RecurringPaymentOccurrence,
+            definition: RecurringPaymentDefinition,
             transaction: Transaction,
         ) -> TransactionCandidateScore {
             let expectedAmount = occurrence.expectedAmount
@@ -231,8 +231,8 @@ internal struct RecurringPaymentReconciliationPresenter {
     }
 
     internal struct PresentationInput {
-        internal let occurrences: [RecurringPaymentOccurrenceDTO]
-        internal let definitions: [UUID: RecurringPaymentDefinitionDTO]
+        internal let occurrences: [RecurringPaymentOccurrence]
+        internal let definitions: [UUID: RecurringPaymentDefinition]
         internal let categories: [UUID: String]
         internal let transactions: [UUID: String]
         internal let referenceDate: Date
@@ -245,7 +245,7 @@ internal struct RecurringPaymentReconciliationPresenter {
         let transactions = input.transactions
         let referenceDate = input.referenceDate
         var rows: [OccurrenceRow] = []
-        var occurrenceLookup: [UUID: RecurringPaymentOccurrenceDTO] = [:]
+        var occurrenceLookup: [UUID: RecurringPaymentOccurrence] = [:]
         var linkedTransactionLookup: [UUID: UUID] = [:]
 
         for occurrence in occurrences {
@@ -288,8 +288,8 @@ internal struct RecurringPaymentReconciliationPresenter {
     }
 
     internal func transactionCandidates(
-        for occurrence: RecurringPaymentOccurrenceDTO,
-        definition: RecurringPaymentDefinitionDTO,
+        for occurrence: RecurringPaymentOccurrence,
+        definition: RecurringPaymentDefinition,
         context: TransactionCandidateSearchContext,
     ) -> [TransactionCandidate] {
         let scorer = TransactionCandidateScorer(calendar: calendar, windowDays: context.windowDays)

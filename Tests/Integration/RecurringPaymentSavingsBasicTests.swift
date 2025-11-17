@@ -20,7 +20,7 @@ internal struct RecurringPaymentSavingsBasicTests {
 
         // Given: 3年周期（36ヶ月）の定期支払い定義
         let category = CategoryEntity(name: "保険・税金")
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 36,
@@ -38,7 +38,7 @@ internal struct RecurringPaymentSavingsBasicTests {
         #expect(definition.monthlySavingAmount == expectedMonthlySaving)
 
         // When: 36ヶ月分の積立を記録
-        var balance: RecurringPaymentSavingBalance?
+        var balance: RecurringPaymentSavingBalanceEntity?
         for month in 1 ... 36 {
             balance = balanceService.recordMonthlySavings(
                 params: RecurringPaymentBalanceService.MonthlySavingsParameters(
@@ -60,7 +60,7 @@ internal struct RecurringPaymentSavingsBasicTests {
         #expect(finalBalance.balance >= 119_999)
 
         // 実績支払いを記録
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2028, month: 1) ?? Date(),
             expectedAmount: 120_000,
@@ -91,7 +91,7 @@ internal struct RecurringPaymentSavingsBasicTests {
         let context = ModelContext(container)
 
         // Given
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -101,7 +101,7 @@ internal struct RecurringPaymentSavingsBasicTests {
         context.insert(definition)
 
         // 12ヶ月積立
-        var balance: RecurringPaymentSavingBalance?
+        var balance: RecurringPaymentSavingBalanceEntity?
         for month in 1 ... 12 {
             balance = balanceService.recordMonthlySavings(
                 params: RecurringPaymentBalanceService.MonthlySavingsParameters(
@@ -117,7 +117,7 @@ internal struct RecurringPaymentSavingsBasicTests {
         #expect(finalBalance.totalSavedAmount == 45000)
 
         // When: 実績が予定より少ない（値引きがあった）
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -148,7 +148,7 @@ internal struct RecurringPaymentSavingsBasicTests {
         let context = ModelContext(container)
 
         // Given
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -158,7 +158,7 @@ internal struct RecurringPaymentSavingsBasicTests {
         context.insert(definition)
 
         // 24ヶ月積立
-        var balance: RecurringPaymentSavingBalance?
+        var balance: RecurringPaymentSavingBalanceEntity?
         for month in 1 ... 24 {
             balance = balanceService.recordMonthlySavings(
                 params: RecurringPaymentBalanceService.MonthlySavingsParameters(
@@ -174,7 +174,7 @@ internal struct RecurringPaymentSavingsBasicTests {
         #expect(finalBalance.totalSavedAmount == 120_000)
 
         // When: 実績が予定より多い（追加整備が必要だった）
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 3) ?? Date(),
             expectedAmount: 120_000,
