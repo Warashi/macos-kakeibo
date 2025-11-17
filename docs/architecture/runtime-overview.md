@@ -19,6 +19,10 @@ View ──binds──> Store (@Observable)
 - **UseCase** はビューが必要とする形 (`MonthlyBudgetEntry`, `SpecialPaymentSavingsEntry` など) へデータを整形し、計算サービスの差し替えポイントになります。これらのDTOは `Sources/Presenters/Budgets/` 配下で共有され、複数画面から再利用できます。
 - **Services** 層では `BudgetCalculator` と `SpecialPaymentBalanceService` が計算とキャッシュ制御を担当し、`TransactionAggregator` や `AnnualBudgetAllocator` を再利用しています。
 
+### 初期化ヘルパー
+
+- 取引スタックは `TransactionStackBuilder` で Repository / UseCase をまとめて生成し、`TransactionListView` などの SwiftUI View はこのビルダー経由で `TransactionStore` を準備します。`@ModelActor` 化時はビルダー内の初期化コードのみ差し替えればよく、View/Store の変更を最小限に抑えられます。
+
 ## 計算チェーンとキャッシュ
 
 ```

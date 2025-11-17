@@ -24,10 +24,10 @@ internal struct TransactionListView: View {
             return
         }
         Task {
-            let repository = await SwiftDataTransactionRepository(modelContainer: container)
-            let listUseCase = await DefaultTransactionListUseCase(repository: repository)
-            let formUseCase = await DefaultTransactionFormUseCase(repository: repository)
-            store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase)
+            let transactionStore = await TransactionStackBuilder.makeStore(modelContainer: container)
+            await MainActor.run {
+                store = transactionStore
+            }
         }
     }
 }
