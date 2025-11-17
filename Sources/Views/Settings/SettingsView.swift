@@ -21,16 +21,10 @@ internal struct SettingsView: View {
                 assertionFailure("ModelContainer is unavailable")
                 return
             }
-            let repositories = await Task { @DatabaseActor () -> (TransactionRepository, BudgetRepository) in
-                let transactionRepository = SwiftDataTransactionRepository(modelContainer: modelContainer)
-                let budgetRepository = SwiftDataBudgetRepository(modelContainer: modelContainer)
-                return (transactionRepository, budgetRepository)
-            }.value
-            store = await SettingsStore(
-                modelContainer: modelContainer,
-                transactionRepository: repositories.0,
-                budgetRepository: repositories.1,
-            )
+            let settingsStore = await SettingsStackBuilder.makeSettingsStore(modelContainer: modelContainer)
+            await MainActor.run {
+                store = settingsStore
+            }
         }
     }
 }

@@ -31,16 +31,7 @@ private extension CSVImportView {
             return
         }
 
-        let dependencies = await Task { @DatabaseActor () -> (TransactionRepository, BudgetRepository) in
-            let transactionRepository = SwiftDataTransactionRepository(modelContainer: modelContainer)
-            let budgetRepository = SwiftDataBudgetRepository(modelContainer: modelContainer)
-            return (transactionRepository, budgetRepository)
-        }.value
-
-        store = ImportStore(
-            transactionRepository: dependencies.0,
-            budgetRepository: dependencies.1,
-        )
+        store = await SettingsStackBuilder.makeImportStore(modelContainer: modelContainer)
     }
 }
 
