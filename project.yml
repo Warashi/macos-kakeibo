@@ -37,6 +37,7 @@ targets:
       - path: Sources/Domain
         includes:
           - Models/**
+          - ValueObjects/**
           - Repositories/**
       - path: Sources/Infrastructure
       - path: Config/AppIcon.icon
