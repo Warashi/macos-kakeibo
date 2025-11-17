@@ -14,7 +14,7 @@ internal struct ScheduleServiceDayPatternTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 31))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "月末支払い",
             amount: 10000,
             recurrenceIntervalMonths: 1,
@@ -42,7 +42,7 @@ internal struct ScheduleServiceDayPatternTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 31))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "月末営業日支払い",
             amount: 300_000,
             recurrenceIntervalMonths: 1,
@@ -69,7 +69,7 @@ internal struct ScheduleServiceDayPatternTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 8))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "第2水曜日支払い",
             amount: 5000,
             recurrenceIntervalMonths: 1,
@@ -96,7 +96,7 @@ internal struct ScheduleServiceDayPatternTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 31))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "最終金曜日支払い",
             amount: 250_000,
             recurrenceIntervalMonths: 1,
@@ -123,7 +123,7 @@ internal struct ScheduleServiceDayPatternTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 7))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "5営業日目支払い",
             amount: 15000,
             recurrenceIntervalMonths: 1,
@@ -150,7 +150,7 @@ internal struct ScheduleServiceDayPatternTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 28))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "最終営業日3営業日前支払い",
             amount: 20000,
             recurrenceIntervalMonths: 1,
@@ -177,7 +177,7 @@ internal struct ScheduleServiceDayPatternTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 31))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "標準計算",
             amount: 10000,
             recurrenceIntervalMonths: 1,

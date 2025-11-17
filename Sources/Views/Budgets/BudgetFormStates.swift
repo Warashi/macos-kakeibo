@@ -276,7 +276,7 @@ internal struct RecurringPaymentFormState {
         selectedMinorCategoryId ?? selectedMajorCategoryId
     }
 
-    internal mutating func load(from definition: RecurringPaymentDefinition) {
+    internal mutating func load(from definition: RecurringPaymentDefinitionEntity) {
         nameText = definition.name
         notesText = definition.notes
         amountText = definition.amount.plainString
@@ -372,7 +372,7 @@ internal struct RecurringPaymentFormState {
 
 internal enum RecurringPaymentEditorMode {
     case create
-    case edit(RecurringPaymentDefinition)
+    case edit(RecurringPaymentDefinitionEntity)
 
     internal var title: String {
         switch self {

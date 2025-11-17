@@ -7,8 +7,8 @@ import Testing
 internal struct PaymentBalancePaymentTests {
     private let service: RecurringPaymentBalanceService = RecurringPaymentBalanceService()
 
-    private func sampleDefinition() -> RecurringPaymentDefinition {
-        RecurringPaymentDefinition(
+    private func sampleDefinition() -> RecurringPaymentDefinitionEntity {
+        RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -23,14 +23,14 @@ internal struct PaymentBalancePaymentTests {
         let context = ModelContext(container)
 
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 45000,
             totalPaidAmount: 0,
             lastUpdatedYear: 2025,
             lastUpdatedMonth: 11,
         )
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -64,14 +64,14 @@ internal struct PaymentBalancePaymentTests {
         let context = ModelContext(container)
 
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 45000,
             totalPaidAmount: 0,
             lastUpdatedYear: 2025,
             lastUpdatedMonth: 11,
         )
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -103,14 +103,14 @@ internal struct PaymentBalancePaymentTests {
         let context = ModelContext(container)
 
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 45000,
             totalPaidAmount: 0,
             lastUpdatedYear: 2025,
             lastUpdatedMonth: 11,
         )
-        let occurrence = RecurringPaymentOccurrence(
+        let occurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -142,7 +142,7 @@ internal struct PaymentBalancePaymentTests {
         let context = ModelContext(container)
 
         let definition = sampleDefinition()
-        let balance = RecurringPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 90000, // 2回分積立
             totalPaidAmount: 0,
@@ -154,7 +154,7 @@ internal struct PaymentBalancePaymentTests {
         context.insert(balance)
 
         // 1回目の支払い
-        let occurrence1 = RecurringPaymentOccurrence(
+        let occurrence1 = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2026, month: 5) ?? Date(),
             expectedAmount: 45000,
@@ -173,7 +173,7 @@ internal struct PaymentBalancePaymentTests {
         #expect(balance.balance == 45000)
 
         // 2回目の支払い
-        let occurrence2 = RecurringPaymentOccurrence(
+        let occurrence2 = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: Date.from(year: 2027, month: 5) ?? Date(),
             expectedAmount: 45000,

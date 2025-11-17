@@ -57,7 +57,7 @@ internal struct QueryBuilderTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
-        let earlier = RecurringPaymentDefinition(
+        let earlier = RecurringPaymentDefinitionEntity(
             name: "古い支払い",
             amount: 10000,
             recurrenceIntervalMonths: 12,
@@ -66,7 +66,7 @@ internal struct QueryBuilderTests {
         )
         earlier.createdAt = Date(timeIntervalSince1970: 1000)
 
-        let latest = RecurringPaymentDefinition(
+        let latest = RecurringPaymentDefinitionEntity(
             name: "新しい支払い",
             amount: 20000,
             recurrenceIntervalMonths: 12,

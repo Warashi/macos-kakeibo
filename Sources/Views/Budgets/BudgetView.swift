@@ -24,7 +24,7 @@ internal struct BudgetView: View {
     @State private var recurringPaymentFormError: String?
 
     @State private var budgetPendingDeletion: Budget?
-    @State private var recurringPaymentPendingDeletion: RecurringPaymentDefinition?
+    @State private var recurringPaymentPendingDeletion: RecurringPaymentDefinitionEntity?
     @State private var errorMessage: String?
     @State private var isShowingErrorAlert: Bool = false
 
@@ -378,7 +378,7 @@ private extension BudgetView {
 // MARK: - Special Payment Editor
 
 private extension BudgetView {
-    func presentRecurringPaymentEditor(for definition: RecurringPaymentDefinition?) {
+    func presentRecurringPaymentEditor(for definition: RecurringPaymentDefinitionEntity?) {
         recurringPaymentFormError = nil
         if let definition {
             recurringPaymentEditorMode = .edit(definition)

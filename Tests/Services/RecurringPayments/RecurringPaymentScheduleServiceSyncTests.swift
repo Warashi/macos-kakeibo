@@ -12,7 +12,7 @@ internal struct RecurringPaymentScheduleServiceSyncTests {
         let firstDate = try #require(Date.from(year: 2025, month: 4, day: 30))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -38,14 +38,14 @@ internal struct RecurringPaymentScheduleServiceSyncTests {
         let firstDate = try #require(Date.from(year: 2024, month: 10, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "車検",
             amount: 100_000,
             recurrenceIntervalMonths: 6,
             firstOccurrenceDate: firstDate,
         )
 
-        let lockedOccurrence = RecurringPaymentOccurrence(
+        let lockedOccurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: firstDate,
             expectedAmount: 100_000,
@@ -70,7 +70,7 @@ internal struct RecurringPaymentScheduleServiceSyncTests {
         let firstDate = try #require(Date.from(year: 2025, month: 6, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 4, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "保険料",
             amount: 50000,
             recurrenceIntervalMonths: 12,
@@ -78,7 +78,7 @@ internal struct RecurringPaymentScheduleServiceSyncTests {
             leadTimeMonths: 3,
         )
 
-        let existingOccurrence = RecurringPaymentOccurrence(
+        let existingOccurrence = RecurringPaymentOccurrenceEntity(
             definition: definition,
             scheduledDate: firstDate,
             expectedAmount: 50000,

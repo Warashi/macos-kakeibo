@@ -12,7 +12,7 @@ internal struct ScheduleServiceBasicTests {
         let firstDate = try #require(Date.from(year: 2024, month: 11, day: 30))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 10))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "家電買い替え",
             amount: 180_000,
             recurrenceIntervalMonths: 6,
@@ -46,7 +46,7 @@ internal struct ScheduleServiceBasicTests {
         let firstDate = try #require(Date.from(year: 2026, month: 3, day: 15))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
@@ -91,7 +91,7 @@ internal struct ScheduleServiceBasicTests {
         let veryOldDate = try #require(Date.from(year: 1975, month: 1, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト支払い",
             amount: 10000,
             recurrenceIntervalMonths: 1,
@@ -119,7 +119,7 @@ internal struct ScheduleServiceBasicTests {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
         // 10年周期
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト支払い",
             amount: 10000,
             recurrenceIntervalMonths: 120,
@@ -147,7 +147,7 @@ internal struct ScheduleServiceBasicTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 31))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト支払い",
             amount: 10000,
             recurrenceIntervalMonths: 1,
@@ -180,7 +180,7 @@ internal struct ScheduleServiceBasicTests {
         let firstDate = try #require(Date.from(year: 2024, month: 2, day: 29))
         let referenceDate = try #require(Date.from(year: 2024, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト支払い",
             amount: 10000,
             recurrenceIntervalMonths: 12,
@@ -216,7 +216,7 @@ internal struct ScheduleServiceBasicTests {
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト支払い",
             amount: 10000,
             recurrenceIntervalMonths: 6,
@@ -240,7 +240,7 @@ internal struct ScheduleServiceBasicTests {
         let futureDate = try #require(Date.from(year: 2026, month: 6, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "未来の支払い",
             amount: 50000,
             recurrenceIntervalMonths: 12,
@@ -266,7 +266,7 @@ internal struct ScheduleServiceBasicTests {
         let pastDate = try #require(Date.from(year: 2024, month: 7, day: 15))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "過去開始の支払い",
             amount: 30000,
             recurrenceIntervalMonths: 3,
@@ -312,7 +312,7 @@ internal struct ScheduleServiceBasicTests {
         let endDate = try #require(Date.from(year: 2025, month: 12, day: 31))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト支払い（期間限定）",
             amount: 100_000,
             recurrenceIntervalMonths: 6,
@@ -345,7 +345,7 @@ internal struct ScheduleServiceBasicTests {
         let firstDate = try #require(Date.from(year: 2025, month: 1, day: 15))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト支払い（無期限）",
             amount: 100_000,
             recurrenceIntervalMonths: 6,
@@ -370,7 +370,7 @@ internal struct ScheduleServiceBasicTests {
         let firstDate = try #require(Date.from(year: 2025, month: 12, day: 1))
         let endDate = try #require(Date.from(year: 2025, month: 6, day: 30))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト支払い",
             amount: 100_000,
             recurrenceIntervalMonths: 6,
@@ -389,7 +389,7 @@ internal struct ScheduleServiceBasicTests {
         let endDate = try #require(Date.from(year: 2025, month: 6, day: 1))
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
 
-        let definition = RecurringPaymentDefinition(
+        let definition = RecurringPaymentDefinitionEntity(
             name: "テスト支払い（1回のみ）",
             amount: 100_000,
             recurrenceIntervalMonths: 12,

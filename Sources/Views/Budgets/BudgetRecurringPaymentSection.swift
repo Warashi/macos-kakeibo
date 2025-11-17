@@ -4,8 +4,8 @@ import SwiftUI
 /// 予算ビューの定期支払いリストセクション
 internal struct BudgetRecurringPaymentSection: View {
     @Environment(\.modelContext) private var modelContext: ModelContext
-    internal let onEdit: (RecurringPaymentDefinition) -> Void
-    internal let onDelete: (RecurringPaymentDefinition) -> Void
+    internal let onEdit: (RecurringPaymentDefinitionEntity) -> Void
+    internal let onDelete: (RecurringPaymentDefinitionEntity) -> Void
     internal let onAdd: () -> Void
 
     internal var body: some View {
@@ -45,11 +45,11 @@ internal struct BudgetRecurringPaymentSection: View {
         .cornerRadius(10)
     }
 
-    private var recurringPaymentDefinitions: [RecurringPaymentDefinition] {
-        let descriptor: ModelFetchRequest<RecurringPaymentDefinition> = ModelFetchFactory.make(
+    private var recurringPaymentDefinitions: [RecurringPaymentDefinitionEntity] {
+        let descriptor: ModelFetchRequest<RecurringPaymentDefinitionEntity> = ModelFetchFactory.make(
             sortBy: [
-                SortDescriptor(\RecurringPaymentDefinition.firstOccurrenceDate),
-                SortDescriptor(\RecurringPaymentDefinition.name),
+                SortDescriptor(\RecurringPaymentDefinitionEntity.firstOccurrenceDate),
+                SortDescriptor(\RecurringPaymentDefinitionEntity.name),
             ],
         )
         return (try? modelContext.fetch(descriptor)) ?? []

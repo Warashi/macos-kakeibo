@@ -6,8 +6,8 @@ import Testing
 
 @Suite("RecurringPaymentBalanceService - キャッシュ")
 internal struct RecurringPaymentBalanceCacheTests {
-    private func makeDefinition() -> RecurringPaymentDefinition {
-        RecurringPaymentDefinition(
+    private func makeDefinition() -> RecurringPaymentDefinitionEntity {
+        RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 60000,
             recurrenceIntervalMonths: 12,
@@ -20,7 +20,7 @@ internal struct RecurringPaymentBalanceCacheTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let definition = makeDefinition()
-        let balance = RecurringPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 0,
             totalPaidAmount: 0,
@@ -66,7 +66,7 @@ internal struct RecurringPaymentBalanceCacheTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let definition = makeDefinition()
-        let balance = RecurringPaymentSavingBalance(
+        let balance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 0,
             totalPaidAmount: 0,

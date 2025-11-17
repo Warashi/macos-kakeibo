@@ -7,8 +7,8 @@ import Testing
 internal struct PaymentBalanceSavingsTests {
     private let service: RecurringPaymentBalanceService = RecurringPaymentBalanceService()
 
-    private func sampleDefinition() -> RecurringPaymentDefinition {
-        RecurringPaymentDefinition(
+    private func sampleDefinition() -> RecurringPaymentDefinitionEntity {
+        RecurringPaymentDefinitionEntity(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
@@ -48,7 +48,7 @@ internal struct PaymentBalanceSavingsTests {
         let context = ModelContext(container)
 
         let definition = sampleDefinition()
-        let existingBalance = RecurringPaymentSavingBalance(
+        let existingBalance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 3750,
             totalPaidAmount: 0,
@@ -80,7 +80,7 @@ internal struct PaymentBalanceSavingsTests {
         let context = ModelContext(container)
 
         let definition = sampleDefinition()
-        let existingBalance = RecurringPaymentSavingBalance(
+        let existingBalance = RecurringPaymentSavingBalanceEntity(
             definition: definition,
             totalSavedAmount: 3750,
             totalPaidAmount: 0,
@@ -112,7 +112,7 @@ internal struct PaymentBalanceSavingsTests {
         let definition = sampleDefinition()
         context.insert(definition)
 
-        var balance: RecurringPaymentSavingBalance?
+        var balance: RecurringPaymentSavingBalanceEntity?
 
         // 6ヶ月分の積立を記録
         for month in 1 ... 6 {

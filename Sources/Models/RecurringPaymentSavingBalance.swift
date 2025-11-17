@@ -6,11 +6,11 @@ import SwiftData
 /// 各RecurringPaymentDefinitionごとの積立状況を記録し、
 /// 月次積立額の累計と実績支払額を管理します。
 @Model
-internal final class RecurringPaymentSavingBalance {
+internal final class RecurringPaymentSavingBalanceEntity {
     internal var id: UUID
 
     /// 対応する定期支払い定義
-    internal var definition: RecurringPaymentDefinition
+    internal var definition: RecurringPaymentDefinitionEntity
 
     /// 累計積立額
     internal var totalSavedAmount: Decimal
@@ -30,7 +30,7 @@ internal final class RecurringPaymentSavingBalance {
 
     internal init(
         id: UUID = UUID(),
-        definition: RecurringPaymentDefinition,
+        definition: RecurringPaymentDefinitionEntity,
         totalSavedAmount: Decimal = 0,
         totalPaidAmount: Decimal = 0,
         lastUpdatedYear: Int,
@@ -51,7 +51,7 @@ internal final class RecurringPaymentSavingBalance {
 
 // MARK: - Computed Properties
 
-internal extension RecurringPaymentSavingBalance {
+internal extension RecurringPaymentSavingBalanceEntity {
     /// 残高（積立額 - 支払額）
     var balance: Decimal {
         totalSavedAmount.safeSubtract(totalPaidAmount)
@@ -70,7 +70,7 @@ internal extension RecurringPaymentSavingBalance {
 
 // MARK: - Validation
 
-internal extension RecurringPaymentSavingBalance {
+internal extension RecurringPaymentSavingBalanceEntity {
     func validate() -> [String] {
         var errors: [String] = []
 

@@ -46,7 +46,7 @@ internal enum DayOfMonthPattern: Codable, Equatable, Hashable {
 }
 
 @Model
-internal final class RecurringPaymentDefinition {
+internal final class RecurringPaymentDefinitionEntity {
     internal var id: UUID
     internal var name: String
     internal var notes: String
@@ -61,8 +61,8 @@ internal final class RecurringPaymentDefinition {
     internal var dateAdjustmentPolicy: DateAdjustmentPolicy
     internal var recurrenceDayPattern: DayOfMonthPattern?
 
-    @Relationship(deleteRule: .cascade, inverse: \RecurringPaymentOccurrence.definition)
-    private var occurrencesStorage: [RecurringPaymentOccurrence]
+    @Relationship(deleteRule: .cascade, inverse: \RecurringPaymentOccurrenceEntity.definition)
+    private var occurrencesStorage: [RecurringPaymentOccurrenceEntity]
 
     internal var createdAt: Date
     internal var updatedAt: Date
@@ -105,9 +105,9 @@ internal final class RecurringPaymentDefinition {
 
 // MARK: - Computed Properties
 
-internal extension RecurringPaymentDefinition {
+internal extension RecurringPaymentDefinitionEntity {
     /// スケジュール日付で常に昇順ソートされたOccurrence一覧
-    var occurrences: [RecurringPaymentOccurrence] {
+    var occurrences: [RecurringPaymentOccurrenceEntity] {
         get {
             occurrencesStorage.sorted { $0.scheduledDate < $1.scheduledDate }
         }
@@ -167,7 +167,7 @@ internal extension RecurringPaymentDefinition {
 
 // MARK: - Validation
 
-internal extension RecurringPaymentDefinition {
+internal extension RecurringPaymentDefinitionEntity {
     func validate() -> [String] {
         var errors: [String] = []
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -217,10 +217,10 @@ internal extension RecurringPaymentDefinition {
 }
 
 @Model
-internal final class RecurringPaymentOccurrence {
+internal final class RecurringPaymentOccurrenceEntity {
     internal var id: UUID
 
-    internal var definition: RecurringPaymentDefinition
+    internal var definition: RecurringPaymentDefinitionEntity
 
     internal var scheduledDate: Date
     internal var expectedAmount: Decimal
@@ -237,7 +237,7 @@ internal final class RecurringPaymentOccurrence {
 
     internal init(
         id: UUID = UUID(),
-        definition: RecurringPaymentDefinition,
+        definition: RecurringPaymentDefinitionEntity,
         scheduledDate: Date,
         expectedAmount: Decimal,
         status: RecurringPaymentStatus = .planned,
@@ -262,7 +262,7 @@ internal final class RecurringPaymentOccurrence {
 
 // MARK: - Computed Properties
 
-internal extension RecurringPaymentOccurrence {
+internal extension RecurringPaymentOccurrenceEntity {
     var isCompleted: Bool {
         status == .completed
     }
@@ -284,7 +284,7 @@ internal extension RecurringPaymentOccurrence {
 
 // MARK: - Validation
 
-internal extension RecurringPaymentOccurrence {
+internal extension RecurringPaymentOccurrenceEntity {
     func validate() -> [String] {
         var errors: [String] = []
 
