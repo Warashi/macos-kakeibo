@@ -1,5 +1,7 @@
 # Runtime Overview
 
+ModelActor への移行計画は `docs/architecture/model-actor-migration.md` を参照。
+
 ## Store / UseCase / Service 依存関係
 
 ```
