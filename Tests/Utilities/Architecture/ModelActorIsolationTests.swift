@@ -14,21 +14,32 @@ internal struct ModelActorIsolationTests {
     }()
 
     private let domainDirectory = ModelActorIsolationTests.projectRoot.appendingPathComponent("Sources/Domain")
+    private let useCaseDirectory = ModelActorIsolationTests.projectRoot.appendingPathComponent("Sources/UseCases")
 
     @Test("Domain 層は SwiftData を import しない")
     func domainFilesDoNotImportSwiftData() throws {
-        try assertDomainFiles(doNotContain: "import SwiftData")
+        try assertFiles(in: domainDirectory, doNotContain: "import SwiftData")
     }
 
     @Test("Domain 層は ModelContext を参照しない")
     func domainFilesDoNotReferenceModelContext() throws {
-        try assertDomainFiles(doNotContain: "ModelContext")
+        try assertFiles(in: domainDirectory, doNotContain: "ModelContext")
+    }
+
+    @Test("UseCase 層は SwiftData を import しない")
+    func useCaseFilesDoNotImportSwiftData() throws {
+        try assertFiles(in: useCaseDirectory, doNotContain: "import SwiftData")
+    }
+
+    @Test("UseCase 層は ModelContext を参照しない")
+    func useCaseFilesDoNotReferenceModelContext() throws {
+        try assertFiles(in: useCaseDirectory, doNotContain: "ModelContext")
     }
 }
 
 private extension ModelActorIsolationTests {
-    func assertDomainFiles(doNotContain disallowedToken: String) throws {
-        let swiftFiles = try Self.collectSwiftFiles(in: domainDirectory)
+    func assertFiles(in directory: URL, doNotContain disallowedToken: String) throws {
+        let swiftFiles = try Self.collectSwiftFiles(in: directory)
         for fileURL in swiftFiles {
             let content = try String(contentsOf: fileURL)
             #expect(

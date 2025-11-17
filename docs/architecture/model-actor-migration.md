@@ -32,7 +32,7 @@ SwiftData の `@ModelActor` を採用するための移行方針と、層ごと�
 ## サポートコード
 
 - `DatabaseScheduling` (`Sources/Database/DatabaseScheduling.swift`) を境界インターフェースとして導入。AccessScheduler もこのプロトコルに準拠しており、将来的に `@ModelActor` ベースの executor を差し込む際は同じ API を実装するだけでよい。
-- `Tests/Utilities/Architecture/ModelActorIsolationTests.swift` で Domain 層が `import SwiftData` や `ModelContext` を参照していないことを自動検査。ModelActor 化の前提条件をテストで担保する。
+- `Tests/Utilities/Architecture/ModelActorIsolationTests.swift` で Domain / UseCase 層が `import SwiftData` や `ModelContext` を参照していないことを自動検査。ModelActor 化の前提条件をテストで担保する。
 - `docs/architecture/fetch-queries.md` / `repository-observation.md` / 本ドキュメントを合わせて読み、クエリと監視の共通 API を経由するルールを確認する。
 - View で Repository/UseCase を直接生成しない。`TransactionStackBuilder` のようなビルダーにまとめ、将来の actor 差し替えポイントを限定する。
 
