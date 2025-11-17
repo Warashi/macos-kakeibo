@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 import Testing
 
 @testable import Kakeibo
@@ -69,19 +68,19 @@ internal struct BudgetCalculatorBasicTests {
     @Test("月次予算計算：正常ケース")
     internal func monthlyBudget_success() throws {
         // Given
-        let category = CategoryEntity(name: "食費")
+        let category = DomainFixtures.category(name: "食費")
         let transactions = createSampleTransactions(category: category)
         let budgets = [
-            BudgetEntity(amount: 100_000, year: 2025, month: 11), // 全体予算
-            BudgetEntity(amount: 50000, category: category, year: 2025, month: 11), // カテゴリ別予算
+            DomainFixtures.budget(amount: 100_000, startYear: 2025, startMonth: 11), // 全体予算
+            DomainFixtures.budget(amount: 50000, category: category, startYear: 2025, startMonth: 11), // カテゴリ別予算
         ]
 
         // When
         let result = calculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
-                transactions: transactions.map { Transaction(from: $0) },
-                budgets: budgets.map { Budget(from: $0) },
-                categories: [Category(from: category)],
+                transactions: transactions,
+                budgets: budgets,
+                categories: [category],
                 year: 2025,
                 month: 11,
                 filter: .default,
@@ -98,10 +97,10 @@ internal struct BudgetCalculatorBasicTests {
 
     @Test("期間予算は対象月の計算に含まれる")
     internal func monthlyBudget_includesSpanningBudget() throws {
-        let category = CategoryEntity(name: "食費")
+        let category = DomainFixtures.category(name: "食費")
         let transactions = createSampleTransactions(category: category)
         let budgets = [
-            BudgetEntity(
+            DomainFixtures.budget(
                 amount: 80000,
                 startYear: 2025,
                 startMonth: 10,
@@ -112,9 +111,9 @@ internal struct BudgetCalculatorBasicTests {
 
         let result = calculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
-                transactions: transactions.map { Transaction(from: $0) },
-                budgets: budgets.map { Budget(from: $0) },
-                categories: [Category(from: category)],
+                transactions: transactions,
+                budgets: budgets,
+                categories: [category],
                 year: 2025,
                 month: 11,
                 filter: .default,
@@ -128,9 +127,9 @@ internal struct BudgetCalculatorBasicTests {
 
     @Test("全額年次枠カテゴリは全体予算実績から除外される")
     internal func monthlyBudget_excludesFullCoverageCategoriesFromOverall() throws {
-        let special = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
-        let travel = CategoryEntity(name: "旅行", parent: special, allowsAnnualBudget: true)
-        let general = CategoryEntity(name: "食費")
+        let special = DomainFixtures.category(name: "特別費", allowsAnnualBudget: true)
+        let travel = DomainFixtures.category(name: "旅行", allowsAnnualBudget: true, parent: special)
+        let general = DomainFixtures.category(name: "食費")
 
         let transactions = [
             createTransaction(amount: -20000, majorCategory: special),
@@ -139,16 +138,16 @@ internal struct BudgetCalculatorBasicTests {
         ]
 
         let budgets = [
-            BudgetEntity(amount: 100_000, year: 2025, month: 11),
+            DomainFixtures.budget(amount: 100_000, startYear: 2025, startMonth: 11),
         ]
 
         let excludedIds: Set<UUID> = [special.id, travel.id]
 
         let result = calculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
-                transactions: transactions.map { Transaction(from: $0) },
-                budgets: budgets.map { Budget(from: $0) },
-                categories: [special, travel, general].map { Category(from: $0) },
+                transactions: transactions,
+                budgets: budgets,
+                categories: [special, travel, general],
                 year: 2025,
                 month: 11,
                 filter: .default,
@@ -163,12 +162,12 @@ internal struct BudgetCalculatorBasicTests {
     @Test("予算超過チェック")
     internal func willExceedBudgetCheck() throws {
         // Given
-        let category = CategoryEntity(name: "食費")
+        let category = DomainFixtures.category(name: "食費")
         let currentExpense: Decimal = 80000
         let budgetAmount: Decimal = 100_000
 
         // When & Then
-        let categoryModel = Category(from: category)
+        let categoryModel = category
         // 超過しないケース
         let willExceed1 = calculator.willExceedBudget(
             category: categoryModel,
@@ -191,12 +190,11 @@ internal struct BudgetCalculatorBasicTests {
     @Test("大項目予算は子カテゴリ（中項目）の取引も集計する")
     internal func majorCategoryBudget_includesMinorCategoryTransactions() throws {
         // Given: 大項目「食費」と中項目「外食」を作成
-        let majorCategory = CategoryEntity(name: "食費")
-        let minorCategory = CategoryEntity(name: "外食", parent: majorCategory)
-        majorCategory.addChild(minorCategory)
+        let majorCategory = DomainFixtures.category(name: "食費")
+        let minorCategory = DomainFixtures.category(name: "外食", parent: majorCategory)
 
         // 取引：大項目のみの取引と中項目を持つ取引を混在
-        let transactions: [TransactionEntity] = [
+        let transactions: [Transaction] = [
             // 大項目のみの取引（食費）
             createTransaction(amount: -10000, majorCategory: majorCategory, minorCategory: nil),
             // 中項目を持つ取引（食費＞外食）
@@ -206,15 +204,15 @@ internal struct BudgetCalculatorBasicTests {
 
         // 予算：大項目「食費」に対して50,000円
         let budgets = [
-            BudgetEntity(amount: 50000, category: majorCategory, year: 2025, month: 11),
+            DomainFixtures.budget(amount: 50000, category: majorCategory, startYear: 2025, startMonth: 11),
         ]
 
         // When: 月次予算計算を実行
         let result = calculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
-                transactions: transactions.map { Transaction(from: $0) },
-                budgets: budgets.map { Budget(from: $0) },
-                categories: [majorCategory, minorCategory].map { Category(from: $0) },
+                transactions: transactions,
+                budgets: budgets,
+                categories: [majorCategory, minorCategory],
                 year: 2025,
                 month: 11,
                 filter: .default,
@@ -231,7 +229,7 @@ internal struct BudgetCalculatorBasicTests {
 
     // MARK: - Helper Methods
 
-    private func createSampleTransactions(category: Kakeibo.CategoryEntity) -> [TransactionEntity] {
+    private func createSampleTransactions(category: Kakeibo.Category) -> [Transaction] {
         [
             createTransaction(amount: -30000, category: category),
             createTransaction(amount: -20000, category: category),
@@ -241,36 +239,36 @@ internal struct BudgetCalculatorBasicTests {
 
     private func createTransaction(
         amount: Decimal,
-        category: Kakeibo.CategoryEntity,
-    ) -> TransactionEntity {
+        category: Kakeibo.Category,
+    ) -> Transaction {
         createTransaction(amount: amount, majorCategory: category)
     }
 
     private func createTransaction(
         amount: Decimal,
-        majorCategory: Kakeibo.CategoryEntity?,
-        minorCategory: Kakeibo.CategoryEntity? = nil,
-    ) -> TransactionEntity {
-        TransactionEntity(
+        majorCategory: Kakeibo.Category?,
+        minorCategory: Kakeibo.Category? = nil,
+    ) -> Transaction {
+        DomainFixtures.transaction(
             date: Date.from(year: 2025, month: 11) ?? Date(),
             title: "テスト取引",
             amount: amount,
             majorCategory: majorCategory,
-            minorCategory: minorCategory,
+            minorCategory: minorCategory
         )
     }
 
     private func createTransaction(
         amount: Decimal,
-        majorCategory: Kakeibo.CategoryEntity,
-        minorCategory: Kakeibo.CategoryEntity?,
-    ) -> TransactionEntity {
-        TransactionEntity(
+        majorCategory: Kakeibo.Category,
+        minorCategory: Kakeibo.Category?,
+    ) -> Transaction {
+        DomainFixtures.transaction(
             date: Date.from(year: 2025, month: 11) ?? Date(),
             title: "テスト取引",
             amount: amount,
             majorCategory: majorCategory,
-            minorCategory: minorCategory,
+            minorCategory: minorCategory
         )
     }
 }

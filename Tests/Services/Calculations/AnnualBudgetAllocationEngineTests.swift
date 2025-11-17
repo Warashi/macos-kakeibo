@@ -9,7 +9,7 @@ internal struct AnnualBudgetAllocationEngineTests {
 
     @Test("累積計算で複数月の充当額を合算できる")
     internal func accumulateMultipleMonths() throws {
-        let category = Kakeibo.CategoryEntity(name: "食費", allowsAnnualBudget: true)
+        let category = DomainFixtures.category(name: "食費", allowsAnnualBudget: true)
         let config = makeConfig(
             policy: AnnualBudgetPolicy.automatic,
             allocations: [
@@ -17,17 +17,17 @@ internal struct AnnualBudgetAllocationEngineTests {
             ],
         )
         let budgets = [
-            BudgetEntity(amount: 50000, category: category, year: 2025, month: 1),
-            BudgetEntity(amount: 50000, category: category, year: 2025, month: 2),
+            DomainFixtures.budget(amount: 50000, category: category, startYear: 2025, startMonth: 1),
+            DomainFixtures.budget(amount: 50000, category: category, startYear: 2025, startMonth: 2),
         ]
         let transactions = [
             makeTransaction(amount: -80000, year: 2025, month: 1, category: category),
             makeTransaction(amount: -60000, year: 2025, month: 2, category: category),
         ]
         let params = AllocationCalculationParams(
-            transactions: transactions.map { Transaction(from: $0) },
-            budgets: budgets.map { Budget(from: $0) },
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            transactions: transactions,
+            budgets: budgets,
+            annualBudgetConfig: config,
         )
 
         let accumulationParams = AccumulationParams(
@@ -35,10 +35,10 @@ internal struct AnnualBudgetAllocationEngineTests {
             year: 2025,
             endMonth: 2,
             policy: .automatic,
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            annualBudgetConfig: config,
         )
 
-        let categories = [Category(from: category)]
+        let categories = [category]
         let result = engine.accumulateCategoryAllocations(
             accumulationParams: accumulationParams,
             policyOverrides: [:],
@@ -53,9 +53,8 @@ internal struct AnnualBudgetAllocationEngineTests {
 
     @Test("カテゴリごとのポリシー上書きを尊重する")
     internal func respectsPolicyOverrides() throws {
-        let major = Kakeibo.CategoryEntity(name: "特別支出", allowsAnnualBudget: false)
-        let minor = Kakeibo.CategoryEntity(name: "冠婚葬祭", parent: major, allowsAnnualBudget: false)
-        major.addChild(minor)
+        let major = DomainFixtures.category(name: "特別支出")
+        let minor = DomainFixtures.category(name: "冠婚葬祭", parent: major)
 
         let config = makeConfig(
             policy: AnnualBudgetPolicy.disabled,
@@ -68,12 +67,12 @@ internal struct AnnualBudgetAllocationEngineTests {
             makeTransaction(amount: -30000, year: 2025, month: 3, category: major, minorCategory: minor),
         ]
         let params = AllocationCalculationParams(
-            transactions: transactions.map { Transaction(from: $0) },
+            transactions: transactions,
             budgets: [],
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            annualBudgetConfig: config,
         )
 
-        let categories = [Category(from: major), Category(from: minor)]
+        let categories = [major, minor]
         let allocations = engine.calculateCategoryAllocations(
             request: MonthlyCategoryAllocationRequest(
                 params: params,
@@ -93,26 +92,25 @@ internal struct AnnualBudgetAllocationEngineTests {
     private func makeConfig(
         policy: AnnualBudgetPolicy,
         allocations: [AllocationSeed],
-    ) -> AnnualBudgetConfigEntity {
-        let config = AnnualBudgetConfigEntity(
-            year: 2025,
-            totalAmount: 1_000_000,
-            policy: policy,
-        )
-        config.allocations = allocations.map { seed in
-            let allocation = AnnualBudgetAllocationEntity(
+    ) -> AnnualBudgetConfig {
+        let allocations = allocations.map { seed in
+            DomainFixtures.annualBudgetAllocation(
                 amount: seed.amount,
                 category: seed.category,
                 policyOverride: seed.override,
+                configId: nil
             )
-            allocation.config = config
-            return allocation
         }
-        return config
+        return DomainFixtures.annualBudgetConfig(
+            year: 2025,
+            totalAmount: 1_000_000,
+            policy: policy,
+            allocations: allocations
+        )
     }
 
     private struct AllocationSeed {
-        let category: Kakeibo.CategoryEntity
+        let category: Kakeibo.Category
         let amount: Decimal
         let override: AnnualBudgetPolicy?
     }
@@ -121,15 +119,15 @@ internal struct AnnualBudgetAllocationEngineTests {
         amount: Decimal,
         year: Int,
         month: Int,
-        category: Kakeibo.CategoryEntity?,
-        minorCategory: Kakeibo.CategoryEntity? = nil,
-    ) -> TransactionEntity {
-        TransactionEntity(
+        category: Kakeibo.Category?,
+        minorCategory: Kakeibo.Category? = nil,
+    ) -> Transaction {
+        DomainFixtures.transaction(
             date: Date.from(year: year, month: month) ?? Date(),
             title: "テスト取引",
             amount: amount,
             majorCategory: category,
-            minorCategory: minorCategory,
+            minorCategory: minorCategory
         )
     }
 }

@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 import Testing
 
 @testable import Kakeibo
@@ -13,52 +12,46 @@ internal struct BudgetCalculatorRecurringPaymentTests {
     @Test("定期支払い積立状況の計算")
     internal func calculateRecurringPaymentSavings_success() throws {
         // Given
-        let category = CategoryEntity(name: "保険・税金")
-        let definition1 = RecurringPaymentDefinitionEntity(
+        let category = DomainFixtures.category(name: "保険・税金")
+        let definition1 = DomainFixtures.recurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 5) ?? Date(),
             category: category,
-            savingStrategy: .evenlyDistributed,
+            savingStrategy: .evenlyDistributed
         )
-        let definition2 = RecurringPaymentDefinitionEntity(
+        let definition2 = DomainFixtures.recurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
             firstOccurrenceDate: Date.from(year: 2027, month: 3) ?? Date(),
             category: category,
             savingStrategy: .customMonthly,
-            customMonthlySavingAmount: 6000,
+            customMonthlySavingAmount: 6000
         )
 
-        let balance1 = RecurringPaymentSavingBalanceEntity(
+        let balance1 = DomainFixtures.recurringPaymentSavingBalance(
             definition: definition1,
             totalSavedAmount: 22500,
             totalPaidAmount: 0,
             lastUpdatedYear: 2025,
-            lastUpdatedMonth: 11,
+            lastUpdatedMonth: 11
         )
 
-        let balance2 = RecurringPaymentSavingBalanceEntity(
+        let balance2 = DomainFixtures.recurringPaymentSavingBalance(
             definition: definition2,
             totalSavedAmount: 60000,
             totalPaidAmount: 0,
             lastUpdatedYear: 2025,
-            lastUpdatedMonth: 11,
+            lastUpdatedMonth: 11
         )
 
         // When
         let results = calculator.calculateRecurringPaymentSavings(
             RecurringPaymentSavingsCalculationInput(
-                definitions: [
-                    RecurringPaymentDefinition(from: definition1),
-                    RecurringPaymentDefinition(from: definition2),
-                ],
-                balances: [
-                    RecurringPaymentSavingBalance(from: balance1),
-                    RecurringPaymentSavingBalance(from: balance2),
-                ],
+                definitions: [definition1, definition2],
+                balances: [balance1, balance2],
                 occurrences: [],
                 year: 2025,
                 month: 11,
@@ -84,18 +77,18 @@ internal struct BudgetCalculatorRecurringPaymentTests {
     @Test("定期支払い積立状況の計算：残高がない場合")
     internal func calculateRecurringPaymentSavings_noBalance() throws {
         // Given
-        let definition = RecurringPaymentDefinitionEntity(
+        let definition = DomainFixtures.recurringPaymentDefinition(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 4) ?? Date(),
-            savingStrategy: .evenlyDistributed,
+            savingStrategy: .evenlyDistributed
         )
 
         // When
         let results = calculator.calculateRecurringPaymentSavings(
             RecurringPaymentSavingsCalculationInput(
-                definitions: [RecurringPaymentDefinition(from: definition)],
+                definitions: [definition],
                 balances: [], // 残高なし
                 occurrences: [],
                 year: 2025,
@@ -114,35 +107,35 @@ internal struct BudgetCalculatorRecurringPaymentTests {
     @Test("月次積立金額の合計計算")
     internal func calculateMonthlySavingsAllocation_success() throws {
         // Given
-        let definition1 = RecurringPaymentDefinitionEntity(
+        let definition1 = DomainFixtures.recurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
-            savingStrategy: .evenlyDistributed,
+            savingStrategy: .evenlyDistributed
         )
-        let definition2 = RecurringPaymentDefinitionEntity(
+        let definition2 = DomainFixtures.recurringPaymentDefinition(
             name: "車検",
             amount: 120_000,
             recurrenceIntervalMonths: 24,
             firstOccurrenceDate: Date(),
             savingStrategy: .customMonthly,
-            customMonthlySavingAmount: 6000,
+            customMonthlySavingAmount: 6000
         )
-        let definition3 = RecurringPaymentDefinitionEntity(
+        let definition3 = DomainFixtures.recurringPaymentDefinition(
             name: "一時金（積立なし）",
             amount: 50000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
-            savingStrategy: .disabled, // 積立無効
+            savingStrategy: .disabled // 積立無効
         )
 
         // When
         let total = calculator.calculateMonthlySavingsAllocation(
             definitions: [
-                RecurringPaymentDefinition(from: definition1),
-                RecurringPaymentDefinition(from: definition2),
-                RecurringPaymentDefinition(from: definition3),
+                definition1,
+                definition2,
+                definition3,
             ],
             year: 2025,
             month: 11,
@@ -156,49 +149,49 @@ internal struct BudgetCalculatorRecurringPaymentTests {
     @Test("カテゴリ別積立金額の計算")
     internal func calculateCategorySavingsAllocation_success() throws {
         // Given
-        let category1 = CategoryEntity(name: "保険・税金")
-        let category2 = CategoryEntity(name: "教育費")
+        let category1 = DomainFixtures.category(name: "保険・税金")
+        let category2 = DomainFixtures.category(name: "教育費")
 
-        let definition1 = RecurringPaymentDefinitionEntity(
+        let definition1 = DomainFixtures.recurringPaymentDefinition(
             name: "自動車税",
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
             category: category1,
-            savingStrategy: .evenlyDistributed,
+            savingStrategy: .evenlyDistributed
         )
-        let definition2 = RecurringPaymentDefinitionEntity(
+        let definition2 = DomainFixtures.recurringPaymentDefinition(
             name: "固定資産税",
             amount: 150_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
             category: category1,
-            savingStrategy: .evenlyDistributed,
+            savingStrategy: .evenlyDistributed
         )
-        let definition3 = RecurringPaymentDefinitionEntity(
+        let definition3 = DomainFixtures.recurringPaymentDefinition(
             name: "学資保険",
             amount: 120_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
             category: category2,
-            savingStrategy: .evenlyDistributed,
+            savingStrategy: .evenlyDistributed
         )
-        let definition4 = RecurringPaymentDefinitionEntity(
+        let definition4 = DomainFixtures.recurringPaymentDefinition(
             name: "カテゴリなし",
             amount: 50000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
-            category: nil, // カテゴリなし
-            savingStrategy: .evenlyDistributed,
+            categoryId: nil,
+            savingStrategy: .evenlyDistributed
         )
 
         // When
         let allocations = calculator.calculateCategorySavingsAllocation(
             definitions: [
-                RecurringPaymentDefinition(from: definition1),
-                RecurringPaymentDefinition(from: definition2),
-                RecurringPaymentDefinition(from: definition3),
-                RecurringPaymentDefinition(from: definition4),
+                definition1,
+                definition2,
+                definition3,
+                definition4,
             ],
             year: 2025,
             month: 11,
@@ -217,25 +210,4 @@ internal struct BudgetCalculatorRecurringPaymentTests {
         #expect(allocations.keys.contains { $0 == definition4.id } == false)
     }
 
-    // MARK: - Helper Methods
-
-    private func createSampleTransactions(category: Kakeibo.CategoryEntity) -> [TransactionEntity] {
-        [
-            createTransaction(amount: -30000, category: category),
-            createTransaction(amount: -20000, category: category),
-            createTransaction(amount: -15000, category: category),
-        ]
-    }
-
-    private func createTransaction(
-        amount: Decimal,
-        category: Kakeibo.CategoryEntity,
-    ) -> TransactionEntity {
-        TransactionEntity(
-            date: Date.from(year: 2025, month: 11) ?? Date(),
-            title: "テスト取引",
-            amount: amount,
-            majorCategory: category,
-        )
-    }
 }

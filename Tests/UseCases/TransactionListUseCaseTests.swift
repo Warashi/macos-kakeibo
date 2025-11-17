@@ -11,8 +11,8 @@ internal struct TransactionListUseCaseTests {
         let previousMonth = Calendar.current.date(byAdding: .month, value: -1, to: targetMonth) ?? targetMonth
         let repository = InMemoryTransactionRepository(
             transactions: [
-                TransactionEntity(date: targetMonth, title: "今月のランチ", amount: -1200),
-                TransactionEntity(date: previousMonth, title: "先月のランチ", amount: -800),
+                DomainFixtures.transaction(date: targetMonth, title: "今月のランチ", amount: -1200),
+                DomainFixtures.transaction(date: previousMonth, title: "先月のランチ", amount: -800),
             ],
         )
         let useCase = DefaultTransactionListUseCase(repository: repository)
@@ -28,8 +28,8 @@ internal struct TransactionListUseCaseTests {
         let targetMonth = Date.from(year: 2025, month: 11) ?? Date()
         let repository = InMemoryTransactionRepository(
             transactions: [
-                TransactionEntity(date: targetMonth, title: "給与", amount: 300_000),
-                TransactionEntity(date: targetMonth, title: "家賃", amount: -80000),
+                DomainFixtures.transaction(date: targetMonth, title: "給与", amount: 300_000),
+                DomainFixtures.transaction(date: targetMonth, title: "家賃", amount: -80000),
             ],
         )
         let useCase = DefaultTransactionListUseCase(repository: repository)
@@ -48,8 +48,8 @@ internal struct TransactionListUseCaseTests {
         let targetMonth = Date.from(year: 2025, month: 11) ?? Date()
         let repository = InMemoryTransactionRepository(
             transactions: [
-                TransactionEntity(date: targetMonth, title: "スタバ", amount: -640, memo: "カフェ", isIncludedInCalculation: true),
-                TransactionEntity(date: targetMonth, title: "スーパー", amount: -1200),
+                DomainFixtures.transaction(date: targetMonth, title: "スタバ", amount: -640, memo: "カフェ", isIncludedInCalculation: true),
+                DomainFixtures.transaction(date: targetMonth, title: "スーパー", amount: -1200),
             ],
         )
         let useCase = DefaultTransactionListUseCase(repository: repository)
@@ -65,9 +65,9 @@ internal struct TransactionListUseCaseTests {
 
     @Test("参照データをまとめて取得できる")
     internal func loadsReferenceData() async throws {
-        let institution = FinancialInstitutionEntity(name: "メイン銀行")
-        let major = CategoryEntity(name: "食費", displayOrder: 1)
-        let minor = CategoryEntity(name: "外食", parent: major, displayOrder: 1)
+        let institution = DomainFixtures.financialInstitution(name: "メイン銀行")
+        let major = DomainFixtures.category(name: "食費", displayOrder: 1)
+        let minor = DomainFixtures.category(name: "外食", displayOrder: 1, parent: major)
         let repository = InMemoryTransactionRepository(
             institutions: [institution],
             categories: [major, minor],

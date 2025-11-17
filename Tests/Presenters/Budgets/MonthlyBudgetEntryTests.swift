@@ -7,20 +7,21 @@ import Testing
 internal struct MonthlyBudgetEntryTests {
     @Test("displayOrderKeyは親子のdisplayOrderを考慮")
     internal func displayOrderKey_usesHierarchy() throws {
-        let parent = CategoryEntity(name: "固定費", displayOrder: 2)
-        let child = CategoryEntity(name: "家賃", parent: parent, displayOrder: 10)
-        parent.addChild(child)
+        let parent = DomainFixtures.category(name: "固定費", displayOrder: 2)
+        let child = DomainFixtures.category(name: "家賃", displayOrder: 10, parent: parent)
 
-        let budget = BudgetEntity(
+        let budget = DomainFixtures.budget(
             amount: 80000,
             category: child,
-            year: 2025,
-            month: 1,
+            startYear: 2025,
+            startMonth: 1,
+            endYear: 2025,
+            endMonth: 1
         )
 
         let entry = MonthlyBudgetEntry(
-            budget: Budget(from: budget),
-            title: child.fullName,
+            budget: budget,
+            title: "\(parent.name) / \(child.name)",
             calculation: BudgetCalculation(
                 budgetAmount: 80000,
                 actualAmount: 0,
@@ -36,19 +37,21 @@ internal struct MonthlyBudgetEntryTests {
 
         #expect(key.parentOrder == parent.displayOrder)
         #expect(key.ownOrder == child.displayOrder)
-        #expect(key.title == child.fullName)
+        #expect(key.title == "\(parent.name) / \(child.name)")
     }
 
     @Test("全体予算はisOverallBudgetがtrueになる")
     internal func overallBudget_flagsCorrectly() throws {
-        let budget = BudgetEntity(
+        let budget = DomainFixtures.budget(
             amount: 100_000,
-            year: 2025,
-            month: 5,
+            startYear: 2025,
+            startMonth: 5,
+            endYear: 2025,
+            endMonth: 5
         )
 
         let entry = MonthlyBudgetEntry(
-            budget: Budget(from: budget),
+            budget: budget,
             title: "全体予算",
             calculation: BudgetCalculation(
                 budgetAmount: 100_000,

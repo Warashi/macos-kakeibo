@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 import Testing
 
 @testable import Kakeibo
@@ -11,25 +10,25 @@ internal struct AnnualBudgetAllocatorUsageTests {
     @Test("年次特別枠使用状況計算：自動充当")
     internal func annualBudgetUsage_automatic() throws {
         // Given
-        let category = CategoryEntity(name: "食費", allowsAnnualBudget: true)
+        let category = DomainFixtures.category(name: "食費", allowsAnnualBudget: true)
         let transactions = createSampleTransactions(category: category)
         let budgets = [
-            BudgetEntity(amount: 30000, category: category, year: 2025, month: 11),
+            DomainFixtures.budget(amount: 30000, category: category, startYear: 2025, startMonth: 11),
         ]
-        let config = AnnualBudgetConfigEntity(
+        let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
-            policy: .automatic,
+            policy: .automatic
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { Transaction(from: $0) },
-            budgets: budgets.map { Budget(from: $0) },
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            transactions: transactions,
+            budgets: budgets,
+            annualBudgetConfig: config,
         )
 
         // When
-        let categories = [Category(from: category)]
+        let categories = [category]
         let result = allocator.calculateAnnualBudgetUsage(
             params: params,
             categories: categories,
@@ -47,27 +46,27 @@ internal struct AnnualBudgetAllocatorUsageTests {
     @Test("月次充当計算：年次特別枠使用状況が正しく計算される")
     internal func monthlyAllocation_includesAnnualUsage() throws {
         // Given
-        let category = CategoryEntity(name: "食費", allowsAnnualBudget: true)
+        let category = DomainFixtures.category(name: "食費", allowsAnnualBudget: true)
         let transactions = [
             createTransaction(amount: -80000, category: category),
         ]
         let budgets = [
-            BudgetEntity(amount: 50000, category: category, year: 2025, month: 11),
+            DomainFixtures.budget(amount: 50000, category: category, startYear: 2025, startMonth: 11),
         ]
-        let config = AnnualBudgetConfigEntity(
+        let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
-            policy: .automatic,
+            policy: .automatic
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { Transaction(from: $0) },
-            budgets: budgets.map { Budget(from: $0) },
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            transactions: transactions,
+            budgets: budgets,
+            annualBudgetConfig: config,
         )
 
         // When
-        let categories = [Category(from: category)]
+        let categories = [category]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
             categories: categories,
@@ -81,7 +80,7 @@ internal struct AnnualBudgetAllocatorUsageTests {
     }
 }
 
-private func createSampleTransactions(category: Kakeibo.CategoryEntity) -> [TransactionEntity] {
+private func createSampleTransactions(category: Kakeibo.Category) -> [Transaction] {
     [
         createTransaction(amount: -50000, category: category),
         createTransaction(amount: -30000, category: category),
@@ -90,9 +89,9 @@ private func createSampleTransactions(category: Kakeibo.CategoryEntity) -> [Tran
 
 private func createTransaction(
     amount: Decimal,
-    category: Kakeibo.CategoryEntity,
-    minorCategory: Kakeibo.CategoryEntity? = nil,
-) -> TransactionEntity {
+    category: Kakeibo.Category,
+    minorCategory: Kakeibo.Category? = nil,
+) -> Transaction {
     createTransaction(
         amount: amount,
         majorCategory: category,
@@ -102,41 +101,39 @@ private func createTransaction(
 
 private func createTransaction(
     amount: Decimal,
-    majorCategory: Kakeibo.CategoryEntity?,
-    minorCategory: Kakeibo.CategoryEntity? = nil,
-) -> TransactionEntity {
-    TransactionEntity(
+    majorCategory: Kakeibo.Category?,
+    minorCategory: Kakeibo.Category? = nil,
+) -> Transaction {
+    DomainFixtures.transaction(
         date: Date.from(year: 2025, month: 11) ?? Date(),
         title: "テスト取引",
         amount: amount,
         majorCategory: majorCategory,
-        minorCategory: minorCategory,
+        minorCategory: minorCategory
     )
 }
 
 private func makeConfig(
     policy: AnnualBudgetPolicy = .automatic,
     allocations: [AllocationSeed] = [],
-) -> AnnualBudgetConfigEntity {
-    let config = AnnualBudgetConfigEntity(
+) -> AnnualBudgetConfig {
+    let allocationModels = allocations.map { seed in
+        DomainFixtures.annualBudgetAllocation(
+            amount: seed.amount,
+            category: seed.category,
+            policyOverride: seed.override
+        )
+    }
+    return DomainFixtures.annualBudgetConfig(
         year: 2025,
         totalAmount: 500_000,
         policy: policy,
+        allocations: allocationModels
     )
-    config.allocations = allocations.map { seed in
-        let allocation = AnnualBudgetAllocationEntity(
-            amount: seed.amount,
-            category: seed.category,
-            policyOverride: seed.override,
-        )
-        allocation.config = config
-        return allocation
-    }
-    return config
 }
 
 private struct AllocationSeed {
-    let category: Kakeibo.CategoryEntity
+    let category: Kakeibo.Category
     let amount: Decimal
     let override: AnnualBudgetPolicy?
 }
@@ -148,25 +145,25 @@ internal struct BudgetAllocatorMonthlyTests {
     @Test("年次特別枠使用状況計算：無効")
     internal func annualBudgetUsage_disabled() throws {
         // Given
-        let category = CategoryEntity(name: "食費", allowsAnnualBudget: true)
+        let category = DomainFixtures.category(name: "食費", allowsAnnualBudget: true)
         let transactions = createSampleTransactions(category: category)
         let budgets = [
-            BudgetEntity(amount: 30000, category: category, year: 2025, month: 11),
+            DomainFixtures.budget(amount: 30000, category: category, startYear: 2025, startMonth: 11),
         ]
-        let config = AnnualBudgetConfigEntity(
+        let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
-            policy: .disabled,
+            policy: .disabled
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { Transaction(from: $0) },
-            budgets: budgets.map { Budget(from: $0) },
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            transactions: transactions,
+            budgets: budgets,
+            annualBudgetConfig: config,
         )
 
         // When
-        let categories = [Category(from: category)]
+        let categories = [category]
         let result = allocator.calculateAnnualBudgetUsage(
             params: params,
             categories: categories,
@@ -184,27 +181,27 @@ internal struct BudgetAllocatorMonthlyTests {
     @Test("月次充当計算：予算超過なし")
     internal func monthlyAllocation_noBudgetExcess() throws {
         // Given
-        let category = CategoryEntity(name: "食費", allowsAnnualBudget: true)
+        let category = DomainFixtures.category(name: "食費", allowsAnnualBudget: true)
         let transactions = [
             createTransaction(amount: -20000, category: category),
         ]
         let budgets = [
-            BudgetEntity(amount: 50000, category: category, year: 2025, month: 11),
+            DomainFixtures.budget(amount: 50000, category: category, startYear: 2025, startMonth: 11),
         ]
-        let config = AnnualBudgetConfigEntity(
+        let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
-            policy: .automatic,
+            policy: .automatic
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { Transaction(from: $0) },
-            budgets: budgets.map { Budget(from: $0) },
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            transactions: transactions,
+            budgets: budgets,
+            annualBudgetConfig: config,
         )
 
         // When
-        let categories = [Category(from: category)]
+        let categories = [category]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
             categories: categories,
@@ -222,27 +219,27 @@ internal struct BudgetAllocatorMonthlyTests {
     @Test("月次充当計算：予算超過あり")
     internal func monthlyAllocation_budgetExceeded() throws {
         // Given
-        let category = CategoryEntity(name: "食費", allowsAnnualBudget: true)
+        let category = DomainFixtures.category(name: "食費", allowsAnnualBudget: true)
         let transactions = [
             createTransaction(amount: -80000, category: category),
         ]
         let budgets = [
-            BudgetEntity(amount: 50000, category: category, year: 2025, month: 11),
+            DomainFixtures.budget(amount: 50000, category: category, startYear: 2025, startMonth: 11),
         ]
-        let config = AnnualBudgetConfigEntity(
+        let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
-            policy: .automatic,
+            policy: .automatic
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { Transaction(from: $0) },
-            budgets: budgets.map { Budget(from: $0) },
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            transactions: transactions,
+            budgets: budgets,
+            annualBudgetConfig: config,
         )
 
         // When
-        let categories = [Category(from: category)]
+        let categories = [category]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
             categories: categories,
@@ -263,12 +260,12 @@ internal struct BudgetAllocatorMonthlyTests {
     @Test("全額年次枠指定カテゴリは実績全体を充当する")
     internal func monthlyAllocation_fullCoverageOverrideUsesActual() throws {
         // Given
-        let category = CategoryEntity(name: "特別", allowsAnnualBudget: true)
+        let category = DomainFixtures.category(name: "特別", allowsAnnualBudget: true)
         let transactions = [
             createTransaction(amount: -40000, category: category),
         ]
         let budgets = [
-            BudgetEntity(amount: 50000, category: category, year: 2025, month: 11),
+            DomainFixtures.budget(amount: 50000, category: category, startYear: 2025, startMonth: 11),
         ]
         let config = makeConfig(
             policy: AnnualBudgetPolicy.manual,
@@ -278,13 +275,13 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { Transaction(from: $0) },
-            budgets: budgets.map { Budget(from: $0) },
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            transactions: transactions,
+            budgets: budgets,
+            annualBudgetConfig: config,
         )
 
         // When
-        let categories = [Category(from: category)]
+        let categories = [category]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
             categories: categories,
@@ -307,11 +304,11 @@ internal struct BudgetAllocatorMonthlyTests {
     @Test("全額年次枠カテゴリは月次予算がなくても集計される")
     internal func monthlyAllocation_fullCoverageWithoutMonthlyBudget() throws {
         // Given
-        let category = CategoryEntity(name: "旅行", allowsAnnualBudget: true)
+        let category = DomainFixtures.category(name: "旅行", allowsAnnualBudget: true)
         let transactions = [
             createTransaction(amount: -60000, category: category),
         ]
-        let budgets: [BudgetEntity] = []
+        let budgets: [Budget] = []
         let config = makeConfig(
             allocations: [
                 AllocationSeed(category: category, amount: 90000, override: .fullCoverage),
@@ -319,13 +316,13 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { Transaction(from: $0) },
-            budgets: budgets.map { Budget(from: $0) },
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            transactions: transactions,
+            budgets: budgets,
+            annualBudgetConfig: config,
         )
 
         // When
-        let categories = [Category(from: category)]
+        let categories = [category]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
             categories: categories,
@@ -346,13 +343,13 @@ internal struct BudgetAllocatorMonthlyTests {
     }
 
     @Test("自動充当カテゴリは月次予算がなくても集計される")
-    internal func monthlyAllocation_unbudgetedAutomaticCategoryEntity() throws {
+    internal func monthlyAllocation_unbudgetedAutomaticCategory() throws {
         // Given
-        let category = CategoryEntity(name: "医療", allowsAnnualBudget: true)
+        let category = DomainFixtures.category(name: "医療", allowsAnnualBudget: true)
         let transactions = [
             createTransaction(amount: -20000, category: category),
         ]
-        let budgets: [BudgetEntity] = []
+        let budgets: [Budget] = []
         let config = makeConfig(
             allocations: [
                 AllocationSeed(category: category, amount: 150_000, override: nil),
@@ -360,13 +357,13 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { Transaction(from: $0) },
-            budgets: budgets.map { Budget(from: $0) },
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            transactions: transactions,
+            budgets: budgets,
+            annualBudgetConfig: config,
         )
 
         // When
-        let categories = [Category(from: category)]
+        let categories = [category]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
             categories: categories,
@@ -385,8 +382,8 @@ internal struct BudgetAllocatorMonthlyTests {
     @Test("全額年次枠の大項目では中項目の支出も集計される")
     internal func monthlyAllocation_fullCoverageMajorIncludesMinors() throws {
         // Given
-        let major = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
-        let minor = CategoryEntity(name: "旅行", parent: major, allowsAnnualBudget: true)
+        let major = DomainFixtures.category(name: "特別費", allowsAnnualBudget: true)
+        let minor = DomainFixtures.category(name: "旅行", allowsAnnualBudget: true, parent: major)
         let transactions = [
             createTransaction(amount: -25000, category: major, minorCategory: minor),
         ]
@@ -397,13 +394,13 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { Transaction(from: $0) },
+            transactions: transactions,
             budgets: [],
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            annualBudgetConfig: config,
         )
 
         // When
-        let categories = [Category(from: major), Category(from: minor)]
+        let categories = [major, minor]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
             categories: categories,
@@ -422,8 +419,8 @@ internal struct BudgetAllocatorMonthlyTests {
     @Test("取引が中項目のみを持つ場合でも大項目の全額枠に反映される")
     internal func monthlyAllocation_fullCoverageMajorIncludesMinorsWithoutMajorAssignment() throws {
         // Given
-        let major = CategoryEntity(name: "特別費", allowsAnnualBudget: true)
-        let minor = CategoryEntity(name: "旅行", parent: major, allowsAnnualBudget: true)
+        let major = DomainFixtures.category(name: "特別費", allowsAnnualBudget: true)
+        let minor = DomainFixtures.category(name: "旅行", allowsAnnualBudget: true, parent: major)
         let transactions = [
             createTransaction(amount: -18000, majorCategory: nil, minorCategory: minor),
         ]
@@ -434,13 +431,13 @@ internal struct BudgetAllocatorMonthlyTests {
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { Transaction(from: $0) },
+            transactions: transactions,
             budgets: [],
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            annualBudgetConfig: config,
         )
 
         // When
-        let categories = [Category(from: major), Category(from: minor)]
+        let categories = [major, minor]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
             categories: categories,
@@ -459,27 +456,27 @@ internal struct BudgetAllocatorMonthlyTests {
     @Test("月次充当計算：年次特別枠使用不可カテゴリ")
     internal func monthlyAllocation_categoryNotAllowed() throws {
         // Given
-        let category = CategoryEntity(name: "食費", allowsAnnualBudget: false)
+        let category = DomainFixtures.category(name: "食費", allowsAnnualBudget: false)
         let transactions = [
             createTransaction(amount: -80000, category: category),
         ]
         let budgets = [
-            BudgetEntity(amount: 50000, category: category, year: 2025, month: 11),
+            DomainFixtures.budget(amount: 50000, category: category, startYear: 2025, startMonth: 11),
         ]
-        let config = AnnualBudgetConfigEntity(
+        let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
-            policy: .automatic,
+            policy: .automatic
         )
 
         let params = AllocationCalculationParams(
-            transactions: transactions.map { Transaction(from: $0) },
-            budgets: budgets.map { Budget(from: $0) },
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            transactions: transactions,
+            budgets: budgets,
+            annualBudgetConfig: config,
         )
 
         // When
-        let categories = [Category(from: category)]
+        let categories = [category]
         let result = allocator.calculateMonthlyAllocation(
             params: params,
             categories: categories,

@@ -8,19 +8,19 @@ internal struct AnnualBudgetUseCaseTests {
     internal func calculatesAnnualOverallEntry() {
         let year = 2025
         let budgets = [
-            BudgetEntity(amount: 100_000, year: year, month: 1),
-            BudgetEntity(amount: 120_000, year: year, month: 2),
+            DomainFixtures.budget(amount: 100_000, startYear: year, startMonth: 1),
+            DomainFixtures.budget(amount: 120_000, startYear: year, startMonth: 2),
         ]
         let transactions = [
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: year, month: 1, day: 10) ?? Date(),
                 title: "家賃",
-                amount: -80000,
+                amount: -80000
             ),
         ]
         let snapshot = BudgetSnapshot(
-            budgets: budgets.map { Budget(from: $0) },
-            transactions: transactions.map { Transaction(from: $0) },
+            budgets: budgets,
+            transactions: transactions,
             categories: [],
             annualBudgetConfig: nil,
             recurringPaymentDefinitions: [],
@@ -38,23 +38,23 @@ internal struct AnnualBudgetUseCaseTests {
     @Test("年次カテゴリ別エントリを算出する")
     internal func calculatesCategoryEntries() throws {
         let year = 2025
-        let food = CategoryEntity(name: "食費", displayOrder: 1)
+        let food = DomainFixtures.category(name: "食費", displayOrder: 1)
         let budgets = [
-            BudgetEntity(amount: 50000, category: food, year: year, month: 1),
-            BudgetEntity(amount: 60000, category: food, year: year, month: 2),
+            DomainFixtures.budget(amount: 50000, category: food, startYear: year, startMonth: 1),
+            DomainFixtures.budget(amount: 60000, category: food, startYear: year, startMonth: 2),
         ]
         let transactions = [
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: year, month: 1, day: 5) ?? Date(),
                 title: "スーパー",
                 amount: -20000,
-                majorCategory: food,
+                majorCategory: food
             ),
         ]
         let snapshot = BudgetSnapshot(
-            budgets: budgets.map { Budget(from: $0) },
-            transactions: transactions.map { Transaction(from: $0) },
-            categories: [Category(from: food)],
+            budgets: budgets,
+            transactions: transactions,
+            categories: [food],
             annualBudgetConfig: nil,
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],
@@ -72,24 +72,31 @@ internal struct AnnualBudgetUseCaseTests {
     @Test("年次特別枠の使用状況を算出する")
     internal func calculatesAnnualUsage() {
         let year = 2025
-        let food = CategoryEntity(name: "食費", displayOrder: 1)
-        let config = AnnualBudgetConfigEntity(year: year, totalAmount: 200_000, policy: .automatic)
-        config.allocations = [
-            AnnualBudgetAllocationEntity(amount: 200_000, category: food, policyOverride: .automatic),
-        ]
+        let food = DomainFixtures.category(name: "食費", displayOrder: 1)
+        let allocation = DomainFixtures.annualBudgetAllocation(
+            amount: 200_000,
+            category: food,
+            policyOverride: .automatic
+        )
+        let config = DomainFixtures.annualBudgetConfig(
+            year: year,
+            totalAmount: 200_000,
+            policy: .automatic,
+            allocations: [allocation]
+        )
         let transactions = [
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: year, month: 1, day: 1) ?? Date(),
                 title: "家電",
                 amount: -50000,
-                majorCategory: food,
+                majorCategory: food
             ),
         ]
         let snapshot = BudgetSnapshot(
             budgets: [],
-            transactions: transactions.map { Transaction(from: $0) },
-            categories: [Category(from: food)],
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            transactions: transactions,
+            categories: [food],
+            annualBudgetConfig: config,
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],
             recurringPaymentOccurrences: [],

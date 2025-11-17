@@ -6,15 +6,15 @@ import Testing
 internal struct MonthlyBudgetUseCaseTests {
     @Test("指定月の予算だけを返す")
     internal func filtersBudgetsByMonth() {
-        let category = CategoryEntity(name: "食費", displayOrder: 1)
+        let category = DomainFixtures.category(name: "食費", displayOrder: 1)
         let budgets = [
-            BudgetEntity(amount: 5000, category: category, year: 2025, month: 11),
-            BudgetEntity(amount: 6000, category: category, year: 2025, month: 12),
+            DomainFixtures.budget(amount: 5000, category: category, startYear: 2025, startMonth: 11),
+            DomainFixtures.budget(amount: 6000, category: category, startYear: 2025, startMonth: 12),
         ]
         let snapshot = BudgetSnapshot(
-            budgets: budgets.map { Budget(from: $0) },
+            budgets: budgets,
             transactions: [],
-            categories: [Category(from: category)],
+            categories: [category],
             annualBudgetConfig: nil,
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],
@@ -30,18 +30,18 @@ internal struct MonthlyBudgetUseCaseTests {
 
     @Test("カテゴリ別エントリで実績が反映される")
     internal func categoryEntriesCalculateActuals() throws {
-        let category = CategoryEntity(name: "食費", displayOrder: 1)
-        let budget = BudgetEntity(amount: 5000, category: category, year: 2025, month: 11)
-        let transaction = TransactionEntity(
+        let category = DomainFixtures.category(name: "食費", displayOrder: 1)
+        let budget = DomainFixtures.budget(amount: 5000, category: category, startYear: 2025, startMonth: 11)
+        let transaction = DomainFixtures.transaction(
             date: Date.from(year: 2025, month: 11, day: 5) ?? Date(),
             title: "ランチ",
             amount: -2000,
-            majorCategory: category,
+            majorCategory: category
         )
         let snapshot = BudgetSnapshot(
-            budgets: [Budget(from: budget)],
-            transactions: [Transaction(from: transaction)],
-            categories: [Category(from: category)],
+            budgets: [budget],
+            transactions: [transaction],
+            categories: [category],
             annualBudgetConfig: nil,
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],
@@ -58,15 +58,15 @@ internal struct MonthlyBudgetUseCaseTests {
 
     @Test("全体予算エントリを計算する")
     internal func overallEntryCalculatesTotals() {
-        let overallBudget = BudgetEntity(amount: 10000, year: 2025, month: 11)
-        let transaction = TransactionEntity(
+        let overallBudget = DomainFixtures.budget(amount: 10000, startYear: 2025, startMonth: 11)
+        let transaction = DomainFixtures.transaction(
             date: Date.from(year: 2025, month: 11, day: 1) ?? Date(),
             title: "家賃",
-            amount: -8000,
+            amount: -8000
         )
         let snapshot = BudgetSnapshot(
-            budgets: [Budget(from: overallBudget)],
-            transactions: [Transaction(from: transaction)],
+            budgets: [overallBudget],
+            transactions: [transaction],
             categories: [],
             annualBudgetConfig: nil,
             recurringPaymentDefinitions: [],

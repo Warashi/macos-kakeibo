@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 import Testing
 
 @testable import Kakeibo
@@ -11,53 +10,51 @@ internal struct AnnualBudgetProgressCalculatorTests {
     @Test("大項目のみの予算：中項目を持つ取引の実績も含まれる")
     internal func majorCategoryBudget_includesMinorCategoryTransactions() throws {
         // Given: 大項目「食費」と中項目「食費 / 外食」を作成
-        let majorCategory = CategoryEntity(name: "食費", displayOrder: 1)
-        let minorCategory = CategoryEntity(name: "外食", parent: majorCategory, displayOrder: 1)
-        majorCategory.addChild(minorCategory)
+        let majorCategory = DomainFixtures.category(name: "食費", displayOrder: 1)
+        let minorCategory = DomainFixtures.category(name: "外食", displayOrder: 1, parent: majorCategory)
 
         // 大項目「食費」に対して年次予算を設定（12ヶ月 × 50,000円 = 600,000円）
-        let budget = BudgetEntity(
+        let budget = DomainFixtures.budget(
             amount: 50000,
             category: majorCategory,
             startYear: 2025,
             startMonth: 1,
             endYear: 2025,
-            endMonth: 12,
+            endMonth: 12
         )
 
         // 取引データを作成
-        let transactions: [TransactionEntity] = [
+        let transactions: [Transaction] = [
             // 大項目のみの取引: 10,000円
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "食材購入",
                 amount: -10000,
-                majorCategory: majorCategory,
-                minorCategory: nil,
+                majorCategory: majorCategory
             ),
             // 中項目も設定された取引: 5,000円
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "ランチ",
                 amount: -5000,
                 majorCategory: majorCategory,
-                minorCategory: minorCategory,
+                minorCategory: minorCategory
             ),
             // 中項目も設定された取引: 8,000円
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 2, day: 10) ?? Date(),
                 title: "ディナー",
                 amount: -8000,
                 majorCategory: majorCategory,
-                minorCategory: minorCategory,
+                minorCategory: minorCategory
             ),
         ]
 
         // When: 年次予算進捗を計算
-        let categories = [Category(from: majorCategory), Category(from: minorCategory)]
+        let categories = [majorCategory, minorCategory]
         let result = calculator.calculate(
-            budgets: [Budget(from: budget)],
-            transactions: transactions.map { Transaction(from: $0) },
+            budgets: [budget],
+            transactions: transactions,
             categories: categories,
             year: 2025,
         )
@@ -92,51 +89,49 @@ internal struct AnnualBudgetProgressCalculatorTests {
     @Test("中項目のみの予算：その中項目の取引のみが含まれる")
     internal func minorCategoryBudget_includesOnlyMinorCategoryTransactions() throws {
         // Given: 大項目「食費」と中項目「食費 / 外食」を作成
-        let majorCategory = CategoryEntity(name: "食費", displayOrder: 1)
-        let minorCategory1 = CategoryEntity(name: "外食", parent: majorCategory, displayOrder: 1)
-        let minorCategory2 = CategoryEntity(name: "食材", parent: majorCategory, displayOrder: 2)
-        majorCategory.addChild(minorCategory1)
-        majorCategory.addChild(minorCategory2)
+        let majorCategory = DomainFixtures.category(name: "食費", displayOrder: 1)
+        let minorCategory1 = DomainFixtures.category(name: "外食", displayOrder: 1, parent: majorCategory)
+        let minorCategory2 = DomainFixtures.category(name: "食材", displayOrder: 2, parent: majorCategory)
 
         // 中項目「外食」に対して年次予算を設定
-        let budget = BudgetEntity(
+        let budget = DomainFixtures.budget(
             amount: 30000,
             category: minorCategory1,
             startYear: 2025,
             startMonth: 1,
             endYear: 2025,
-            endMonth: 12,
+            endMonth: 12
         )
 
         // 取引データを作成
-        let transactions: [TransactionEntity] = [
+        let transactions: [Transaction] = [
             // 外食の取引: 5,000円
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "ランチ",
                 amount: -5000,
                 majorCategory: majorCategory,
-                minorCategory: minorCategory1,
+                minorCategory: minorCategory1
             ),
             // 食材の取引: 10,000円（これは含まれない）
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "スーパー",
                 amount: -10000,
                 majorCategory: majorCategory,
-                minorCategory: minorCategory2,
+                minorCategory: minorCategory2
             ),
         ]
 
         // When: 年次予算進捗を計算
         let categories = [
-            Category(from: majorCategory),
-            Category(from: minorCategory1),
-            Category(from: minorCategory2),
+            majorCategory,
+            minorCategory1,
+            minorCategory2,
         ]
         let result = calculator.calculate(
-            budgets: [Budget(from: budget)],
-            transactions: transactions.map { Transaction(from: $0) },
+            budgets: [budget],
+            transactions: transactions,
             categories: categories,
             year: 2025,
         )
@@ -168,13 +163,13 @@ internal struct AnnualBudgetProgressCalculatorTests {
 
         // When: 年次予算進捗を計算
         let categories = [
-            Category(from: testData.foodCategory),
-            Category(from: testData.diningOutCategory),
-            Category(from: testData.transportCategory),
+            testData.foodCategory,
+            testData.diningOutCategory,
+            testData.transportCategory,
         ]
         let result = calculator.calculate(
-            budgets: testData.budgets.map { Budget(from: $0) },
-            transactions: testData.transactions.map { Transaction(from: $0) },
+            budgets: testData.budgets,
+            transactions: testData.transactions,
             categories: categories,
             year: 2025,
         )
@@ -216,58 +211,56 @@ internal struct AnnualBudgetProgressCalculatorTests {
     }
 
     private struct MultipleCategoryTestData {
-        let budgets: [BudgetEntity]
-        let transactions: [TransactionEntity]
-        let foodCategory: Kakeibo.CategoryEntity
-        let diningOutCategory: Kakeibo.CategoryEntity
-        let transportCategory: Kakeibo.CategoryEntity
+        let budgets: [Budget]
+        let transactions: [Transaction]
+        let foodCategory: Kakeibo.Category
+        let diningOutCategory: Kakeibo.Category
+        let transportCategory: Kakeibo.Category
     }
 
     private func createMultipleCategoryTestData() -> MultipleCategoryTestData {
-        let foodCategory = CategoryEntity(name: "食費", displayOrder: 1)
-        let diningOut = CategoryEntity(name: "外食", parent: foodCategory, displayOrder: 1)
-        foodCategory.addChild(diningOut)
-
-        let transportCategory = CategoryEntity(name: "交通費", displayOrder: 2)
+        let foodCategory = DomainFixtures.category(name: "食費", displayOrder: 1)
+        let diningOut = DomainFixtures.category(name: "外食", displayOrder: 1, parent: foodCategory)
+        let transportCategory = DomainFixtures.category(name: "交通費", displayOrder: 2)
 
         let budgets = [
-            BudgetEntity(
+            DomainFixtures.budget(
                 amount: 50000,
                 category: foodCategory,
                 startYear: 2025,
                 startMonth: 1,
                 endYear: 2025,
-                endMonth: 12,
+                endMonth: 12
             ),
-            BudgetEntity(
+            DomainFixtures.budget(
                 amount: 20000,
                 category: transportCategory,
                 startYear: 2025,
                 startMonth: 1,
                 endYear: 2025,
-                endMonth: 12,
+                endMonth: 12
             ),
         ]
 
-        let transactions: [TransactionEntity] = [
-            TransactionEntity(
+        let transactions: [Transaction] = [
+            DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "食材",
                 amount: -10000,
-                majorCategory: foodCategory,
+                majorCategory: foodCategory
             ),
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "ランチ",
                 amount: -5000,
                 majorCategory: foodCategory,
-                minorCategory: diningOut,
+                minorCategory: diningOut
             ),
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 25) ?? Date(),
                 title: "電車",
                 amount: -3000,
-                majorCategory: transportCategory,
+                majorCategory: transportCategory
             ),
         ]
 
@@ -283,53 +276,53 @@ internal struct AnnualBudgetProgressCalculatorTests {
     @Test("全体予算の計算で除外カテゴリの支出が含まれない")
     internal func overallBudget_excludesExcludedCategoryExpense() throws {
         // Given: カテゴリと予算を作成
-        let foodCategory = CategoryEntity(name: "食費", displayOrder: 1)
-        let transportCategory = CategoryEntity(name: "交通費", displayOrder: 2)
+        let foodCategory = DomainFixtures.category(name: "食費", displayOrder: 1)
+        let transportCategory = DomainFixtures.category(name: "交通費", displayOrder: 2)
 
         // 全体予算: 600,000円/年（50,000円/月 × 12ヶ月）
-        let overallBudget = BudgetEntity(
+        let overallBudget = DomainFixtures.budget(
             amount: 50000,
-            category: nil,
+            categoryId: nil,
             startYear: 2025,
             startMonth: 1,
             endYear: 2025,
-            endMonth: 12,
+            endMonth: 12
         )
 
         // カテゴリ別予算
-        let foodBudget = BudgetEntity(
+        let foodBudget = DomainFixtures.budget(
             amount: 30000,
             category: foodCategory,
             startYear: 2025,
             startMonth: 1,
             endYear: 2025,
-            endMonth: 12,
+            endMonth: 12
         )
 
         // 取引データを作成
-        let transactions: [TransactionEntity] = [
+        let transactions: [Transaction] = [
             // 食費: 10,000円
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "食材",
                 amount: -10000,
-                majorCategory: foodCategory,
+                majorCategory: foodCategory
             ),
             // 交通費: 5,000円
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "電車",
                 amount: -5000,
-                majorCategory: transportCategory,
+                majorCategory: transportCategory
             ),
         ]
 
         // When: 食費カテゴリを除外して年次予算進捗を計算
         let excludedCategoryIds: Set<UUID> = [foodCategory.id]
-        let categories = [Category(from: foodCategory), Category(from: transportCategory)]
+        let categories = [foodCategory, transportCategory]
         let result = calculator.calculate(
-            budgets: [Budget(from: overallBudget), Budget(from: foodBudget)],
-            transactions: transactions.map { Transaction(from: $0) },
+            budgets: [overallBudget, foodBudget],
+            transactions: transactions,
             categories: categories,
             year: 2025,
             excludedCategoryIds: excludedCategoryIds,
@@ -358,55 +351,55 @@ internal struct AnnualBudgetProgressCalculatorTests {
     @Test("除外カテゴリが複数ある場合も正しく計算される")
     internal func overallBudget_excludesMultipleCategories() throws {
         // Given: 複数のカテゴリと予算を作成
-        let foodCategory = CategoryEntity(name: "食費", displayOrder: 1)
-        let transportCategory = CategoryEntity(name: "交通費", displayOrder: 2)
-        let entertainmentCategory = CategoryEntity(name: "娯楽費", displayOrder: 3)
+        let foodCategory = DomainFixtures.category(name: "食費", displayOrder: 1)
+        let transportCategory = DomainFixtures.category(name: "交通費", displayOrder: 2)
+        let entertainmentCategory = DomainFixtures.category(name: "娯楽費", displayOrder: 3)
 
         // 全体予算: 600,000円/年
-        let overallBudget = BudgetEntity(
+        let overallBudget = DomainFixtures.budget(
             amount: 50000,
-            category: nil,
+            categoryId: nil,
             startYear: 2025,
             startMonth: 1,
             endYear: 2025,
-            endMonth: 12,
+            endMonth: 12
         )
 
         // 取引データを作成
-        let transactions: [TransactionEntity] = [
+        let transactions: [Transaction] = [
             // 食費: 10,000円
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "食材",
                 amount: -10000,
-                majorCategory: foodCategory,
+                majorCategory: foodCategory
             ),
             // 交通費: 5,000円
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "電車",
                 amount: -5000,
-                majorCategory: transportCategory,
+                majorCategory: transportCategory
             ),
             // 娯楽費: 8,000円
-            TransactionEntity(
+            DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 25) ?? Date(),
                 title: "映画",
                 amount: -8000,
-                majorCategory: entertainmentCategory,
+                majorCategory: entertainmentCategory
             ),
         ]
 
         // When: 食費と娯楽費を除外して年次予算進捗を計算
         let excludedCategoryIds: Set<UUID> = [foodCategory.id, entertainmentCategory.id]
         let categories = [
-            Category(from: foodCategory),
-            Category(from: transportCategory),
-            Category(from: entertainmentCategory),
+            foodCategory,
+            transportCategory,
+            entertainmentCategory,
         ]
         let result = calculator.calculate(
-            budgets: [Budget(from: overallBudget)],
-            transactions: transactions.map { Transaction(from: $0) },
+            budgets: [overallBudget],
+            transactions: transactions,
             categories: categories,
             year: 2025,
             excludedCategoryIds: excludedCategoryIds,

@@ -29,11 +29,11 @@ internal struct AnnualBudgetAllocationValidatorTests {
 
     @Test("ポリシーが無効でもカテゴリ毎の上書きがあれば計算を継続する")
     internal func disabledPolicyWithOverrides() throws {
-        let category = CategoryEntity(name: "特別支出", allowsAnnualBudget: true)
-        let allocation = AnnualBudgetAllocationEntity(
+        let category = DomainFixtures.category(name: "特別支出", allowsAnnualBudget: true)
+        let allocation = DomainFixtures.annualBudgetAllocation(
             amount: 100_000,
             category: category,
-            policyOverride: .automatic,
+            policyOverride: .automatic
         )
         let params = makeParams(
             policy: .disabled,
@@ -58,20 +58,19 @@ internal struct AnnualBudgetAllocationValidatorTests {
 
     private func makeParams(
         policy: AnnualBudgetPolicy,
-        allocations: [AnnualBudgetAllocationEntity] = [],
+        allocations: [AnnualBudgetAllocation] = [],
     ) -> AllocationCalculationParams {
-        let config = AnnualBudgetConfigEntity(
+        let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
             policy: policy,
+            allocations: allocations
         )
-        config.allocations = allocations
-        allocations.forEach { $0.config = config }
 
         return AllocationCalculationParams(
             transactions: [],
             budgets: [],
-            annualBudgetConfig: AnnualBudgetConfig(from: config),
+            annualBudgetConfig: config,
         )
     }
 }

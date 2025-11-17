@@ -64,7 +64,7 @@ internal struct CSVImporterTests {
         #expect(summary.skippedCount == 0)
 
         let transactions = await Task { @DatabaseActor in
-            transactionRepository.transactions.map { Transaction(from: $0) }
+            transactionRepository.transactions
         }.value
         #expect(transactions.count == 1)
         let transaction = try #require(transactions.first)
@@ -112,7 +112,7 @@ internal struct CSVImporterTests {
         #expect(summary.updatedCount == 1)
 
         let transactions = await Task { @DatabaseActor in
-            transactionRepository.transactions.map { Transaction(from: $0) }
+            transactionRepository.transactions
         }.value
         let stored = try #require(transactions.first)
         #expect(stored.title == "ディナー")

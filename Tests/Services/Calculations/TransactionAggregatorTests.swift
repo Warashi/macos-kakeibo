@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 import Testing
 
 @testable import Kakeibo
@@ -172,12 +171,10 @@ internal struct TransactionAggregatorTests {
 
     private func createSampleTransactionsWithCategories() -> ([Transaction], [Kakeibo.Category]) {
         let categoryId = UUID()
-        let category = CategoryEntity(
+        let category = DomainFixtures.category(
             id: categoryId,
             name: "食費",
-            parent: nil,
-            allowsAnnualBudget: false,
-            displayOrder: 0
+            allowsAnnualBudget: false
         )
 
         let transactions = [
@@ -188,7 +185,7 @@ internal struct TransactionAggregatorTests {
             createTransaction(amount: -15000, categoryId: categoryId),
         ]
 
-        return (transactions, [Category(from: category)])
+        return (transactions, [category])
     }
 
     private func createTransaction(
@@ -198,20 +195,15 @@ internal struct TransactionAggregatorTests {
         isIncludedInCalculation: Bool = true,
         isTransfer: Bool = false,
     ) -> Transaction {
-        Transaction(
-            id: UUID(),
+        DomainFixtures.transaction(
             date: Date.from(year: 2025, month: 11) ?? Date(),
             title: "テスト取引",
             amount: amount,
             memo: "",
             isIncludedInCalculation: isIncludedInCalculation,
             isTransfer: isTransfer,
-            importIdentifier: nil,
             financialInstitutionId: financialInstitutionId,
-            majorCategoryId: categoryId,
-            minorCategoryId: nil,
-            createdAt: Date(),
-            updatedAt: Date(),
+            majorCategoryId: categoryId
         )
     }
 }

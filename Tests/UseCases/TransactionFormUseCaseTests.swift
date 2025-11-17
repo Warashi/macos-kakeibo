@@ -29,7 +29,7 @@ internal struct TransactionFormUseCaseTests {
     @Test("既存取引の編集内容が反映される")
     internal func updatesExistingTransaction() async throws {
         let repository = await InMemoryTransactionRepository()
-        let transaction = TransactionEntity(date: sampleDate(), title: "昼食", amount: -800, memo: "Before")
+        let transaction = DomainFixtures.transaction(date: sampleDate(), title: "昼食", amount: -800, memo: "Before")
         repository.transactions = [transaction]
         let useCase = DefaultTransactionFormUseCase(repository: repository)
         var state = TransactionFormState.from(transaction: transaction)
@@ -45,10 +45,11 @@ internal struct TransactionFormUseCaseTests {
             referenceData: referenceData(),
         )
 
-        #expect(transaction.title == "会食")
-        #expect(transaction.amount == 12000)
-        #expect(transaction.isIncludedInCalculation == false)
-        #expect(transaction.isTransfer == true)
+        let updated = try #require(repository.transactions.first)
+        #expect(updated.title == "会食")
+        #expect(updated.amount == 12000)
+        #expect(updated.isIncludedInCalculation == false)
+        #expect(updated.isTransfer == true)
     }
 
     @Test("バリデーション違反でエラーが返る")
@@ -69,7 +70,7 @@ internal struct TransactionFormUseCaseTests {
 
     @Test("削除処理でリポジトリから取引が除外される")
     internal func deletesTransaction() async throws {
-        let transaction = TransactionEntity(date: sampleDate(), title: "外食", amount: -5000)
+        let transaction = DomainFixtures.transaction(date: sampleDate(), title: "外食", amount: -5000)
         let repository = await InMemoryTransactionRepository(transactions: [transaction])
         let useCase = DefaultTransactionFormUseCase(repository: repository)
 
@@ -85,12 +86,12 @@ private extension TransactionFormUseCaseTests {
     }
 
     func referenceData() -> TransactionReferenceData {
-        let institution = FinancialInstitutionEntity(name: "メイン銀行")
-        let major = CategoryEntity(name: "食費", displayOrder: 1)
-        let minor = CategoryEntity(name: "外食", parent: major, displayOrder: 1)
+        let institution = DomainFixtures.financialInstitution(name: "メイン銀行")
+        let major = DomainFixtures.category(name: "食費", displayOrder: 1)
+        let minor = DomainFixtures.category(name: "外食", displayOrder: 1, parent: major)
         return TransactionReferenceData(
-            institutions: [FinancialInstitution(from: institution)],
-            categories: [Category(from: major), Category(from: minor)],
+            institutions: [institution],
+            categories: [major, minor],
         )
     }
 }
