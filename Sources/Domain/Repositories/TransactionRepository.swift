@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 
 internal struct TransactionQuery {
     internal let month: Date
