@@ -47,17 +47,17 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         let occurrences = try recurringPaymentRepository.occurrences(query: nil)
         let config = try modelContext.fetch(BudgetQueries.annualConfig(for: year)).first
 
-        // SwiftDataモデルをDTOに変換
-        let budgetDTOs = budgets.map { Budget(from: $0) }
-        let transactionDTOs = transactions.map { Transaction(from: $0) }
-        let categoryDTOs = categories.map { Category(from: $0) }
-        let configDTO = config.map { AnnualBudgetConfig(from: $0) }
+        // SwiftDataモデルをドメインモデルに変換
+        let budgetModels = budgets.map { Budget(from: $0) }
+        let transactionModels = transactions.map { Transaction(from: $0) }
+        let categoryModels = categories.map { Category(from: $0) }
+        let configModel = config.map { AnnualBudgetConfig(from: $0) }
 
         return BudgetSnapshot(
-            budgets: budgetDTOs,
-            transactions: transactionDTOs,
-            categories: categoryDTOs,
-            annualBudgetConfig: configDTO,
+            budgets: budgetModels,
+            transactions: transactionModels,
+            categories: categoryModels,
+            annualBudgetConfig: configModel,
             recurringPaymentDefinitions: definitions,
             recurringPaymentBalances: balances,
             recurringPaymentOccurrences: occurrences,

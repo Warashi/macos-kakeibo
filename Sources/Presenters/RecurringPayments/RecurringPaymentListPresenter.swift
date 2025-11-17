@@ -159,7 +159,7 @@ internal struct RecurringPaymentListPresenter {
     }
 }
 
-// MARK: - RecurringPaymentListEntry DTO
+// MARK: - RecurringPaymentListEntry View Model
 
 internal struct RecurringPaymentListEntry: Identifiable, Sendable {
     internal let id: UUID

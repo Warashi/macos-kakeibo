@@ -51,13 +51,13 @@ internal struct MonthlyBudgetCalculation: Sendable {
 
 /// 定期支払い積立計算パラメータ
 internal struct RecurringPaymentSavingsCalculationInput: Sendable {
-    /// 定期支払い定義リスト（DTO）
+    /// 定期支払い定義リスト（ドメインモデル）
     internal let definitions: [RecurringPaymentDefinition]
 
-    /// 積立残高リスト（DTO）
+    /// 積立残高リスト（ドメインモデル）
     internal let balances: [RecurringPaymentSavingBalance]
 
-    /// 発生予定リスト（DTO）
+    /// 発生予定リスト（ドメインモデル）
     internal let occurrences: [RecurringPaymentOccurrence]
 
     /// 対象年

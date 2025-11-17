@@ -121,16 +121,16 @@ internal extension RecurringPaymentReconciliationStore {
         do {
             transactions = try await transactionRepository.fetchAllTransactions()
 
-            let definitionDTOs = try await repository.definitions(filter: nil)
+            let definitions = try await repository.definitions(filter: nil)
                 .sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
             let referenceDate = currentDateProvider()
 
-            let occurrenceDTOs = try await repository.occurrences(query: nil)
+            let occurrences = try await repository.occurrences(query: nil)
 
-            definitionsLookup = Dictionary(uniqueKeysWithValues: definitionDTOs.map { ($0.id, $0) })
+            definitionsLookup = Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
 
             var categoriesDict: [UUID: String] = [:]
-            for def in definitionDTOs {
+            for def in definitions {
                 if let categoryId = def.categoryId {
                     if categoriesDict[categoryId] == nil {
                         categoriesDict[categoryId] = def.name
@@ -142,7 +142,7 @@ internal extension RecurringPaymentReconciliationStore {
 
             let presentation = presenter.makePresentation(
                 input: RecurringPaymentReconciliationPresenter.PresentationInput(
-                    occurrences: occurrenceDTOs,
+                    occurrences: occurrences,
                     definitions: definitionsLookup,
                     categories: categoriesDict,
                     transactions: transactionsDict,

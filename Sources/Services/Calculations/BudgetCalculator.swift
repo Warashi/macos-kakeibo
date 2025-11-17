@@ -323,7 +323,7 @@ internal struct BudgetCalculator: Sendable {
 
     /// 月次に組み込むべき積立金額の合計を計算
     /// - Parameters:
-    ///   - definitions: 定期支払い定義リスト（DTO）
+    ///   - definitions: 定期支払い定義リスト（ドメインモデル）
     ///   - year: 対象年
     ///   - month: 対象月
     /// - Returns: 月次積立金額の合計
@@ -356,7 +356,7 @@ internal struct BudgetCalculator: Sendable {
 
     /// カテゴリ別の積立金額を計算
     /// - Parameters:
-    ///   - definitions: 定期支払い定義リスト（DTO）
+    ///   - definitions: 定期支払い定義リスト（ドメインモデル）
     ///   - year: 対象年
     ///   - month: 対象月
     /// - Returns: カテゴリIDと積立金額のマップ

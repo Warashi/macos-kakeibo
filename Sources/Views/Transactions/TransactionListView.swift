@@ -99,8 +99,8 @@ internal struct TransactionListContentView: View {
                                 transaction: transaction,
                                 categoryFullName: categoryFullName(for: transaction),
                                 institutionName: institutionName(for: transaction),
-                                onEdit: { transactionDTO in
-                                    store.startEditing(transaction: transactionDTO)
+                                onEdit: { editedTransaction in
+                                    store.startEditing(transaction: editedTransaction)
                                 },
                                 onDelete: { transactionId in
                                     Task { await store.deleteTransaction(transactionId) }

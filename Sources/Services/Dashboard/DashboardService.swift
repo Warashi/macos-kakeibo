@@ -3,7 +3,7 @@ import Foundation
 /// Dashboard calculation service
 ///
 /// Encapsulates dashboard calculation logic, keeping it separate from UI state management.
-/// Works with DTOs and can run on any actor.
+/// Works with domain models and can run on any actor.
 internal final class DashboardService {
     // MARK: - Dependencies
 
