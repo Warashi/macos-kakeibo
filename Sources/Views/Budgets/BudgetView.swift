@@ -427,8 +427,7 @@ private extension BudgetView {
                 assertionFailure("ModelContainer is unavailable")
                 return
             }
-            let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
-            let recurringPaymentStore = RecurringPaymentStore(repository: repository)
+            let recurringPaymentStore = await RecurringPaymentStackBuilder.makeStore(modelContainer: container)
 
             do {
                 if isCreateMode {
@@ -485,8 +484,7 @@ private extension BudgetView {
                 assertionFailure("ModelContainer is unavailable")
                 return
             }
-            let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
-            let recurringPaymentStore = RecurringPaymentStore(repository: repository)
+            let recurringPaymentStore = await RecurringPaymentStackBuilder.makeStore(modelContainer: container)
             do {
                 try await recurringPaymentStore.deleteDefinition(definitionId: definitionId)
             } catch {

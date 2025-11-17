@@ -13,6 +13,11 @@ internal struct RecurringPaymentReconciliationDependencies {
     internal let occurrencesService: RecurringPaymentOccurrencesService
 }
 
+/// 定期支払い CRUD ストア用の依存関係
+internal struct RecurringPaymentStoreDependencies {
+    internal let repository: RecurringPaymentRepository
+}
+
 /// 定期支払いスタック構築用のビルダー
 ///
 /// Repository / Service の初期化を 1 か所へ集約し、
@@ -59,5 +64,17 @@ internal enum RecurringPaymentStackBuilder {
                 occurrencesService: dependencies.occurrencesService
             )
         }
+    }
+
+    /// 定期支払い CRUD ストアの依存を構築
+    internal static func makeStoreDependencies(modelContainer: ModelContainer) async -> RecurringPaymentStoreDependencies {
+        let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: modelContainer)
+        return RecurringPaymentStoreDependencies(repository: repository)
+    }
+
+    /// 定期支払い CRUD ストアを構築
+    internal static func makeStore(modelContainer: ModelContainer) async -> RecurringPaymentStore {
+        let dependencies = await makeStoreDependencies(modelContainer: modelContainer)
+        return RecurringPaymentStore(repository: dependencies.repository)
     }
 }

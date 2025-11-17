@@ -77,4 +77,28 @@ internal struct RecurringPaymentStackBuilderTests {
         let rows = await MainActor.run { store.rows }
         #expect(rows.isEmpty == false)
     }
+
+    @Test("RecurringPaymentStore を構築して CRUD を実行できる")
+    func makeStoreSupportsCRUD() async throws {
+        let container = try ModelContainer.createInMemoryContainer()
+        let store = await RecurringPaymentStackBuilder.makeStore(modelContainer: container)
+
+        let input = RecurringPaymentDefinitionInput(
+            name: "サブスクリプション",
+            amount: Decimal(1_200),
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: Date()
+        )
+        try await store.createDefinition(input)
+
+        let context = ModelContext(container)
+        let existingDefinitions = try context.fetch(RecurringPaymentQueries.definitions())
+        let definitionId = try #require(existingDefinitions.first?.id)
+        #expect(existingDefinitions.isEmpty == false)
+
+        try await store.deleteDefinition(definitionId: definitionId)
+
+        let refreshedDefinitions = try context.fetch(RecurringPaymentQueries.definitions())
+        #expect(refreshedDefinitions.isEmpty)
+    }
 }
