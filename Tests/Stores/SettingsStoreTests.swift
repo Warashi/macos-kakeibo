@@ -168,13 +168,13 @@ internal struct SettingsStoreTests {
             majorCategory: major,
             minorCategory: minor
         )
-        let transactionDTO = Transaction(from: transaction)
-        let categoryDTOs = [Category(from: major), Category(from: minor)]
-        let institutionDTO = FinancialInstitution(from: institution)
+        let transactionModel = Transaction(from: transaction)
+        let categoryModels = [Category(from: major), Category(from: minor)]
+        let institutionModel = FinancialInstitution(from: institution)
         let transactionRepository = await makeTransactionRepository { repository in
-            repository.snapshotTransactions = [transactionDTO]
-            repository.snapshotCategories = categoryDTOs
-            repository.snapshotInstitutions = [institutionDTO]
+            repository.snapshotTransactions = [transactionModel]
+            repository.snapshotCategories = categoryModels
+            repository.snapshotInstitutions = [institutionModel]
             repository.transactionCount = 1
         }
         let store = await makeSettingsStore(

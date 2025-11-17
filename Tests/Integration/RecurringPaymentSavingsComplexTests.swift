@@ -33,9 +33,9 @@ internal struct RecurringPaymentSavingsComplexTests {
         try context.save()
 
         // When: 月次積立金額を計算
-        let definitionDTOs = definitions.map { RecurringPaymentDefinition(from: $0) }
+        let definitionModels = definitions.map { RecurringPaymentDefinition(from: $0) }
         let totalAllocation = calculator.calculateMonthlySavingsAllocation(
-            definitions: definitionDTOs,
+            definitions: definitionModels,
             year: 2025,
             month: 11,
         )
@@ -47,7 +47,7 @@ internal struct RecurringPaymentSavingsComplexTests {
 
         // カテゴリ別積立金額を計算
         let categoryAllocations = calculator.calculateCategorySavingsAllocation(
-            definitions: definitionDTOs,
+            definitions: definitionModels,
             year: 2025,
             month: 11,
         )
@@ -66,10 +66,10 @@ internal struct RecurringPaymentSavingsComplexTests {
             year: 2025
         )
 
-        let balanceDTOs = balances.map { RecurringPaymentSavingBalance(from: $0) }
+        let balanceModels = balances.map { RecurringPaymentSavingBalance(from: $0) }
         let savingsInput = RecurringPaymentSavingsCalculationInput(
-            definitions: definitionDTOs,
-            balances: balanceDTOs,
+            definitions: definitionModels,
+            balances: balanceModels,
             occurrences: [],
             year: 2025,
             month: 6,

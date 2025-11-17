@@ -28,13 +28,13 @@ internal struct ReconciliationPresenterTests {
         )
         definition.occurrences = [later, earlier]
 
-        let definitionDTO = RecurringPaymentDefinition(from: definition)
-        let earlierDTO = RecurringPaymentOccurrence(from: earlier)
-        let laterDTO = RecurringPaymentOccurrence(from: later)
+        let definitionModel = RecurringPaymentDefinition(from: definition)
+        let earlierModel = RecurringPaymentOccurrence(from: earlier)
+        let laterModel = RecurringPaymentOccurrence(from: later)
 
         let input = RecurringPaymentReconciliationPresenter.PresentationInput(
-            occurrences: [earlierDTO, laterDTO],
-            definitions: [definitionDTO.id: definitionDTO],
+            occurrences: [earlierModel, laterModel],
+            definitions: [definitionModel.id: definitionModel],
             categories: [:],
             transactions: [:],
             referenceDate: Date.from(year: 2025, month: 4, day: 1) ?? Date(),
@@ -44,7 +44,7 @@ internal struct ReconciliationPresenterTests {
 
         #expect(presentation.rows.count == 2)
         #expect(presentation.rows.first?.scheduledDate == earlier.scheduledDate)
-        #expect(presentation.occurrenceLookup[earlier.id]?.id == earlierDTO.id)
+        #expect(presentation.occurrenceLookup[earlier.id]?.id == earlierModel.id)
         #expect(presentation.linkedTransactionLookup.isEmpty)
     }
 
@@ -76,8 +76,8 @@ internal struct ReconciliationPresenterTests {
             amount: -50000,
         )
 
-        let definitionDTO = RecurringPaymentDefinition(from: definition)
-        let occurrenceDTO = RecurringPaymentOccurrence(from: occurrence)
+        let definitionModel = RecurringPaymentDefinition(from: definition)
+        let occurrenceModel = RecurringPaymentOccurrence(from: occurrence)
         let matchingTransaction = Transaction(from: matchingTransactionEntity)
         let distantTransaction = Transaction(from: distantTransactionEntity)
 
@@ -90,8 +90,8 @@ internal struct ReconciliationPresenterTests {
         )
 
         let candidates = presenter.transactionCandidates(
-            for: occurrenceDTO,
-            definition: definitionDTO,
+            for: occurrenceModel,
+            definition: definitionModel,
             context: context,
         )
 
@@ -128,8 +128,8 @@ internal struct ReconciliationPresenterTests {
             amount: -100_000,
         )
 
-        let definitionDTO = RecurringPaymentDefinition(from: definition)
-        let occurrenceDTO = RecurringPaymentOccurrence(from: occurrence)
+        let definitionModel = RecurringPaymentDefinition(from: definition)
+        let occurrenceModel = RecurringPaymentOccurrence(from: occurrence)
         let pastTransaction = Transaction(from: pastTransactionEntity)
         let futureTransaction = Transaction(from: futureTransactionEntity)
 
@@ -142,8 +142,8 @@ internal struct ReconciliationPresenterTests {
         )
 
         let candidates = presenter.transactionCandidates(
-            for: occurrenceDTO,
-            definition: definitionDTO,
+            for: occurrenceModel,
+            definition: definitionModel,
             context: context,
         )
 
