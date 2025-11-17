@@ -55,7 +55,7 @@ internal struct OptionalFieldsResult {
     internal let minorCategory: String?
 }
 
-// MARK: - TransactionEntity Creation Parameters
+// MARK: - SwiftDataTransaction Creation Parameters
 
 /// トランザクション作成パラメータ
 internal struct TransactionCreationParameters {

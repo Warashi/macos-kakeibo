@@ -31,7 +31,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         let budgets = try modelContext.fetch(BudgetQueries.allBudgets())
 
         // 年の範囲の取引のみ取得（パフォーマンス最適化）
-        let transactions: [TransactionEntity] = if let startDate = Date.from(year: year, month: 1),
+        let transactions: [SwiftDataTransaction] = if let startDate = Date.from(year: year, month: 1),
                                              let endDate = Date.from(year: year + 1, month: 1) {
             try modelContext.fetch(TransactionQueries.between(
                 startDate: startDate,
@@ -69,7 +69,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func findCategoryByName(_ name: String, parentId: UUID?) throws -> Category? {
-        let descriptor: ModelFetchRequest<CategoryEntity>
+        let descriptor: ModelFetchRequest<SwiftDataCategory>
         if let parentId {
             descriptor = CategoryQueries.firstMatching(
                 predicate: #Predicate { category in
@@ -88,13 +88,13 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
 
     internal func createCategory(name: String, parentId: UUID?) throws -> UUID {
         let parent = try resolveCategory(id: parentId)
-        let category = CategoryEntity(name: name, parent: parent)
+        let category = SwiftDataCategory(name: name, parent: parent)
         modelContext.insert(category)
         return category.id
     }
 
     internal func countCategories() throws -> Int {
-        try modelContext.count(CategoryEntity.self)
+        try modelContext.count(SwiftDataCategory.self)
     }
 
     internal func findInstitutionByName(_ name: String) throws -> FinancialInstitution? {
@@ -102,13 +102,13 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func createInstitution(name: String) throws -> UUID {
-        let institution = FinancialInstitutionEntity(name: name)
+        let institution = SwiftDataFinancialInstitution(name: name)
         modelContext.insert(institution)
         return institution.id
     }
 
     internal func countFinancialInstitutions() throws -> Int {
-        try modelContext.count(FinancialInstitutionEntity.self)
+        try modelContext.count(SwiftDataFinancialInstitution.self)
     }
 
     internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfig? {
@@ -116,11 +116,11 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func countAnnualBudgetConfigs() throws -> Int {
-        try modelContext.count(AnnualBudgetConfigEntity.self)
+        try modelContext.count(SwiftDataAnnualBudgetConfig.self)
     }
 
     internal func addBudget(_ input: BudgetInput) throws {
-        let budget = BudgetEntity(
+        let budget = SwiftDataBudget(
             amount: input.amount,
             category: try resolveCategory(id: input.categoryId),
             startYear: input.startYear,
@@ -132,7 +132,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func countBudgets() throws -> Int {
-        try modelContext.count(BudgetEntity.self)
+        try modelContext.count(SwiftDataBudget.self)
     }
 
     internal func updateBudget(input: BudgetUpdateInput) throws {
@@ -160,7 +160,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func deleteAllBudgets() throws {
-        let descriptor: ModelFetchRequest<BudgetEntity> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<SwiftDataBudget> = ModelFetchFactory.make()
         let budgets = try modelContext.fetch(descriptor)
         for budget in budgets {
             modelContext.delete(budget)
@@ -169,7 +169,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func deleteAllAnnualBudgetConfigs() throws {
-        let descriptor: ModelFetchRequest<AnnualBudgetConfigEntity> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<SwiftDataAnnualBudgetConfig> = ModelFetchFactory.make()
         let configs = try modelContext.fetch(descriptor)
         for config in configs {
             modelContext.delete(config)
@@ -178,7 +178,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func deleteAllCategories() throws {
-        let descriptor: ModelFetchRequest<CategoryEntity> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<SwiftDataCategory> = ModelFetchFactory.make()
         let categories = try modelContext.fetch(descriptor)
         let minors = categories.filter(\.isMinor)
         let majors = categories.filter(\.isMajor)
@@ -189,7 +189,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func deleteAllFinancialInstitutions() throws {
-        let descriptor: ModelFetchRequest<FinancialInstitutionEntity> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<SwiftDataFinancialInstitution> = ModelFetchFactory.make()
         let institutions = try modelContext.fetch(descriptor)
         for institution in institutions {
             modelContext.delete(institution)
@@ -199,7 +199,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
 
     internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) throws {
         let config = try modelContext.fetch(BudgetQueries.annualConfig(for: input.year)).first
-            ?? AnnualBudgetConfigEntity(
+            ?? SwiftDataAnnualBudgetConfig(
                 year: input.year,
                 totalAmount: input.totalAmount,
                 policy: input.policy
@@ -235,7 +235,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
                 allocation.policyOverride = draft.policyOverride
                 allocation.updatedAt = now
             } else {
-                let allocation = AnnualBudgetAllocationEntity(
+                let allocation = SwiftDataAnnualBudgetAllocation(
                     amount: draft.amount,
                     category: category,
                     policyOverride: draft.policyOverride
@@ -260,7 +260,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
 }
 
 private extension SwiftDataBudgetRepository {
-    func resolveCategory(id: UUID?) throws -> CategoryEntity? {
+    func resolveCategory(id: UUID?) throws -> SwiftDataCategory? {
         guard let id else { return nil }
         guard let category = try modelContext.fetch(CategoryQueries.byId(id)).first else {
             throw RepositoryError.notFound

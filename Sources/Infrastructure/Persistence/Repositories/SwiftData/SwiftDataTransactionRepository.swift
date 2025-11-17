@@ -28,7 +28,7 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
     }
 
     internal func countTransactions() throws -> Int {
-        try modelContext.count(TransactionEntity.self)
+        try modelContext.count(SwiftDataTransaction.self)
     }
 
     internal func fetchInstitutions() throws -> [FinancialInstitution] {
@@ -63,7 +63,7 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
 
     @discardableResult
     internal func insert(_ input: TransactionInput) throws -> UUID {
-        let transaction = TransactionEntity(
+        let transaction = SwiftDataTransaction(
             date: input.date,
             title: input.title,
             amount: input.amount,
@@ -97,7 +97,7 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
     }
 
     internal func deleteAllTransactions() throws {
-        let descriptor: ModelFetchRequest<TransactionEntity> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<SwiftDataTransaction> = ModelFetchFactory.make()
         let transactions = try modelContext.fetch(descriptor)
         for transaction in transactions {
             modelContext.delete(transaction)
@@ -118,7 +118,7 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
 }
 
 private extension SwiftDataTransactionRepository {
-    func resolveInstitution(id: UUID?) throws -> FinancialInstitutionEntity? {
+    func resolveInstitution(id: UUID?) throws -> SwiftDataFinancialInstitution? {
         guard let id else { return nil }
         guard let institution = try modelContext.fetch(FinancialInstitutionQueries.byId(id)).first else {
             throw RepositoryError.notFound
@@ -126,7 +126,7 @@ private extension SwiftDataTransactionRepository {
         return institution
     }
 
-    func resolveCategory(id: UUID?) throws -> CategoryEntity? {
+    func resolveCategory(id: UUID?) throws -> SwiftDataCategory? {
         guard let id else { return nil }
         guard let category = try modelContext.fetch(CategoryQueries.byId(id)).first else {
             throw RepositoryError.notFound

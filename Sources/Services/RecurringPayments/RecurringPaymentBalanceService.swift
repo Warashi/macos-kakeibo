@@ -60,8 +60,8 @@ internal struct RecurringPaymentBalanceService: Sendable {
 
     /// 月次積立記録パラメータ
     internal struct MonthlySavingsParameters {
-        internal let definition: RecurringPaymentDefinitionEntity
-        internal let balance: RecurringPaymentSavingBalanceEntity?
+        internal let definition: SwiftDataRecurringPaymentDefinition
+        internal let balance: SwiftDataRecurringPaymentSavingBalance?
         internal let year: Int
         internal let month: Int
     }
@@ -70,7 +70,7 @@ internal struct RecurringPaymentBalanceService: Sendable {
     /// - Parameter params: 月次積立記録パラメータ
     /// - Returns: 更新または新規作成された残高（新規の場合は呼び出し側で挿入すること）
     @discardableResult
-    internal func recordMonthlySavings(params: MonthlySavingsParameters) -> RecurringPaymentSavingBalanceEntity {
+    internal func recordMonthlySavings(params: MonthlySavingsParameters) -> SwiftDataRecurringPaymentSavingBalance {
         let definition = params.definition
         let balance = params.balance
         let year = params.year
@@ -93,7 +93,7 @@ internal struct RecurringPaymentBalanceService: Sendable {
             return existingBalance
         } else {
             // 新規作成
-            let newBalance = RecurringPaymentSavingBalanceEntity(
+            let newBalance = SwiftDataRecurringPaymentSavingBalance(
                 definition: definition,
                 totalSavedAmount: monthlySaving,
                 totalPaidAmount: 0,
@@ -112,8 +112,8 @@ internal struct RecurringPaymentBalanceService: Sendable {
     /// - Returns: 支払差分情報
     @discardableResult
     internal func processPayment(
-        occurrence: RecurringPaymentOccurrenceEntity,
-        balance: RecurringPaymentSavingBalanceEntity,
+        occurrence: SwiftDataRecurringPaymentOccurrence,
+        balance: SwiftDataRecurringPaymentSavingBalance,
     ) -> PaymentDifference {
         guard let actualAmount = occurrence.actualAmount else {
             // 実績金額がない場合は、予定金額を使用
@@ -136,16 +136,16 @@ internal struct RecurringPaymentBalanceService: Sendable {
 
     /// 残高再計算パラメータ
     internal struct RecalculateBalanceParameters {
-        internal let definition: RecurringPaymentDefinitionEntity
-        internal let balance: RecurringPaymentSavingBalanceEntity
+        internal let definition: SwiftDataRecurringPaymentDefinition
+        internal let balance: SwiftDataRecurringPaymentSavingBalance
         internal let year: Int
         internal let month: Int
         internal let startYear: Int?
         internal let startMonth: Int?
 
         internal init(
-            definition: RecurringPaymentDefinitionEntity,
-            balance: RecurringPaymentSavingBalanceEntity,
+            definition: SwiftDataRecurringPaymentDefinition,
+            balance: SwiftDataRecurringPaymentSavingBalance,
             year: Int,
             month: Int,
             startYear: Int? = nil,
@@ -323,7 +323,7 @@ internal final class RecurringPaymentBalanceCache: @unchecked Sendable {
     }
 }
 
-private func apply(snapshot: BalanceSnapshot, to balance: RecurringPaymentSavingBalanceEntity) {
+private func apply(snapshot: BalanceSnapshot, to balance: SwiftDataRecurringPaymentSavingBalance) {
     balance.totalSavedAmount = snapshot.totalSavedAmount
     balance.totalPaidAmount = snapshot.totalPaidAmount
     balance.lastUpdatedYear = snapshot.lastUpdatedYear
@@ -331,7 +331,7 @@ private func apply(snapshot: BalanceSnapshot, to balance: RecurringPaymentSaving
     balance.updatedAt = Date()
 }
 
-private func definitionVersion(for definition: RecurringPaymentDefinitionEntity) -> Int {
+private func definitionVersion(for definition: SwiftDataRecurringPaymentDefinition) -> Int {
     var hasher = Hasher()
     hasher.combine(definition.id)
     hasher.combine(definition.updatedAt.timeIntervalSinceReferenceDate)
@@ -342,7 +342,7 @@ private func definitionVersion(for definition: RecurringPaymentDefinitionEntity)
     return hasher.finalize()
 }
 
-private func balanceVersion(for balance: RecurringPaymentSavingBalanceEntity) -> Int {
+private func balanceVersion(for balance: SwiftDataRecurringPaymentSavingBalance) -> Int {
     var hasher = Hasher()
     hasher.combine(balance.id)
     return hasher.finalize()

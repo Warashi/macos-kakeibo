@@ -13,7 +13,7 @@ internal struct CustomHolidayProvider: HolidayProvider {
 
     internal func holidays(for year: Int) -> Set<Date> {
         let modelContext = ModelContext(modelContainer)
-        let descriptor: ModelFetchRequest<CustomHoliday> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<SwiftDataCustomHoliday> = ModelFetchFactory.make()
 
         guard let customHolidays = try? modelContext.fetch(descriptor) else {
             return []

@@ -67,11 +67,11 @@ internal actor BackupManager {
     /// バックアップペイロードを構築
     internal func buildPayload() throws -> BackupPayload {
         let modelContext = ModelContext(modelContainer)
-        let transactions = try modelContext.fetchAll(TransactionEntity.self)
-        let categories = try modelContext.fetchAll(CategoryEntity.self)
-        let budgets = try modelContext.fetchAll(BudgetEntity.self)
-        let configs = try modelContext.fetchAll(AnnualBudgetConfigEntity.self)
-        let institutions = try modelContext.fetchAll(FinancialInstitutionEntity.self)
+        let transactions = try modelContext.fetchAll(SwiftDataTransaction.self)
+        let categories = try modelContext.fetchAll(SwiftDataCategory.self)
+        let budgets = try modelContext.fetchAll(SwiftDataBudget.self)
+        let configs = try modelContext.fetchAll(SwiftDataAnnualBudgetConfig.self)
+        let institutions = try modelContext.fetchAll(SwiftDataFinancialInstitution.self)
 
         let metadata = BackupMetadata(
             generatedAt: Date(),
@@ -137,11 +137,11 @@ internal actor BackupManager {
     // MARK: - Clear
 
     private func clearAllData(in context: ModelContext) throws {
-        try deleteAll(TransactionEntity.self, in: context)
-        try deleteAll(BudgetEntity.self, in: context)
-        try deleteAll(AnnualBudgetConfigEntity.self, in: context)
+        try deleteAll(SwiftDataTransaction.self, in: context)
+        try deleteAll(SwiftDataBudget.self, in: context)
+        try deleteAll(SwiftDataAnnualBudgetConfig.self, in: context)
         try deleteCategoriesSafely(in: context)
-        try deleteAll(FinancialInstitutionEntity.self, in: context)
+        try deleteAll(SwiftDataFinancialInstitution.self, in: context)
     }
 
     private func deleteAll<T: PersistentModel>(_ type: T.Type, in context: ModelContext) throws {
@@ -154,7 +154,7 @@ internal actor BackupManager {
 
     /// 親子関係を維持しながらカテゴリを削除
     private func deleteCategoriesSafely(in context: ModelContext) throws {
-        let descriptor: ModelFetchRequest<CategoryEntity> = ModelFetchFactory.make()
+        let descriptor: ModelFetchRequest<SwiftDataCategory> = ModelFetchFactory.make()
         let categories = try context.fetch(descriptor)
         let minors = categories.filter(\.isMinor)
         let majors = categories.filter(\.isMajor)
@@ -170,10 +170,10 @@ internal actor BackupManager {
     private func insertFinancialInstitutions(
         _ dtos: [BackupFinancialInstitutionDTO],
         context: ModelContext,
-    ) throws -> [UUID: FinancialInstitutionEntity] {
-        var result: [UUID: FinancialInstitutionEntity] = [:]
+    ) throws -> [UUID: SwiftDataFinancialInstitution] {
+        var result: [UUID: SwiftDataFinancialInstitution] = [:]
         for dto in dtos {
-            let institution = FinancialInstitutionEntity(
+            let institution = SwiftDataFinancialInstitution(
                 id: dto.id,
                 name: dto.name,
                 displayOrder: dto.displayOrder,
@@ -190,12 +190,12 @@ internal actor BackupManager {
     private func insertCategories(
         _ dtos: [BackupCategory],
         context: ModelContext,
-    ) throws -> [UUID: CategoryEntity] {
-        var result: [UUID: CategoryEntity] = [:]
+    ) throws -> [UUID: SwiftDataCategory] {
+        var result: [UUID: SwiftDataCategory] = [:]
 
         // まず全カテゴリを作成
         for dto in dtos {
-            let category = CategoryEntity(
+            let category = SwiftDataCategory(
                 id: dto.id,
                 name: dto.name,
                 allowsAnnualBudget: dto.allowsAnnualBudget,
@@ -222,11 +222,11 @@ internal actor BackupManager {
 
     private func insertBudgets(
         _ dtos: [BackupBudgetDTO],
-        categories: [UUID: CategoryEntity],
+        categories: [UUID: SwiftDataCategory],
         context: ModelContext,
     ) throws {
         for dto in dtos {
-            let budget = BudgetEntity(
+            let budget = SwiftDataBudget(
                 id: dto.id,
                 amount: dto.amount,
                 category: dto.categoryId.flatMap { categories[$0] },
@@ -246,7 +246,7 @@ internal actor BackupManager {
         context: ModelContext,
     ) throws {
         for dto in dtos {
-            let config = AnnualBudgetConfigEntity(
+            let config = SwiftDataAnnualBudgetConfig(
                 id: dto.id,
                 year: dto.year,
                 totalAmount: dto.totalAmount,
@@ -260,12 +260,12 @@ internal actor BackupManager {
 
     private func insertTransactions(
         _ dtos: [BackupTransactionDTO],
-        categories: [UUID: CategoryEntity],
-        institutions: [UUID: FinancialInstitutionEntity],
+        categories: [UUID: SwiftDataCategory],
+        institutions: [UUID: SwiftDataFinancialInstitution],
         context: ModelContext,
     ) throws {
         for dto in dtos {
-            let transaction = TransactionEntity(
+            let transaction = SwiftDataTransaction(
                 id: dto.id,
                 date: dto.date,
                 title: dto.title,
@@ -319,7 +319,7 @@ internal struct BackupTransactionDTO: Codable {
     internal let createdAt: Date
     internal let updatedAt: Date
 
-    internal init(transaction: TransactionEntity) {
+    internal init(transaction: SwiftDataTransaction) {
         self.id = transaction.id
         self.date = transaction.date
         self.title = transaction.title
@@ -344,7 +344,7 @@ internal struct BackupCategory: Codable {
     internal let createdAt: Date
     internal let updatedAt: Date
 
-    internal init(category: CategoryEntity) {
+    internal init(category: SwiftDataCategory) {
         self.id = category.id
         self.name = category.name
         self.parentId = category.parent?.id
@@ -366,7 +366,7 @@ internal struct BackupBudgetDTO: Codable {
     internal let createdAt: Date
     internal let updatedAt: Date
 
-    internal init(budget: BudgetEntity) {
+    internal init(budget: SwiftDataBudget) {
         self.id = budget.id
         self.amount = budget.amount
         self.categoryId = budget.category?.id
@@ -387,7 +387,7 @@ internal struct BackupAnnualBudgetConfig: Codable {
     internal let createdAt: Date
     internal let updatedAt: Date
 
-    internal init(config: AnnualBudgetConfigEntity) {
+    internal init(config: SwiftDataAnnualBudgetConfig) {
         self.id = config.id
         self.year = config.year
         self.totalAmount = config.totalAmount
@@ -408,7 +408,7 @@ internal struct BackupFinancialInstitutionDTO: Codable {
     internal let createdAt: Date
     internal let updatedAt: Date
 
-    internal init(institution: FinancialInstitutionEntity) {
+    internal init(institution: SwiftDataFinancialInstitution) {
         self.id = institution.id
         self.name = institution.name
         self.displayOrder = institution.displayOrder

@@ -3,16 +3,16 @@ import SwiftData
 
 /// カテゴリ関連のフェッチビルダー
 internal enum CategoryQueries {
-    internal static func sortedForDisplay() -> ModelFetchRequest<CategoryEntity> {
+    internal static func sortedForDisplay() -> ModelFetchRequest<SwiftDataCategory> {
         ModelFetchFactory.make(
             sortBy: [
-                SortDescriptor(\CategoryEntity.displayOrder),
-                SortDescriptor(\CategoryEntity.name, order: .forward),
+                SortDescriptor(\SwiftDataCategory.displayOrder),
+                SortDescriptor(\SwiftDataCategory.name, order: .forward),
             ],
         )
     }
 
-    internal static func byId(_ id: UUID) -> ModelFetchRequest<CategoryEntity> {
+    internal static func byId(_ id: UUID) -> ModelFetchRequest<SwiftDataCategory> {
         ModelFetchFactory.make(
             predicate: #Predicate { $0.id == id },
             fetchLimit: 1,
@@ -20,8 +20,8 @@ internal enum CategoryQueries {
     }
 
     internal static func firstMatching(
-        predicate: Predicate<CategoryEntity>,
-    ) -> ModelFetchRequest<CategoryEntity> {
+        predicate: Predicate<SwiftDataCategory>,
+    ) -> ModelFetchRequest<SwiftDataCategory> {
         ModelFetchFactory.make(
             predicate: predicate,
             fetchLimit: 1,

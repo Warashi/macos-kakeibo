@@ -12,11 +12,11 @@ internal struct RecurringPaymentScheduleService {
 
     /// スケジュール同期結果
     internal struct SynchronizationResult {
-        internal let created: [RecurringPaymentOccurrenceEntity]
-        internal let updated: [RecurringPaymentOccurrenceEntity]
-        internal let removed: [RecurringPaymentOccurrenceEntity]
-        internal let locked: [RecurringPaymentOccurrenceEntity]
-        internal let occurrences: [RecurringPaymentOccurrenceEntity]
+        internal let created: [SwiftDataRecurringPaymentOccurrence]
+        internal let updated: [SwiftDataRecurringPaymentOccurrence]
+        internal let removed: [SwiftDataRecurringPaymentOccurrence]
+        internal let locked: [SwiftDataRecurringPaymentOccurrence]
+        internal let occurrences: [SwiftDataRecurringPaymentOccurrence]
         internal let referenceDate: Date
     }
 
@@ -72,7 +72,7 @@ internal struct RecurringPaymentScheduleService {
     ///   - horizonMonths: 生成対象期間
     /// - Returns: 同期結果
     internal func synchronizationPlan(
-        for definition: RecurringPaymentDefinitionEntity,
+        for definition: SwiftDataRecurringPaymentDefinition,
         referenceDate: Date,
         horizonMonths: Int,
     ) -> SynchronizationResult {
@@ -98,9 +98,9 @@ internal struct RecurringPaymentScheduleService {
         }
 
         var editableOccurrences = definition.occurrences.filter { !$0.isSchedulingLocked }
-        var created: [RecurringPaymentOccurrenceEntity] = []
-        var updated: [RecurringPaymentOccurrenceEntity] = []
-        var matched: [RecurringPaymentOccurrenceEntity] = []
+        var created: [SwiftDataRecurringPaymentOccurrence] = []
+        var updated: [SwiftDataRecurringPaymentOccurrence] = []
+        var matched: [SwiftDataRecurringPaymentOccurrence] = []
 
         for target in targets {
             if let existingIndex = editableOccurrences.firstIndex(
@@ -118,7 +118,7 @@ internal struct RecurringPaymentScheduleService {
                 }
                 matched.append(occurrence)
             } else {
-                let occurrence = RecurringPaymentOccurrenceEntity(
+                let occurrence = SwiftDataRecurringPaymentOccurrence(
                     definition: definition,
                     scheduledDate: target.scheduledDate,
                     expectedAmount: target.expectedAmount,
@@ -154,7 +154,7 @@ internal struct RecurringPaymentScheduleService {
     ///   - horizonMonths: 参照日から先の生成期間（月数）
     /// - Returns: 作成対象のOccurrence
     internal func scheduleTargets(
-        for definition: RecurringPaymentDefinitionEntity,
+        for definition: SwiftDataRecurringPaymentDefinition,
         seedDate: Date,
         referenceDate: Date,
         horizonMonths: Int,
@@ -301,7 +301,7 @@ internal struct RecurringPaymentScheduleService {
         }
     }
 
-    private func nextSeedDate(for definition: RecurringPaymentDefinitionEntity) -> Date {
+    private func nextSeedDate(for definition: SwiftDataRecurringPaymentDefinition) -> Date {
         let latestCompleted = definition.occurrences
             .filter { $0.status == .completed }
             .map(\.scheduledDate)
@@ -321,7 +321,7 @@ internal struct RecurringPaymentScheduleService {
     @discardableResult
     private func apply(
         target: ScheduleTarget,
-        to occurrence: RecurringPaymentOccurrenceEntity,
+        to occurrence: SwiftDataRecurringPaymentOccurrence,
         referenceDate: Date,
         leadTimeMonths: Int,
     ) -> Bool {
@@ -351,7 +351,7 @@ internal struct RecurringPaymentScheduleService {
     }
 
     private func updateStatusIfNeeded(
-        for occurrence: RecurringPaymentOccurrenceEntity,
+        for occurrence: SwiftDataRecurringPaymentOccurrence,
         referenceDate: Date,
         leadTimeMonths: Int,
     ) -> Bool {

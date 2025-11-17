@@ -3,47 +3,47 @@ import SwiftData
 
 /// 予算関連のフェッチビルダー
 internal enum BudgetQueries {
-    internal static func allBudgets() -> ModelFetchRequest<BudgetEntity> {
+    internal static func allBudgets() -> ModelFetchRequest<SwiftDataBudget> {
         ModelFetchFactory.make()
     }
 
-    internal static func categoriesForBudgetList() -> ModelFetchRequest<CategoryEntity> {
+    internal static func categoriesForBudgetList() -> ModelFetchRequest<SwiftDataCategory> {
         ModelFetchFactory.make(
             sortBy: [
-                SortDescriptor(\CategoryEntity.displayOrder),
-                SortDescriptor(\CategoryEntity.name, order: .forward),
+                SortDescriptor(\SwiftDataCategory.displayOrder),
+                SortDescriptor(\SwiftDataCategory.name, order: .forward),
             ],
         )
     }
 
-    internal static func annualConfig(for year: Int) -> ModelFetchRequest<AnnualBudgetConfigEntity> {
+    internal static func annualConfig(for year: Int) -> ModelFetchRequest<SwiftDataAnnualBudgetConfig> {
         ModelFetchFactory.make(
             predicate: #Predicate { $0.year == year },
             fetchLimit: 1,
         )
     }
 
-    internal static func latestAnnualConfig() -> ModelFetchRequest<AnnualBudgetConfigEntity> {
+    internal static func latestAnnualConfig() -> ModelFetchRequest<SwiftDataAnnualBudgetConfig> {
         ModelFetchFactory.make(
-            sortBy: [SortDescriptor(\AnnualBudgetConfigEntity.year, order: .reverse)],
+            sortBy: [SortDescriptor(\SwiftDataAnnualBudgetConfig.year, order: .reverse)],
             fetchLimit: 1,
         )
     }
 
-    internal static func budgets(overlapping year: Int) -> ModelFetchRequest<BudgetEntity> {
+    internal static func budgets(overlapping year: Int) -> ModelFetchRequest<SwiftDataBudget> {
         ModelFetchFactory.make(
             predicate: #Predicate {
                 $0.startYear <= year && $0.endYear >= year
             },
             sortBy: [
-                SortDescriptor(\BudgetEntity.startYear),
-                SortDescriptor(\BudgetEntity.startMonth),
-                SortDescriptor(\BudgetEntity.createdAt),
+                SortDescriptor(\SwiftDataBudget.startYear),
+                SortDescriptor(\SwiftDataBudget.startMonth),
+                SortDescriptor(\SwiftDataBudget.createdAt),
             ],
         )
     }
 
-    internal static func byId(_ id: UUID) -> ModelFetchRequest<BudgetEntity> {
+    internal static func byId(_ id: UUID) -> ModelFetchRequest<SwiftDataBudget> {
         ModelFetchFactory.make(
             predicate: #Predicate { $0.id == id },
             fetchLimit: 1,

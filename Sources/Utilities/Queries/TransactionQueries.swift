@@ -3,50 +3,50 @@ import SwiftData
 
 /// 取引関連のフェッチビルダー
 internal enum TransactionQueries {
-    internal static func list(query: TransactionQuery) -> ModelFetchRequest<TransactionEntity> {
+    internal static func list(query: TransactionQuery) -> ModelFetchRequest<SwiftDataTransaction> {
         ModelFetchFactory.make(
             predicate: predicate(for: query),
             sortBy: sortDescriptors(for: query.sortOption),
         )
     }
 
-    internal static func observation(query: TransactionQuery) -> ModelFetchRequest<TransactionEntity> {
+    internal static func observation(query: TransactionQuery) -> ModelFetchRequest<SwiftDataTransaction> {
         list(query: query)
     }
 
-    internal static func all() -> ModelFetchRequest<TransactionEntity> {
+    internal static func all() -> ModelFetchRequest<SwiftDataTransaction> {
         ModelFetchFactory.make()
     }
 
-    internal static func allSorted() -> ModelFetchRequest<TransactionEntity> {
+    internal static func allSorted() -> ModelFetchRequest<SwiftDataTransaction> {
         ModelFetchFactory.make(
             sortBy: [
-                SortDescriptor(\TransactionEntity.date, order: .reverse),
-                SortDescriptor(\TransactionEntity.createdAt, order: .reverse),
+                SortDescriptor(\SwiftDataTransaction.date, order: .reverse),
+                SortDescriptor(\SwiftDataTransaction.createdAt, order: .reverse),
             ],
         )
     }
 
-    internal static func between(startDate: Date, endDate: Date) -> ModelFetchRequest<TransactionEntity> {
+    internal static func between(startDate: Date, endDate: Date) -> ModelFetchRequest<SwiftDataTransaction> {
         ModelFetchFactory.make(
             predicate: #Predicate {
                 $0.date >= startDate && $0.date < endDate
             },
             sortBy: [
-                SortDescriptor(\TransactionEntity.date, order: .reverse),
-                SortDescriptor(\TransactionEntity.createdAt, order: .reverse),
+                SortDescriptor(\SwiftDataTransaction.date, order: .reverse),
+                SortDescriptor(\SwiftDataTransaction.createdAt, order: .reverse),
             ],
         )
     }
 
-    internal static func byId(_ id: UUID) -> ModelFetchRequest<TransactionEntity> {
+    internal static func byId(_ id: UUID) -> ModelFetchRequest<SwiftDataTransaction> {
         ModelFetchFactory.make(
             predicate: #Predicate { $0.id == id },
             fetchLimit: 1,
         )
     }
 
-    internal static func byImportIdentifier(_ identifier: String) -> ModelFetchRequest<TransactionEntity> {
+    internal static func byImportIdentifier(_ identifier: String) -> ModelFetchRequest<SwiftDataTransaction> {
         ModelFetchFactory.make(
             predicate: #Predicate { $0.importIdentifier == identifier },
             fetchLimit: 1,
@@ -55,26 +55,26 @@ internal enum TransactionQueries {
 }
 
 private extension TransactionQueries {
-    static func predicate(for query: TransactionQuery) -> Predicate<TransactionEntity> {
+    static func predicate(for query: TransactionQuery) -> Predicate<SwiftDataTransaction> {
         let start = query.month.startOfMonth
         let end = Calendar.current.date(byAdding: .month, value: 1, to: start) ?? start
 
-        return #Predicate<TransactionEntity> { transaction in
+        return #Predicate<SwiftDataTransaction> { transaction in
             transaction.date >= start && transaction.date < end
         }
     }
 
-    static func sortDescriptors(for option: TransactionSortOption) -> [SortDescriptor<TransactionEntity>] {
+    static func sortDescriptors(for option: TransactionSortOption) -> [SortDescriptor<SwiftDataTransaction>] {
         switch option {
         case .dateDescending, .amountDescending:
             [
-                SortDescriptor(\TransactionEntity.date, order: .reverse),
-                SortDescriptor(\TransactionEntity.createdAt, order: .reverse),
+                SortDescriptor(\SwiftDataTransaction.date, order: .reverse),
+                SortDescriptor(\SwiftDataTransaction.createdAt, order: .reverse),
             ]
         case .dateAscending, .amountAscending:
             [
-                SortDescriptor(\TransactionEntity.date, order: .forward),
-                SortDescriptor(\TransactionEntity.createdAt, order: .forward),
+                SortDescriptor(\SwiftDataTransaction.date, order: .forward),
+                SortDescriptor(\SwiftDataTransaction.createdAt, order: .forward),
             ]
         }
     }

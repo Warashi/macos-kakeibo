@@ -1,15 +1,15 @@
 import Foundation
 
 /// SwiftDataのカテゴリを階層構造に分割した結果
-internal struct CategoryEntityHierarchyGrouping {
-    internal let majorCategories: [CategoryEntity]
-    internal let minorCategories: [CategoryEntity]
-    internal let minorCategoriesByParent: [UUID: [CategoryEntity]]
+internal struct SwiftDataCategoryHierarchyGrouping {
+    internal let majorCategories: [SwiftDataCategory]
+    internal let minorCategories: [SwiftDataCategory]
+    internal let minorCategoriesByParent: [UUID: [SwiftDataCategory]]
 
-    internal init(categories: [CategoryEntity]) {
-        var majors: [CategoryEntity] = []
-        var minors: [CategoryEntity] = []
-        var minorsByParent: [UUID: [CategoryEntity]] = [:]
+    internal init(categories: [SwiftDataCategory]) {
+        var majors: [SwiftDataCategory] = []
+        var minors: [SwiftDataCategory] = []
+        var minorsByParent: [UUID: [SwiftDataCategory]] = [:]
 
         for category in categories {
             if category.isMajor {
@@ -27,7 +27,7 @@ internal struct CategoryEntityHierarchyGrouping {
         self.minorCategoriesByParent = minorsByParent
     }
 
-    internal func minorCategories(forMajorId id: UUID?) -> [CategoryEntity] {
+    internal func minorCategories(forMajorId id: UUID?) -> [SwiftDataCategory] {
         guard let id else { return [] }
         return minorCategoriesByParent[id] ?? []
     }
