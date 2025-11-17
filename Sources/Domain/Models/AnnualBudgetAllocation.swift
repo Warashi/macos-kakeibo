@@ -28,13 +28,4 @@ internal struct AnnualBudgetAllocation: Sendable, Hashable, Equatable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from allocation: AnnualBudgetAllocationEntity) {
-        self.id = allocation.id
-        self.amount = allocation.amount
-        self.categoryId = allocation.category.id
-        self.policyOverride = allocation.policyOverride
-        self.configId = allocation.config?.id
-        self.createdAt = allocation.createdAt
-        self.updatedAt = allocation.updatedAt
-    }
 }

@@ -28,16 +28,6 @@ internal struct AnnualBudgetConfig: Sendable, Hashable, Equatable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from config: AnnualBudgetConfigEntity) {
-        self.id = config.id
-        self.year = config.year
-        self.totalAmount = config.totalAmount
-        self.policy = config.policy
-        self.allocations = config.allocations.map { AnnualBudgetAllocation(from: $0) }
-        self.createdAt = config.createdAt
-        self.updatedAt = config.updatedAt
-    }
-
     /// カテゴリ配分の合計
     internal var allocationTotalAmount: Decimal {
         allocations.reduce(0) { $0 + $1.amount }

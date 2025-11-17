@@ -52,24 +52,6 @@ internal struct RecurringPaymentDefinition: Sendable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from definition: RecurringPaymentDefinitionEntity) {
-        self.id = definition.id
-        self.name = definition.name
-        self.notes = definition.notes
-        self.amount = definition.amount
-        self.recurrenceIntervalMonths = definition.recurrenceIntervalMonths
-        self.firstOccurrenceDate = definition.firstOccurrenceDate
-        self.endDate = definition.endDate
-        self.leadTimeMonths = definition.leadTimeMonths
-        self.categoryId = definition.category?.id
-        self.savingStrategy = definition.savingStrategy
-        self.customMonthlySavingAmount = definition.customMonthlySavingAmount
-        self.dateAdjustmentPolicy = definition.dateAdjustmentPolicy
-        self.recurrenceDayPattern = definition.recurrenceDayPattern
-        self.createdAt = definition.createdAt
-        self.updatedAt = definition.updatedAt
-    }
-
     /// 月次の積立金額（カスタムの場合は指定値、均等配分なら周期で割った値）
     internal var monthlySavingAmount: Decimal {
         switch savingStrategy {

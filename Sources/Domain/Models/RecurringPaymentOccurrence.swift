@@ -37,19 +37,6 @@ internal struct RecurringPaymentOccurrence: Sendable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from occurrence: RecurringPaymentOccurrenceEntity) {
-        self.id = occurrence.id
-        self.definitionId = occurrence.definition.id
-        self.scheduledDate = occurrence.scheduledDate
-        self.expectedAmount = occurrence.expectedAmount
-        self.status = occurrence.status
-        self.actualDate = occurrence.actualDate
-        self.actualAmount = occurrence.actualAmount
-        self.transactionId = occurrence.transaction?.id
-        self.createdAt = occurrence.createdAt
-        self.updatedAt = occurrence.updatedAt
-    }
-
     internal var isCompleted: Bool {
         status == .completed
     }

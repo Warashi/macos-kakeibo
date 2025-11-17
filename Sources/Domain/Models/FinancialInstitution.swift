@@ -22,11 +22,4 @@ internal struct FinancialInstitution: Sendable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from entity: FinancialInstitutionEntity) {
-        self.id = entity.id
-        self.name = entity.name
-        self.displayOrder = entity.displayOrder
-        self.createdAt = entity.createdAt
-        self.updatedAt = entity.updatedAt
-    }
 }

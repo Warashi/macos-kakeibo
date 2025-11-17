@@ -34,18 +34,6 @@ internal struct Budget: Sendable, Hashable, Equatable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from budget: BudgetEntity) {
-        self.id = budget.id
-        self.amount = budget.amount
-        self.categoryId = budget.category?.id
-        self.startYear = budget.startYear
-        self.startMonth = budget.startMonth
-        self.endYear = budget.endYear
-        self.endMonth = budget.endMonth
-        self.createdAt = budget.createdAt
-        self.updatedAt = budget.updatedAt
-    }
-
     /// 開始年月の文字列表現（例: "2025-11"）
     internal var yearMonthString: String {
         String(format: "%04d-%02d", startYear, startMonth)

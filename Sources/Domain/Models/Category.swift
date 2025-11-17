@@ -29,16 +29,6 @@ internal struct Category: Sendable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from entity: CategoryEntity) {
-        self.id = entity.id
-        self.name = entity.name
-        self.displayOrder = entity.displayOrder
-        self.allowsAnnualBudget = entity.allowsAnnualBudget
-        self.parentId = entity.parent?.id
-        self.createdAt = entity.createdAt
-        self.updatedAt = entity.updatedAt
-    }
-
     internal var isMajor: Bool {
         parentId == nil
     }

@@ -46,22 +46,6 @@ internal struct Transaction: Sendable, Hashable, Equatable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from entity: TransactionEntity) {
-        self.id = entity.id
-        self.date = entity.date
-        self.title = entity.title
-        self.amount = entity.amount
-        self.memo = entity.memo
-        self.isIncludedInCalculation = entity.isIncludedInCalculation
-        self.isTransfer = entity.isTransfer
-        self.importIdentifier = entity.importIdentifier
-        self.financialInstitutionId = entity.financialInstitution?.id
-        self.majorCategoryId = entity.majorCategory?.id
-        self.minorCategoryId = entity.minorCategory?.id
-        self.createdAt = entity.createdAt
-        self.updatedAt = entity.updatedAt
-    }
-
     internal var isIncome: Bool {
         amount > 0
     }

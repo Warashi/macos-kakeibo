@@ -31,17 +31,6 @@ internal struct RecurringPaymentSavingBalance: Sendable {
         self.updatedAt = updatedAt
     }
 
-    internal init(from balance: RecurringPaymentSavingBalanceEntity) {
-        self.id = balance.id
-        self.definitionId = balance.definition.id
-        self.totalSavedAmount = balance.totalSavedAmount
-        self.totalPaidAmount = balance.totalPaidAmount
-        self.lastUpdatedYear = balance.lastUpdatedYear
-        self.lastUpdatedMonth = balance.lastUpdatedMonth
-        self.createdAt = balance.createdAt
-        self.updatedAt = balance.updatedAt
-    }
-
     internal var balance: Decimal {
         totalSavedAmount.safeSubtract(totalPaidAmount)
     }
