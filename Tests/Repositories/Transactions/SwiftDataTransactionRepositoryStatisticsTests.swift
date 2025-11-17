@@ -17,12 +17,12 @@ internal struct SwiftDataTransactionRepositoryStatisticsTests {
             date: Date.from(year: 2025, month: 1, day: 1) ?? Date(),
             title: "テスト",
             memo: "",
-            amount: Decimal(1_000),
+            amount: Decimal(1000),
             isIncludedInCalculation: true,
             isTransfer: false,
             financialInstitutionId: nil,
             majorCategoryId: nil,
-            minorCategoryId: nil
+            minorCategoryId: nil,
         )
         _ = try repository.insert(input)
         try repository.saveChanges()

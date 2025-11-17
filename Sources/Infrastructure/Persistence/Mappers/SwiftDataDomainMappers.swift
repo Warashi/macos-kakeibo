@@ -11,7 +11,7 @@ internal extension Budget {
             endYear: record.endYear,
             endMonth: record.endMonth,
             createdAt: record.createdAt,
-            updatedAt: record.updatedAt
+            updatedAt: record.updatedAt,
         )
     }
 }
@@ -25,7 +25,7 @@ internal extension Category {
             allowsAnnualBudget: record.allowsAnnualBudget,
             parentId: record.parent?.id,
             createdAt: record.createdAt,
-            updatedAt: record.updatedAt
+            updatedAt: record.updatedAt,
         )
     }
 }
@@ -45,7 +45,7 @@ internal extension Transaction {
             majorCategoryId: record.majorCategory?.id,
             minorCategoryId: record.minorCategory?.id,
             createdAt: record.createdAt,
-            updatedAt: record.updatedAt
+            updatedAt: record.updatedAt,
         )
     }
 }
@@ -57,7 +57,7 @@ internal extension FinancialInstitution {
             name: record.name,
             displayOrder: record.displayOrder,
             createdAt: record.createdAt,
-            updatedAt: record.updatedAt
+            updatedAt: record.updatedAt,
         )
     }
 }
@@ -71,7 +71,7 @@ internal extension AnnualBudgetAllocation {
             policyOverride: record.policyOverride,
             configId: record.config?.id,
             createdAt: record.createdAt,
-            updatedAt: record.updatedAt
+            updatedAt: record.updatedAt,
         )
     }
 }
@@ -85,7 +85,7 @@ internal extension AnnualBudgetConfig {
             policy: record.policy,
             allocations: record.allocations.map { AnnualBudgetAllocation(from: $0) },
             createdAt: record.createdAt,
-            updatedAt: record.updatedAt
+            updatedAt: record.updatedAt,
         )
     }
 }
@@ -107,7 +107,7 @@ internal extension RecurringPaymentDefinition {
             dateAdjustmentPolicy: record.dateAdjustmentPolicy,
             recurrenceDayPattern: record.recurrenceDayPattern,
             createdAt: record.createdAt,
-            updatedAt: record.updatedAt
+            updatedAt: record.updatedAt,
         )
     }
 }
@@ -124,7 +124,7 @@ internal extension RecurringPaymentOccurrence {
             actualAmount: record.actualAmount,
             transactionId: record.transaction?.id,
             createdAt: record.createdAt,
-            updatedAt: record.updatedAt
+            updatedAt: record.updatedAt,
         )
     }
 }
@@ -139,7 +139,7 @@ internal extension RecurringPaymentSavingBalance {
             lastUpdatedYear: record.lastUpdatedYear,
             lastUpdatedMonth: record.lastUpdatedMonth,
             createdAt: record.createdAt,
-            updatedAt: record.updatedAt
+            updatedAt: record.updatedAt,
         )
     }
 }

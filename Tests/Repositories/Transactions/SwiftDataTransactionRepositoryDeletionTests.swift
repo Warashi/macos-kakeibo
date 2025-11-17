@@ -20,7 +20,7 @@ internal struct SwiftDataTransactionRepositoryDeletionTests {
             isTransfer: false,
             financialInstitutionId: nil,
             majorCategoryId: nil,
-            minorCategoryId: nil
+            minorCategoryId: nil,
         )
         _ = try repository.insert(input)
         _ = try repository.insert(input)

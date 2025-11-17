@@ -33,7 +33,7 @@ internal struct AnnualBudgetAllocationValidatorTests {
         let allocation = DomainFixtures.annualBudgetAllocation(
             amount: 100_000,
             category: category,
-            policyOverride: .automatic
+            policyOverride: .automatic,
         )
         let params = makeParams(
             policy: .disabled,
@@ -64,7 +64,7 @@ internal struct AnnualBudgetAllocationValidatorTests {
             year: 2025,
             totalAmount: 500_000,
             policy: policy,
-            allocations: allocations
+            allocations: allocations,
         )
 
         return AllocationCalculationParams(

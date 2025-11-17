@@ -16,7 +16,7 @@ internal struct MonthlyBudgetEntryTests {
             startYear: 2025,
             startMonth: 1,
             endYear: 2025,
-            endMonth: 1
+            endMonth: 1,
         )
 
         let entry = MonthlyBudgetEntry(
@@ -47,7 +47,7 @@ internal struct MonthlyBudgetEntryTests {
             startYear: 2025,
             startMonth: 5,
             endYear: 2025,
-            endMonth: 5
+            endMonth: 5,
         )
 
         let entry = MonthlyBudgetEntry(

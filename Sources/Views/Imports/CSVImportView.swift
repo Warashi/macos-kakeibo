@@ -39,7 +39,7 @@ private extension CSVImportView {
 
         store = ImportStore(
             transactionRepository: dependencies.0,
-            budgetRepository: dependencies.1
+            budgetRepository: dependencies.1,
         )
     }
 }

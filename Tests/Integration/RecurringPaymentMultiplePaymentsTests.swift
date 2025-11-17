@@ -144,7 +144,7 @@ internal struct RecurringPaymentMultiplePaymentsTests {
     private func performSavingCycle(
         definition: SwiftDataRecurringPaymentDefinition,
         balance: SwiftDataRecurringPaymentSavingBalance?,
-        params: CycleParams
+        params: CycleParams,
     ) -> SwiftDataRecurringPaymentSavingBalance? {
         var currentBalance: SwiftDataRecurringPaymentSavingBalance? = balance
         for month in params.startMonth ... params.endMonth {

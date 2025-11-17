@@ -79,7 +79,7 @@ internal extension SwiftDataAnnualBudgetConfig {
     }
 
     func fullCoverageCategoryIDs(
-        includingChildrenFrom categories: [SwiftDataCategory] = []
+        includingChildrenFrom categories: [SwiftDataCategory] = [],
     ) -> Set<UUID> {
         guard !allocations.isEmpty else { return [] }
 

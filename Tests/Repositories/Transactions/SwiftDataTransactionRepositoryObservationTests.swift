@@ -39,7 +39,7 @@ internal struct TransactionRepositoryObservationTests {
             financialInstitutionId: nil,
             majorCategoryId: nil,
             minorCategoryId: nil,
-            importIdentifier: nil
+            importIdentifier: nil,
         )
         let transactionId = try await repository.insert(initialInput)
         try await repository.saveChanges()
@@ -58,7 +58,7 @@ internal struct TransactionRepositoryObservationTests {
             financialInstitutionId: nil,
             majorCategoryId: nil,
             minorCategoryId: nil,
-            importIdentifier: nil
+            importIdentifier: nil,
         )
         try await repository.update(TransactionUpdateInput(id: transactionId, input: updatedInput))
         try await repository.saveChanges()

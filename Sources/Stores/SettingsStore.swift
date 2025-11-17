@@ -81,7 +81,7 @@ internal final class SettingsStore {
         csvExporter: CSVExporter = CSVExporter(),
         userDefaults: UserDefaults = .standard,
         transactionRepository: TransactionRepository,
-        budgetRepository: BudgetRepository
+        budgetRepository: BudgetRepository,
     ) async {
         self.modelContainer = modelContainer
         self.backupManager = backupManager ?? BackupManager(modelContainer: modelContainer)
@@ -110,7 +110,7 @@ internal final class SettingsStore {
         let initialStatistics = await Task { @DatabaseActor () -> DataStatistics? in
             try? makeStatistics(
                 transactionRepository: transactionRepository,
-                budgetRepository: budgetRepository
+                budgetRepository: budgetRepository,
             )
         }.value
         statistics = initialStatistics ?? .empty
@@ -135,7 +135,7 @@ internal final class SettingsStore {
         let result = await Task { @DatabaseActor () -> DataStatistics? in
             try? makeStatistics(
                 transactionRepository: transactionRepository,
-                budgetRepository: budgetRepository
+                budgetRepository: budgetRepository,
             )
         }.value
         statistics = result ?? .empty
@@ -212,7 +212,6 @@ internal final class SettingsStore {
         static let showCategoryFullPath: String = "settings.showCategoryFullPath"
         static let useThousandSeparator: String = "settings.useThousandSeparator"
     }
-
 }
 
 // MARK: - UserDefaults Helper
@@ -231,13 +230,13 @@ private extension UserDefaults {
 @DatabaseActor
 private func makeStatistics(
     transactionRepository: TransactionRepository,
-    budgetRepository: BudgetRepository
+    budgetRepository: BudgetRepository,
 ) throws -> SettingsStore.DataStatistics {
     try SettingsStore.DataStatistics(
         transactions: transactionRepository.countTransactions(),
         categories: budgetRepository.countCategories(),
         budgets: budgetRepository.countBudgets(),
         annualBudgetConfigs: budgetRepository.countAnnualBudgetConfigs(),
-        financialInstitutions: budgetRepository.countFinancialInstitutions()
+        financialInstitutions: budgetRepository.countFinancialInstitutions(),
     )
 }

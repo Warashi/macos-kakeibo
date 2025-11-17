@@ -56,7 +56,7 @@ internal struct SettingsStoreTests {
         let store = await makeSettingsStore(
             modelContainer: container,
             userDefaults: defaults,
-            transactionRepository: transactionRepository
+            transactionRepository: transactionRepository,
         )
 
         // When
@@ -86,7 +86,7 @@ internal struct SettingsStoreTests {
             modelContainer: container,
             userDefaults: defaults,
             transactionRepository: transactionRepository,
-            budgetRepository: budgetRepository
+            budgetRepository: budgetRepository,
         )
 
         // When
@@ -105,7 +105,7 @@ internal struct SettingsStoreTests {
                 budgetRepository.deleteAllBudgetsCallCount,
                 budgetRepository.deleteAllConfigsCallCount,
                 budgetRepository.deleteAllCategoriesCallCount,
-                budgetRepository.deleteAllInstitutionsCallCount
+                budgetRepository.deleteAllInstitutionsCallCount,
             )
         }.value
         #expect(deleteCalls.0 == 1)
@@ -128,7 +128,7 @@ internal struct SettingsStoreTests {
             modelContainer: container,
             userDefaults: defaults,
             transactionRepository: transactionRepository,
-            budgetRepository: budgetRepository
+            budgetRepository: budgetRepository,
         )
         #expect(store.statistics == .empty)
 
@@ -163,10 +163,10 @@ internal struct SettingsStoreTests {
         let transaction = SwiftDataTransaction(
             date: Date(),
             title: "テスト",
-            amount: -1_000,
+            amount: -1000,
             financialInstitution: institution,
             majorCategory: major,
-            minorCategory: minor
+            minorCategory: minor,
         )
         let transactionModel = Transaction(from: transaction)
         let categoryModels = [Category(from: major), Category(from: minor)]
@@ -180,7 +180,7 @@ internal struct SettingsStoreTests {
         let store = await makeSettingsStore(
             modelContainer: container,
             userDefaults: defaults,
-            transactionRepository: transactionRepository
+            transactionRepository: transactionRepository,
         )
 
         // When
@@ -211,7 +211,7 @@ internal struct SettingsStoreTests {
         let store = await makeSettingsStore(
             modelContainer: targetContainer,
             userDefaults: defaults,
-            transactionRepository: transactionRepository
+            transactionRepository: transactionRepository,
         )
 
         #expect(try targetContext.count(SwiftDataTransaction.self) == 0)
@@ -263,31 +263,29 @@ private func makeSettingsStore(
     modelContainer: ModelContainer,
     userDefaults: UserDefaults,
     transactionRepository: MockTransactionRepository? = nil,
-    budgetRepository: MockBudgetRepository? = nil
+    budgetRepository: MockBudgetRepository? = nil,
 ) async -> SettingsStore {
-    let resolvedTransactionRepository: MockTransactionRepository
-    if let transactionRepository {
-        resolvedTransactionRepository = transactionRepository
+    let resolvedTransactionRepository: MockTransactionRepository = if let transactionRepository {
+        transactionRepository
     } else {
-        resolvedTransactionRepository = await makeTransactionRepository()
+        await makeTransactionRepository()
     }
-    let resolvedBudgetRepository: MockBudgetRepository
-    if let budgetRepository {
-        resolvedBudgetRepository = budgetRepository
+    let resolvedBudgetRepository: MockBudgetRepository = if let budgetRepository {
+        budgetRepository
     } else {
-        resolvedBudgetRepository = await makeBudgetRepository()
+        await makeBudgetRepository()
     }
     return await SettingsStore(
         modelContainer: modelContainer,
         userDefaults: userDefaults,
         transactionRepository: resolvedTransactionRepository,
-        budgetRepository: resolvedBudgetRepository
+        budgetRepository: resolvedBudgetRepository,
     )
 }
 
 @MainActor
 private func makeTransactionRepository(
-    configure: (@DatabaseActor (MockTransactionRepository) -> Void)? = nil
+    configure: (@DatabaseActor (MockTransactionRepository) -> Void)? = nil,
 ) async -> MockTransactionRepository {
     await Task { @DatabaseActor () -> MockTransactionRepository in
         let repository = MockTransactionRepository()
@@ -298,7 +296,7 @@ private func makeTransactionRepository(
 
 @MainActor
 private func makeBudgetRepository(
-    configure: (@DatabaseActor (MockBudgetRepository) -> Void)? = nil
+    configure: (@DatabaseActor (MockBudgetRepository) -> Void)? = nil,
 ) async -> MockBudgetRepository {
     await Task { @DatabaseActor () -> MockBudgetRepository in
         let repository = MockBudgetRepository()
@@ -327,7 +325,7 @@ private final class MockTransactionRepository: TransactionRepository {
         TransactionCSVExportSnapshot(
             transactions: snapshotTransactions,
             categories: snapshotCategories,
-            institutions: snapshotInstitutions
+            institutions: snapshotInstitutions,
         )
     }
 
@@ -346,7 +344,7 @@ private final class MockTransactionRepository: TransactionRepository {
     @discardableResult
     internal func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @MainActor ([Transaction]) -> Void
+        onChange: @escaping @MainActor ([Transaction]) -> Void,
     ) throws -> ObservationToken {
         unsupported(#function)
     }

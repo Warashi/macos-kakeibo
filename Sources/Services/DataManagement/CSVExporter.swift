@@ -80,7 +80,7 @@ internal struct CSVExporter: Sendable {
     /// - Returns: CSV文字列
     private func row(
         from transaction: Transaction,
-        referenceData: TransactionReferenceData
+        referenceData: TransactionReferenceData,
     ) -> String {
         let institutionName = referenceData.institution(id: transaction.financialInstitutionId)?.name ?? ""
         let majorName = referenceData.category(id: transaction.majorCategoryId)?.name ?? ""
@@ -123,7 +123,7 @@ internal struct CSVExporter: Sendable {
     private func categoryPath(
         for transaction: Transaction,
         minor: Category?,
-        referenceData: TransactionReferenceData
+        referenceData: TransactionReferenceData,
     ) -> String {
         if let minor {
             if let parentId = minor.parentId,

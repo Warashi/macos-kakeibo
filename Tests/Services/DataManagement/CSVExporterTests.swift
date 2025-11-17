@@ -22,7 +22,7 @@ internal struct CSVExporterTests {
         let snapshot = TransactionCSVExportSnapshot(
             transactions: [Transaction(from: transaction)],
             categories: [Category(from: major), Category(from: minor)],
-            institutions: [FinancialInstitution(from: institution)]
+            institutions: [FinancialInstitution(from: institution)],
         )
 
         // When
@@ -47,7 +47,7 @@ internal struct CSVExporterTests {
         let snapshot = TransactionCSVExportSnapshot(
             transactions: [],
             categories: [],
-            institutions: []
+            institutions: [],
         )
 
         // When

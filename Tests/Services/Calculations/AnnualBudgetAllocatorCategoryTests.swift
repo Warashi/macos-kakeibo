@@ -146,7 +146,7 @@ internal struct AnnualBudgetAllocatorCategoryTests {
             title: "テスト取引",
             amount: amount,
             majorCategory: majorCategory ?? category,
-            minorCategory: minorCategory
+            minorCategory: minorCategory,
         )
     }
 
@@ -158,14 +158,14 @@ internal struct AnnualBudgetAllocatorCategoryTests {
             DomainFixtures.annualBudgetAllocation(
                 amount: seed.amount,
                 category: seed.category,
-                policyOverride: seed.override
+                policyOverride: seed.override,
             )
         }
         return DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
             policy: policy,
-            allocations: allocationModels
+            allocations: allocationModels,
         )
     }
 }

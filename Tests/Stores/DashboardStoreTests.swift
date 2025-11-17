@@ -446,7 +446,8 @@ internal struct DashboardStoreTests {
 
     private func createInMemoryContainer() throws -> ModelContainer {
         try ModelContainer(
-            for: SwiftDataTransaction.self, SwiftDataCategory.self, SwiftDataBudget.self, SwiftDataAnnualBudgetConfig.self,
+            for: SwiftDataTransaction.self, SwiftDataCategory.self, SwiftDataBudget.self,
+            SwiftDataAnnualBudgetConfig.self,
             SwiftDataFinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )

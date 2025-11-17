@@ -40,8 +40,8 @@ internal struct RecurringPaymentStoreUpdateDefinitionTests {
         let definitionId = definition.id
         let refreshed = try #require(
             context.fetch(RecurringPaymentQueries.definitions(
-                predicate: #Predicate { $0.id == definitionId }
-            )).first
+                predicate: #Predicate { $0.id == definitionId },
+            )).first,
         )
 
         #expect(refreshed.name == "自動車税（更新）")

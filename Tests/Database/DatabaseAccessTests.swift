@@ -14,7 +14,7 @@ internal struct DatabaseAccessTests {
             let transaction = SwiftDataTransaction(
                 date: Date(),
                 title: "テスト取引",
-                amount: -1_000
+                amount: -1000,
             )
             context.insert(transaction)
             try context.save()
@@ -33,7 +33,7 @@ internal struct DatabaseAccessTests {
     @Test("DatabaseActor 経由で access を取得できる")
     func databaseActorProvidesAccess() async throws {
         #if DEBUG
-            await DatabaseActor.shared.resetConfigurationForTesting()
+        await DatabaseActor.shared.resetConfigurationForTesting()
         #endif
 
         let container = try ModelContainer.createInMemoryContainer()

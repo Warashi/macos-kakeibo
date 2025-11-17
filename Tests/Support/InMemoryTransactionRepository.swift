@@ -28,10 +28,10 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
     }
 
     internal func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot {
-        TransactionCSVExportSnapshot(
-            transactions: try fetchAllTransactions(),
-            categories: try fetchCategories(),
-            institutions: try fetchInstitutions()
+        try TransactionCSVExportSnapshot(
+            transactions: fetchAllTransactions(),
+            categories: fetchCategories(),
+            institutions: fetchInstitutions(),
         )
     }
 
@@ -83,7 +83,7 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
             majorCategoryId: input.majorCategoryId,
             minorCategoryId: input.minorCategoryId,
             createdAt: now,
-            updatedAt: now
+            updatedAt: now,
         )
         transactions.append(transaction)
         return transaction.id
@@ -107,7 +107,7 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
             majorCategoryId: input.input.majorCategoryId,
             minorCategoryId: input.input.minorCategoryId,
             createdAt: existing.createdAt,
-            updatedAt: Date()
+            updatedAt: Date(),
         )
     }
 

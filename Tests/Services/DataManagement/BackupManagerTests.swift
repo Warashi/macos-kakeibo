@@ -59,7 +59,7 @@ private func seedSampleData(in context: ModelContext) throws {
     let institution = SwiftDataFinancialInstitution(name: "メインバンク", displayOrder: 1)
     let major = SwiftDataCategory(name: "食費", allowsAnnualBudget: false, displayOrder: 1)
     let minor = SwiftDataCategory(name: "外食", parent: major, allowsAnnualBudget: false, displayOrder: 1)
-let budget = SwiftDataBudget(amount: 50000, category: major, year: 2025, month: 11)
+    let budget = SwiftDataBudget(amount: 50000, category: major, year: 2025, month: 11)
     let config = SwiftDataAnnualBudgetConfig(year: 2025, totalAmount: 100_000, policy: .automatic)
     let transaction = SwiftDataTransaction(
         date: Date(),

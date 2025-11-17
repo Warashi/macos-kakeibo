@@ -81,14 +81,14 @@ internal struct ImportStoreTests {
     private func makeStore() async -> (
         ImportStore,
         InMemoryTransactionRepository,
-        InMemoryBudgetRepository
+        InMemoryBudgetRepository,
     ) {
         await Task { @DatabaseActor in
             let transactionRepository = InMemoryTransactionRepository()
             let budgetRepository = InMemoryBudgetRepository()
             let store = ImportStore(
                 transactionRepository: transactionRepository,
-                budgetRepository: budgetRepository
+                budgetRepository: budgetRepository,
             )
             return (store, transactionRepository, budgetRepository)
         }.value

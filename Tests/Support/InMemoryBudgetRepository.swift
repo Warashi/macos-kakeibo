@@ -8,7 +8,7 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
 
     internal init(
         categories: [Kakeibo.Category] = [],
-        institutions: [FinancialInstitution] = []
+        institutions: [FinancialInstitution] = [],
     ) {
         self.categories = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
         self.institutions = Dictionary(uniqueKeysWithValues: institutions.map { ($0.id, $0) })
@@ -22,7 +22,7 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
             annualBudgetConfig: nil,
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],
-            recurringPaymentOccurrences: []
+            recurringPaymentOccurrences: [],
         )
     }
 
@@ -44,7 +44,7 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
             allowsAnnualBudget: false,
             parentId: parentId,
             createdAt: now,
-            updatedAt: now
+            updatedAt: now,
         )
         categories[id] = dto
         return id
@@ -66,7 +66,7 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
             name: name,
             displayOrder: institutions.count,
             createdAt: now,
-            updatedAt: now
+            updatedAt: now,
         )
         institutions[id] = dto
         return id

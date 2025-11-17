@@ -15,7 +15,7 @@ internal struct AnnualBudgetUseCaseTests {
             DomainFixtures.transaction(
                 date: Date.from(year: year, month: 1, day: 10) ?? Date(),
                 title: "家賃",
-                amount: -80000
+                amount: -80000,
             ),
         ]
         let snapshot = BudgetSnapshot(
@@ -48,7 +48,7 @@ internal struct AnnualBudgetUseCaseTests {
                 date: Date.from(year: year, month: 1, day: 5) ?? Date(),
                 title: "スーパー",
                 amount: -20000,
-                majorCategory: food
+                majorCategory: food,
             ),
         ]
         let snapshot = BudgetSnapshot(
@@ -76,20 +76,20 @@ internal struct AnnualBudgetUseCaseTests {
         let allocation = DomainFixtures.annualBudgetAllocation(
             amount: 200_000,
             category: food,
-            policyOverride: .automatic
+            policyOverride: .automatic,
         )
         let config = DomainFixtures.annualBudgetConfig(
             year: year,
             totalAmount: 200_000,
             policy: .automatic,
-            allocations: [allocation]
+            allocations: [allocation],
         )
         let transactions = [
             DomainFixtures.transaction(
                 date: Date.from(year: year, month: 1, day: 1) ?? Date(),
                 title: "家電",
                 amount: -50000,
-                majorCategory: food
+                majorCategory: food,
             ),
         ]
         let snapshot = BudgetSnapshot(

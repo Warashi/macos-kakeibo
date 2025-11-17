@@ -20,7 +20,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
             startYear: 2025,
             startMonth: 1,
             endYear: 2025,
-            endMonth: 12
+            endMonth: 12,
         )
 
         // 取引データを作成
@@ -30,7 +30,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "食材購入",
                 amount: -10000,
-                majorCategory: majorCategory
+                majorCategory: majorCategory,
             ),
             // 中項目も設定された取引: 5,000円
             DomainFixtures.transaction(
@@ -38,7 +38,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 title: "ランチ",
                 amount: -5000,
                 majorCategory: majorCategory,
-                minorCategory: minorCategory
+                minorCategory: minorCategory,
             ),
             // 中項目も設定された取引: 8,000円
             DomainFixtures.transaction(
@@ -46,7 +46,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 title: "ディナー",
                 amount: -8000,
                 majorCategory: majorCategory,
-                minorCategory: minorCategory
+                minorCategory: minorCategory,
             ),
         ]
 
@@ -100,7 +100,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
             startYear: 2025,
             startMonth: 1,
             endYear: 2025,
-            endMonth: 12
+            endMonth: 12,
         )
 
         // 取引データを作成
@@ -111,7 +111,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 title: "ランチ",
                 amount: -5000,
                 majorCategory: majorCategory,
-                minorCategory: minorCategory1
+                minorCategory: minorCategory1,
             ),
             // 食材の取引: 10,000円（これは含まれない）
             DomainFixtures.transaction(
@@ -119,7 +119,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 title: "スーパー",
                 amount: -10000,
                 majorCategory: majorCategory,
-                minorCategory: minorCategory2
+                minorCategory: minorCategory2,
             ),
         ]
 
@@ -230,7 +230,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 startYear: 2025,
                 startMonth: 1,
                 endYear: 2025,
-                endMonth: 12
+                endMonth: 12,
             ),
             DomainFixtures.budget(
                 amount: 20000,
@@ -238,7 +238,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 startYear: 2025,
                 startMonth: 1,
                 endYear: 2025,
-                endMonth: 12
+                endMonth: 12,
             ),
         ]
 
@@ -247,20 +247,20 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "食材",
                 amount: -10000,
-                majorCategory: foodCategory
+                majorCategory: foodCategory,
             ),
             DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "ランチ",
                 amount: -5000,
                 majorCategory: foodCategory,
-                minorCategory: diningOut
+                minorCategory: diningOut,
             ),
             DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 25) ?? Date(),
                 title: "電車",
                 amount: -3000,
-                majorCategory: transportCategory
+                majorCategory: transportCategory,
             ),
         ]
 
@@ -286,7 +286,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
             startYear: 2025,
             startMonth: 1,
             endYear: 2025,
-            endMonth: 12
+            endMonth: 12,
         )
 
         // カテゴリ別予算
@@ -296,7 +296,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
             startYear: 2025,
             startMonth: 1,
             endYear: 2025,
-            endMonth: 12
+            endMonth: 12,
         )
 
         // 取引データを作成
@@ -306,14 +306,14 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "食材",
                 amount: -10000,
-                majorCategory: foodCategory
+                majorCategory: foodCategory,
             ),
             // 交通費: 5,000円
             DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "電車",
                 amount: -5000,
-                majorCategory: transportCategory
+                majorCategory: transportCategory,
             ),
         ]
 
@@ -362,7 +362,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
             startYear: 2025,
             startMonth: 1,
             endYear: 2025,
-            endMonth: 12
+            endMonth: 12,
         )
 
         // 取引データを作成
@@ -372,21 +372,21 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "食材",
                 amount: -10000,
-                majorCategory: foodCategory
+                majorCategory: foodCategory,
             ),
             // 交通費: 5,000円
             DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "電車",
                 amount: -5000,
-                majorCategory: transportCategory
+                majorCategory: transportCategory,
             ),
             // 娯楽費: 8,000円
             DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 25) ?? Date(),
                 title: "映画",
                 amount: -8000,
-                majorCategory: entertainmentCategory
+                majorCategory: entertainmentCategory,
             ),
         ]
 

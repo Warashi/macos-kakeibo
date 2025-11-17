@@ -29,8 +29,8 @@ internal struct RecurringPaymentStoreTests {
 
         let refreshedDefinition = try #require(
             context.fetch(RecurringPaymentQueries.definitions(
-                predicate: #Predicate { $0.id == definitionId }
-            )).first
+                predicate: #Predicate { $0.id == definitionId },
+            )).first,
         )
         #expect(refreshedDefinition.occurrences.count == 2)
         let first = try #require(refreshedDefinition.occurrences.first)
@@ -60,8 +60,8 @@ internal struct RecurringPaymentStoreTests {
         try await store.synchronizeOccurrences(definitionId: trackedDefinitionId, horizonMonths: 18)
         var refreshedDefinition = try #require(
             context.fetch(RecurringPaymentQueries.definitions(
-                predicate: #Predicate { $0.id == trackedDefinitionId }
-            )).first
+                predicate: #Predicate { $0.id == trackedDefinitionId },
+            )).first,
         )
         #expect(refreshedDefinition.occurrences.count == 2)
 
@@ -73,8 +73,8 @@ internal struct RecurringPaymentStoreTests {
 
         refreshedDefinition = try #require(
             context.fetch(RecurringPaymentQueries.definitions(
-                predicate: #Predicate { $0.id == trackedDefinitionId }
-            )).first
+                predicate: #Predicate { $0.id == trackedDefinitionId },
+            )).first,
         )
 
         #expect(refreshedDefinition.occurrences.count == 4)
@@ -105,10 +105,11 @@ internal struct RecurringPaymentStoreTests {
         let definitionId = definition.id
         let refreshedDefinitionBeforeCompletion = try #require(
             context.fetch(RecurringPaymentQueries.definitions(
-                predicate: #Predicate { $0.id == definitionId }
-            )).first
+                predicate: #Predicate { $0.id == definitionId },
+            )).first,
         )
-        let occurrence = try #require(refreshedDefinitionBeforeCompletion.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
+        let occurrence = try #require(refreshedDefinitionBeforeCompletion.occurrences
+            .min(by: { $0.scheduledDate < $1.scheduledDate }))
 
         let actualDate = try #require(Date.from(year: 2024, month: 1, day: 16))
         let input = OccurrenceCompletionInput(
@@ -124,13 +125,13 @@ internal struct RecurringPaymentStoreTests {
         let refreshedDefinitionId = definition.id
         let refreshedOccurrence = try #require(
             context.fetch(RecurringPaymentQueries.occurrences(
-                predicate: #Predicate { $0.id == occurrenceId }
-            )).first
+                predicate: #Predicate { $0.id == occurrenceId },
+            )).first,
         )
         let refreshedDefinition = try #require(
             context.fetch(RecurringPaymentQueries.definitions(
-                predicate: #Predicate { $0.id == refreshedDefinitionId }
-            )).first
+                predicate: #Predicate { $0.id == refreshedDefinitionId },
+            )).first,
         )
 
         #expect(refreshedOccurrence.status == .completed)

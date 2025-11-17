@@ -153,7 +153,7 @@ internal final class DashboardStore {
                 snapshot: snapshot,
                 year: targetYear,
                 month: targetMonth,
-                displayMode: displayMode
+                displayMode: displayMode,
             )
 
             monthlySummary = result.monthlySummary
@@ -168,6 +168,7 @@ internal final class DashboardStore {
             // Keep previous state if fetching fails
         }
     }
+
     // MARK: - Actions
 
     /// 前月に移動
@@ -215,7 +216,7 @@ internal final class DashboardStore {
 
     private func bootstrapInitialState() async {
         let defaultYear = currentYear
-        let resolvedYear = (try? await Task { @DatabaseActor in
+        let resolvedYear = await (try? Task { @DatabaseActor in
             try repository.resolveInitialYear(defaultYear: defaultYear)
         }.value) ?? defaultYear
         if resolvedYear != currentYear {

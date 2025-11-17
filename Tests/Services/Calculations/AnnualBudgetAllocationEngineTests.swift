@@ -98,14 +98,14 @@ internal struct AnnualBudgetAllocationEngineTests {
                 amount: seed.amount,
                 category: seed.category,
                 policyOverride: seed.override,
-                configId: nil
+                configId: nil,
             )
         }
         return DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 1_000_000,
             policy: policy,
-            allocations: allocations
+            allocations: allocations,
         )
     }
 
@@ -127,7 +127,7 @@ internal struct AnnualBudgetAllocationEngineTests {
             title: "テスト取引",
             amount: amount,
             majorCategory: category,
-            minorCategory: minorCategory
+            minorCategory: minorCategory,
         )
     }
 }

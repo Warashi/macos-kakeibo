@@ -14,7 +14,7 @@ internal struct BudgetCalculatorCacheTests {
             date: Date.from(year: 2025, month: 1) ?? Date(),
             title: "ランチ",
             amount: -30000,
-            majorCategory: category
+            majorCategory: category,
         )
 
         let input = BudgetCalculator.MonthlyBudgetInput(
@@ -44,7 +44,7 @@ internal struct BudgetCalculatorCacheTests {
             date: Date.from(year: 2025, month: 2) ?? Date(),
             title: "雑貨",
             amount: -10000,
-            majorCategory: category
+            majorCategory: category,
         )
 
         let input1 = BudgetCalculator.MonthlyBudgetInput(
@@ -67,7 +67,7 @@ internal struct BudgetCalculatorCacheTests {
             amount: transaction.amount,
             majorCategory: category,
             createdAt: transaction.createdAt,
-            updatedAt: Date().addingTimeInterval(60)
+            updatedAt: Date().addingTimeInterval(60),
         )
 
         let input2 = BudgetCalculator.MonthlyBudgetInput(
@@ -93,14 +93,14 @@ internal struct BudgetCalculatorCacheTests {
             name: "自動車税",
             amount: 60000,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: Date.from(year: 2025, month: 5) ?? Date()
+            firstOccurrenceDate: Date.from(year: 2025, month: 5) ?? Date(),
         )
         let balance = DomainFixtures.recurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 20000,
             totalPaidAmount: 10000,
             lastUpdatedYear: 2024,
-            lastUpdatedMonth: 12
+            lastUpdatedMonth: 12,
         )
 
         let input = RecurringPaymentSavingsCalculationInput(
@@ -126,14 +126,14 @@ internal struct BudgetCalculatorCacheTests {
             name: "家財保険",
             amount: 36000,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date()
+            firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
         let balance = DomainFixtures.recurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 12000,
             totalPaidAmount: 0,
             lastUpdatedYear: 2024,
-            lastUpdatedMonth: 12
+            lastUpdatedMonth: 12,
         )
 
         let input1 = RecurringPaymentSavingsCalculationInput(
@@ -154,7 +154,7 @@ internal struct BudgetCalculatorCacheTests {
             lastUpdatedYear: balance.lastUpdatedYear,
             lastUpdatedMonth: balance.lastUpdatedMonth,
             createdAt: balance.createdAt,
-            updatedAt: Date().addingTimeInterval(120)
+            updatedAt: Date().addingTimeInterval(120),
         )
 
         let input2 = RecurringPaymentSavingsCalculationInput(

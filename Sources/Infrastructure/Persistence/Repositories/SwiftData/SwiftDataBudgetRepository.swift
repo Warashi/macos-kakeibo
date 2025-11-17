@@ -23,7 +23,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
         self.init(
             modelContext: ModelContext(modelContainer),
             modelContainer: modelContainer,
-            recurringPaymentRepository: recurringPaymentRepository
+            recurringPaymentRepository: recurringPaymentRepository,
         )
     }
 
@@ -32,7 +32,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
 
         // 年の範囲の取引のみ取得（パフォーマンス最適化）
         let transactions: [SwiftDataTransaction] = if let startDate = Date.from(year: year, month: 1),
-                                             let endDate = Date.from(year: year + 1, month: 1) {
+                                                      let endDate = Date.from(year: year + 1, month: 1) {
             try modelContext.fetch(TransactionQueries.between(
                 startDate: startDate,
                 endDate: endDate,
@@ -69,18 +69,17 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func findCategoryByName(_ name: String, parentId: UUID?) throws -> Category? {
-        let descriptor: ModelFetchRequest<SwiftDataCategory>
-        if let parentId {
-            descriptor = CategoryQueries.firstMatching(
+        let descriptor: ModelFetchRequest<SwiftDataCategory> = if let parentId {
+            CategoryQueries.firstMatching(
                 predicate: #Predicate { category in
                     category.name == name && category.parent?.id == parentId
-                }
+                },
             )
         } else {
-            descriptor = CategoryQueries.firstMatching(
+            CategoryQueries.firstMatching(
                 predicate: #Predicate { category in
                     category.name == name && category.parent == nil
-                }
+                },
             )
         }
         return try modelContext.fetch(descriptor).first.map { Category(from: $0) }
@@ -120,13 +119,13 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func addBudget(_ input: BudgetInput) throws {
-        let budget = SwiftDataBudget(
+        let budget = try SwiftDataBudget(
             amount: input.amount,
-            category: try resolveCategory(id: input.categoryId),
+            category: resolveCategory(id: input.categoryId),
             startYear: input.startYear,
             startMonth: input.startMonth,
             endYear: input.endYear,
-            endMonth: input.endMonth
+            endMonth: input.endMonth,
         )
         modelContext.insert(budget)
     }
@@ -202,7 +201,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
             ?? SwiftDataAnnualBudgetConfig(
                 year: input.year,
                 totalAmount: input.totalAmount,
-                policy: input.policy
+                policy: input.policy,
             )
         if config.modelContext == nil {
             modelContext.insert(config)
@@ -238,7 +237,7 @@ internal final class SwiftDataBudgetRepository: BudgetRepository {
                 let allocation = SwiftDataAnnualBudgetAllocation(
                     amount: draft.amount,
                     category: category,
-                    policyOverride: draft.policyOverride
+                    policyOverride: draft.policyOverride,
                 )
                 allocation.updatedAt = now
                 config.allocations.append(allocation)

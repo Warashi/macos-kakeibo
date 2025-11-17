@@ -103,7 +103,7 @@ private extension DefaultTransactionFormUseCase {
 
         let input = makeInput(
             state: state,
-            amount: amount
+            amount: amount,
         )
         try repository.update(TransactionUpdateInput(id: transactionId, input: input))
     }
@@ -115,7 +115,7 @@ private extension DefaultTransactionFormUseCase {
     ) async throws {
         let input = makeInput(
             state: state,
-            amount: amount
+            amount: amount,
         )
         _ = try repository.insert(input)
     }
@@ -151,7 +151,7 @@ private extension DefaultTransactionFormUseCase {
 
     func makeInput(
         state: TransactionFormState,
-        amount: Decimal
+        amount: Decimal,
     ) -> TransactionInput {
         TransactionInput(
             date: state.date,
@@ -163,7 +163,7 @@ private extension DefaultTransactionFormUseCase {
             financialInstitutionId: state.financialInstitutionId,
             majorCategoryId: state.majorCategoryId,
             minorCategoryId: state.minorCategoryId,
-            importIdentifier: nil
+            importIdentifier: nil,
         )
     }
 }

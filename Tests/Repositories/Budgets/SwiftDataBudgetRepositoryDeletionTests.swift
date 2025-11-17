@@ -13,12 +13,12 @@ internal struct SwiftDataBudgetRepositoryDeletionTests {
         let repository = SwiftDataBudgetRepository(modelContext: context, modelContainer: container)
 
         let budgetInput = BudgetInput(
-            amount: Decimal(20_000),
+            amount: Decimal(20000),
             categoryId: nil,
             startYear: 2025,
             startMonth: 1,
             endYear: 2025,
-            endMonth: 1
+            endMonth: 1,
         )
         try repository.addBudget(budgetInput)
         try repository.saveChanges()
@@ -31,7 +31,7 @@ internal struct SwiftDataBudgetRepositoryDeletionTests {
             year: 2025,
             totalAmount: Decimal(100_000),
             policy: .automatic,
-            allocations: []
+            allocations: [],
         )
         try repository.upsertAnnualBudgetConfig(configInput)
         try repository.saveChanges()

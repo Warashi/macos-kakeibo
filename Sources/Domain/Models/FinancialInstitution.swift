@@ -13,7 +13,7 @@ internal struct FinancialInstitution: Sendable {
         name: String,
         displayOrder: Int = 0,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
     ) {
         self.id = id
         self.name = name
@@ -21,5 +21,4 @@ internal struct FinancialInstitution: Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-
 }

@@ -210,7 +210,7 @@ internal extension RecurringPaymentReconciliationStore {
             try await occurrencesService.markOccurrenceCompleted(
                 occurrenceId: occurrenceId,
                 input: input,
-                horizonMonths: horizonMonths
+                horizonMonths: horizonMonths,
             )
             statusMessage = "実績を保存しました。"
             await refresh()
@@ -245,9 +245,9 @@ internal extension RecurringPaymentReconciliationStore {
                     status: .planned,
                     actualDate: nil,
                     actualAmount: nil,
-                    transaction: nil
+                    transaction: nil,
                 ),
-                horizonMonths: horizonMonths
+                horizonMonths: horizonMonths,
             )
             statusMessage = "取引リンクを解除しました。"
             await refresh()

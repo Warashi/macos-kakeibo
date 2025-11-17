@@ -22,7 +22,7 @@ internal struct TransactionRepositoryIdentifierLookupTests {
             financialInstitutionId: nil,
             majorCategoryId: nil,
             minorCategoryId: nil,
-            importIdentifier: identifier
+            importIdentifier: identifier,
         )
         let createdId = try await repository.insert(input)
         try await repository.saveChanges()
@@ -46,7 +46,7 @@ internal struct TransactionRepositoryIdentifierLookupTests {
             financialInstitutionId: nil,
             majorCategoryId: nil,
             minorCategoryId: nil,
-            importIdentifier: "IMPORT-002"
+            importIdentifier: "IMPORT-002",
         )
         _ = try repository.insert(input)
 

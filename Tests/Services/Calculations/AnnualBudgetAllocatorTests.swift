@@ -18,7 +18,7 @@ internal struct AnnualBudgetAllocatorUsageTests {
         let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
-            policy: .automatic
+            policy: .automatic,
         )
 
         let params = AllocationCalculationParams(
@@ -56,7 +56,7 @@ internal struct AnnualBudgetAllocatorUsageTests {
         let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
-            policy: .automatic
+            policy: .automatic,
         )
 
         let params = AllocationCalculationParams(
@@ -109,7 +109,7 @@ private func createTransaction(
         title: "テスト取引",
         amount: amount,
         majorCategory: majorCategory,
-        minorCategory: minorCategory
+        minorCategory: minorCategory,
     )
 }
 
@@ -121,14 +121,14 @@ private func makeConfig(
         DomainFixtures.annualBudgetAllocation(
             amount: seed.amount,
             category: seed.category,
-            policyOverride: seed.override
+            policyOverride: seed.override,
         )
     }
     return DomainFixtures.annualBudgetConfig(
         year: 2025,
         totalAmount: 500_000,
         policy: policy,
-        allocations: allocationModels
+        allocations: allocationModels,
     )
 }
 
@@ -153,7 +153,7 @@ internal struct BudgetAllocatorMonthlyTests {
         let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
-            policy: .disabled
+            policy: .disabled,
         )
 
         let params = AllocationCalculationParams(
@@ -191,7 +191,7 @@ internal struct BudgetAllocatorMonthlyTests {
         let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
-            policy: .automatic
+            policy: .automatic,
         )
 
         let params = AllocationCalculationParams(
@@ -229,7 +229,7 @@ internal struct BudgetAllocatorMonthlyTests {
         let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
-            policy: .automatic
+            policy: .automatic,
         )
 
         let params = AllocationCalculationParams(
@@ -466,7 +466,7 @@ internal struct BudgetAllocatorMonthlyTests {
         let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 500_000,
-            policy: .automatic
+            policy: .automatic,
         )
 
         let params = AllocationCalculationParams(

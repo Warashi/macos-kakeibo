@@ -23,12 +23,12 @@ internal struct SwiftDataTransactionRepositoryExportTests {
             date: Date.from(year: 2025, month: 2, day: 1) ?? Date(),
             title: "ランチ",
             memo: "テスト",
-            amount: Decimal(-1_200),
+            amount: Decimal(-1200),
             isIncludedInCalculation: true,
             isTransfer: false,
             financialInstitutionId: institution.id,
             majorCategoryId: major.id,
-            minorCategoryId: minor.id
+            minorCategoryId: minor.id,
         )
         _ = try repository.insert(input)
         try repository.saveChanges()

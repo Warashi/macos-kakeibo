@@ -20,10 +20,10 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
     }
 
     internal func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot {
-        TransactionCSVExportSnapshot(
-            transactions: try fetchAllTransactions(),
-            categories: try fetchCategories(),
-            institutions: try fetchInstitutions()
+        try TransactionCSVExportSnapshot(
+            transactions: fetchAllTransactions(),
+            categories: fetchCategories(),
+            institutions: fetchInstitutions(),
         )
     }
 
@@ -63,7 +63,7 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
 
     @discardableResult
     internal func insert(_ input: TransactionInput) throws -> UUID {
-        let transaction = SwiftDataTransaction(
+        let transaction = try SwiftDataTransaction(
             date: input.date,
             title: input.title,
             amount: input.amount,
@@ -71,9 +71,9 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
             isIncludedInCalculation: input.isIncludedInCalculation,
             isTransfer: input.isTransfer,
             importIdentifier: input.importIdentifier,
-            financialInstitution: try resolveInstitution(id: input.financialInstitutionId),
-            majorCategory: try resolveCategory(id: input.majorCategoryId),
-            minorCategory: try resolveCategory(id: input.minorCategoryId)
+            financialInstitution: resolveInstitution(id: input.financialInstitutionId),
+            majorCategory: resolveCategory(id: input.majorCategoryId),
+            minorCategory: resolveCategory(id: input.minorCategoryId),
         )
         modelContext.insert(transaction)
         return transaction.id

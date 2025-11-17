@@ -26,7 +26,7 @@ internal actor CSVImporter {
 
     internal init(
         transactionRepository: TransactionRepository,
-        budgetRepository: BudgetRepository
+        budgetRepository: BudgetRepository,
     ) {
         self.transactionRepository = transactionRepository
         self.budgetRepository = budgetRepository
@@ -83,7 +83,7 @@ internal actor CSVImporter {
             let isNew = try await importRecord(
                 draft: draft,
                 state: &state,
-                cache: &cache
+                cache: &cache,
             )
 
             if isNew {
@@ -128,11 +128,11 @@ internal actor CSVImporter {
     private func importRecord(
         draft: TransactionDraft,
         state: inout ImportState,
-        cache: inout EntityCache
+        cache: inout EntityCache,
     ) async throws -> Bool {
         let (institution, institutionCreated) = try await resolveFinancialInstitution(
             named: draft.financialInstitutionName,
-            cache: &cache.institutions
+            cache: &cache.institutions,
         )
         if institutionCreated {
             state.createdInstitutions += 1
@@ -142,7 +142,7 @@ internal actor CSVImporter {
             majorName: draft.majorCategoryName,
             minorName: draft.minorCategoryName,
             majorCache: cache.majorCategories,
-            minorCache: cache.minorCategories
+            minorCache: cache.minorCategories,
         )
         let categoryResult = try await resolveCategories(context: &categoryContext)
         cache.majorCategories = categoryContext.majorCache
@@ -168,7 +168,7 @@ internal actor CSVImporter {
                 institution: institution,
                 majorCategory: categoryResult.majorCategory,
                 minorCategory: categoryResult.minorCategory,
-                existingImportIdentifier: existing.importIdentifier
+                existingImportIdentifier: existing.importIdentifier,
             )
             let input = makeTransactionInput(parameters: updateParams)
             try await transactionRepository.update(TransactionUpdateInput(id: existing.id, input: input))
@@ -181,7 +181,7 @@ internal actor CSVImporter {
     }
 
     private func findExistingTransaction(
-        identifier: CSVTransactionIdentifier?
+        identifier: CSVTransactionIdentifier?,
     ) async throws -> Transaction? {
         guard let identifier else {
             return nil
@@ -205,7 +205,7 @@ internal actor CSVImporter {
             financialInstitutionId: parameters.institution?.id,
             majorCategoryId: parameters.majorCategory?.id,
             minorCategoryId: parameters.minorCategory?.id,
-            importIdentifier: parameters.identifier?.rawValue
+            importIdentifier: parameters.identifier?.rawValue,
         )
     }
 
@@ -220,7 +220,7 @@ internal actor CSVImporter {
             financialInstitutionId: parameters.institution?.id,
             majorCategoryId: parameters.majorCategory?.id,
             minorCategoryId: parameters.minorCategory?.id,
-            importIdentifier: parameters.identifier?.rawValue ?? parameters.existingImportIdentifier
+            importIdentifier: parameters.identifier?.rawValue ?? parameters.existingImportIdentifier,
         )
     }
 

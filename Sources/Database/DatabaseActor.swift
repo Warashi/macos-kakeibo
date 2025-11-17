@@ -34,9 +34,9 @@ public actor DatabaseActor {
     }
 
     #if DEBUG
-        /// テスト用に Access をリセット
-        public func resetConfigurationForTesting() {
-            access = nil
-        }
+    /// テスト用に Access をリセット
+    public func resetConfigurationForTesting() {
+        access = nil
+    }
     #endif
 }

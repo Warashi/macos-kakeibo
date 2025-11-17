@@ -34,14 +34,14 @@ internal final class ImportStore: @unchecked Sendable {
         transactionRepository: TransactionRepository,
         budgetRepository: BudgetRepository,
         parser: CSVParser = CSVParser(),
-        importer: CSVImporter? = nil
+        importer: CSVImporter? = nil,
     ) {
         self.transactionRepository = transactionRepository
         self.budgetRepository = budgetRepository
         self.parser = parser
         self.importer = importer ?? CSVImporter(
             transactionRepository: transactionRepository,
-            budgetRepository: budgetRepository
+            budgetRepository: budgetRepository,
         )
     }
 
@@ -315,7 +315,7 @@ private extension ImportStore {
             let preview = try await importer.makePreview(
                 document: payload.0,
                 mapping: payload.1,
-                configuration: payload.2
+                configuration: payload.2,
             )
             await MainActor.run {
                 self.preview = preview
@@ -358,7 +358,7 @@ private extension ImportStore {
 
         do {
             let summary = try await importer.performImport(
-                preview: preview
+                preview: preview,
             ) { [weak self] current, total in
                 guard let self else { return }
                 self.updateImportProgress(current: current, total: total)

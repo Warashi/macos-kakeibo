@@ -19,7 +19,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 5) ?? Date(),
             category: category,
-            savingStrategy: .evenlyDistributed
+            savingStrategy: .evenlyDistributed,
         )
         let definition2 = DomainFixtures.recurringPaymentDefinition(
             name: "車検",
@@ -28,7 +28,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
             firstOccurrenceDate: Date.from(year: 2027, month: 3) ?? Date(),
             category: category,
             savingStrategy: .customMonthly,
-            customMonthlySavingAmount: 6000
+            customMonthlySavingAmount: 6000,
         )
 
         let balance1 = DomainFixtures.recurringPaymentSavingBalance(
@@ -36,7 +36,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
             totalSavedAmount: 22500,
             totalPaidAmount: 0,
             lastUpdatedYear: 2025,
-            lastUpdatedMonth: 11
+            lastUpdatedMonth: 11,
         )
 
         let balance2 = DomainFixtures.recurringPaymentSavingBalance(
@@ -44,7 +44,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
             totalSavedAmount: 60000,
             totalPaidAmount: 0,
             lastUpdatedYear: 2025,
-            lastUpdatedMonth: 11
+            lastUpdatedMonth: 11,
         )
 
         // When
@@ -82,7 +82,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
             amount: 150_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date.from(year: 2026, month: 4) ?? Date(),
-            savingStrategy: .evenlyDistributed
+            savingStrategy: .evenlyDistributed,
         )
 
         // When
@@ -112,7 +112,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
             amount: 45000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
-            savingStrategy: .evenlyDistributed
+            savingStrategy: .evenlyDistributed,
         )
         let definition2 = DomainFixtures.recurringPaymentDefinition(
             name: "車検",
@@ -120,14 +120,14 @@ internal struct BudgetCalculatorRecurringPaymentTests {
             recurrenceIntervalMonths: 24,
             firstOccurrenceDate: Date(),
             savingStrategy: .customMonthly,
-            customMonthlySavingAmount: 6000
+            customMonthlySavingAmount: 6000,
         )
         let definition3 = DomainFixtures.recurringPaymentDefinition(
             name: "一時金（積立なし）",
             amount: 50000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
-            savingStrategy: .disabled // 積立無効
+            savingStrategy: .disabled, // 積立無効
         )
 
         // When
@@ -158,7 +158,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
             category: category1,
-            savingStrategy: .evenlyDistributed
+            savingStrategy: .evenlyDistributed,
         )
         let definition2 = DomainFixtures.recurringPaymentDefinition(
             name: "固定資産税",
@@ -166,7 +166,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
             category: category1,
-            savingStrategy: .evenlyDistributed
+            savingStrategy: .evenlyDistributed,
         )
         let definition3 = DomainFixtures.recurringPaymentDefinition(
             name: "学資保険",
@@ -174,7 +174,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
             category: category2,
-            savingStrategy: .evenlyDistributed
+            savingStrategy: .evenlyDistributed,
         )
         let definition4 = DomainFixtures.recurringPaymentDefinition(
             name: "カテゴリなし",
@@ -182,7 +182,7 @@ internal struct BudgetCalculatorRecurringPaymentTests {
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
             categoryId: nil,
-            savingStrategy: .evenlyDistributed
+            savingStrategy: .evenlyDistributed,
         )
 
         // When
@@ -209,5 +209,4 @@ internal struct BudgetCalculatorRecurringPaymentTests {
         // カテゴリなしは含まれない
         #expect(allocations.keys.contains { $0 == definition4.id } == false)
     }
-
 }

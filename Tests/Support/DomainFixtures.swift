@@ -10,7 +10,7 @@ internal enum DomainFixtures {
         parentId: UUID? = nil,
         parent: Kakeibo.Category? = nil,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
     ) -> Kakeibo.Category {
         Kakeibo.Category(
             id: id,
@@ -19,7 +19,7 @@ internal enum DomainFixtures {
             allowsAnnualBudget: allowsAnnualBudget,
             parentId: parent?.id ?? parentId,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
         )
     }
 
@@ -33,7 +33,7 @@ internal enum DomainFixtures {
         endYear: Int? = nil,
         endMonth: Int? = nil,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
     ) -> Budget {
         let resolvedEndYear = endYear ?? startYear
         let resolvedEndMonth = endMonth ?? startMonth
@@ -46,7 +46,7 @@ internal enum DomainFixtures {
             endYear: resolvedEndYear,
             endMonth: resolvedEndMonth,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
         )
     }
 
@@ -66,7 +66,7 @@ internal enum DomainFixtures {
         minorCategory: Kakeibo.Category? = nil,
         minorCategoryId: UUID? = nil,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
     ) -> Transaction {
         Transaction(
             id: id,
@@ -81,7 +81,7 @@ internal enum DomainFixtures {
             majorCategoryId: majorCategory?.id ?? majorCategoryId,
             minorCategoryId: minorCategory?.id ?? minorCategoryId,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
         )
     }
 
@@ -90,14 +90,14 @@ internal enum DomainFixtures {
         name: String = "テスト銀行",
         displayOrder: Int = 0,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
     ) -> FinancialInstitution {
         FinancialInstitution(
             id: id,
             name: name,
             displayOrder: displayOrder,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
         )
     }
 
@@ -108,7 +108,7 @@ internal enum DomainFixtures {
         policyOverride: AnnualBudgetPolicy? = nil,
         configId: UUID? = nil,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
     ) -> AnnualBudgetAllocation {
         AnnualBudgetAllocation(
             id: id,
@@ -117,7 +117,7 @@ internal enum DomainFixtures {
             policyOverride: policyOverride,
             configId: configId,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
         )
     }
 
@@ -128,7 +128,7 @@ internal enum DomainFixtures {
         policy: AnnualBudgetPolicy = .automatic,
         allocations: [AnnualBudgetAllocation] = [],
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
     ) -> AnnualBudgetConfig {
         AnnualBudgetConfig(
             id: id,
@@ -137,7 +137,7 @@ internal enum DomainFixtures {
             policy: policy,
             allocations: allocations,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
         )
     }
 
@@ -157,7 +157,7 @@ internal enum DomainFixtures {
         dateAdjustmentPolicy: DateAdjustmentPolicy = .none,
         recurrenceDayPattern: DayOfMonthPattern? = nil,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
     ) -> RecurringPaymentDefinition {
         RecurringPaymentDefinition(
             id: id,
@@ -174,7 +174,7 @@ internal enum DomainFixtures {
             dateAdjustmentPolicy: dateAdjustmentPolicy,
             recurrenceDayPattern: recurrenceDayPattern,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
         )
     }
 
@@ -188,7 +188,7 @@ internal enum DomainFixtures {
         actualAmount: Decimal? = nil,
         transactionId: UUID? = nil,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
     ) -> RecurringPaymentOccurrence {
         RecurringPaymentOccurrence(
             id: id,
@@ -200,7 +200,7 @@ internal enum DomainFixtures {
             actualAmount: actualAmount,
             transactionId: transactionId,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
         )
     }
 
@@ -212,7 +212,7 @@ internal enum DomainFixtures {
         lastUpdatedYear: Int = Date().year,
         lastUpdatedMonth: Int = Date().month,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
     ) -> RecurringPaymentSavingBalance {
         RecurringPaymentSavingBalance(
             id: id,
@@ -222,7 +222,7 @@ internal enum DomainFixtures {
             lastUpdatedYear: lastUpdatedYear,
             lastUpdatedMonth: lastUpdatedMonth,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
         )
     }
 }

@@ -40,7 +40,7 @@ internal final class DefaultRecurringPaymentOccurrencesService: RecurringPayment
         try repository.synchronize(
             definitionId: definitionId,
             horizonMonths: horizonMonths,
-            referenceDate: referenceDate
+            referenceDate: referenceDate,
         )
     }
 

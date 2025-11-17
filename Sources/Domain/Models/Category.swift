@@ -18,7 +18,7 @@ internal struct Category: Sendable {
         parentId: UUID? = nil,
         parent: Category? = nil,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
     ) {
         self.id = id
         self.name = name

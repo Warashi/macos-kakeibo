@@ -174,7 +174,7 @@ internal struct TransactionAggregatorTests {
         let category = DomainFixtures.category(
             id: categoryId,
             name: "食費",
-            allowsAnnualBudget: false
+            allowsAnnualBudget: false,
         )
 
         let transactions = [
@@ -203,7 +203,7 @@ internal struct TransactionAggregatorTests {
             isIncludedInCalculation: isIncludedInCalculation,
             isTransfer: isTransfer,
             financialInstitutionId: financialInstitutionId,
-            majorCategoryId: categoryId
+            majorCategoryId: categoryId,
         )
     }
 }

@@ -6,7 +6,7 @@ extension CSVImporter {
     /// 金融機関を解決（存在すればキャッシュから、なければデータベースから、最後に新規作成）
     internal func resolveFinancialInstitution(
         named name: String?,
-        cache: inout [String: FinancialInstitution]
+        cache: inout [String: FinancialInstitution],
     ) async throws -> (FinancialInstitution?, Bool) {
         guard let name else {
             return (nil, false)
@@ -32,7 +32,7 @@ extension CSVImporter {
 
     /// カテゴリを解決（大項目と中項目）
     internal func resolveCategories(
-        context: inout CategoryResolutionContext
+        context: inout CategoryResolutionContext,
     ) async throws -> CategoryResolutionResult {
         var createdCount = 0
 
@@ -62,7 +62,7 @@ extension CSVImporter {
     internal func resolveMajorCategory(
         name: String?,
         cache: inout [String: Category],
-        createdCount: inout Int
+        createdCount: inout Int,
     ) async throws -> Category? {
         guard let name else {
             return nil
@@ -89,7 +89,7 @@ extension CSVImporter {
 
     /// 中項目カテゴリを解決
     internal func resolveMinorCategory(
-        context: inout MinorCategoryResolutionContext
+        context: inout MinorCategoryResolutionContext,
     ) async throws -> Category? {
         guard let name = context.name, let majorCategory = context.majorCategory else {
             return nil

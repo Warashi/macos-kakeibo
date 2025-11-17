@@ -36,7 +36,7 @@ internal struct MonthlyBudgetUseCaseTests {
             date: Date.from(year: 2025, month: 11, day: 5) ?? Date(),
             title: "ランチ",
             amount: -2000,
-            majorCategory: category
+            majorCategory: category,
         )
         let snapshot = BudgetSnapshot(
             budgets: [budget],
@@ -62,7 +62,7 @@ internal struct MonthlyBudgetUseCaseTests {
         let transaction = DomainFixtures.transaction(
             date: Date.from(year: 2025, month: 11, day: 1) ?? Date(),
             title: "家賃",
-            amount: -8000
+            amount: -8000,
         )
         let snapshot = BudgetSnapshot(
             budgets: [overallBudget],

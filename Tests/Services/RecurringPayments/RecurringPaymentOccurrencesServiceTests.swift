@@ -21,7 +21,7 @@ internal struct RecurringPaymentOccurrencesServiceTests {
             try service.synchronizeOccurrences(
                 definitionId: definition.id,
                 horizonMonths: 12,
-                referenceDate: nil
+                referenceDate: nil,
             )
         }
     }
@@ -55,9 +55,9 @@ internal struct RecurringPaymentOccurrencesServiceTests {
             input: OccurrenceCompletionInput(
                 actualDate: referenceDate,
                 actualAmount: 210_000,
-                transaction: nil
+                transaction: nil,
             ),
-            horizonMonths: 12
+            horizonMonths: 12,
         )
 
         #expect(result.createdCount >= 0)
@@ -95,9 +95,9 @@ internal struct RecurringPaymentOccurrencesServiceTests {
                 status: .planned,
                 actualDate: nil,
                 actualAmount: nil,
-                transaction: nil
+                transaction: nil,
             ),
-            horizonMonths: 6
+            horizonMonths: 6,
         )
 
         #expect(summary == nil)

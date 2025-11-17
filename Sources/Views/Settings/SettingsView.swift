@@ -29,7 +29,7 @@ internal struct SettingsView: View {
             store = await SettingsStore(
                 modelContainer: modelContainer,
                 transactionRepository: repositories.0,
-                budgetRepository: repositories.1
+                budgetRepository: repositories.1,
             )
         }
     }

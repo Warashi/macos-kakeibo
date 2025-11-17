@@ -11,7 +11,7 @@ internal final class DatabaseAccess: Sendable {
 
     /// 読み取り処理を並列実行
     internal func read<T: Sendable>(
-        _ block: @escaping @Sendable (ModelContext) throws -> T
+        _ block: @escaping @Sendable (ModelContext) throws -> T,
     ) async throws -> T {
         try await scheduler.executeRead { context in
             Result { try block(context) }
@@ -21,7 +21,7 @@ internal final class DatabaseAccess: Sendable {
     /// 書き込み処理を直列実行
     @discardableResult
     internal func write<T: Sendable>(
-        _ block: @escaping @Sendable (ModelContext) throws -> T
+        _ block: @escaping @Sendable (ModelContext) throws -> T,
     ) async throws -> T {
         try await scheduler.executeWrite { context in
             try block(context)
@@ -42,6 +42,6 @@ internal extension ModelContainer {
 
     /// テスト向けヘルパー：インメモリ構成の DatabaseAccess
     static func makeInMemoryAccess() throws -> DatabaseAccess {
-        DatabaseAccess(container: try createInMemoryContainer())
+        try DatabaseAccess(container: createInMemoryContainer())
     }
 }

@@ -48,7 +48,13 @@ internal struct TransactionListUseCaseTests {
         let targetMonth = Date.from(year: 2025, month: 11) ?? Date()
         let repository = InMemoryTransactionRepository(
             transactions: [
-                DomainFixtures.transaction(date: targetMonth, title: "スタバ", amount: -640, memo: "カフェ", isIncludedInCalculation: true),
+                DomainFixtures.transaction(
+                    date: targetMonth,
+                    title: "スタバ",
+                    amount: -640,
+                    memo: "カフェ",
+                    isIncludedInCalculation: true,
+                ),
                 DomainFixtures.transaction(date: targetMonth, title: "スーパー", amount: -1200),
             ],
         )

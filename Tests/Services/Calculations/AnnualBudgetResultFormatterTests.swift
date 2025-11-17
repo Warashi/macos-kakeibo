@@ -12,7 +12,7 @@ internal struct AnnualBudgetResultFormatterTests {
         let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 200_000,
-            policy: .automatic
+            policy: .automatic,
         )
         let accumulationResult = AnnualBudgetAllocationEngine.AccumulationResult(
             totalUsed: 50000,
@@ -45,7 +45,7 @@ internal struct AnnualBudgetResultFormatterTests {
         let config = DomainFixtures.annualBudgetConfig(
             year: 2025,
             totalAmount: 100_000,
-            policy: .disabled
+            policy: .disabled,
         )
 
         let usage = formatter.makeDisabledUsage(year: 2025, config: config)

@@ -144,8 +144,8 @@ internal struct RecurringPaymentReconciliationStoreTests {
         let occurrenceId = occurrence.id
         let refreshedOccurrence = try #require(
             context.fetch(RecurringPaymentQueries.occurrences(
-                predicate: #Predicate { $0.id == occurrenceId }
-            )).first
+                predicate: #Predicate { $0.id == occurrenceId },
+            )).first,
         )
 
         #expect(refreshedOccurrence.status == .completed)
@@ -200,8 +200,8 @@ internal struct RecurringPaymentReconciliationStoreTests {
         let occurrenceId = occurrence.id
         let refreshedOccurrence = try #require(
             context.fetch(RecurringPaymentQueries.occurrences(
-                predicate: #Predicate { $0.id == occurrenceId }
-            )).first
+                predicate: #Predicate { $0.id == occurrenceId },
+            )).first,
         )
 
         #expect(refreshedOccurrence.status != .completed)

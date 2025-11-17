@@ -254,7 +254,7 @@ internal struct BudgetCalculatorBasicTests {
             title: "テスト取引",
             amount: amount,
             majorCategory: majorCategory,
-            minorCategory: minorCategory
+            minorCategory: minorCategory,
         )
     }
 
@@ -268,7 +268,7 @@ internal struct BudgetCalculatorBasicTests {
             title: "テスト取引",
             amount: amount,
             majorCategory: majorCategory,
-            minorCategory: minorCategory
+            minorCategory: minorCategory,
         )
     }
 }

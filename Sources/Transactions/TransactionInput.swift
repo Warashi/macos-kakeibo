@@ -23,7 +23,7 @@ internal struct TransactionInput: Sendable {
         financialInstitutionId: UUID?,
         majorCategoryId: UUID?,
         minorCategoryId: UUID?,
-        importIdentifier: String? = nil
+        importIdentifier: String? = nil,
     ) {
         self.date = date
         self.title = title
@@ -42,9 +42,4 @@ internal struct TransactionInput: Sendable {
 internal struct TransactionUpdateInput: Sendable {
     internal let id: UUID
     internal let input: TransactionInput
-
-    internal init(id: UUID, input: TransactionInput) {
-        self.id = id
-        self.input = input
-    }
 }

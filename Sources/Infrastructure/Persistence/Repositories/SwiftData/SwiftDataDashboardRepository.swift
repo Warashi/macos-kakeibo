@@ -14,12 +14,12 @@ internal final class SwiftDataDashboardRepository: DashboardRepository {
         let monthlyTransactions = try fetchTransactions(
             context: context,
             year: year,
-            month: month
+            month: month,
         )
         let annualTransactions = try fetchTransactions(
             context: context,
             year: year,
-            month: nil
+            month: nil,
         )
         let budgets = try context.fetch(BudgetQueries.budgets(overlapping: year)).map { Budget(from: $0) }
         let categories = try context.fetch(CategoryQueries.sortedForDisplay()).map { Category(from: $0) }
@@ -30,7 +30,7 @@ internal final class SwiftDataDashboardRepository: DashboardRepository {
             annualTransactions: annualTransactions,
             budgets: budgets,
             categories: categories,
-            config: config
+            config: config,
         )
     }
 
@@ -47,7 +47,7 @@ private extension SwiftDataDashboardRepository {
     func fetchTransactions(
         context: ModelContext,
         year: Int,
-        month: Int?
+        month: Int?,
     ) throws -> [Transaction] {
         guard let startDate = Date.from(year: year, month: month ?? 1) else {
             return []
@@ -64,7 +64,7 @@ private extension SwiftDataDashboardRepository {
 
         let descriptor = TransactionQueries.between(
             startDate: startDate,
-            endDate: endDate
+            endDate: endDate,
         )
         let transactions = try context.fetch(descriptor)
         return transactions.map { Transaction(from: $0) }

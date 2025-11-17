@@ -126,8 +126,8 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         let definitionId = definition.id
         let refreshed = try #require(
             context.fetch(RecurringPaymentQueries.definitions(
-                predicate: #Predicate { $0.id == definitionId }
-            )).first
+                predicate: #Predicate { $0.id == definitionId },
+            )).first,
         )
         #expect(refreshed.occurrences.count == summary.createdCount)
     }
@@ -161,8 +161,8 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         let definitionId = definition.id
         let refreshedDefinition = try #require(
             context.fetch(RecurringPaymentQueries.definitions(
-                predicate: #Predicate { $0.id == definitionId }
-            )).first
+                predicate: #Predicate { $0.id == definitionId },
+            )).first,
         )
         let occurrence = try #require(refreshedDefinition.occurrences.first)
 
@@ -178,8 +178,8 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         let occurrenceId = occurrence.id
         let refreshedOccurrence = try #require(
             context.fetch(RecurringPaymentQueries.occurrences(
-                predicate: #Predicate { $0.id == occurrenceId }
-            )).first
+                predicate: #Predicate { $0.id == occurrenceId },
+            )).first,
         )
         #expect(refreshedOccurrence.status == RecurringPaymentStatus.completed)
         #expect(summary.syncedAt == today)

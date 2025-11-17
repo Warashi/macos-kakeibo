@@ -133,14 +133,14 @@ internal struct CSVImporterTests {
     private func makeImporter() async -> (
         CSVImporter,
         InMemoryTransactionRepository,
-        InMemoryBudgetRepository
+        InMemoryBudgetRepository,
     ) {
         await Task { @DatabaseActor in
             let transactionRepository = InMemoryTransactionRepository()
             let budgetRepository = InMemoryBudgetRepository()
             let importer = CSVImporter(
                 transactionRepository: transactionRepository,
-                budgetRepository: budgetRepository
+                budgetRepository: budgetRepository,
             )
             return (importer, transactionRepository, budgetRepository)
         }.value

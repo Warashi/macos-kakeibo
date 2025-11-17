@@ -12,7 +12,7 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
         modelContainer: ModelContainer,
         scheduleService: RecurringPaymentScheduleService = RecurringPaymentScheduleService(),
         currentDateProvider: @escaping () -> Date = { Date() },
-        sharedContext: ModelContext? = nil
+        sharedContext: ModelContext? = nil,
     ) {
         self.modelContainer = modelContainer
         self.sharedContext = sharedContext
@@ -280,6 +280,7 @@ private extension SwiftDataRecurringPaymentRepository {
         }
         return occurrence
     }
+
     func findDefinition(id: UUID, context: ModelContext) throws -> SwiftDataRecurringPaymentDefinition {
         let predicate = #Predicate<SwiftDataRecurringPaymentDefinition> { definition in
             definition.id == id

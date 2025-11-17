@@ -54,8 +54,8 @@ internal struct RecurringPaymentStoreDeleteDefinitionTests {
         let definitionId = definition.id
         let refreshedDefinition = try #require(
             context.fetch(RecurringPaymentQueries.definitions(
-                predicate: #Predicate { $0.id == definitionId }
-            )).first
+                predicate: #Predicate { $0.id == definitionId },
+            )).first,
         )
         #expect(!refreshedDefinition.occurrences.isEmpty)
 
