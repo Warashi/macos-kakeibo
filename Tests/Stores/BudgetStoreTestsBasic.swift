@@ -107,9 +107,11 @@ internal struct BudgetStoreTestsBasic {
         )
         try await store.updateBudget(budget: budgetModel, input: input)
 
-        #expect(budget.amount == 12000)
-        #expect(budget.category?.id == transport.id)
-        #expect(budget.endMonth == store.currentMonth + 1)
+        let descriptor = BudgetQueries.byId(budget.id)
+        let updatedBudget = try #require(context.fetch(descriptor).first)
+        #expect(updatedBudget.amount == 12000)
+        #expect(updatedBudget.category?.id == transport.id)
+        #expect(updatedBudget.endMonth == store.currentMonth + 1)
     }
 
     @Test("予算削除：削除後にリストから除外される")
@@ -219,9 +221,8 @@ internal struct BudgetStoreTestsBasic {
         return (store, context)
     }
 
-    private func makeBudgetStore(container: ModelContainer, context: ModelContext) async throws -> BudgetStore {
+    private func makeBudgetStore(container: ModelContainer, context _: ModelContext) async throws -> BudgetStore {
         let repository = SwiftDataBudgetRepository(modelContainer: container)
-        await repository.useSharedContext(context)
         let calculator = BudgetCalculator()
         let monthlyUseCase = DefaultMonthlyBudgetUseCase(calculator: calculator)
         let annualUseCase = DefaultAnnualBudgetUseCase()

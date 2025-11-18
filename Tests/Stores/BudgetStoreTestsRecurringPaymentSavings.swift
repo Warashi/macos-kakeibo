@@ -181,9 +181,8 @@ internal struct BudgetStoreTestsRecurringPaymentSavings {
         return (store, context)
     }
 
-    private func makeBudgetStore(container: ModelContainer, context: ModelContext) async throws -> BudgetStore {
+    private func makeBudgetStore(container: ModelContainer, context _: ModelContext) async throws -> BudgetStore {
         let repository = SwiftDataBudgetRepository(modelContainer: container)
-        await repository.useSharedContext(context)
         let calculator = BudgetCalculator()
         let monthlyUseCase = DefaultMonthlyBudgetUseCase(calculator: calculator)
         let annualUseCase = DefaultAnnualBudgetUseCase()

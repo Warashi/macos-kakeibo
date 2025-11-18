@@ -86,7 +86,6 @@ internal struct BudgetStoreTestsAggregation {
         try context.save()
 
         await store.refresh()
-
         let overallEntry = try #require(store.annualOverallBudgetEntry)
         #expect(overallEntry.calculation.budgetAmount == 220_000)
         #expect(overallEntry.calculation.actualAmount == 60000)
@@ -116,9 +115,8 @@ internal struct BudgetStoreTestsAggregation {
         return (store, context)
     }
 
-    private func makeBudgetStore(container: ModelContainer, context: ModelContext) async throws -> BudgetStore {
+    private func makeBudgetStore(container: ModelContainer, context _: ModelContext) async throws -> BudgetStore {
         let repository = SwiftDataBudgetRepository(modelContainer: container)
-        await repository.useSharedContext(context)
         let calculator = BudgetCalculator()
         let monthlyUseCase = DefaultMonthlyBudgetUseCase(calculator: calculator)
         let annualUseCase = DefaultAnnualBudgetUseCase()

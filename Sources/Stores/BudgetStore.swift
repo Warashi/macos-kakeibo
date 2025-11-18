@@ -4,7 +4,6 @@ import Observation
 /// 予算管理ストア
 ///
 /// 月次/年次/定期支払いモードを切り替えながら、表示状態を管理します。
-@MainActor
 @Observable
 internal final class BudgetStore {
     // MARK: - Types
@@ -27,12 +26,7 @@ internal final class BudgetStore {
 
     // MARK: - State
 
-    private var snapshot: BudgetSnapshot? {
-        didSet {
-            refreshToken = UUID()
-            recalculate()
-        }
-    }
+    private var snapshot: BudgetSnapshot?
 
     internal var currentYear: Int {
         didSet {
@@ -45,7 +39,7 @@ internal final class BudgetStore {
         didSet {
             guard oldValue != currentMonth else { return }
             refreshToken = UUID()
-            recalculate()
+            _ = scheduleRecalculation()
         }
     }
 
@@ -97,6 +91,9 @@ internal final class BudgetStore {
     /// 定期支払い積立の表示用エントリ
     internal var recurringPaymentSavingsEntries: [RecurringPaymentSavingsEntry] = []
 
+    @ObservationIgnored
+    private var calculationTask: Task<Void, Never>?
+
     // MARK: - Initialization
 
     internal init(
@@ -131,6 +128,10 @@ internal final class BudgetStore {
 
         Task { await reloadSnapshot() }
     }
+
+    deinit {
+        calculationTask?.cancel()
+    }
 }
 
 // MARK: - Data Refresh
@@ -142,24 +143,53 @@ internal extension BudgetStore {
     }
 
     /// 計算結果を再計算
-    private func recalculate() {
-        guard let snapshot else {
-            resetAllCalculations()
-            return
-        }
+    @discardableResult
+    private func scheduleRecalculation() -> Task<Void, Never> {
+        calculationTask?.cancel()
 
-        recalculateMonthlyBudgets(snapshot: snapshot)
-        recalculateAnnualBudgets(snapshot: snapshot)
-        recalculateRecurringPaymentSavings(snapshot: snapshot)
+        let snapshot = self.snapshot
+        let year = currentYear
+        let month = currentMonth
+        let monthlyUseCase = self.monthlyUseCase
+        let annualUseCase = self.annualUseCase
+        let recurringPaymentUseCase = self.recurringPaymentUseCase
+
+        let task = Task { [weak self] in
+            guard let self else { return }
+            guard let snapshot else {
+                await MainActor.run {
+                    self.resetAllCalculations(year: year, month: month)
+                }
+                return
+            }
+
+            let result = makeCalculationResult(
+                snapshot: snapshot,
+                year: year,
+                month: month,
+                monthlyUseCase: monthlyUseCase,
+                annualUseCase: annualUseCase,
+                recurringPaymentUseCase: recurringPaymentUseCase
+            )
+
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                guard self.currentYear == year, self.currentMonth == month else { return }
+                self.applyCalculationResult(result)
+            }
+        }
+        calculationTask = task
+        return task
     }
 
-    /// すべての計算結果を初期値にリセット
-    private func resetAllCalculations() {
+    @MainActor
+    private func resetAllCalculations(year: Int, month: Int) {
         monthlyBudgets = []
         selectableCategories = []
         monthlyBudgetCalculation = MonthlyBudgetCalculation(
-            year: currentYear,
-            month: currentMonth,
+            year: year,
+            month: month,
             overallCalculation: nil,
             categoryCalculations: [],
         )
@@ -175,71 +205,90 @@ internal extension BudgetStore {
         recurringPaymentSavingsEntries = []
     }
 
-    /// 月次予算データを再計算
-    private func recalculateMonthlyBudgets(snapshot: BudgetSnapshot) {
-        monthlyBudgets = monthlyUseCase.monthlyBudgets(
-            snapshot: snapshot,
-            year: currentYear,
-            month: currentMonth,
-        )
-        selectableCategories = snapshot.categories
-        monthlyBudgetCalculation = monthlyUseCase.monthlyCalculation(
-            snapshot: snapshot,
-            year: currentYear,
-            month: currentMonth,
-        )
-        categoryBudgetEntries = monthlyUseCase.categoryEntries(
-            snapshot: snapshot,
-            year: currentYear,
-            month: currentMonth,
-        )
-        overallBudgetEntry = monthlyUseCase.overallEntry(
-            snapshot: snapshot,
-            year: currentYear,
-            month: currentMonth,
+    private func makeCalculationResult(
+        snapshot: BudgetSnapshot,
+        year: Int,
+        month: Int,
+        monthlyUseCase: MonthlyBudgetUseCaseProtocol,
+        annualUseCase: AnnualBudgetUseCaseProtocol,
+        recurringPaymentUseCase: RecurringPaymentSavingsUseCaseProtocol
+    ) -> BudgetCalculationResult {
+        BudgetCalculationResult(
+            year: year,
+            month: month,
+            monthlyBudgets: monthlyUseCase.monthlyBudgets(
+                snapshot: snapshot,
+                year: year,
+                month: month
+            ),
+            selectableCategories: snapshot.categories,
+            monthlyBudgetCalculation: monthlyUseCase.monthlyCalculation(
+                snapshot: snapshot,
+                year: year,
+                month: month
+            ),
+            categoryBudgetEntries: monthlyUseCase.categoryEntries(
+                snapshot: snapshot,
+                year: year,
+                month: month
+            ),
+            overallBudgetEntry: monthlyUseCase.overallEntry(
+                snapshot: snapshot,
+                year: year,
+                month: month
+            ),
+            annualBudgetConfig: snapshot.annualBudgetConfig,
+            annualBudgetUsage: annualUseCase.annualBudgetUsage(
+                snapshot: snapshot,
+                year: year,
+                month: month
+            ),
+            annualOverallBudgetEntry: annualUseCase.annualOverallEntry(
+                snapshot: snapshot,
+                year: year
+            ),
+            annualCategoryBudgetEntries: annualUseCase.annualCategoryEntries(
+                snapshot: snapshot,
+                year: year
+            ),
+            monthlyRecurringPaymentSavingsTotal: recurringPaymentUseCase.monthlySavingsTotal(
+                snapshot: snapshot,
+                year: year,
+                month: month
+            ),
+            categoryRecurringPaymentSavings: recurringPaymentUseCase.categorySavings(
+                snapshot: snapshot,
+                year: year,
+                month: month
+            ),
+            recurringPaymentSavingsCalculations: recurringPaymentUseCase.calculations(
+                snapshot: snapshot,
+                year: year,
+                month: month
+            ),
+            recurringPaymentSavingsEntries: recurringPaymentUseCase.entries(
+                snapshot: snapshot,
+                year: year,
+                month: month
+            )
         )
     }
 
-    /// 年次予算データを再計算
-    private func recalculateAnnualBudgets(snapshot: BudgetSnapshot) {
-        annualBudgetConfig = snapshot.annualBudgetConfig
-        annualBudgetUsage = annualUseCase.annualBudgetUsage(
-            snapshot: snapshot,
-            year: currentYear,
-            month: currentMonth,
-        )
-        annualOverallBudgetEntry = annualUseCase.annualOverallEntry(
-            snapshot: snapshot,
-            year: currentYear,
-        )
-        annualCategoryBudgetEntries = annualUseCase.annualCategoryEntries(
-            snapshot: snapshot,
-            year: currentYear,
-        )
-    }
-
-    /// 定期支払い積立データを再計算
-    private func recalculateRecurringPaymentSavings(snapshot: BudgetSnapshot) {
-        monthlyRecurringPaymentSavingsTotal = recurringPaymentUseCase.monthlySavingsTotal(
-            snapshot: snapshot,
-            year: currentYear,
-            month: currentMonth,
-        )
-        categoryRecurringPaymentSavings = recurringPaymentUseCase.categorySavings(
-            snapshot: snapshot,
-            year: currentYear,
-            month: currentMonth,
-        )
-        recurringPaymentSavingsCalculations = recurringPaymentUseCase.calculations(
-            snapshot: snapshot,
-            year: currentYear,
-            month: currentMonth,
-        )
-        recurringPaymentSavingsEntries = recurringPaymentUseCase.entries(
-            snapshot: snapshot,
-            year: currentYear,
-            month: currentMonth,
-        )
+    @MainActor
+    private func applyCalculationResult(_ result: BudgetCalculationResult) {
+        monthlyBudgets = result.monthlyBudgets
+        selectableCategories = result.selectableCategories
+        monthlyBudgetCalculation = result.monthlyBudgetCalculation
+        categoryBudgetEntries = result.categoryBudgetEntries
+        overallBudgetEntry = result.overallBudgetEntry
+        annualBudgetConfig = result.annualBudgetConfig
+        annualBudgetUsage = result.annualBudgetUsage
+        annualOverallBudgetEntry = result.annualOverallBudgetEntry
+        annualCategoryBudgetEntries = result.annualCategoryBudgetEntries
+        monthlyRecurringPaymentSavingsTotal = result.monthlyRecurringPaymentSavingsTotal
+        categoryRecurringPaymentSavings = result.categoryRecurringPaymentSavings
+        recurringPaymentSavingsCalculations = result.recurringPaymentSavingsCalculations
+        recurringPaymentSavingsEntries = result.recurringPaymentSavingsEntries
     }
 }
 
@@ -313,7 +362,13 @@ internal extension BudgetStore {
 
 private extension BudgetStore {
     func reloadSnapshot() async {
-        snapshot = try? await repository.fetchSnapshot(for: currentYear)
+        let targetYear = await MainActor.run { self.currentYear }
+        let newSnapshot = try? await repository.fetchSnapshot(for: targetYear)
+        guard !Task.isCancelled else { return }
+        let task = await MainActor.run {
+            self.applySnapshot(newSnapshot)
+        }
+        await task.value
     }
 
     private func updateNavigation(_ update: (inout BudgetNavigationState) -> Bool) {
@@ -335,7 +390,35 @@ private extension BudgetStore {
             currentMonth = state.month
         }
     }
+    @MainActor
+    private func applySnapshot(_ newSnapshot: BudgetSnapshot?) -> Task<Void, Never> {
+        snapshot = newSnapshot
+        refreshToken = UUID()
+        return scheduleRecalculation()
+    }
 }
+
+// MARK: - Derived State
+
+private struct BudgetCalculationResult {
+    let year: Int
+    let month: Int
+    let monthlyBudgets: [Budget]
+    let selectableCategories: [Category]
+    let monthlyBudgetCalculation: MonthlyBudgetCalculation
+    let categoryBudgetEntries: [MonthlyBudgetEntry]
+    let overallBudgetEntry: MonthlyBudgetEntry?
+    let annualBudgetConfig: AnnualBudgetConfig?
+    let annualBudgetUsage: AnnualBudgetUsage?
+    let annualOverallBudgetEntry: AnnualBudgetEntry?
+    let annualCategoryBudgetEntries: [AnnualBudgetEntry]
+    let monthlyRecurringPaymentSavingsTotal: Decimal
+    let categoryRecurringPaymentSavings: [UUID: Decimal]
+    let recurringPaymentSavingsCalculations: [RecurringPaymentSavingsCalculation]
+    let recurringPaymentSavingsEntries: [RecurringPaymentSavingsEntry]
+}
+
+extension BudgetStore: @unchecked Sendable {}
 
 // MARK: - Error
 

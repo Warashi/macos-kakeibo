@@ -38,8 +38,10 @@ internal struct BudgetStoreTestsAnnualConfig {
         #expect(allocationMap[travel.id]?.amount == 100_000)
         #expect(allocationMap[food.id]?.policyOverride == .automatic)
         #expect(allocationMap[travel.id]?.policyOverride == nil)
-        #expect(food.allowsAnnualBudget)
-        #expect(travel.allowsAnnualBudget)
+        let persistedFood = try fetchCategory(food.id, in: context)
+        let persistedTravel = try fetchCategory(travel.id, in: context)
+        #expect(persistedFood.allowsAnnualBudget)
+        #expect(persistedTravel.allowsAnnualBudget)
 
         try await store.upsertAnnualBudgetConfig(
             totalAmount: 500_000,
@@ -91,9 +93,8 @@ internal struct BudgetStoreTestsAnnualConfig {
         return (store, context)
     }
 
-    private func makeBudgetStore(container: ModelContainer, context: ModelContext) async throws -> BudgetStore {
+    private func makeBudgetStore(container: ModelContainer, context _: ModelContext) async throws -> BudgetStore {
         let repository = SwiftDataBudgetRepository(modelContainer: container)
-        await repository.useSharedContext(context)
         let calculator = BudgetCalculator()
         let monthlyUseCase = DefaultMonthlyBudgetUseCase(calculator: calculator)
         let annualUseCase = DefaultAnnualBudgetUseCase()
@@ -115,5 +116,9 @@ internal struct BudgetStoreTestsAnnualConfig {
 
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         Date.from(year: year, month: month, day: day) ?? Date()
+    }
+
+    private func fetchCategory(_ id: UUID, in context: ModelContext) throws -> SwiftDataCategory {
+        try #require(context.fetch(CategoryQueries.byId(id)).first)
     }
 }
