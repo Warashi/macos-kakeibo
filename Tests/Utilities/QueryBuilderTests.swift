@@ -96,7 +96,7 @@ internal struct ModelContextObservationTests {
         let descriptor = TransactionQueries.allSorted()
         let recorder = ObservationRecorder()
 
-        let token = context.observe(
+        let handle = context.observe(
             descriptor: descriptor,
             transform: { models in models.count },
             onChange: { count in
@@ -111,7 +111,7 @@ internal struct ModelContextObservationTests {
         try context.save()
 
         try? await Task.sleep(for: .milliseconds(100))
-        token.cancel()
+        handle.cancel()
 
         let counts = await recorder.counts
         #expect(counts.contains(1))
@@ -127,7 +127,7 @@ internal struct ModelContextObservationTests {
         let descriptor = TransactionQueries.allSorted()
         var receivedSnapshots: [[String]] = []
 
-        let token = context.observeOnMainActor(
+        let handle = context.observeOnMainActor(
             descriptor: descriptor,
             transform: { models in models.map(\.title) },
             onChange: { titles in
@@ -140,7 +140,7 @@ internal struct ModelContextObservationTests {
         try context.save()
 
         try? await Task.sleep(for: .milliseconds(100))
-        token.cancel()
+        handle.cancel()
 
         #expect(receivedSnapshots.last == ["夕食"])
     }

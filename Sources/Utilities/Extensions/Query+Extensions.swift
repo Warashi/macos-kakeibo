@@ -56,7 +56,7 @@ internal extension ModelContext {
         descriptor: ModelFetchRequest<T>,
         transform: @escaping ([T]) -> U,
         onChange: @escaping @Sendable (U) -> Void
-    ) -> ObservationToken {
+    ) -> ObservationHandle {
         observeInternal(
             descriptor: descriptor,
             transform: transform,
@@ -75,7 +75,7 @@ internal extension ModelContext {
         descriptor: ModelFetchRequest<T>,
         transform: @escaping ([T]) -> U,
         onChange: @escaping @MainActor (U) -> Void
-    ) -> ObservationToken {
+    ) -> ObservationHandle {
         observeInternal(descriptor: descriptor, transform: transform) { transformed in
             Task { @MainActor in
                 onChange(transformed)
@@ -92,7 +92,7 @@ private extension ModelContext {
         descriptor: ModelFetchRequest<T>,
         transform: @escaping ([T]) -> U,
         delivery: @escaping @Sendable (U) -> Void
-    ) -> ObservationToken {
+    ) -> ObservationHandle {
         let worker = ModelObservationWorker(
             context: self,
             descriptor: descriptor,
@@ -103,11 +103,12 @@ private extension ModelContext {
             await worker.start()
         }
 
-        return ObservationToken {
+        let token = ObservationToken {
             Task(priority: .userInitiated) {
                 await worker.stop()
             }
         }
+        return ObservationHandle(token: token)
     }
 }
 
