@@ -1,17 +1,6 @@
 import CoreData
-import Dispatch
 import Foundation
 import SwiftData
-
-// MARK: - Internal Helpers
-
-private final class ModelContextObservationBox: @unchecked Sendable {
-    weak var context: ModelContext?
-
-    init(context: ModelContext) {
-        self.context = context
-    }
-}
 
 // MARK: - ModelContext Extensions
 
@@ -104,48 +93,77 @@ private extension ModelContext {
         transform: @escaping ([T]) -> U,
         delivery: @escaping @Sendable (U) -> Void
     ) -> ObservationToken {
-        let center = NotificationCenter.default
-        let contextBox = ModelContextObservationBox(context: self)
-        let transformBox = ObservationTransformBox(
+        let worker = ModelObservationWorker(
+            context: self,
+            descriptor: descriptor,
             transform: transform,
             delivery: delivery
         )
-        let observer = center.addObserver(
-            forName: .NSManagedObjectContextDidSave,
-            object: nil,
-            queue: nil
-        ) { [descriptor, transformBox] _ in
-            DispatchQueue.global(qos: .userInitiated).async {
-                guard let context = contextBox.context else { return }
-                do {
-                    let updated = try context.fetch(descriptor)
-                    transformBox.deliver(models: updated)
-                } catch {
-                    assertionFailure("Failed to fetch observed descriptor: \(error)")
-                }
-            }
+        Task(priority: .userInitiated) {
+            await worker.start()
         }
 
         return ObservationToken {
-            center.removeObserver(observer)
+            Task(priority: .userInitiated) {
+                await worker.stop()
+            }
         }
     }
 }
 
-private final class ObservationTransformBox<Model, Output: Sendable>: @unchecked Sendable {
+// MARK: - Observation Worker
+
+private actor ModelObservationWorker<Model: PersistentModel, Output: Sendable> {
+    private let context: ModelContext
+    private let descriptor: ModelFetchRequest<Model>
     private let transform: ([Model]) -> Output
     private let delivery: @Sendable (Output) -> Void
+    private var observationTask: Task<Void, Never>?
 
     init(
+        context: ModelContext,
+        descriptor: ModelFetchRequest<Model>,
         transform: @escaping ([Model]) -> Output,
         delivery: @escaping @Sendable (Output) -> Void
     ) {
+        self.context = context
+        self.descriptor = descriptor
         self.transform = transform
         self.delivery = delivery
     }
 
-    func deliver(models: [Model]) {
-        let output = transform(models)
-        delivery(output)
+    func start() {
+        guard observationTask == nil else { return }
+        observationTask = Task(priority: .userInitiated) { [weak self] in
+            guard let self else { return }
+            await self.runObservationLoop()
+        }
+    }
+
+    func stop() {
+        observationTask?.cancel()
+        observationTask = nil
+    }
+
+    private func runObservationLoop() async {
+        let notifications = NotificationCenter.default.notifications(
+            named: .NSManagedObjectContextDidSave,
+            object: nil
+        )
+
+        for await _ in notifications {
+            if Task.isCancelled { break }
+            deliverSnapshot()
+        }
+    }
+
+    private func deliverSnapshot() {
+        do {
+            let models = try context.fetch(descriptor)
+            let output = transform(models)
+            delivery(output)
+        } catch {
+            assertionFailure("Failed to fetch observed descriptor: \(error)")
+        }
     }
 }
