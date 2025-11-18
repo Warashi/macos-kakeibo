@@ -1,6 +1,6 @@
 import CoreData
 import Foundation
-import SwiftData
+@preconcurrency import SwiftData
 
 // MARK: - ModelContext Extensions
 
@@ -54,7 +54,7 @@ internal extension ModelContext {
     @discardableResult
     func observe<T: PersistentModel, U: Sendable>(
         descriptor: ModelFetchRequest<T>,
-        transform: @escaping ([T]) -> U,
+        transform: @escaping @Sendable ([T]) -> U,
         onChange: @escaping @Sendable (U) -> Void
     ) -> ObservationHandle {
         observeInternal(
@@ -73,7 +73,7 @@ internal extension ModelContext {
     @discardableResult
     func observeOnMainActor<T: PersistentModel, U: Sendable>(
         descriptor: ModelFetchRequest<T>,
-        transform: @escaping ([T]) -> U,
+        transform: @escaping @Sendable ([T]) -> U,
         onChange: @escaping @MainActor (U) -> Void
     ) -> ObservationHandle {
         observeInternal(descriptor: descriptor, transform: transform) { transformed in
@@ -90,11 +90,11 @@ private extension ModelContext {
     @discardableResult
     func observeInternal<T: PersistentModel, U: Sendable>(
         descriptor: ModelFetchRequest<T>,
-        transform: @escaping ([T]) -> U,
+        transform: @escaping @Sendable ([T]) -> U,
         delivery: @escaping @Sendable (U) -> Void
     ) -> ObservationHandle {
         let worker = ModelObservationWorker(
-            context: self,
+            context: UnsafeModelContext(value: self),
             descriptor: descriptor,
             transform: transform,
             delivery: delivery
@@ -114,17 +114,21 @@ private extension ModelContext {
 
 // MARK: - Observation Worker
 
+private struct UnsafeModelContext: @unchecked Sendable {
+    let value: ModelContext
+}
+
 private actor ModelObservationWorker<Model: PersistentModel, Output: Sendable> {
-    private let context: ModelContext
+    private let context: UnsafeModelContext
     private let descriptor: ModelFetchRequest<Model>
-    private let transform: ([Model]) -> Output
+    private let transform: @Sendable ([Model]) -> Output
     private let delivery: @Sendable (Output) -> Void
     private var observationTask: Task<Void, Never>?
 
     init(
-        context: ModelContext,
+        context: UnsafeModelContext,
         descriptor: ModelFetchRequest<Model>,
-        transform: @escaping ([Model]) -> Output,
+        transform: @escaping @Sendable ([Model]) -> Output,
         delivery: @escaping @Sendable (Output) -> Void
     ) {
         self.context = context
@@ -160,7 +164,7 @@ private actor ModelObservationWorker<Model: PersistentModel, Output: Sendable> {
 
     private func deliverSnapshot() {
         do {
-            let models = try context.fetch(descriptor)
+            let models = try context.value.fetch(descriptor)
             let output = transform(models)
             delivery(output)
         } catch {
