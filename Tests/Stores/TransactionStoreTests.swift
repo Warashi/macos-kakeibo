@@ -33,7 +33,7 @@ internal struct TransactionStoreTests {
         #expect(store.transactions.count == 1)
         #expect(store.availableInstitutions.count == 1)
         #expect(store.availableCategories.count == 2)
-        let filters = listUseCase.observedFilters
+        let filters = await listUseCase.observedFiltersHistory()
         #expect(filters.count == 2)
         #expect(filters.first?.month == store.currentMonth)
     }
@@ -80,7 +80,7 @@ internal struct TransactionStoreTests {
         // フィルタ変更後の非同期処理の完了を待つ
         try? await Task.sleep(for: .milliseconds(10))
 
-        let filters = listUseCase.observedFilters
+        let filters = await listUseCase.observedFiltersHistory()
         #expect(filters.count == 3)
         #expect(filters.last?.filterKind == .income)
     }
@@ -103,7 +103,7 @@ internal struct TransactionStoreTests {
     internal func saveFailureUpdatesFormErrors() async {
         let listUseCase = TransactionListUseCaseStub(transactions: [])
         let formUseCase = TransactionFormUseCaseStub()
-        formUseCase.saveError = TransactionFormError.validationFailed(["テストエラー"])
+        await formUseCase.setSaveError(TransactionFormError.validationFailed(["テストエラー"]))
         let store = TransactionStore(
             listUseCase: listUseCase,
             formUseCase: formUseCase,
@@ -145,9 +145,9 @@ internal struct TransactionStoreTests {
         try? await Task.sleep(for: .milliseconds(100))
 
         #expect(result)
-        let deletedIds = formUseCase.deletedTransactionIds
+        let deletedIds = await formUseCase.deletedTransactionIdsHistory()
         #expect(deletedIds.contains(transaction.id))
-        let filters = listUseCase.observedFilters
+        let filters = await listUseCase.observedFiltersHistory()
         #expect(filters.count == 4)
     }
 }
@@ -162,11 +162,11 @@ private extension TransactionStoreTests {
 
 // MARK: - Stubs
 
-private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol, @unchecked Sendable {
-    internal var transactions: [Transaction]
-    internal var referenceData: TransactionReferenceData
-    internal var receivedFilters: [TransactionListFilter] = []
-    internal var observedFilters: [TransactionListFilter] = []
+private actor TransactionListUseCaseStub: TransactionListUseCaseProtocol {
+    private let transactions: [Transaction]
+    private let referenceData: TransactionReferenceData
+    private var receivedFilters: [TransactionListFilter] = []
+    private var observedFilters: [TransactionListFilter] = []
 
     internal init(transactions: [Transaction]) {
         self.transactions = transactions
@@ -197,13 +197,25 @@ private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol, 
         onChange(transactions)
         return ObservationHandle(token: ObservationToken {})
     }
+
+    internal func observedFiltersHistory() -> [TransactionListFilter] {
+        observedFilters
+    }
 }
 
-private final class TransactionFormUseCaseStub: TransactionFormUseCaseProtocol, @unchecked Sendable {
-    internal var saveError: Error?
-    internal var deleteError: Error?
-    internal var savedStates: [TransactionFormState] = []
-    internal var deletedTransactionIds: [UUID] = []
+private actor TransactionFormUseCaseStub: TransactionFormUseCaseProtocol {
+    private var saveError: Error?
+    private var deleteError: Error?
+    private var savedStates: [TransactionFormState] = []
+    private var deletedTransactionIds: [UUID] = []
+
+    internal func setSaveError(_ error: Error?) {
+        saveError = error
+    }
+
+    internal func setDeleteError(_ error: Error?) {
+        deleteError = error
+    }
 
     internal func save(
         state: TransactionFormState,
@@ -221,5 +233,9 @@ private final class TransactionFormUseCaseStub: TransactionFormUseCaseProtocol, 
             throw deleteError
         }
         deletedTransactionIds.append(transactionId)
+    }
+
+    internal func deletedTransactionIdsHistory() -> [UUID] {
+        deletedTransactionIds
     }
 }
