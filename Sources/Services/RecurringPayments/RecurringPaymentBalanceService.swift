@@ -1,4 +1,5 @@
 import Foundation
+import os.lock
 import SwiftData
 
 // MARK: - 支払差分情報
@@ -273,52 +274,55 @@ internal struct BalanceSnapshot: Sendable {
     internal let lastUpdatedMonth: Int
 }
 
-internal final class RecurringPaymentBalanceCache: @unchecked Sendable {
+internal final class RecurringPaymentBalanceCache: Sendable {
     private struct Metrics {
         var hits: Int = 0
         var misses: Int = 0
         var invalidations: Int = 0
     }
 
-    private let lock: NSLock = NSLock()
-    private var snapshots: [BalanceCacheKey: BalanceSnapshot] = [:]
-    private var metrics: Metrics = Metrics()
+    private struct Storage {
+        var snapshots: [BalanceCacheKey: BalanceSnapshot] = [:]
+        var metrics: Metrics = Metrics()
+    }
+
+    private let storage = OSAllocatedUnfairLock(initialState: Storage())
 
     internal var metricsSnapshot: RecurringPaymentBalanceCacheMetrics {
-        lock.withLock {
+        storage.withLock { storage in
             RecurringPaymentBalanceCacheMetrics(
-                hits: metrics.hits,
-                misses: metrics.misses,
-                invalidations: metrics.invalidations,
+                hits: storage.metrics.hits,
+                misses: storage.metrics.misses,
+                invalidations: storage.metrics.invalidations,
             )
         }
     }
 
     internal func snapshot(for key: BalanceCacheKey) -> BalanceSnapshot? {
-        lock.withLock {
-            if let value = snapshots[key] {
-                metrics.hits += 1
+        storage.withLock { storage in
+            if let value = storage.snapshots[key] {
+                storage.metrics.hits += 1
                 return value
             }
-            metrics.misses += 1
+            storage.metrics.misses += 1
             return nil
         }
     }
 
     internal func store(snapshot: BalanceSnapshot, for key: BalanceCacheKey) {
-        lock.withLock {
-            snapshots[key] = snapshot
+        storage.withLock { storage in
+            storage.snapshots[key] = snapshot
         }
     }
 
     internal func invalidate(balanceId: UUID?) {
-        lock.withLock {
+        storage.withLock { storage in
             if let balanceId {
-                snapshots = snapshots.filter { $0.key.balanceId != balanceId }
+                storage.snapshots = storage.snapshots.filter { $0.key.balanceId != balanceId }
             } else {
-                snapshots.removeAll()
+                storage.snapshots.removeAll()
             }
-            metrics.invalidations += 1
+            storage.metrics.invalidations += 1
         }
     }
 }
@@ -346,12 +350,4 @@ private func balanceVersion(for balance: SwiftDataRecurringPaymentSavingBalance)
     var hasher = Hasher()
     hasher.combine(balance.id)
     return hasher.finalize()
-}
-
-private extension NSLock {
-    func withLock<T>(_ execute: () -> T) -> T {
-        lock()
-        defer { unlock() }
-        return execute()
-    }
 }

@@ -245,13 +245,3 @@ internal enum BudgetCalculationCacheHasher {
         return hasher.finalize()
     }
 }
-
-// MARK: - Synchronization Helper
-
-private extension NSLock {
-    func withLock<T>(_ execute: () -> T) -> T {
-        lock()
-        defer { unlock() }
-        return execute()
-    }
-}
