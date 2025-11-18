@@ -1,17 +1,28 @@
 import Foundation
+import os.lock
 
 /// A cancellable token that keeps an observation alive until explicitly cancelled or deinitialized.
-internal final class ObservationToken: @unchecked Sendable {
-    private var cancellationHandler: (() -> Void)?
+/// The cancellation handler is guarded by an unfair lock to ensure it is invoked at most once.
+internal final class ObservationToken: Sendable {
+    private struct CancellationState {
+        var handler: (@Sendable () -> Void)?
+    }
 
-    internal init(cancellationHandler: @escaping () -> Void) {
-        self.cancellationHandler = cancellationHandler
+    private let lock = OSAllocatedUnfairLock(initialState: CancellationState())
+
+    internal init(cancellationHandler: @escaping @Sendable () -> Void) {
+        lock.withLock { state in
+            state.handler = cancellationHandler
+        }
     }
 
     /// Cancels the underlying observation.
     internal func cancel() {
-        cancellationHandler?()
-        cancellationHandler = nil
+        let handler = lock.withLock { state -> (@Sendable () -> Void)? in
+            defer { state.handler = nil }
+            return state.handler
+        }
+        handler?()
     }
 
     deinit {
