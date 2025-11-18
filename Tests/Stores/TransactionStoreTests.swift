@@ -37,6 +37,37 @@ internal struct TransactionStoreTests {
         #expect(filters.first?.month == store.currentMonth)
     }
 
+    @Test("refreshはバックグラウンドTaskからでも取引を読み込む")
+    internal func refreshLoadsTransactionsFromDetachedTask() async {
+        let transaction = Transaction(
+            id: UUID(),
+            date: sampleMonth(),
+            title: "テスト取引",
+            amount: -500,
+            memo: "",
+            isIncludedInCalculation: true,
+            isTransfer: false,
+            importIdentifier: nil,
+            financialInstitutionId: nil,
+            majorCategoryId: nil,
+            minorCategoryId: nil,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+        let listUseCase = TransactionListUseCaseStub(transactions: [transaction])
+        let formUseCase = TransactionFormUseCaseStub()
+        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
+
+        let backgroundTask = Task.detached {
+            await store.refresh()
+        }
+        await backgroundTask.value
+        try? await Task.sleep(for: .milliseconds(10))
+
+        #expect(store.transactions.count == 1)
+        #expect(store.transactions.first?.id == transaction.id)
+    }
+
     @Test("フィルタ変更でUseCaseが再実行される")
     internal func changingFiltersReloadsTransactions() async {
         let listUseCase = TransactionListUseCaseStub(transactions: [])

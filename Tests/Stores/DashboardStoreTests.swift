@@ -442,6 +442,38 @@ internal struct DashboardStoreTests {
         #expect(progress.actualAmount == 20000, "全体予算の実績が食費のみになっている（特別費は除外）")
     }
 
+    @Test("refreshはバックグラウンドTaskからでも月次集計を更新する")
+    internal func refresh_updatesSummaryFromDetachedTask() async throws {
+        let container = try createInMemoryContainer()
+        let context = ModelContext(container)
+
+        let category = SwiftDataCategory(name: "生活費")
+        context.insert(category)
+        let targetDate = try #require(Date.from(year: 2025, month: 11, day: 1))
+        context.insert(SwiftDataTransaction(
+            date: targetDate,
+            title: "生活費テスト",
+            amount: -2000,
+            majorCategory: category
+        ))
+        try context.save()
+
+        let store = await makeStore(container: container)
+        store.currentYear = 2025
+        store.currentMonth = 11
+
+        let backgroundTask = Task.detached {
+            await store.refresh()
+        }
+        await backgroundTask.value
+
+        let summary = store.monthlySummary
+        #expect(summary.year == 2025)
+        #expect(summary.month == 11)
+        #expect(summary.transactionCount == 1)
+        #expect(summary.totalExpense == 2000)
+    }
+
     // MARK: - Helper Methods
 
     private func createInMemoryContainer() throws -> ModelContainer {

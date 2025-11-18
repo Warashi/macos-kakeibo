@@ -212,6 +212,41 @@ internal struct RecurringPaymentReconciliationStoreTests {
         #expect(store.errorMessage == nil)
     }
 
+    @Test("refreshはバックグラウンドTaskからでも行データを構築する")
+    internal func refresh_populatesRowsFromDetachedTask() async throws {
+        let referenceDate = try #require(Date.from(year: 2025, month: 3, day: 1))
+        let harness = try await makeStore(referenceDate: referenceDate)
+        let store = harness.store
+        let context = harness.context
+
+        let definition = SwiftDataRecurringPaymentDefinition(
+            name: "定期支払い",
+            amount: 20000,
+            recurrenceIntervalMonths: 12,
+            firstOccurrenceDate: referenceDate
+        )
+        context.insert(definition)
+
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
+            definition: definition,
+            scheduledDate: referenceDate,
+            expectedAmount: 20000,
+            status: .planned
+        )
+        definition.occurrences = [occurrence]
+        try context.save()
+
+        let backgroundTask = Task.detached {
+            await store.refresh()
+        }
+        await backgroundTask.value
+
+        #expect(store.rows.count == 1)
+        #expect(store.rows.first?.id == occurrence.id)
+        store.filter = .all
+        #expect(store.filteredRows.count == 1)
+    }
+
     // MARK: - Helpers
 
     @MainActor

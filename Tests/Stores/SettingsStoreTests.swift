@@ -218,6 +218,39 @@ internal struct SettingsStoreTests {
         #expect(try targetContext.count(SwiftDataTransaction.self) == 1)
         #expect(store.isProcessingBackup == false)
     }
+
+    @Test("refreshStatisticsはバックグラウンドTaskからでも統計を更新する")
+    internal func refreshStatistics_updatesCountsFromDetachedTask() async throws {
+        let defaults = makeUserDefaults(suffix: "stats-detached")
+        let container = try ModelContainer.createInMemoryContainer()
+        let transactionRepository = await makeTransactionRepository { repository in
+            repository.transactionCount = 5
+        }
+        let budgetRepository = await makeBudgetRepository { repository in
+            repository.budgetCount = 3
+            repository.annualBudgetConfigCount = 1
+            repository.categoryCount = 4
+            repository.institutionCount = 2
+        }
+        let store = await makeSettingsStore(
+            modelContainer: container,
+            userDefaults: defaults,
+            transactionRepository: transactionRepository,
+            budgetRepository: budgetRepository
+        )
+
+        let backgroundTask = Task.detached {
+            await store.refreshStatistics()
+        }
+        await backgroundTask.value
+
+        #expect(store.statistics.transactions == 5)
+        #expect(store.statistics.budgets == 3)
+        #expect(store.statistics.annualBudgetConfigs == 1)
+        #expect(store.statistics.categories == 4)
+        #expect(store.statistics.financialInstitutions == 2)
+        #expect(store.statistics.totalRecords == 15)
+    }
 }
 
 // MARK: - Helpers

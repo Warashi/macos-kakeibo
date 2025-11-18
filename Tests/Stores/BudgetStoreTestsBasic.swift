@@ -209,6 +209,20 @@ internal struct BudgetStoreTestsBasic {
         #expect(store.currentMonth == 6)
     }
 
+    @Test("refreshはバックグラウンドTaskからでも状態を更新する")
+    internal func refresh_updatesStateFromDetachedTask() async throws {
+        let (store, _) = try await makeStore()
+        await store.refresh()
+        let initialToken = store.refreshToken
+
+        let backgroundTask = Task.detached {
+            await store.refresh()
+        }
+        await backgroundTask.value
+
+        #expect(store.refreshToken != initialToken)
+    }
+
     // MARK: - Helpers
 
     @MainActor

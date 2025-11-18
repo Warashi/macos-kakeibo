@@ -322,6 +322,39 @@ internal struct RecurringPaymentListStoreFilterTests {
         #expect(store.dateRange.startDate.timeIntervalSince(expectedStart ?? now) < 60)
     }
 
+    @Test("refreshEntriesはバックグラウンドTaskからでもキャッシュを更新する")
+    internal func refreshEntries_updatesCacheFromDetachedTask() async throws {
+        let (store, context) = try await makeStore()
+        let definition = SwiftDataRecurringPaymentDefinition(
+            name: "定期支払いテスト",
+            amount: 10000,
+            recurrenceIntervalMonths: 12,
+            firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date()
+        )
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
+            definition: definition,
+            scheduledDate: Date.from(year: 2025, month: 2) ?? Date(),
+            expectedAmount: 10000,
+            status: .planned
+        )
+        context.insert(definition)
+        context.insert(occurrence)
+        try context.save()
+
+        store.dateRange = DateRange(
+            startDate: Date.from(year: 2024, month: 1) ?? Date.distantPast,
+            endDate: Date.from(year: 2026, month: 12) ?? Date.distantFuture
+        )
+
+        let backgroundTask = Task.detached {
+            await store.refreshEntries()
+        }
+        await backgroundTask.value
+
+        #expect(store.cachedEntries.count == 1)
+        #expect(store.cachedEntries.first?.name == "定期支払いテスト")
+    }
+
     // MARK: - Helpers
 
     private func makeStore() async throws -> (RecurringPaymentListStore, ModelContext) {
