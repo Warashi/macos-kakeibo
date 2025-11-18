@@ -2,20 +2,19 @@
 import Testing
 
 @Suite(.serialized)
+@MainActor
 internal struct ImportStoreTests {
     @Test("CSVドキュメントを適用すると初期状態がセットされる")
     internal func applyDocument_setsInitialState() async throws {
         let (store, _, _) = await makeStore()
 
-        await MainActor.run {
-            store.applyDocument(sampleDocument(), fileName: "sample.csv")
-        }
+        store.applyDocument(sampleDocument(), fileName: "sample.csv")
 
-        let hasDocument = await MainActor.run { store.document != nil }
-        let selectedFileName = await MainActor.run { store.selectedFileName }
-        let columnCount = await MainActor.run { store.columnOptions.count }
-        let hasMapping = await MainActor.run { store.mapping.hasRequiredAssignments }
-        let step = await MainActor.run { store.step }
+        let hasDocument = store.document != nil
+        let selectedFileName = store.selectedFileName
+        let columnCount = store.columnOptions.count
+        let hasMapping = store.mapping.hasRequiredAssignments
+        let step = store.step
 
         #expect(hasDocument)
         #expect(selectedFileName == "sample.csv")
@@ -27,29 +26,25 @@ internal struct ImportStoreTests {
     @Test("ファイル選択から列マッピングへ進める")
     internal func proceedToColumnMapping() async throws {
         let (store, _, _) = await makeStore()
-        await MainActor.run {
-            store.applyDocument(sampleDocument(), fileName: "sample.csv")
-        }
+        store.applyDocument(sampleDocument(), fileName: "sample.csv")
 
-        let initialStep = await MainActor.run { store.step }
+        let initialStep = store.step
         #expect(initialStep == .fileSelection)
         await store.handleNextAction()
-        let nextStep = await MainActor.run { store.step }
+        let nextStep = store.step
         #expect(nextStep == .columnMapping)
     }
 
     @Test("列マッピングから検証ステップに進める")
     internal func generatePreviewMovesToValidation() async throws {
         let (store, _, _) = await makeStore()
-        await MainActor.run {
-            store.applyDocument(sampleDocument(), fileName: "sample.csv")
-        }
+        store.applyDocument(sampleDocument(), fileName: "sample.csv")
 
         await store.handleNextAction() // -> column mapping
         await store.handleNextAction() // -> validation (generate preview)
 
-        let step = await MainActor.run { store.step }
-        let hasPreview = await MainActor.run { store.preview != nil }
+        let step = store.step
+        let hasPreview = store.preview != nil
         #expect(step == .validation)
         #expect(hasPreview)
     }
@@ -57,15 +52,13 @@ internal struct ImportStoreTests {
     @Test("検証ステップで取り込みを実行できる")
     internal func performImportCreatesTransactions() async throws {
         let (store, transactionRepository, _) = await makeStore()
-        await MainActor.run {
-            store.applyDocument(sampleDocument(), fileName: "sample.csv")
-        }
+        store.applyDocument(sampleDocument(), fileName: "sample.csv")
 
         await store.handleNextAction() // column mapping
         await store.handleNextAction() // validation
         await store.handleNextAction() // import
 
-        let summary = try #require(await MainActor.run { store.summary })
+        let summary = try #require(store.summary)
         #expect(summary.importedCount == 1)
         #expect(summary.updatedCount == 0)
 
@@ -77,21 +70,19 @@ internal struct ImportStoreTests {
     @Test("取り込み完了後にステータスがリセットされる")
     internal func importProgressIsClearedAfterProcessing() async throws {
         let (store, _, _) = await makeStore()
-        await MainActor.run {
-            store.applyDocument(sampleDocument(rowCount: 2), fileName: "sample.csv")
-        }
+        store.applyDocument(sampleDocument(rowCount: 2), fileName: "sample.csv")
 
         await store.handleNextAction() // column mapping
         await store.handleNextAction() // validation
         await store.handleNextAction() // import
 
-        let status = await MainActor.run { store.statusMessage }
+        let status = store.statusMessage
         #expect(status == "取り込みが完了しました")
 
-        let finalProgress = await MainActor.run { store.importProgress }
+        let finalProgress = store.importProgress
         #expect(finalProgress == nil)
 
-        let isProcessing = await MainActor.run { store.isProcessing }
+        let isProcessing = store.isProcessing
         #expect(isProcessing == false)
     }
 

@@ -34,6 +34,7 @@ internal enum SettingsStackBuilder {
     }
 
     /// ImportStore を構築
+    @MainActor
     internal static func makeImportStore(modelContainer: ModelContainer) async -> ImportStore {
         let dependencies = await makeDependencies(modelContainer: modelContainer)
         return ImportStore(
