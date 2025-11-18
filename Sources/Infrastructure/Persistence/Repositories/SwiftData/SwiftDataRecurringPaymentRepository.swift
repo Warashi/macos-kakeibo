@@ -121,6 +121,11 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         let definition = try await findDefinition(id: definitionId, context: context)
         let category = try await resolvedCategory(id: input.categoryId, context: context)
 
+        let errors = validateDefinition(input: input, category: category)
+        guard errors.isEmpty else {
+            throw RecurringPaymentDomainError.validationFailed(errors)
+        }
+
         definition.name = input.name
         definition.notes = input.notes
         definition.amount = input.amount
@@ -134,11 +139,6 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         definition.dateAdjustmentPolicy = input.dateAdjustmentPolicy
         definition.recurrenceDayPattern = input.recurrenceDayPattern
         definition.updatedAt = currentDateProvider()
-
-        let errors = definition.validate()
-        guard errors.isEmpty else {
-            throw RecurringPaymentDomainError.validationFailed(errors)
-        }
 
         try context.save()
     }
@@ -220,28 +220,32 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
     ) async throws -> RecurringPaymentSynchronizationSummary {
         let context = currentContext
         let occurrence = try await findOccurrence(id: occurrenceId, context: context)
+        let transactionModel = try await resolvedTransaction(from: input.transaction, context: context)
+        let now = currentDateProvider()
 
-        occurrence.actualDate = input.actualDate
-        occurrence.actualAmount = input.actualAmount
-        if let dto = input.transaction {
-            occurrence.transaction = try await findTransaction(id: dto.id, context: context)
-        } else {
-            occurrence.transaction = nil
-        }
-        occurrence.status = .completed
-        occurrence.updatedAt = currentDateProvider()
-
-        let errors = occurrence.validate()
+        let errors = validateOccurrenceUpdate(
+            occurrence: occurrence,
+            status: .completed,
+            actualDate: input.actualDate,
+            actualAmount: input.actualAmount,
+            transaction: transactionModel
+        )
         guard errors.isEmpty else {
             throw RecurringPaymentDomainError.validationFailed(errors)
         }
+
+        occurrence.actualDate = input.actualDate
+        occurrence.actualAmount = input.actualAmount
+        occurrence.transaction = transactionModel
+        occurrence.status = .completed
+        occurrence.updatedAt = now
 
         try context.save()
 
         return try await synchronize(
             definitionId: occurrence.definitionId,
             horizonMonths: horizonMonths,
-            referenceDate: currentDateProvider(),
+            referenceDate: now,
         )
     }
 
@@ -256,21 +260,24 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         let now = currentDateProvider()
         let wasCompleted = occurrence.status == .completed
         let willBeCompleted = input.status == .completed
+        let transactionModel = try await resolvedTransaction(from: input.transaction, context: context)
+
+        let errors = validateOccurrenceUpdate(
+            occurrence: occurrence,
+            status: input.status,
+            actualDate: input.actualDate,
+            actualAmount: input.actualAmount,
+            transaction: transactionModel
+        )
+        guard errors.isEmpty else {
+            throw RecurringPaymentDomainError.validationFailed(errors)
+        }
 
         occurrence.status = input.status
         occurrence.actualDate = input.actualDate
         occurrence.actualAmount = input.actualAmount
-        if let dto = input.transaction {
-            occurrence.transaction = try await findTransaction(id: dto.id, context: context)
-        } else {
-            occurrence.transaction = nil
-        }
+        occurrence.transaction = transactionModel
         occurrence.updatedAt = now
-
-        let errors = occurrence.validate()
-        guard errors.isEmpty else {
-            throw RecurringPaymentDomainError.validationFailed(errors)
-        }
 
         try context.save()
 
@@ -369,5 +376,53 @@ private extension SwiftDataRecurringPaymentRepository {
             throw RecurringPaymentDomainError.categoryNotFound
         }
         return category
+    }
+
+    func validateDefinition(
+        input: RecurringPaymentDefinitionInput,
+        category: SwiftDataCategory?
+    ) -> [String] {
+        let candidate = SwiftDataRecurringPaymentDefinition(
+            name: input.name,
+            notes: input.notes,
+            amount: input.amount,
+            recurrenceIntervalMonths: input.recurrenceIntervalMonths,
+            firstOccurrenceDate: input.firstOccurrenceDate,
+            endDate: input.endDate,
+            leadTimeMonths: input.leadTimeMonths,
+            category: category,
+            savingStrategy: input.savingStrategy,
+            customMonthlySavingAmount: input.customMonthlySavingAmount,
+            dateAdjustmentPolicy: input.dateAdjustmentPolicy,
+            recurrenceDayPattern: input.recurrenceDayPattern
+        )
+        return candidate.validate()
+    }
+
+    func validateOccurrenceUpdate(
+        occurrence: SwiftDataRecurringPaymentOccurrence,
+        status: RecurringPaymentStatus,
+        actualDate: Date?,
+        actualAmount: Decimal?,
+        transaction: SwiftDataTransaction?
+    ) -> [String] {
+        let candidate = SwiftDataRecurringPaymentOccurrence(
+            definition: occurrence.definition,
+            scheduledDate: occurrence.scheduledDate,
+            expectedAmount: occurrence.expectedAmount,
+            status: status,
+            actualDate: actualDate,
+            actualAmount: actualAmount,
+            transaction: transaction
+        )
+        return candidate.validate()
+    }
+
+    func resolvedTransaction(
+        from dto: Transaction?,
+        context: ModelContext
+    ) async throws -> SwiftDataTransaction? {
+        guard let dto else { return nil }
+        return try await findTransaction(id: dto.id, context: context)
     }
 }
