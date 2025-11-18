@@ -39,4 +39,23 @@ internal enum TransactionStackBuilder {
             )
         }
     }
+
+    /// 取引スタックの依存関係を ModelActor から構築
+    /// - Parameter modelActor: 取引用 ModelActor
+    internal static func makeDependencies(modelActor: TransactionModelActor) async -> TransactionStackDependencies {
+        let container = modelActor.modelContainer
+        return await makeDependencies(modelContainer: container)
+    }
+
+    /// TransactionStore を ModelActor ベースで構築
+    /// - Parameter modelActor: 取引用 ModelActor
+    internal static func makeStore(modelActor: TransactionModelActor) async -> TransactionStore {
+        let dependencies = await makeDependencies(modelActor: modelActor)
+        return await MainActor.run {
+            TransactionStore(
+                listUseCase: dependencies.listUseCase,
+                formUseCase: dependencies.formUseCase
+            )
+        }
+    }
 }

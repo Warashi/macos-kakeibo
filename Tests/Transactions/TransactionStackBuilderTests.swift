@@ -33,4 +33,34 @@ internal struct TransactionStackBuilderTests {
         #expect(transactions.count == 1)
         #expect(transactions.first?.title == "昼食")
     }
+
+    @Test("TransactionModelActor 経由でも TransactionStore を構築できる")
+    func makeStoreViaModelActor() async throws {
+        let container = try ModelContainer.createInMemoryContainer()
+        let modelActor = TransactionModelActor(modelContainer: container)
+        let dependencies = await TransactionStackBuilder.makeDependencies(modelActor: modelActor)
+
+        try await Task { @DatabaseActor in
+            let input = TransactionInput(
+                date: Date(),
+                title: "夕食",
+                memo: "ModelActor 経由",
+                amount: Decimal(-1800),
+                isIncludedInCalculation: true,
+                isTransfer: false,
+                financialInstitutionId: nil,
+                majorCategoryId: nil,
+                minorCategoryId: nil
+            )
+            _ = try dependencies.repository.insert(input)
+            try dependencies.repository.saveChanges()
+        }.value
+
+        let store = await TransactionStackBuilder.makeStore(modelActor: modelActor)
+        await store.refresh()
+
+        let transactions = await MainActor.run { store.transactions }
+        #expect(transactions.count == 1)
+        #expect(transactions.first?.title == "夕食")
+    }
 }
