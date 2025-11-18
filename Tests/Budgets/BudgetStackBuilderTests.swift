@@ -37,4 +37,36 @@ internal struct BudgetStackBuilderTests {
         #expect(budgets.count == 1)
         #expect(budgets.first?.amount == Decimal(50_000))
     }
+
+    @Test("BudgetModelActor 経由でも BudgetStore を構築できる")
+    func makeStoreViaModelActor() async throws {
+        let container = try ModelContainer.createInMemoryContainer()
+        let modelActor = BudgetModelActor(modelContainer: container)
+        let dependencies = await BudgetStackBuilder.makeDependencies(modelActor: modelActor)
+
+        try await Task { @DatabaseActor in
+            let calendar = Calendar(identifier: .gregorian)
+            let now = Date()
+            let year = calendar.component(.year, from: now)
+            let month = calendar.component(.month, from: now)
+            let categoryId = try dependencies.repository.createCategory(name: "住居", parentId: nil)
+            let input = BudgetInput(
+                amount: Decimal(80_000),
+                categoryId: categoryId,
+                startYear: year,
+                startMonth: month,
+                endYear: year,
+                endMonth: month
+            )
+            try dependencies.repository.addBudget(input)
+            try dependencies.repository.saveChanges()
+        }.value
+
+        let store = await BudgetStackBuilder.makeStore(modelActor: modelActor)
+        await store.refresh()
+
+        let budgets = await MainActor.run { store.monthlyBudgets }
+        #expect(budgets.count == 1)
+        #expect(budgets.first?.amount == Decimal(80_000))
+    }
 }

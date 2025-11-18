@@ -48,4 +48,27 @@ internal enum BudgetStackBuilder {
             )
         }
     }
+
+    /// BudgetStore に必要な依存を ModelActor から構築
+    /// - Parameter modelActor: 予算用 ModelActor
+    internal static func makeDependencies(modelActor: BudgetModelActor) async -> BudgetStackDependencies {
+        let container = modelActor.modelContainer
+        return await makeDependencies(modelContainer: container)
+    }
+
+    /// BudgetStore を ModelActor ベースで構築
+    /// - Parameter modelActor: 予算用 ModelActor
+    /// - Returns: 初期化済み BudgetStore
+    internal static func makeStore(modelActor: BudgetModelActor) async -> BudgetStore {
+        let dependencies = await makeDependencies(modelActor: modelActor)
+        return await MainActor.run {
+            BudgetStore(
+                repository: dependencies.repository,
+                monthlyUseCase: dependencies.monthlyUseCase,
+                annualUseCase: dependencies.annualUseCase,
+                recurringPaymentUseCase: dependencies.recurringPaymentUseCase,
+                mutationUseCase: dependencies.mutationUseCase
+            )
+        }
+    }
 }

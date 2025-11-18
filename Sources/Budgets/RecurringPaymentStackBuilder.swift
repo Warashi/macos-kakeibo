@@ -77,4 +77,48 @@ internal enum RecurringPaymentStackBuilder {
         let dependencies = await makeStoreDependencies(modelContainer: modelContainer)
         return RecurringPaymentStore(repository: dependencies.repository)
     }
+
+    /// 定期支払い一覧ストアの依存を ModelActor から構築
+    internal static func makeListDependencies(modelActor: RecurringPaymentModelActor) async -> RecurringPaymentListDependencies {
+        let container = modelActor.modelContainer
+        return await makeListDependencies(modelContainer: container)
+    }
+
+    /// 定期支払い一覧ストアを ModelActor ベースで構築
+    internal static func makeListStore(modelActor: RecurringPaymentModelActor) async -> RecurringPaymentListStore {
+        let dependencies = await makeListDependencies(modelActor: modelActor)
+        return await MainActor.run {
+            RecurringPaymentListStore(repository: dependencies.repository)
+        }
+    }
+
+    /// 突合ストアの依存を ModelActor から構築
+    internal static func makeReconciliationDependencies(modelActor: RecurringPaymentModelActor) async -> RecurringPaymentReconciliationDependencies {
+        let container = modelActor.modelContainer
+        return await makeReconciliationDependencies(modelContainer: container)
+    }
+
+    /// 定期支払い突合ストアを ModelActor ベースで構築
+    internal static func makeReconciliationStore(modelActor: RecurringPaymentModelActor) async -> RecurringPaymentReconciliationStore {
+        let dependencies = await makeReconciliationDependencies(modelActor: modelActor)
+        return await MainActor.run {
+            RecurringPaymentReconciliationStore(
+                repository: dependencies.repository,
+                transactionRepository: dependencies.transactionRepository,
+                occurrencesService: dependencies.occurrencesService
+            )
+        }
+    }
+
+    /// 定期支払い CRUD ストアの依存を ModelActor から構築
+    internal static func makeStoreDependencies(modelActor: RecurringPaymentModelActor) async -> RecurringPaymentStoreDependencies {
+        let container = modelActor.modelContainer
+        return await makeStoreDependencies(modelContainer: container)
+    }
+
+    /// 定期支払い CRUD ストアを ModelActor ベースで構築
+    internal static func makeStore(modelActor: RecurringPaymentModelActor) async -> RecurringPaymentStore {
+        let dependencies = await makeStoreDependencies(modelActor: modelActor)
+        return RecurringPaymentStore(repository: dependencies.repository)
+    }
 }
