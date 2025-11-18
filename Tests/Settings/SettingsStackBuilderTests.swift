@@ -4,6 +4,7 @@ import SwiftData
 import Testing
 
 @Suite(.serialized)
+@MainActor
 internal struct SettingsStackBuilderTests {
     @Test("SettingsStore を構築して統計を初期化できる")
     func makeSettingsStoreInitializesStatistics() async throws {

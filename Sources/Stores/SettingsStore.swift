@@ -3,6 +3,7 @@ import Observation
 import SwiftData
 
 /// 設定画面全体を管理するストア
+@MainActor
 @Observable
 internal final class SettingsStore {
     // MARK: - Nested Types
@@ -129,13 +130,10 @@ internal final class SettingsStore {
 
     /// データ件数を再計算
     internal func refreshStatistics() async {
-        let result = (try? await makeStatistics(
+        statistics = (try? await makeStatistics(
             transactionRepository: transactionRepository,
             budgetRepository: budgetRepository
         )) ?? .empty
-        await MainActor.run {
-            self.statistics = result
-        }
     }
 
     // MARK: - CSV Export
@@ -150,22 +148,16 @@ internal final class SettingsStore {
 
     /// バックアップを作成
     internal func createBackupArchive() async throws -> BackupArchive {
-        await MainActor.run {
-            self.isProcessingBackup = true
-        }
+        isProcessingBackup = true
         do {
             let payload = try await backupManager.buildPayload()
             let archive = try await backupManager.createBackup(payload: payload)
-            await MainActor.run {
-                self.isProcessingBackup = false
-                self.lastBackupMetadata = archive.metadata
-                self.statusMessage = "バックアップを作成しました"
-            }
+            isProcessingBackup = false
+            lastBackupMetadata = archive.metadata
+            statusMessage = "バックアップを作成しました"
             return archive
         } catch {
-            await MainActor.run {
-                self.isProcessingBackup = false
-            }
+            isProcessingBackup = false
             throw error
         }
     }
@@ -174,33 +166,25 @@ internal final class SettingsStore {
     /// - Parameter data: バックアップデータ
     /// - Returns: 復元サマリ
     internal func restoreBackup(from data: Data) async throws -> BackupRestoreSummary {
-        await MainActor.run {
-            self.isProcessingBackup = true
-        }
+        isProcessingBackup = true
         do {
             let payload = try await backupManager.decodeBackup(from: data)
             let summary = try await backupManager.restorePayload(payload)
             await refreshStatistics()
-            await MainActor.run {
-                self.isProcessingBackup = false
-                self.lastRestoreSummary = summary
-                self.lastBackupMetadata = summary.metadata
-                self.statusMessage = "バックアップから復元しました"
-            }
+            isProcessingBackup = false
+            lastRestoreSummary = summary
+            lastBackupMetadata = summary.metadata
+            statusMessage = "バックアップから復元しました"
             return summary
         } catch {
-            await MainActor.run {
-                self.isProcessingBackup = false
-            }
+            isProcessingBackup = false
             throw error
         }
     }
 
     /// すべてのデータを削除
     internal func deleteAllData() async throws {
-        await MainActor.run {
-            self.isProcessingDeletion = true
-        }
+        isProcessingDeletion = true
         do {
             try await transactionRepository.deleteAllTransactions()
             try await budgetRepository.deleteAllBudgets()
@@ -208,16 +192,12 @@ internal final class SettingsStore {
             try await budgetRepository.deleteAllCategories()
             try await budgetRepository.deleteAllFinancialInstitutions()
             await refreshStatistics()
-            await MainActor.run {
-                self.isProcessingDeletion = false
-                self.lastRestoreSummary = nil
-                self.lastBackupMetadata = nil
-                self.statusMessage = "すべてのデータを削除しました"
-            }
+            isProcessingDeletion = false
+            lastRestoreSummary = nil
+            lastBackupMetadata = nil
+            statusMessage = "すべてのデータを削除しました"
         } catch {
-            await MainActor.run {
-                self.isProcessingDeletion = false
-            }
+            isProcessingDeletion = false
             throw error
         }
     }
@@ -257,5 +237,3 @@ private func makeStatistics(
         financialInstitutions: try await budgetRepository.countFinancialInstitutions()
     )
 }
-
-extension SettingsStore: @unchecked Sendable {}

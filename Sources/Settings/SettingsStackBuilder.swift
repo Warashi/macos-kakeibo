@@ -23,6 +23,7 @@ internal enum SettingsStackBuilder {
     }
 
     /// SettingsStore を構築
+    @MainActor
     internal static func makeSettingsStore(modelContainer: ModelContainer) async -> SettingsStore {
         let dependencies = await makeDependencies(modelContainer: modelContainer)
         return await SettingsStore(
