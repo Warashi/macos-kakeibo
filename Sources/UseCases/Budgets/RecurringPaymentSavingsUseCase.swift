@@ -1,6 +1,6 @@
 import Foundation
 
-internal protocol RecurringPaymentSavingsUseCaseProtocol {
+internal protocol RecurringPaymentSavingsUseCaseProtocol: Sendable {
     func monthlySavingsTotal(
         snapshot: BudgetSnapshot,
         year: Int,

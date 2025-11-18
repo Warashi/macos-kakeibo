@@ -40,7 +40,7 @@ internal struct AnnualBudgetProgressResult {
 }
 
 /// 年次予算進捗計算機
-internal struct AnnualBudgetProgressCalculator {
+internal struct AnnualBudgetProgressCalculator: Sendable {
     private let aggregator: TransactionAggregator
     private let budgetCalculator: BudgetCalculator
 

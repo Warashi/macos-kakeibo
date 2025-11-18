@@ -4,6 +4,7 @@ import Observation
 /// 予算管理ストア
 ///
 /// 月次/年次/定期支払いモードを切り替えながら、表示状態を管理します。
+@MainActor
 @Observable
 internal final class BudgetStore {
     // MARK: - Types
@@ -31,7 +32,9 @@ internal final class BudgetStore {
     internal var currentYear: Int {
         didSet {
             guard oldValue != currentYear else { return }
-            Task { await reloadSnapshot() }
+            Task { [weak self] in
+                await self?.reloadSnapshot()
+            }
         }
     }
 
@@ -126,7 +129,9 @@ internal final class BudgetStore {
             categoryCalculations: [],
         )
 
-        Task { await reloadSnapshot() }
+        Task { [weak self] in
+            await self?.reloadSnapshot()
+        }
     }
 
     deinit {
@@ -147,34 +152,36 @@ internal extension BudgetStore {
     private func scheduleRecalculation() -> Task<Void, Never> {
         calculationTask?.cancel()
 
-        let snapshot = self.snapshot
+        guard let snapshot else {
+            let year = currentYear
+            let month = currentMonth
+            resetAllCalculations(year: year, month: month)
+            calculationTask = nil
+            return Task {}
+        }
+
         let year = currentYear
         let month = currentMonth
         let monthlyUseCase = self.monthlyUseCase
         let annualUseCase = self.annualUseCase
         let recurringPaymentUseCase = self.recurringPaymentUseCase
 
-        let task = Task { [weak self] in
-            guard let self else { return }
-            guard let snapshot else {
-                await MainActor.run {
-                    self.resetAllCalculations(year: year, month: month)
-                }
-                return
-            }
-
-            let result = makeCalculationResult(
-                snapshot: snapshot,
-                year: year,
-                month: month,
-                monthlyUseCase: monthlyUseCase,
-                annualUseCase: annualUseCase,
-                recurringPaymentUseCase: recurringPaymentUseCase
-            )
+        let task = Task { [snapshot, year, month, monthlyUseCase, annualUseCase, recurringPaymentUseCase, weak self] in
+            let result = await Task.detached(priority: .userInitiated) {
+                BudgetStore.makeCalculationResult(
+                    snapshot: snapshot,
+                    year: year,
+                    month: month,
+                    monthlyUseCase: monthlyUseCase,
+                    annualUseCase: annualUseCase,
+                    recurringPaymentUseCase: recurringPaymentUseCase
+                )
+            }.value
 
             guard !Task.isCancelled else { return }
 
-            await MainActor.run {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
                 guard self.currentYear == year, self.currentMonth == month else { return }
                 self.applyCalculationResult(result)
             }
@@ -205,7 +212,8 @@ internal extension BudgetStore {
         recurringPaymentSavingsEntries = []
     }
 
-    private func makeCalculationResult(
+    nonisolated
+    private static func makeCalculationResult(
         snapshot: BudgetSnapshot,
         year: Int,
         month: Int,
@@ -362,12 +370,20 @@ internal extension BudgetStore {
 
 private extension BudgetStore {
     func reloadSnapshot() async {
-        let targetYear = await MainActor.run { self.currentYear }
-        let newSnapshot = try? await repository.fetchSnapshot(for: targetYear)
-        guard !Task.isCancelled else { return }
-        let task = await MainActor.run {
-            self.applySnapshot(newSnapshot)
+        let targetYear = currentYear
+        let repository = self.repository
+
+        let snapshotTask = Task.detached(priority: .userInitiated) { () -> BudgetSnapshot? in
+            do {
+                return try await repository.fetchSnapshot(for: targetYear)
+            } catch {
+                return nil
+            }
         }
+
+        let newSnapshot = await snapshotTask.value
+        guard !Task.isCancelled else { return }
+        let task = applySnapshot(newSnapshot)
         await task.value
     }
 
@@ -417,8 +433,6 @@ private struct BudgetCalculationResult {
     let recurringPaymentSavingsCalculations: [RecurringPaymentSavingsCalculation]
     let recurringPaymentSavingsEntries: [RecurringPaymentSavingsEntry]
 }
-
-extension BudgetStore: @unchecked Sendable {}
 
 // MARK: - Error
 

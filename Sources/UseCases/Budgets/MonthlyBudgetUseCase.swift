@@ -1,6 +1,6 @@
 import Foundation
 
-internal protocol MonthlyBudgetUseCaseProtocol {
+internal protocol MonthlyBudgetUseCaseProtocol: Sendable {
     func monthlyBudgets(
         snapshot: BudgetSnapshot,
         year: Int,
