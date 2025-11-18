@@ -87,15 +87,21 @@ internal struct RecurringPaymentStackBuilderTests {
         )
         try await store.createDefinition(input)
 
-        let context = ModelContext(container)
-        let existingDefinitions = try context.fetch(RecurringPaymentQueries.definitions())
-        let definitionId = try #require(existingDefinitions.first?.id)
-        #expect(existingDefinitions.isEmpty == false)
+        let definitionId = try {
+            let context = ModelContext(container)
+            let existingDefinitions = try context.fetch(RecurringPaymentQueries.definitions())
+            let identifier = try #require(existingDefinitions.first?.id)
+            #expect(existingDefinitions.isEmpty == false)
+            return identifier
+        }()
 
         try await store.deleteDefinition(definitionId: definitionId)
 
-        let refreshedDefinitions = try context.fetch(RecurringPaymentQueries.definitions())
-        #expect(refreshedDefinitions.isEmpty)
+        try {
+            let context = ModelContext(container)
+            let refreshedDefinitions = try context.fetch(RecurringPaymentQueries.definitions())
+            #expect(refreshedDefinitions.isEmpty)
+        }()
     }
 
     @Test("RecurringPaymentModelActor 経由でも ListStore を構築できる")
@@ -183,13 +189,19 @@ internal struct RecurringPaymentStackBuilderTests {
         )
         try await store.createDefinition(input)
 
-        let context = ModelContext(container)
-        let definitions = try context.fetch(RecurringPaymentQueries.definitions())
-        let definitionId = try #require(definitions.first?.id)
+        let definitionId = try {
+            let context = ModelContext(container)
+            let definitions = try context.fetch(RecurringPaymentQueries.definitions())
+            let identifier = try #require(definitions.first?.id)
+            return identifier
+        }()
 
         try await store.deleteDefinition(definitionId: definitionId)
 
-        let refreshedDefinitions = try context.fetch(RecurringPaymentQueries.definitions())
-        #expect(refreshedDefinitions.isEmpty)
+        try {
+            let context = ModelContext(container)
+            let refreshedDefinitions = try context.fetch(RecurringPaymentQueries.definitions())
+            #expect(refreshedDefinitions.isEmpty)
+        }()
     }
 }

@@ -116,7 +116,7 @@ internal extension RecurringPaymentOccurrence {
     init(from record: SwiftDataRecurringPaymentOccurrence) {
         self.init(
             id: record.id,
-            definitionId: record.definition.id,
+            definitionId: record.definitionId,
             scheduledDate: record.scheduledDate,
             expectedAmount: record.expectedAmount,
             status: record.status,

@@ -68,7 +68,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         }
 
         if let definitionIds = query?.definitionIds, !definitionIds.isEmpty {
-            results = results.filter { definitionIds.contains($0.definition.id) }
+            results = results.filter { definitionIds.contains($0.definitionId) }
         }
 
         return results.map { RecurringPaymentOccurrence(from: $0) }
@@ -146,6 +146,17 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
     internal func deleteDefinition(definitionId: UUID) async throws {
         let context = currentContext
         let definition = try await findDefinition(id: definitionId, context: context)
+
+        let occurrencesToDelete = try context.fetch(
+            RecurringPaymentQueries.occurrences(
+                predicate: #Predicate { $0.definitionId == definitionId }
+            )
+        )
+        if !occurrencesToDelete.isEmpty {
+            occurrencesToDelete.forEach { context.delete($0) }
+            try context.save()
+        }
+
         context.delete(definition)
         try context.save()
     }
@@ -183,7 +194,10 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         }
 
         plan.created.forEach { context.insert($0) }
-        plan.removed.forEach { context.delete($0) }
+        if !plan.removed.isEmpty {
+            plan.removed.forEach { context.delete($0) }
+            try context.save()
+        }
 
         definition.occurrences = plan.occurrences
         definition.updatedAt = now
@@ -225,7 +239,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         try context.save()
 
         return try await synchronize(
-            definitionId: occurrence.definition.id,
+            definitionId: occurrence.definitionId,
             horizonMonths: horizonMonths,
             referenceDate: currentDateProvider(),
         )
@@ -265,7 +279,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         }
 
         return try await synchronize(
-            definitionId: occurrence.definition.id,
+            definitionId: occurrence.definitionId,
             horizonMonths: horizonMonths,
             referenceDate: now,
         )

@@ -141,6 +141,19 @@ internal struct RecurringPaymentOccurrenceTests {
         #expect(!occurrence.isCompleted)
     }
 
+    @Test("definitionIdは初期化した定義IDを保持する")
+    internal func definitionIdMatchesInitialDefinition() {
+        let definition = sampleDefinition()
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
+            definition: definition,
+            scheduledDate: Date(),
+            expectedAmount: 200_000,
+            status: .saving,
+        )
+
+        #expect(occurrence.definitionId == definition.id)
+    }
+
     @Test("remainingAmountは実績金額を差し引いて計算する")
     internal func remainingAmountCalculation() {
         let definition = sampleDefinition()

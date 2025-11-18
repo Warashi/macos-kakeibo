@@ -6,6 +6,7 @@ internal final class SwiftDataRecurringPaymentOccurrence {
     internal var id: UUID
 
     internal var definition: SwiftDataRecurringPaymentDefinition
+    internal var definitionId: UUID
 
     internal var scheduledDate: Date
     internal var expectedAmount: Decimal
@@ -32,6 +33,7 @@ internal final class SwiftDataRecurringPaymentOccurrence {
     ) {
         self.id = id
         self.definition = definition
+        self.definitionId = definition.id
         self.scheduledDate = scheduledDate
         self.expectedAmount = expectedAmount
         self.status = status

@@ -50,7 +50,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
     internal func occurrences(query: RecurringPaymentOccurrenceQuery?) async throws -> [RecurringPaymentOccurrence] {
         var results = definitionsStorage.values.flatMap(\.occurrences)
         if let ids = query?.definitionIds {
-            results = results.filter { ids.contains($0.definition.id) }
+            results = results.filter { ids.contains($0.definitionId) }
         }
         if let range = query?.range {
             results = results.filter { $0.scheduledDate >= range.startDate && $0.scheduledDate <= range.endDate }
@@ -207,7 +207,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         }
 
         return try await synchronize(
-            definitionId: occurrence.definition.id,
+            definitionId: occurrence.definitionId,
             horizonMonths: horizonMonths,
             referenceDate: currentDateProvider(),
         )
@@ -244,7 +244,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         }
 
         return try await synchronize(
-            definitionId: occurrence.definition.id,
+            definitionId: occurrence.definitionId,
             horizonMonths: horizonMonths,
             referenceDate: now,
         )
