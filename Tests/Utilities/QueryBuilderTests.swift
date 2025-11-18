@@ -86,3 +86,74 @@ internal struct QueryBuilderTests {
         #expect(definitions.last?.name == "古い支払い")
     }
 }
+
+@Suite(.serialized)
+internal struct ModelContextObservationTests {
+    @Test("observe はメインアクタ外でスナップショットを配送する")
+    internal func observe_deliversSnapshotsOffMainActor() async throws {
+        let container = try ModelContainer.createInMemoryContainer()
+        let context = ModelContext(container)
+        let descriptor = TransactionQueries.allSorted()
+        let recorder = ObservationRecorder()
+
+        let token = context.observe(
+            descriptor: descriptor,
+            transform: { models in models.count },
+            onChange: { count in
+                let isMainThread = Thread.isMainThread
+                Task {
+                    await recorder.record(count: count, isMainThread: isMainThread)
+                }
+            }
+        )
+
+        context.insert(SwiftDataTransaction(date: Date(), title: "テスト", amount: -1000))
+        try context.save()
+
+        try? await Task.sleep(for: .milliseconds(100))
+        token.cancel()
+
+        let counts = await recorder.counts
+        #expect(counts.contains(1))
+        let flags = await recorder.mainThreadFlags
+        #expect(flags.contains(false))
+    }
+
+    @MainActor
+    @Test("observeOnMainActor は変換済みデータをUIスレッドへ配送する")
+    internal func observeOnMainActor_deliversTransformedData() async throws {
+        let container = try ModelContainer.createInMemoryContainer()
+        let context = ModelContext(container)
+        let descriptor = TransactionQueries.allSorted()
+        var receivedSnapshots: [[String]] = []
+
+        let token = context.observeOnMainActor(
+            descriptor: descriptor,
+            transform: { models in models.map(\.title) },
+            onChange: { titles in
+                receivedSnapshots.append(titles)
+                #expect(Thread.isMainThread)
+            }
+        )
+
+        context.insert(SwiftDataTransaction(date: Date(), title: "夕食", amount: -1500))
+        try context.save()
+
+        try? await Task.sleep(for: .milliseconds(100))
+        token.cancel()
+
+        #expect(receivedSnapshots.last == ["夕食"])
+    }
+}
+
+// MARK: - Helpers
+
+private actor ObservationRecorder {
+    private(set) var counts: [Int] = []
+    private(set) var mainThreadFlags: [Bool] = []
+
+    func record(count: Int, isMainThread: Bool) {
+        counts.append(count)
+        mainThreadFlags.append(isMainThread)
+    }
+}
