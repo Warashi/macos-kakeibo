@@ -1,6 +1,6 @@
 import CoreData
 import Foundation
-@preconcurrency import SwiftData
+import SwiftData
 
 // MARK: - ModelContext Extensions
 
@@ -94,7 +94,7 @@ private extension ModelContext {
         delivery: @escaping @Sendable (U) -> Void
     ) -> ObservationHandle {
         let worker = ModelObservationWorker(
-            context: UnsafeModelContext(value: self),
+            modelContainer: container,
             descriptor: descriptor,
             transform: transform,
             delivery: delivery
@@ -114,24 +114,21 @@ private extension ModelContext {
 
 // MARK: - Observation Worker
 
-private struct UnsafeModelContext: @unchecked Sendable {
-    let value: ModelContext
-}
-
 private actor ModelObservationWorker<Model: PersistentModel, Output: Sendable> {
-    private let context: UnsafeModelContext
+    private let modelContainer: ModelContainer
+    private lazy var context: ModelContext = ModelContext(modelContainer)
     private let descriptor: ModelFetchRequest<Model>
     private let transform: @Sendable ([Model]) -> Output
     private let delivery: @Sendable (Output) -> Void
     private var observationTask: Task<Void, Never>?
 
     init(
-        context: UnsafeModelContext,
+        modelContainer: ModelContainer,
         descriptor: ModelFetchRequest<Model>,
         transform: @escaping @Sendable ([Model]) -> Output,
         delivery: @escaping @Sendable (Output) -> Void
     ) {
-        self.context = context
+        self.modelContainer = modelContainer
         self.descriptor = descriptor
         self.transform = transform
         self.delivery = delivery
@@ -164,7 +161,7 @@ private actor ModelObservationWorker<Model: PersistentModel, Output: Sendable> {
 
     private func deliverSnapshot() {
         do {
-            let models = try context.value.fetch(descriptor)
+            let models = try context.fetch(descriptor)
             let output = transform(models)
             delivery(output)
         } catch {
