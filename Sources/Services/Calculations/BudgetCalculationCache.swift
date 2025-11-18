@@ -1,4 +1,5 @@
 import Foundation
+import os.lock
 
 // MARK: - Cache Keys
 
@@ -53,7 +54,7 @@ internal struct BudgetCalculationCacheMetrics: Sendable {
 
 // MARK: - Cache Storage
 
-internal final class BudgetCalculationCache: @unchecked Sendable {
+internal final class BudgetCalculationCache: Sendable {
     private struct StorageMetrics {
         var monthlyBudgetHits: Int = 0
         var monthlyBudgetMisses: Int = 0
@@ -80,55 +81,57 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
         ]
     }
 
-    private let lock: NSLock = NSLock()
-    private var monthlyBudgetCache: [MonthlyBudgetCacheKey: MonthlyBudgetCalculation] = [:]
-    private var recurringPaymentSavingsCache: [RecurringPaymentSavingsCacheKey: [RecurringPaymentSavingsCalculation]] =
-        [:]
-    private var monthlySavingsCache: [SavingsAllocationCacheKey: Decimal] = [:]
-    private var categorySavingsCache: [SavingsAllocationCacheKey: [UUID: Decimal]] = [:]
-    private var metrics: StorageMetrics = StorageMetrics()
+    private struct Storage {
+        var monthlyBudgetCache: [MonthlyBudgetCacheKey: MonthlyBudgetCalculation] = [:]
+        var recurringPaymentSavingsCache: [RecurringPaymentSavingsCacheKey: [RecurringPaymentSavingsCalculation]] = [:]
+        var monthlySavingsCache: [SavingsAllocationCacheKey: Decimal] = [:]
+        var categorySavingsCache: [SavingsAllocationCacheKey: [UUID: Decimal]] = [:]
+        var metrics: StorageMetrics = StorageMetrics()
+    }
+
+    private let storage = OSAllocatedUnfairLock(initialState: Storage())
 
     internal var metricsSnapshot: BudgetCalculationCacheMetrics {
-        lock.withLock {
+        storage.withLock { storage in
             BudgetCalculationCacheMetrics(
-                monthlyBudgetHits: metrics.monthlyBudgetHits,
-                monthlyBudgetMisses: metrics.monthlyBudgetMisses,
-                recurringPaymentHits: metrics.recurringPaymentHits,
-                recurringPaymentMisses: metrics.recurringPaymentMisses,
-                monthlySavingsHits: metrics.monthlySavingsHits,
-                monthlySavingsMisses: metrics.monthlySavingsMisses,
-                categorySavingsHits: metrics.categorySavingsHits,
-                categorySavingsMisses: metrics.categorySavingsMisses,
+                monthlyBudgetHits: storage.metrics.monthlyBudgetHits,
+                monthlyBudgetMisses: storage.metrics.monthlyBudgetMisses,
+                recurringPaymentHits: storage.metrics.recurringPaymentHits,
+                recurringPaymentMisses: storage.metrics.recurringPaymentMisses,
+                monthlySavingsHits: storage.metrics.monthlySavingsHits,
+                monthlySavingsMisses: storage.metrics.monthlySavingsMisses,
+                categorySavingsHits: storage.metrics.categorySavingsHits,
+                categorySavingsMisses: storage.metrics.categorySavingsMisses,
             )
         }
     }
 
     internal func cachedMonthlyBudget(for key: MonthlyBudgetCacheKey) -> MonthlyBudgetCalculation? {
-        lock.withLock {
-            if let value = monthlyBudgetCache[key] {
-                metrics.monthlyBudgetHits += 1
+        storage.withLock { storage in
+            if let value = storage.monthlyBudgetCache[key] {
+                storage.metrics.monthlyBudgetHits += 1
                 return value
             }
-            metrics.monthlyBudgetMisses += 1
+            storage.metrics.monthlyBudgetMisses += 1
             return nil
         }
     }
 
     internal func storeMonthlyBudget(_ value: MonthlyBudgetCalculation, for key: MonthlyBudgetCacheKey) {
-        lock.withLock {
-            monthlyBudgetCache[key] = value
+        storage.withLock { storage in
+            storage.monthlyBudgetCache[key] = value
         }
     }
 
     internal func cachedRecurringPaymentSavings(
         for key: RecurringPaymentSavingsCacheKey,
     ) -> [RecurringPaymentSavingsCalculation]? {
-        lock.withLock {
-            if let value = recurringPaymentSavingsCache[key] {
-                metrics.recurringPaymentHits += 1
+        storage.withLock { storage in
+            if let value = storage.recurringPaymentSavingsCache[key] {
+                storage.metrics.recurringPaymentHits += 1
                 return value
             }
-            metrics.recurringPaymentMisses += 1
+            storage.metrics.recurringPaymentMisses += 1
             return nil
         }
     }
@@ -137,37 +140,37 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
         _ value: [RecurringPaymentSavingsCalculation],
         for key: RecurringPaymentSavingsCacheKey,
     ) {
-        lock.withLock {
-            recurringPaymentSavingsCache[key] = value
+        storage.withLock { storage in
+            storage.recurringPaymentSavingsCache[key] = value
         }
     }
 
     internal func cachedMonthlySavingsAllocation(for key: SavingsAllocationCacheKey) -> Decimal? {
-        lock.withLock {
-            if let value = monthlySavingsCache[key] {
-                metrics.monthlySavingsHits += 1
+        storage.withLock { storage in
+            if let value = storage.monthlySavingsCache[key] {
+                storage.metrics.monthlySavingsHits += 1
                 return value
             }
-            metrics.monthlySavingsMisses += 1
+            storage.metrics.monthlySavingsMisses += 1
             return nil
         }
     }
 
     internal func storeMonthlySavingsAllocation(_ value: Decimal, for key: SavingsAllocationCacheKey) {
-        lock.withLock {
-            monthlySavingsCache[key] = value
+        storage.withLock { storage in
+            storage.monthlySavingsCache[key] = value
         }
     }
 
     internal func cachedCategorySavingsAllocation(
         for key: SavingsAllocationCacheKey,
     ) -> [UUID: Decimal]? {
-        lock.withLock {
-            if let value = categorySavingsCache[key] {
-                metrics.categorySavingsHits += 1
+        storage.withLock { storage in
+            if let value = storage.categorySavingsCache[key] {
+                storage.metrics.categorySavingsHits += 1
                 return value
             }
-            metrics.categorySavingsMisses += 1
+            storage.metrics.categorySavingsMisses += 1
             return nil
         }
     }
@@ -176,24 +179,24 @@ internal final class BudgetCalculationCache: @unchecked Sendable {
         _ value: [UUID: Decimal],
         for key: SavingsAllocationCacheKey,
     ) {
-        lock.withLock {
-            categorySavingsCache[key] = value
+        storage.withLock { storage in
+            storage.categorySavingsCache[key] = value
         }
     }
 
     internal func invalidate(targets: Target) {
-        lock.withLock {
+        storage.withLock { storage in
             if targets.contains(.monthlyBudget) {
-                monthlyBudgetCache.removeAll()
+                storage.monthlyBudgetCache.removeAll()
             }
             if targets.contains(.recurringPaymentSavings) {
-                recurringPaymentSavingsCache.removeAll()
+                storage.recurringPaymentSavingsCache.removeAll()
             }
             if targets.contains(.monthlySavings) {
-                monthlySavingsCache.removeAll()
+                storage.monthlySavingsCache.removeAll()
             }
             if targets.contains(.categorySavings) {
-                categorySavingsCache.removeAll()
+                storage.categorySavingsCache.removeAll()
             }
         }
     }
