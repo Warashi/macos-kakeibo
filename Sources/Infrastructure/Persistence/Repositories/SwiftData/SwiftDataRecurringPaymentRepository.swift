@@ -3,20 +3,10 @@ import SwiftData
 
 @ModelActor
 internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
-    private var contextOverride: ModelContext?
     private var scheduleService: RecurringPaymentScheduleService = RecurringPaymentScheduleService()
     private var currentDateProvider: () -> Date = { Date() }
 
-    private func makeContext() -> ModelContext {
-        if let contextOverride {
-            return contextOverride
-        }
-        return modelContext
-    }
-
-    internal func useSharedContext(_ context: ModelContext?) {
-        contextOverride = context
-    }
+    private var currentContext: ModelContext { modelContext }
 
     internal func useScheduleService(_ service: RecurringPaymentScheduleService) {
         scheduleService = service
@@ -43,7 +33,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
     // Convenience initializer removed to encourage ModelContainer-based usage.
 
     internal func definitions(filter: RecurringPaymentDefinitionFilter?) async throws -> [RecurringPaymentDefinition] {
-        let context = makeContext()
+        let context = currentContext
         let descriptor = RecurringPaymentQueries.definitions(
             predicate: definitionPredicate(for: filter),
         )
@@ -66,7 +56,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
     }
 
     internal func occurrences(query: RecurringPaymentOccurrenceQuery?) async throws -> [RecurringPaymentOccurrence] {
-        let context = makeContext()
+        let context = currentContext
         let descriptor = RecurringPaymentQueries.occurrences(
             predicate: occurrencePredicate(for: query),
         )
@@ -85,7 +75,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
     }
 
     internal func balances(query: RecurringPaymentBalanceQuery?) async throws -> [RecurringPaymentSavingBalance] {
-        let context = makeContext()
+        let context = currentContext
         let descriptor = RecurringPaymentQueries.balances(
             predicate: balancePredicate(for: query),
         )
@@ -95,7 +85,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
 
     @discardableResult
     internal func createDefinition(_ input: RecurringPaymentDefinitionInput) async throws -> UUID {
-        let context = makeContext()
+        let context = currentContext
         let category = try await resolvedCategory(id: input.categoryId, context: context)
 
         let definition = SwiftDataRecurringPaymentDefinition(
@@ -127,7 +117,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         definitionId: UUID,
         input: RecurringPaymentDefinitionInput,
     ) async throws {
-        let context = makeContext()
+        let context = currentContext
         let definition = try await findDefinition(id: definitionId, context: context)
         let category = try await resolvedCategory(id: input.categoryId, context: context)
 
@@ -154,7 +144,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
     }
 
     internal func deleteDefinition(definitionId: UUID) async throws {
-        let context = makeContext()
+        let context = currentContext
         let definition = try await findDefinition(id: definitionId, context: context)
         context.delete(definition)
         try context.save()
@@ -166,7 +156,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         horizonMonths: Int,
         referenceDate: Date? = nil,
     ) async throws -> RecurringPaymentSynchronizationSummary {
-        let context = makeContext()
+        let context = currentContext
         let definition = try await findDefinition(id: definitionId, context: context)
 
         guard definition.recurrenceIntervalMonths > 0 else {
@@ -214,7 +204,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
     ) async throws -> RecurringPaymentSynchronizationSummary {
-        let context = makeContext()
+        let context = currentContext
         let occurrence = try await findOccurrence(id: occurrenceId, context: context)
 
         occurrence.actualDate = input.actualDate
@@ -247,7 +237,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
     ) async throws -> RecurringPaymentSynchronizationSummary? {
-        let context = makeContext()
+        let context = currentContext
         let occurrence = try await findOccurrence(id: occurrenceId, context: context)
         let now = currentDateProvider()
         let wasCompleted = occurrence.status == .completed

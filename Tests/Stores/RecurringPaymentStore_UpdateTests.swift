@@ -10,7 +10,8 @@ internal struct RecurringPaymentStoreUpdateTests {
     @Test("実績更新：実績データを更新できる")
     internal func updateOccurrence_updatesActualData() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try await makeStore(referenceDate: referenceDate)
+        let (store, container) = try await makeStore(referenceDate: referenceDate)
+        let context = ModelContext(container)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
         let definition = SwiftDataRecurringPaymentDefinition(
@@ -22,8 +23,11 @@ internal struct RecurringPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
-        let occurrence = try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
+        let definitionId = definition.id
+        try await store.synchronizeOccurrences(definitionId: definitionId, horizonMonths: 12)
+        let occurrenceId = try withDefinition(id: definitionId, in: container) { definition in
+            try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate })).id
+        }
 
         let actualDate = try #require(Date.from(year: 2025, month: 3, day: 16))
         let input = OccurrenceUpdateInput(
@@ -33,19 +37,22 @@ internal struct RecurringPaymentStoreUpdateTests {
             transaction: nil,
         )
         try await store.updateOccurrence(
-            occurrenceId: occurrence.id,
+            occurrenceId: occurrenceId,
             input: input,
         )
 
-        #expect(occurrence.status == .completed)
-        #expect(occurrence.actualDate == actualDate)
-        #expect(occurrence.actualAmount == 48000)
+        try withOccurrence(id: occurrenceId, in: container) { occurrence in
+            #expect(occurrence.status == .completed)
+            #expect(occurrence.actualDate == actualDate)
+            #expect(occurrence.actualAmount == 48000)
+        }
     }
 
     @Test("実績更新：completedからplannedに戻すとスケジュール再計算される")
     internal func updateOccurrence_resyncsWhenStatusChangesFromCompleted() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try await makeStore(referenceDate: referenceDate)
+        let (store, container) = try await makeStore(referenceDate: referenceDate)
+        let context = ModelContext(container)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
         let definition = SwiftDataRecurringPaymentDefinition(
@@ -57,9 +64,12 @@ internal struct RecurringPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
-        let occurrence = try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
-        #expect(definition.occurrences.count == 2)
+        let definitionId = definition.id
+        try await store.synchronizeOccurrences(definitionId: definitionId, horizonMonths: 12)
+        let occurrenceId = try withDefinition(id: definitionId, in: container) { definition in
+            #expect(definition.occurrences.count == 2)
+            return try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate })).id
+        }
 
         let actualDate = try #require(Date.from(year: 2025, month: 3, day: 16))
         let completionInput = OccurrenceCompletionInput(
@@ -67,13 +77,14 @@ internal struct RecurringPaymentStoreUpdateTests {
             actualAmount: 50000,
         )
         try await store.markOccurrenceCompleted(
-            occurrenceId: occurrence.id,
+            occurrenceId: occurrenceId,
             input: completionInput,
             horizonMonths: 24,
         )
 
-        let occurrenceCountAfterCompleted = definition.occurrences.count
-        #expect(occurrenceCountAfterCompleted == 4)
+        try withDefinition(id: definitionId, in: container) { definition in
+            #expect(definition.occurrences.count == 4)
+        }
 
         let updateInput = OccurrenceUpdateInput(
             status: .planned,
@@ -82,22 +93,26 @@ internal struct RecurringPaymentStoreUpdateTests {
             transaction: nil,
         )
         try await store.updateOccurrence(
-            occurrenceId: occurrence.id,
+            occurrenceId: occurrenceId,
             input: updateInput,
             horizonMonths: 12,
         )
 
-        #expect(occurrence.status == .planned)
-        #expect(occurrence.actualDate == nil)
-        #expect(occurrence.actualAmount == nil)
-        let occurrenceCountAfterReverted = definition.occurrences.count
-        #expect(occurrenceCountAfterReverted == 2)
+        try withOccurrence(id: occurrenceId, in: container) { occurrence in
+            #expect(occurrence.status == .planned)
+            #expect(occurrence.actualDate == nil)
+            #expect(occurrence.actualAmount == nil)
+        }
+        try withDefinition(id: definitionId, in: container) { definition in
+            #expect(definition.occurrences.count == 2)
+        }
     }
 
     @Test("実績更新：plannedからcompletedに変更するとスケジュール再計算される")
     internal func updateOccurrence_resyncsWhenStatusChangesToCompleted() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try await makeStore(referenceDate: referenceDate)
+        let (store, container) = try await makeStore(referenceDate: referenceDate)
+        let context = ModelContext(container)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
         let definition = SwiftDataRecurringPaymentDefinition(
@@ -109,9 +124,16 @@ internal struct RecurringPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
-        let occurrence = try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
-        let occurrenceCountBefore = definition.occurrences.count
+        let definitionId = definition.id
+        try await store.synchronizeOccurrences(definitionId: definitionId, horizonMonths: 12)
+        let occurrenceId = try withDefinition(id: definitionId, in: container) { definition in
+            let occurrence = try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
+            #expect(definition.occurrences.count > 0)
+            return occurrence.id
+        }
+        let occurrenceCountBefore = try withDefinition(id: definitionId, in: container) { definition in
+            definition.occurrences.count
+        }
 
         let actualDate = try #require(Date.from(year: 2025, month: 3, day: 16))
         let input = OccurrenceUpdateInput(
@@ -121,19 +143,24 @@ internal struct RecurringPaymentStoreUpdateTests {
             transaction: nil,
         )
         try await store.updateOccurrence(
-            occurrenceId: occurrence.id,
+            occurrenceId: occurrenceId,
             input: input,
         )
 
-        #expect(occurrence.status == .completed)
-        let occurrenceCountAfter = definition.occurrences.count
+        try withOccurrence(id: occurrenceId, in: container) { occurrence in
+            #expect(occurrence.status == .completed)
+        }
+        let occurrenceCountAfter = try withDefinition(id: definitionId, in: container) { definition in
+            definition.occurrences.count
+        }
         #expect(occurrenceCountAfter > occurrenceCountBefore)
     }
 
     @Test("実績更新：completedのまま実績データだけ変更する場合はスケジュール再計算されない")
     internal func updateOccurrence_noResyncWhenOnlyActualDataChanges() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try await makeStore(referenceDate: referenceDate)
+        let (store, container) = try await makeStore(referenceDate: referenceDate)
+        let context = ModelContext(container)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
         let definition = SwiftDataRecurringPaymentDefinition(
@@ -145,8 +172,11 @@ internal struct RecurringPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
-        let occurrence = try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
+        let definitionId = definition.id
+        try await store.synchronizeOccurrences(definitionId: definitionId, horizonMonths: 12)
+        let occurrenceId = try withDefinition(id: definitionId, in: container) { definition in
+            try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate })).id
+        }
 
         let actualDate1 = try #require(Date.from(year: 2025, month: 3, day: 16))
         let completionInput = OccurrenceCompletionInput(
@@ -154,11 +184,13 @@ internal struct RecurringPaymentStoreUpdateTests {
             actualAmount: 50000,
         )
         try await store.markOccurrenceCompleted(
-            occurrenceId: occurrence.id,
+            occurrenceId: occurrenceId,
             input: completionInput,
         )
 
-        let occurrenceCountAfterCompleted = definition.occurrences.count
+        let occurrenceCountAfterCompleted = try withDefinition(id: definitionId, in: container) { definition in
+            definition.occurrences.count
+        }
 
         let actualDate2 = try #require(Date.from(year: 2025, month: 3, day: 17))
         let updateInput = OccurrenceUpdateInput(
@@ -168,19 +200,24 @@ internal struct RecurringPaymentStoreUpdateTests {
             transaction: nil,
         )
         try await store.updateOccurrence(
-            occurrenceId: occurrence.id,
+            occurrenceId: occurrenceId,
             input: updateInput,
         )
 
-        #expect(occurrence.actualDate == actualDate2)
-        #expect(occurrence.actualAmount == 48000)
-        #expect(definition.occurrences.count == occurrenceCountAfterCompleted)
+        try withOccurrence(id: occurrenceId, in: container) { occurrence in
+            #expect(occurrence.actualDate == actualDate2)
+            #expect(occurrence.actualAmount == 48000)
+        }
+        try withDefinition(id: definitionId, in: container) { definition in
+            #expect(definition.occurrences.count == occurrenceCountAfterCompleted)
+        }
     }
 
     @Test("実績更新：バリデーションエラー（完了状態で実績日なし）")
     internal func updateOccurrence_validationError_completedWithoutActualDate() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try await makeStore(referenceDate: referenceDate)
+        let (store, container) = try await makeStore(referenceDate: referenceDate)
+        let context = ModelContext(container)
 
         let firstDate = try #require(Date.from(year: 2025, month: 3, day: 15))
         let definition = SwiftDataRecurringPaymentDefinition(
@@ -192,8 +229,11 @@ internal struct RecurringPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
-        let occurrence = try #require(definition.occurrences.first)
+        let definitionId = definition.id
+        try await store.synchronizeOccurrences(definitionId: definitionId, horizonMonths: 12)
+        let occurrenceId = try withDefinition(id: definitionId, in: container) { definition in
+            try #require(definition.occurrences.first).id
+        }
 
         await #expect(throws: RecurringPaymentDomainError.self) {
             let input = OccurrenceUpdateInput(
@@ -203,7 +243,7 @@ internal struct RecurringPaymentStoreUpdateTests {
                 transaction: nil,
             )
             try await store.updateOccurrence(
-                occurrenceId: occurrence.id,
+                occurrenceId: occurrenceId,
                 input: input,
             )
         }
@@ -212,7 +252,8 @@ internal struct RecurringPaymentStoreUpdateTests {
     @Test("実績更新：実績日が予定日から90日以上ずれている場合の警告")
     internal func updateOccurrence_validationWarning_actualDateTooFarFromScheduled() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try await makeStore(referenceDate: referenceDate)
+        let (store, container) = try await makeStore(referenceDate: referenceDate)
+        let context = ModelContext(container)
 
         let scheduledDate = try #require(Date.from(year: 2025, month: 3, day: 15))
         let definition = SwiftDataRecurringPaymentDefinition(
@@ -224,8 +265,11 @@ internal struct RecurringPaymentStoreUpdateTests {
         context.insert(definition)
         try context.save()
 
-        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 12)
-        let occurrence = try #require(definition.occurrences.first)
+        let definitionId = definition.id
+        try await store.synchronizeOccurrences(definitionId: definitionId, horizonMonths: 12)
+        let occurrenceId = try withDefinition(id: definitionId, in: container) { definition in
+            try #require(definition.occurrences.first).id
+        }
 
         let farActualDate = try #require(Date.from(year: 2025, month: 7, day: 1))
 
@@ -237,7 +281,7 @@ internal struct RecurringPaymentStoreUpdateTests {
                 transaction: nil,
             )
             try await store.updateOccurrence(
-                occurrenceId: occurrence.id,
+                occurrenceId: occurrenceId,
                 input: input,
             )
         }
@@ -245,16 +289,42 @@ internal struct RecurringPaymentStoreUpdateTests {
 
     // MARK: - Helpers
 
-    private func makeStore(referenceDate: Date) async throws -> (RecurringPaymentStore, ModelContext) {
+    private func makeStore(referenceDate: Date) async throws -> (RecurringPaymentStore, ModelContainer) {
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
         let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
         await repository.useCurrentDateProvider { referenceDate }
-        await repository.useSharedContext(context)
         let store = RecurringPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },
         )
-        return (store, context)
+        return (store, container)
+    }
+}
+
+private extension RecurringPaymentStoreUpdateTests {
+    func withDefinition<T>(
+        id: UUID,
+        in container: ModelContainer,
+        _ body: (SwiftDataRecurringPaymentDefinition) throws -> T
+    ) throws -> T {
+        let context = ModelContext(container)
+        let descriptor = RecurringPaymentQueries.definitions(
+            predicate: #Predicate { $0.id == id }
+        )
+        let definition = try #require(context.fetch(descriptor).first)
+        return try body(definition)
+    }
+
+    func withOccurrence<T>(
+        id: UUID,
+        in container: ModelContainer,
+        _ body: (SwiftDataRecurringPaymentOccurrence) throws -> T
+    ) throws -> T {
+        let context = ModelContext(container)
+        let descriptor = RecurringPaymentQueries.occurrences(
+            predicate: #Predicate { $0.id == id }
+        )
+        let occurrence = try #require(context.fetch(descriptor).first)
+        return try body(occurrence)
     }
 }

@@ -10,7 +10,8 @@ internal struct RecurringPaymentStoreDayPatternTests {
     @Test("定義作成：recurrenceDayPatternを指定して作成")
     internal func createDefinition_withRecurrenceDayPattern() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try await makeStore(referenceDate: referenceDate)
+        let (store, container) = try await makeStore(referenceDate: referenceDate)
+        let context = ModelContext(container)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         let input = RecurringPaymentDefinitionInput(
@@ -43,7 +44,8 @@ internal struct RecurringPaymentStoreDayPatternTests {
     @Test("定義作成：dateAdjustmentPolicyを指定して作成")
     internal func createDefinition_withDateAdjustmentPolicy() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try await makeStore(referenceDate: referenceDate)
+        let (store, container) = try await makeStore(referenceDate: referenceDate)
+        let context = ModelContext(container)
 
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
         let input = RecurringPaymentDefinitionInput(
@@ -73,9 +75,9 @@ internal struct RecurringPaymentStoreDayPatternTests {
     @Test("定義更新：recurrenceDayPatternを変更")
     internal func updateDefinition_changesRecurrenceDayPattern() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try await makeStore(referenceDate: referenceDate)
-
+        let (store, container) = try await makeStore(referenceDate: referenceDate)
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
+        let context = ModelContext(container)
         let definition = SwiftDataRecurringPaymentDefinition(
             name: "給料日",
             amount: 250_000,
@@ -85,8 +87,9 @@ internal struct RecurringPaymentStoreDayPatternTests {
         )
         context.insert(definition)
         try context.save()
+        let definitionId = definition.id
 
-        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 6)
+        try await store.synchronizeOccurrences(definitionId: definitionId, horizonMonths: 6)
 
         // パターンを月末に変更
         let input = RecurringPaymentDefinitionInput(
@@ -102,20 +105,25 @@ internal struct RecurringPaymentStoreDayPatternTests {
             dateAdjustmentPolicy: .none,
             recurrenceDayPattern: .endOfMonth,
         )
-        try await store.updateDefinition(definitionId: definition.id, input: input, horizonMonths: 6)
+        try await store.updateDefinition(definitionId: definitionId, input: input, horizonMonths: 6)
 
-        #expect(definition.recurrenceDayPattern == .endOfMonth)
-        #expect(definition.notes == "月末払いに変更")
+        let verificationContext = ModelContext(container)
+        let descriptor = RecurringPaymentQueries.definitions(
+            predicate: #Predicate { $0.id == definitionId }
+        )
+        let updatedDefinition = try #require(verificationContext.fetch(descriptor).first)
+        #expect(updatedDefinition.recurrenceDayPattern == .endOfMonth)
+        #expect(updatedDefinition.notes == "月末払いに変更")
         // スケジュールが再生成されることを確認
-        #expect(!definition.occurrences.isEmpty)
+        #expect(!updatedDefinition.occurrences.isEmpty)
     }
 
     @Test("定義更新：dateAdjustmentPolicyを変更")
     internal func updateDefinition_changesDateAdjustmentPolicy() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let (store, context) = try await makeStore(referenceDate: referenceDate)
-
+        let (store, container) = try await makeStore(referenceDate: referenceDate)
         let firstOccurrence = try #require(Date.from(year: 2025, month: 6, day: 1))
+        let context = ModelContext(container)
         let definition = SwiftDataRecurringPaymentDefinition(
             name: "家賃",
             amount: 100_000,
@@ -125,8 +133,9 @@ internal struct RecurringPaymentStoreDayPatternTests {
         )
         context.insert(definition)
         try context.save()
+        let definitionId = definition.id
 
-        try await store.synchronizeOccurrences(definitionId: definition.id, horizonMonths: 6)
+        try await store.synchronizeOccurrences(definitionId: definitionId, horizonMonths: 6)
 
         // ポリシーを変更
         let input = RecurringPaymentDefinitionInput(
@@ -142,24 +151,27 @@ internal struct RecurringPaymentStoreDayPatternTests {
             dateAdjustmentPolicy: .moveToNextBusinessDay,
             recurrenceDayPattern: nil,
         )
-        try await store.updateDefinition(definitionId: definition.id, input: input, horizonMonths: 6)
+        try await store.updateDefinition(definitionId: definitionId, input: input, horizonMonths: 6)
 
-        #expect(definition.dateAdjustmentPolicy == .moveToNextBusinessDay)
-        #expect(definition.notes == "休日の場合は翌営業日払い")
+        let verificationContext = ModelContext(container)
+        let descriptor = RecurringPaymentQueries.definitions(
+            predicate: #Predicate { $0.id == definitionId }
+        )
+        let updatedDefinition = try #require(verificationContext.fetch(descriptor).first)
+        #expect(updatedDefinition.dateAdjustmentPolicy == .moveToNextBusinessDay)
+        #expect(updatedDefinition.notes == "休日の場合は翌営業日払い")
     }
 
     // MARK: - Helpers
 
-    private func makeStore(referenceDate: Date) async throws -> (RecurringPaymentStore, ModelContext) {
+    private func makeStore(referenceDate: Date) async throws -> (RecurringPaymentStore, ModelContainer) {
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
         let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
         await repository.useCurrentDateProvider { referenceDate }
-        await repository.useSharedContext(context)
         let store = RecurringPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },
         )
-        return (store, context)
+        return (store, container)
     }
 }
