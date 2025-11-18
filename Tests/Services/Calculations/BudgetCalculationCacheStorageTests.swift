@@ -144,4 +144,38 @@ internal struct BudgetCalculationCacheStorageTests {
         #expect(metrics.categorySavingsMisses == 1)
         #expect(metrics.categorySavingsHits == 1)
     }
+
+    @Test("キャッシュは並列操作でもクラッシュしない")
+    internal func supportsConcurrentAccess() async throws {
+        let cache = BudgetCalculationCache()
+        let filter = FilterSignature(filter: .default)
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for offset in 0..<50 {
+                let key = MonthlyBudgetCacheKey(
+                    year: 2025,
+                    month: (offset % 12) + 1,
+                    filter: filter,
+                    excludedCategoriesSignature: offset,
+                    transactionsVersion: offset,
+                    budgetsVersion: offset,
+                )
+                group.addTask {
+                    let calculation = MonthlyBudgetCalculation(
+                        year: key.year,
+                        month: key.month,
+                        overallCalculation: nil,
+                        categoryCalculations: [],
+                    )
+                    cache.storeMonthlyBudget(calculation, for: key)
+                }
+                group.addTask {
+                    _ = cache.cachedMonthlyBudget(for: key)
+                }
+            }
+            try await group.waitForAll()
+        }
+
+        let metrics = cache.metricsSnapshot
+        #expect(metrics.monthlyBudgetHits + metrics.monthlyBudgetMisses >= 50)
+    }
 }
