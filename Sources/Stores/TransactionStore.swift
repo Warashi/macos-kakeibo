@@ -6,8 +6,9 @@ import Observation
 /// - 検索やフィルタの状態管理
 /// - 取引のCRUD操作
 /// - 金額サマリの計算
+@MainActor
 @Observable
-internal final class TransactionStore: @unchecked Sendable {
+internal final class TransactionStore {
     // MARK: - Nested Types
 
     /// 日毎の取引セクション
@@ -33,44 +34,44 @@ internal final class TransactionStore: @unchecked Sendable {
     internal var transactions: [Transaction] = []
     internal var searchText: String = "" {
         didSet {
-            Task { await reloadTransactions() }
+            scheduleTransactionsReload()
         }
     }
 
     internal var selectedFilterKind: TransactionFilterKind = .all {
         didSet {
-            Task { await reloadTransactions() }
+            scheduleTransactionsReload()
         }
     }
 
     internal var selectedInstitutionId: UUID? {
         didSet {
-            Task { await reloadTransactions() }
+            scheduleTransactionsReload()
         }
     }
 
     internal var categoryFilter: CategoryFilterState = .init() {
         didSet {
             guard oldValue != categoryFilter else { return }
-            Task { await reloadTransactions() }
+            scheduleTransactionsReload()
         }
     }
 
     internal var includeOnlyCalculationTarget: Bool = true {
         didSet {
-            Task { await reloadTransactions() }
+            scheduleTransactionsReload()
         }
     }
 
     internal var excludeTransfers: Bool = true {
         didSet {
-            Task { await reloadTransactions() }
+            scheduleTransactionsReload()
         }
     }
 
     internal var sortOption: TransactionSortOption = .dateDescending {
         didSet {
-            Task { await reloadTransactions() }
+            scheduleTransactionsReload()
         }
     }
 
@@ -81,7 +82,7 @@ internal final class TransactionStore: @unchecked Sendable {
                 currentMonth = normalized
                 return
             }
-            Task { await reloadTransactions() }
+            scheduleTransactionsReload()
         }
     }
 
@@ -94,7 +95,6 @@ internal final class TransactionStore: @unchecked Sendable {
     internal var formState: TransactionFormState
     internal var formErrors: [String] = []
 
-    @MainActor
     private var referenceData: TransactionReferenceData {
         TransactionReferenceData(institutions: availableInstitutions, categories: availableCategories)
     }
@@ -114,7 +114,7 @@ internal final class TransactionStore: @unchecked Sendable {
         let now = clock()
         self.currentMonth = now.startOfMonth
         self.formState = .empty(defaultDate: now)
-        initialRefreshTask = Task { [weak self] in
+        initialRefreshTask = Task { @MainActor [weak self] in
             await self?.performRefresh()
         }
     }
@@ -204,25 +204,21 @@ internal extension TransactionStore {
     }
 
     /// 月を前に移動
-    @MainActor
     func moveToPreviousMonth() {
         updateCurrentMonthNavigator { $0.moveToPreviousMonth() }
     }
 
     /// 月を次に移動
-    @MainActor
     func moveToNextMonth() {
         updateCurrentMonthNavigator { $0.moveToNextMonth() }
     }
 
     /// 今月に戻る
-    @MainActor
     func moveToCurrentMonth() {
         updateCurrentMonthNavigator { $0.moveToCurrentMonth() }
     }
 
     /// フィルタを初期状態に戻す
-    @MainActor
     func resetFilters() {
         searchText = ""
         selectedFilterKind = .all
@@ -234,7 +230,6 @@ internal extension TransactionStore {
     }
 
     /// 新規作成モードに切り替え
-    @MainActor
     func prepareForNewTransaction() {
         editingTransactionId = nil
         let today = clock()
@@ -245,7 +240,6 @@ internal extension TransactionStore {
     }
 
     /// 既存取引の編集を開始
-    @MainActor
     func startEditing(transaction: Transaction) {
         editingTransactionId = transaction.id
         formState = .from(transaction: transaction)
@@ -254,7 +248,6 @@ internal extension TransactionStore {
     }
 
     /// 編集をキャンセル
-    @MainActor
     func cancelEditing() {
         editingTransactionId = nil
         isEditorPresented = false
@@ -262,7 +255,6 @@ internal extension TransactionStore {
     }
 
     /// 中項目選択の整合性を確保
-    @MainActor
     func ensureMinorCategoryConsistency() {
         guard let majorId = formState.majorCategoryId else {
             formState.minorCategoryId = nil
@@ -278,30 +270,24 @@ internal extension TransactionStore {
     /// フォーム内容を保存
     @discardableResult
     func saveCurrentForm() async -> Bool {
-        let (state, editingId, reference) = await MainActor.run {
-            (formState, editingTransactionId, referenceData)
-        }
+        let state = formState
+        let editingId = editingTransactionId
+        let reference = referenceData
         do {
             try await formUseCase.save(
                 state: state,
                 editingTransactionId: editingId,
                 referenceData: reference,
             )
-            await MainActor.run {
-                formErrors = []
-                isEditorPresented = false
-            }
+            formErrors = []
+            isEditorPresented = false
             await refresh()
             return true
         } catch let error as TransactionFormError {
-            await MainActor.run {
-                formErrors = error.messages
-            }
+            formErrors = error.messages
             return false
         } catch {
-            await MainActor.run {
-                formErrors = ["保存に失敗しました: \(error.localizedDescription)"]
-            }
+            formErrors = ["保存に失敗しました: \(error.localizedDescription)"]
             return false
         }
     }
@@ -311,21 +297,15 @@ internal extension TransactionStore {
     func deleteTransaction(_ transactionId: UUID) async -> Bool {
         do {
             try await formUseCase.delete(transactionId: transactionId)
-            await MainActor.run {
-                formErrors = []
-            }
+            formErrors = []
             await reloadTransactions()
             await refresh()
             return true
         } catch let error as TransactionFormError {
-            await MainActor.run {
-                formErrors = error.messages
-            }
+            formErrors = error.messages
             return false
         } catch {
-            await MainActor.run {
-                formErrors = ["削除に失敗しました: \(error.localizedDescription)"]
-            }
+            formErrors = ["削除に失敗しました: \(error.localizedDescription)"]
             return false
         }
     }
@@ -339,7 +319,6 @@ private extension TransactionStore {
         await reloadTransactions()
     }
 
-    @MainActor
     private func updateCurrentMonthNavigator(_ update: (inout MonthNavigator) -> Void) {
         var navigator = monthAdapter.makeNavigator(
             from: currentMonth,
@@ -353,51 +332,39 @@ private extension TransactionStore {
     func loadReferenceData() async {
         do {
             let reference = try await listUseCase.loadReferenceData()
-            await MainActor.run {
-                availableInstitutions = reference.institutions
-                availableCategories = reference.categories
-                listErrorMessage = nil
-            }
+            availableInstitutions = reference.institutions
+            availableCategories = reference.categories
+            listErrorMessage = nil
         } catch {
-            await MainActor.run {
-                availableInstitutions = []
-                availableCategories = []
-                listErrorMessage = "参照データの読み込みに失敗しました: \(error.localizedDescription)"
-            }
+            availableInstitutions = []
+            availableCategories = []
+            listErrorMessage = "参照データの読み込みに失敗しました: \(error.localizedDescription)"
         }
     }
 
     func reloadTransactions() async {
-        let filter = await MainActor.run { self.makeFilter() }
-        await MainActor.run {
-            transactionsHandle?.cancel()
-            transactionsHandle = nil
-        }
+        let filter = makeFilter()
+        transactionsHandle?.cancel()
+        transactionsHandle = nil
         do {
             let handle = try await listUseCase.observeTransactions(filter: filter) { [weak self] result in
                 Task { @MainActor in
                     self?.applyTransactions(result)
                 }
             }
-            await MainActor.run {
-                transactionsHandle = handle
-            }
+            transactionsHandle = handle
         } catch {
-            await MainActor.run {
-                transactionsHandle = nil
-                transactions = []
-                listErrorMessage = "取引の読み込みに失敗しました: \(error.localizedDescription)"
-            }
+            transactionsHandle = nil
+            transactions = []
+            listErrorMessage = "取引の読み込みに失敗しました: \(error.localizedDescription)"
         }
     }
 
-    @MainActor
     private func applyTransactions(_ result: [Transaction]) {
         transactions = result
         listErrorMessage = nil
     }
 
-    @MainActor
     private func makeFilter() -> TransactionListFilter {
         TransactionListFilter(
             month: currentMonth,
@@ -409,5 +376,12 @@ private extension TransactionStore {
             excludeTransfers: excludeTransfers,
             sortOption: sortOption,
         )
+    }
+
+    private func scheduleTransactionsReload() {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.reloadTransactions()
+        }
     }
 }
