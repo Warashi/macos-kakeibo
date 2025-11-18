@@ -105,7 +105,7 @@ private struct CSVImportContentView: View {
             Spacer()
 
             Button(store.nextButtonTitle) {
-                Task {
+                Task.detached(priority: .userInitiated) {
                     await store.handleNextAction()
                 }
             }
@@ -191,7 +191,9 @@ private struct CSVFileSelectionStepView: View {
             switch result {
             case let .success(urls):
                 guard let url = urls.first else { return }
-                Task { await store.loadFile(from: url) }
+                Task.detached(priority: .userInitiated) {
+                    await store.loadFile(from: url)
+                }
             case let .failure(error):
                 store.presentError(error.localizedDescription)
             }

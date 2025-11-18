@@ -1,7 +1,6 @@
 @testable import Kakeibo
 import XCTest
 
-@MainActor
 internal final class SecurityScopedResourceAccessTests: XCTestCase {
     internal func testPerformExecutesWorkAndStopsAccessWhenStarted() throws {
         let url = URL(fileURLWithPath: "/tmp/test.csv")
@@ -42,9 +41,45 @@ internal final class SecurityScopedResourceAccessTests: XCTestCase {
         XCTAssertEqual(controller.startCalls, [url])
         XCTAssertEqual(controller.stopCalls, [url])
     }
+
+    internal func testPerformStopsAccessEvenWhenWorkThrows() {
+        enum SampleError: Error {
+            case failure
+        }
+        let url = URL(fileURLWithPath: "/tmp/failure.csv")
+        let controller = MockResourceAccessController(startResult: true)
+
+        XCTAssertThrowsError(
+            try SecurityScopedResourceAccess.perform(with: url, controller: controller) {
+                throw SampleError.failure
+            },
+            "perform should propagate the thrown error"
+        ) { error in
+            XCTAssertTrue(error is SampleError)
+        }
+
+        XCTAssertEqual(controller.startCalls, [url])
+        XCTAssertEqual(controller.stopCalls, [url])
+    }
+
+    internal func testPerformAsyncCanRunOffMainActor() async throws {
+        let url = URL(fileURLWithPath: "/tmp/detached.csv")
+        let controller = MockResourceAccessController(startResult: true)
+
+        let (isMainThread, value) = try await Task.detached(priority: .userInitiated) {
+            try await SecurityScopedResourceAccess.performAsync(with: url, controller: controller) {
+                (Thread.isMainThread, 7)
+            }
+        }.value
+
+        XCTAssertFalse(isMainThread, "work closure should not require MainActor")
+        XCTAssertEqual(value, 7)
+        XCTAssertEqual(controller.startCalls, [url])
+        XCTAssertEqual(controller.stopCalls, [url])
+    }
 }
 
-private final class MockResourceAccessController: SecurityScopedResourceAccessControlling {
+private final class MockResourceAccessController: SecurityScopedResourceAccessControlling, @unchecked Sendable {
     private let startResult: Bool
     private(set) var startCalls: [URL] = []
     private(set) var stopCalls: [URL] = []

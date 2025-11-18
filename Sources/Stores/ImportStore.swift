@@ -53,15 +53,18 @@ internal final class ImportStore: @unchecked Sendable {
         }
 
         let configuration = await MainActor.run { self.configuration }
+        let parser = self.parser
 
         do {
-            let document = try await SecurityScopedResourceAccess.performAsync(with: url) {
-                let data = try Data(contentsOf: url)
-                return try parser.parse(
-                    data: data,
-                    configuration: configuration,
-                )
-            }
+            let document = try await Task.detached(priority: .userInitiated) {
+                try await SecurityScopedResourceAccess.performAsync(with: url) {
+                    let data = try Data(contentsOf: url)
+                    return try parser.parse(
+                        data: data,
+                        configuration: configuration,
+                    )
+                }
+            }.value
             await MainActor.run {
                 self.applyDocument(document, fileName: url.lastPathComponent)
                 self.statusMessage = "\(url.lastPathComponent) を読み込みました"
