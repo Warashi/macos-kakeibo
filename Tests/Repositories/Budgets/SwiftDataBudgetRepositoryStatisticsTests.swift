@@ -8,9 +8,7 @@ internal struct SwiftDataBudgetRepositoryStatisticsTests {
     @Test("各エンティティの件数をカウントできる")
     internal func countsRecords() async throws {
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
         let repository = SwiftDataBudgetRepository(modelContainer: container)
-        await repository.useSharedContext(context)
 
         #expect(try await repository.countCategories() == 0)
         #expect(try await repository.countFinancialInstitutions() == 0)

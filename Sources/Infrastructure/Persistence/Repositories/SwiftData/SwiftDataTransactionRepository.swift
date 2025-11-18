@@ -3,15 +3,7 @@ import SwiftData
 
 @ModelActor
 internal actor SwiftDataTransactionRepository: TransactionRepository {
-    private var contextOverride: ModelContext?
-
-    private var context: ModelContext {
-        contextOverride ?? modelContext
-    }
-
-    internal func useSharedContext(_ context: ModelContext?) {
-        contextOverride = context
-    }
+    private var context: ModelContext { modelContext }
 
     internal func fetchTransactions(query: TransactionQuery) async throws -> [Transaction] {
         let transactions = try context.fetch(TransactionQueries.list(query: query))

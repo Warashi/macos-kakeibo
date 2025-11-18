@@ -66,7 +66,6 @@ private extension SwiftDataBudgetRepositoryCategoryInstitutionTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = SwiftDataBudgetRepository(modelContainer: container)
-        await repository.useSharedContext(context)
         return (repository, context)
     }
 }

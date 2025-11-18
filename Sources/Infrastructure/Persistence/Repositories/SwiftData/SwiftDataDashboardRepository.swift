@@ -3,15 +3,7 @@ import SwiftData
 
 @ModelActor
 internal actor SwiftDataDashboardRepository: DashboardRepository {
-    private var contextOverride: ModelContext?
-
-    private var context: ModelContext {
-        contextOverride ?? modelContext
-    }
-
-    internal func useSharedContext(_ context: ModelContext?) {
-        contextOverride = context
-    }
+    private var context: ModelContext { modelContext }
 
     internal func fetchSnapshot(year: Int, month: Int) async throws -> DashboardSnapshot {
         let monthlyTransactions = try await fetchTransactions(

@@ -8,9 +8,8 @@ import Testing
 internal struct BudgetMutationUseCaseTests {
     @Test("月次予算を追加できる")
     internal func addsBudget() async throws {
-        let (container, context) = try makeContainerAndContext()
+        let (container, _) = try makeContainerAndContext()
         let repository = SwiftDataBudgetRepository(modelContainer: container)
-        await repository.useSharedContext(context)
         let useCase = DefaultBudgetMutationUseCase(repository: repository)
 
         let input = BudgetInput(
@@ -32,7 +31,6 @@ internal struct BudgetMutationUseCaseTests {
     internal func updatesBudget() async throws {
         let (container, context) = try makeContainerAndContext()
         let repository = SwiftDataBudgetRepository(modelContainer: container)
-        await repository.useSharedContext(context)
         let useCase = DefaultBudgetMutationUseCase(repository: repository)
         let category = SwiftDataCategory(name: "食費", displayOrder: 1)
         context.insert(category)
@@ -51,16 +49,17 @@ internal struct BudgetMutationUseCaseTests {
         let budgetModel = Budget(from: budget)
         try await useCase.updateBudget(budgetModel, input: input)
 
-        #expect(budget.amount == 6000)
-        #expect(budget.category?.id == category.id)
-        #expect(budget.endMonth == 12)
+        let snapshot = try await repository.fetchSnapshot(for: 2025)
+        let updated = try #require(snapshot.budgets.first { $0.id == budgetModel.id })
+        #expect(updated.amount == 6000)
+        #expect(updated.categoryId == category.id)
+        #expect(updated.endMonth == 12)
     }
 
     @Test("年次特別枠を新規登録できる")
     internal func upsertsAnnualBudgetConfig() async throws {
         let (container, context) = try makeContainerAndContext()
         let repository = SwiftDataBudgetRepository(modelContainer: container)
-        await repository.useSharedContext(context)
         let useCase = DefaultBudgetMutationUseCase(repository: repository)
         let category = SwiftDataCategory(name: "教育費", allowsAnnualBudget: true, displayOrder: 1)
         context.insert(category)
@@ -84,9 +83,8 @@ internal struct BudgetMutationUseCaseTests {
 
     @Test("不正な期間はエラーになる")
     internal func invalidPeriodThrows() async throws {
-        let (container, context) = try makeContainerAndContext()
+        let (container, _) = try makeContainerAndContext()
         let repository = SwiftDataBudgetRepository(modelContainer: container)
-        await repository.useSharedContext(context)
         let useCase = DefaultBudgetMutationUseCase(repository: repository)
 
         let input = BudgetInput(

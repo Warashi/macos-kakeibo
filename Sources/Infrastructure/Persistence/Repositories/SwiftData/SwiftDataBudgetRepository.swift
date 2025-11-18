@@ -3,18 +3,11 @@ import SwiftData
 
 @ModelActor
 internal actor SwiftDataBudgetRepository: BudgetRepository {
-    private var contextOverride: ModelContext?
     private lazy var recurringPaymentRepository: RecurringPaymentRepository = SwiftDataRecurringPaymentRepository(
         modelContainer: modelContainer
     )
 
-    private var context: ModelContext {
-        contextOverride ?? modelContext
-    }
-
-    internal func useSharedContext(_ context: ModelContext?) {
-        contextOverride = context
-    }
+    private var context: ModelContext { modelContext }
 
     internal func fetchSnapshot(for year: Int) async throws -> BudgetSnapshot {
         let budgets = try context.fetch(BudgetQueries.allBudgets())

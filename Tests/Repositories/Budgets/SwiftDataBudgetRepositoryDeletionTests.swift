@@ -8,9 +8,7 @@ internal struct SwiftDataBudgetRepositoryDeletionTests {
     @Test("全削除APIで関連データを消せる")
     internal func deletesAllRecords() async throws {
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
         let repository = SwiftDataBudgetRepository(modelContainer: container)
-        await repository.useSharedContext(context)
 
         let budgetInput = BudgetInput(
             amount: Decimal(20000),
