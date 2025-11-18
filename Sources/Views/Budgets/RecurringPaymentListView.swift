@@ -92,22 +92,22 @@ internal struct RecurringPaymentListContentView: View {
             store.categoryFilter.updateCategories(domainCategories)
         }
         .onChange(of: store.dateRange) { [store] _, _ in
-            Task { @MainActor in await store.refreshEntries() }
+            Task { await store.refreshEntries() }
         }
         .onChange(of: store.searchText) { [store] _, _ in
-            Task { @MainActor in await store.refreshEntries() }
+            Task { await store.refreshEntries() }
         }
         .onChange(of: store.categoryFilter.selectedMajorCategoryId) { [store] _, _ in
-            Task { @MainActor in await store.refreshEntries() }
+            Task { await store.refreshEntries() }
         }
         .onChange(of: store.categoryFilter.selectedMinorCategoryId) { [store] _, _ in
-            Task { @MainActor in await store.refreshEntries() }
+            Task { await store.refreshEntries() }
         }
         .onChange(of: store.selectedStatus) { [store] _, _ in
-            Task { @MainActor in await store.refreshEntries() }
+            Task { await store.refreshEntries() }
         }
         .onChange(of: store.sortOrder) { [store] _, _ in
-            Task { @MainActor in await store.refreshEntries() }
+            Task { await store.refreshEntries() }
         }
     }
 

@@ -5,9 +5,16 @@ import Observation
 
 /// 定期支払い一覧表示用のストア
 @Observable
-@MainActor
-internal final class RecurringPaymentListStore {
+internal final class RecurringPaymentListStore: @unchecked Sendable {
     internal typealias SortOrder = RecurringPaymentListSortOrder
+
+    private struct EntriesRequestState {
+        let dateRange: DateRange
+        let searchText: String
+        let categorySelection: CategoryFilterState.Selection
+        let selectedStatus: RecurringPaymentStatus?
+        let sortOrder: SortOrder
+    }
 
     // MARK: - Dependencies
 
@@ -61,18 +68,30 @@ internal final class RecurringPaymentListStore {
 
     /// フィルタリング・ソート済みのエントリ一覧
     internal func entries() async -> [RecurringPaymentListEntry] {
+        let requestState = await MainActor.run {
+            EntriesRequestState(
+                dateRange: dateRange,
+                searchText: searchText,
+                categorySelection: categoryFilter.selection,
+                selectedStatus: selectedStatus,
+                sortOrder: sortOrder
+            )
+        }
         let now = currentDateProvider()
-        let occurrences = await fetchOccurrences()
+        let occurrences = await fetchOccurrences(
+            dateRange: requestState.dateRange,
+            selectedStatus: requestState.selectedStatus
+        )
         let definitions = await fetchDefinitions()
         let balances = await balanceLookup(for: Array(definitions.keys))
         let categories = await fetchCategoryNames(from: definitions)
-        let filter = RecurringPaymentListFilter(
-            dateRange: dateRange,
-            searchText: SearchText(searchText),
-            categoryFilter: categoryFilter.selection,
-            sortOrder: sortOrder,
-        )
         await updateCategoryOptionsIfNeeded(from: definitions, categories: categories)
+        let filter = RecurringPaymentListFilter(
+            dateRange: requestState.dateRange,
+            searchText: SearchText(requestState.searchText),
+            categoryFilter: requestState.categorySelection,
+            sortOrder: requestState.sortOrder,
+        )
 
         return presenter.entries(
             input: RecurringPaymentListPresenter.EntriesInput(
@@ -88,12 +107,16 @@ internal final class RecurringPaymentListStore {
 
     /// キャッシュを更新
     internal func refreshEntries() async {
-        cachedEntries = await entries()
+        let entries = await self.entries()
+        await MainActor.run {
+            self.cachedEntries = entries
+        }
     }
 
     // MARK: - Actions
 
     /// フィルタをリセット
+    @MainActor
     internal func resetFilters() {
         searchText = ""
         categoryFilter.reset()
@@ -107,13 +130,17 @@ internal final class RecurringPaymentListStore {
     }
 
     /// ソート順を切り替え
+    @MainActor
     internal func toggleSort(by order: SortOrder) {
         sortOrder = order
     }
 
     // MARK: - Helper Methods
 
-    private func fetchOccurrences() async -> [RecurringPaymentOccurrence] {
+    private func fetchOccurrences(
+        dateRange: DateRange,
+        selectedStatus: RecurringPaymentStatus?
+    ) async -> [RecurringPaymentOccurrence] {
         let range = RecurringPaymentOccurrenceRange(
             startDate: dateRange.startDate,
             endDate: dateRange.endDate,
@@ -149,6 +176,7 @@ internal final class RecurringPaymentListStore {
         return categoryNames
     }
 
+    @MainActor
     private func updateCategoryOptionsIfNeeded(
         from definitions: [UUID: RecurringPaymentDefinition],
         categories: [UUID: String],
