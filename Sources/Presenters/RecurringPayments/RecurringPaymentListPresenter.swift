@@ -16,7 +16,7 @@ internal struct RecurringPaymentListFilter {
     internal let sortOrder: RecurringPaymentListSortOrder
 }
 
-internal struct RecurringPaymentListPresenter {
+internal struct RecurringPaymentListPresenter: Sendable {
     private let calendar: Calendar
 
     internal init(calendar: Calendar = Calendar(identifier: .gregorian)) {
