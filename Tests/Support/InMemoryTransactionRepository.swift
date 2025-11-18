@@ -51,10 +51,10 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
     internal func observeTransactions(
         query: TransactionQuery,
         onChange: @escaping @Sendable ([Transaction]) -> Void
-    ) async throws -> ObservationToken {
+    ) async throws -> ObservationHandle {
         let snapshot = try await fetchTransactions(query: query)
         onChange(snapshot)
-        return ObservationToken {}
+        return ObservationHandle(token: ObservationToken {})
     }
 
     internal func findTransaction(id: UUID) async throws -> Transaction? {

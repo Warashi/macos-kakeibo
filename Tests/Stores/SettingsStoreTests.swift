@@ -363,7 +363,7 @@ private final class MockTransactionRepository: TransactionRepository {
     internal func observeTransactions(
         query: TransactionQuery,
         onChange: @escaping @Sendable ([Transaction]) -> Void
-    ) async throws -> ObservationToken {
+    ) async throws -> ObservationHandle {
         unsupported(#function)
     }
 

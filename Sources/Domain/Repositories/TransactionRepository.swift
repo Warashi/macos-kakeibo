@@ -23,7 +23,7 @@ internal protocol TransactionRepository: Sendable {
     func observeTransactions(
         query: TransactionQuery,
         onChange: @escaping @Sendable ([Transaction]) -> Void
-    ) async throws -> ObservationToken
+    ) async throws -> ObservationHandle
     func findTransaction(id: UUID) async throws -> Transaction?
     func findByIdentifier(_ identifier: String) async throws -> Transaction?
     @discardableResult

@@ -49,15 +49,16 @@ internal actor SwiftDataTransactionRepository: TransactionRepository {
     internal func observeTransactions(
         query: TransactionQuery,
         onChange: @escaping @Sendable ([Transaction]) -> Void
-    ) async throws -> ObservationToken {
+    ) async throws -> ObservationHandle {
         let descriptor = TransactionQueries.observation(query: query)
-        return context.observe(
+        let token = context.observe(
             descriptor: descriptor,
             transform: { transactions in
                 transactions.map { Transaction(from: $0) }
             },
             onChange: onChange
         )
+        return ObservationHandle(token: token)
     }
 
     internal func findTransaction(id: UUID) async throws -> Transaction? {

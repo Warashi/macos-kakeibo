@@ -26,7 +26,7 @@ internal final class TransactionStore: @unchecked Sendable {
     private let clock: () -> Date
     private let monthAdapter: MonthNavigatorDateAdapter
     @ObservationIgnored
-    private var transactionsToken: ObservationToken?
+    private var transactionsHandle: ObservationHandle?
     @ObservationIgnored
     private var initialRefreshTask: Task<Void, Never>?
 
@@ -120,7 +120,7 @@ internal final class TransactionStore: @unchecked Sendable {
     }
 
     deinit {
-        transactionsToken?.cancel()
+        transactionsHandle?.cancel()
     }
 }
 
@@ -370,21 +370,21 @@ private extension TransactionStore {
     func reloadTransactions() async {
         let filter = await MainActor.run { self.makeFilter() }
         await MainActor.run {
-            transactionsToken?.cancel()
-            transactionsToken = nil
+            transactionsHandle?.cancel()
+            transactionsHandle = nil
         }
         do {
-            let token = try await listUseCase.observeTransactions(filter: filter) { [weak self] result in
+            let handle = try await listUseCase.observeTransactions(filter: filter) { [weak self] result in
                 Task { @MainActor in
                     self?.applyTransactions(result)
                 }
             }
             await MainActor.run {
-                transactionsToken = token
+                transactionsHandle = handle
             }
         } catch {
             await MainActor.run {
-                transactionsToken = nil
+                transactionsHandle = nil
                 transactions = []
                 listErrorMessage = "取引の読み込みに失敗しました: \(error.localizedDescription)"
             }

@@ -4,7 +4,7 @@ Repository 層で SwiftData の変更を監視し、Store にプッシュ通知�
 
 ## コンポーネント
 
-- `ObservationToken`
+- `ObservationHandle`
   - 監視のライフサイクルを管理するキャンセル用トークン。
   - Store 側では `@ObservationIgnored` で保持し、不要になれば `cancel()` を呼び出す。
 - `ModelContext.observe(descriptor:transform:onChange:)`
@@ -14,7 +14,7 @@ Repository 層で SwiftData の変更を監視し、Store にプッシュ通知�
 ## 利用例
 
 ```swift
-transactionsToken = try listUseCase.observeTransactions(filter: filter) { [weak self] snapshot in
+transactionsHandle = try listUseCase.observeTransactions(filter: filter) { [weak self] snapshot in
     Task { @MainActor [weak self] in
         self?.transactions = snapshot
     }

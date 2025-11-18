@@ -15,7 +15,7 @@ SwiftData の `@ModelActor` を採用するための移行方針と、層ごと�
 | Domain (`Sources/Domain`) | モデル/値オブジェクト/Repository プロトコルを定義。Infrastructure 以外から SwiftData を見せない。 | `@ModelActor` へ切り替えても API は純粋な Swift 型のまま。Domain では `import SwiftData` や `ModelContext` への参照を禁止。 |
 | UseCases / Stores / Presenters | View と Repository の仲立ち。Store は純粋な Swift API (`Sendable` な UseCase/Service) を await するだけでよい。 | Store には「actor 境界を超えるのは UseCase 経由のみ」というルールを守り、Repository 呼び出しはすべて async/await で直に表現する。 |
 | Infrastructure (`Sources/Infrastructure/Persistence`) | SwiftData の Model/Mapper/Repository 実装を保持。 | `@ModelActor` による `isolated ModelContext` を内部に隠蔽し、Domain 型に変換して返す。 |
-| Utilities (`Sources/Utilities/Queries`, `Observation`, `Environment`) | FetchDescriptor ビルダー、`ObservationToken`, `appModelContainer` を提供。 | Query/Observation API はそのまま再利用し、ModelActor 化では ModelContext を差し替えるのみ。 |
+| Utilities (`Sources/Utilities/Queries`, `Observation`, `Environment`) | FetchDescriptor ビルダー、`ObservationHandle`, `appModelContainer` を提供。 | Query/Observation API はそのまま再利用し、ModelActor 化では ModelContext を差し替えるのみ。 |
 
 ## 移行フェーズ
 
@@ -41,7 +41,7 @@ SwiftData の `@ModelActor` を採用するための移行方針と、層ごと�
 ### 取引スタック
 
 - **初期化経路**: `TransactionListView.prepareStore()` が `TransactionStackBuilder.makeStore(modelContainer:)` を呼び、`SwiftDataTransactionRepository` / `DefaultTransactionListUseCase` / `DefaultTransactionFormUseCase` をまとめて生成している。`@ModelActor` 化ではこのビルダーを actor 版の repository / use case に差し替えればよく、View / Store には差分が波及しない。
-- **UseCase/API**: `TransactionListUseCase` / `TransactionFormUseCase` は `Sendable` な構造体で、Repository の async API を await するだけの純粋 Swift 実装になっている。`observeTransactions` は `ObservationToken` で MainActor へ橋渡ししているため、ModelActor でもライフサイクル管理を再利用できる。
+- **UseCase/API**: `TransactionListUseCase` / `TransactionFormUseCase` は `Sendable` な構造体で、Repository の async API を await するだけの純粋 Swift 実装になっている。`observeTransactions` は `ObservationHandle` で MainActor へ橋渡ししているため、ModelActor でもライフサイクル管理を再利用できる。
 - **二次利用ポイント**: `SettingsStackBuilder` や `RecurringPaymentStackBuilder`（突合ストア用）が同じ `SwiftDataTransactionRepository` を生成している。将来的には Transaction 用の `@ModelActor` を 1 箇所で生成し、各ビルダーから共有できるよう factory を束ねる必要がある。
 - **View / Store 側の Task**: `TransactionListView` は `Task { await TransactionStackBuilder.makeStore(...) }` で非同期初期化するのみで actor 名を直接指定していない。ModelActor へ切り替えても Task 呼び出しを書き換える必要はない。
 - **テストカバレッジ**: `TransactionStackBuilderTests` / `TransactionStoreTests` / `TransactionListViewTests` が In-Memory Container を使った初期化と UI レベルの動作を確認している。ModelActor 導入時はこれらを `TransactionModelActorStackBuilder` へ向け直すことで回帰を検知できる。

@@ -191,10 +191,10 @@ private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol, 
     internal func observeTransactions(
         filter: TransactionListFilter,
         onChange: @escaping @Sendable ([Transaction]) -> Void
-    ) async throws -> ObservationToken {
+    ) async throws -> ObservationHandle {
         observedFilters.append(filter)
         onChange(transactions)
-        return ObservationToken {}
+        return ObservationHandle(token: ObservationToken {})
     }
 }
 
