@@ -5,7 +5,6 @@ import Testing
 @testable import Kakeibo
 
 @Suite("SwiftDataRecurringPaymentRepository")
-@DatabaseActor
 internal struct SwiftDataRecurringPaymentRepositoryTests {
     @Test("definitionsをカテゴリと検索でフィルタできる")
     internal func definitionsFilter() async throws {
@@ -42,7 +41,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
             categoryIds: [housing.id],
         )
 
-        let results = try repository.definitions(filter: filter)
+        let results = try await repository.definitions(filter: filter)
         #expect(results.count == 1)
         #expect(results.first?.id == definitionWithCategory.id)
     }
@@ -91,7 +90,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
             statusFilter: [.planned],
         )
 
-        let results = try repository.occurrences(query: query)
+        let results = try await repository.occurrences(query: query)
         #expect(results.count == 1)
         #expect(results.first?.id == upcoming.id)
     }
@@ -101,10 +100,8 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let repository = SwiftDataRecurringPaymentRepository(
-            modelContainer: container,
-            currentDateProvider: { referenceDate },
-        )
+        let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
+        await repository.useCurrentDateProvider { referenceDate }
 
         let definition = SwiftDataRecurringPaymentDefinition(
             name: "保険料",
@@ -116,7 +113,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         context.insert(definition)
         try context.save()
 
-        let summary = try repository.synchronize(
+        let summary = try await repository.synchronize(
             definitionId: definition.id,
             horizonMonths: 12,
             referenceDate: referenceDate,
@@ -137,10 +134,8 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let today = try #require(Date.from(year: 2025, month: 1, day: 1))
-        let repository = SwiftDataRecurringPaymentRepository(
-            modelContainer: container,
-            currentDateProvider: { today },
-        )
+        let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
+        await repository.useCurrentDateProvider { today }
 
         let definition = SwiftDataRecurringPaymentDefinition(
             name: "固定資産税",
@@ -152,7 +147,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         context.insert(definition)
         try context.save()
 
-        _ = try repository.synchronize(
+        _ = try await repository.synchronize(
             definitionId: definition.id,
             horizonMonths: 12,
             referenceDate: today,
@@ -166,7 +161,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
         )
         let occurrence = try #require(refreshedDefinition.occurrences.first)
 
-        let summary = try repository.markOccurrenceCompleted(
+        let summary = try await repository.markOccurrenceCompleted(
             occurrenceId: occurrence.id,
             input: OccurrenceCompletionInput(
                 actualDate: today,

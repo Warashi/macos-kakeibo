@@ -43,8 +43,8 @@ internal enum RecurringPaymentStackBuilder {
         modelContainer: ModelContainer
     ) async -> RecurringPaymentReconciliationDependencies {
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: modelContainer)
-        let transactionRepository = await SwiftDataTransactionRepository(modelContainer: modelContainer)
-        let occurrencesService = await DefaultRecurringPaymentOccurrencesService(repository: repository)
+        let transactionRepository = SwiftDataTransactionRepository(modelContainer: modelContainer)
+        let occurrencesService = DefaultRecurringPaymentOccurrencesService(repository: repository)
         return RecurringPaymentReconciliationDependencies(
             repository: repository,
             transactionRepository: transactionRepository,

@@ -93,21 +93,13 @@ internal struct SettingsStoreTests {
         try await store.deleteAllData()
 
         // Then
-        let deleteCalls = await Task { @DatabaseActor () -> (
-            Int,
-            Int,
-            Int,
-            Int,
-            Int
-        ) in
-            (
-                transactionRepository.deleteAllTransactionsCallCount,
-                budgetRepository.deleteAllBudgetsCallCount,
-                budgetRepository.deleteAllConfigsCallCount,
-                budgetRepository.deleteAllCategoriesCallCount,
-                budgetRepository.deleteAllInstitutionsCallCount,
-            )
-        }.value
+        let deleteCalls = (
+            transactionRepository.deleteAllTransactionsCallCount,
+            budgetRepository.deleteAllBudgetsCallCount,
+            budgetRepository.deleteAllConfigsCallCount,
+            budgetRepository.deleteAllCategoriesCallCount,
+            budgetRepository.deleteAllInstitutionsCallCount
+        )
         #expect(deleteCalls.0 == 1)
         #expect(deleteCalls.1 == 1)
         #expect(deleteCalls.2 == 1)
@@ -132,13 +124,11 @@ internal struct SettingsStoreTests {
         )
         #expect(store.statistics == .empty)
 
-        await Task { @DatabaseActor in
-            transactionRepository.transactionCount = 2
-            budgetRepository.budgetCount = 3
-            budgetRepository.annualBudgetConfigCount = 1
-            budgetRepository.categoryCount = 4
-            budgetRepository.institutionCount = 2
-        }.value
+        transactionRepository.transactionCount = 2
+        budgetRepository.budgetCount = 3
+        budgetRepository.annualBudgetConfigCount = 1
+        budgetRepository.categoryCount = 4
+        budgetRepository.institutionCount = 2
 
         // When
         await store.refreshStatistics()
@@ -285,27 +275,22 @@ private func makeSettingsStore(
 
 @MainActor
 private func makeTransactionRepository(
-    configure: (@DatabaseActor (MockTransactionRepository) -> Void)? = nil,
+    configure: ((MockTransactionRepository) -> Void)? = nil,
 ) async -> MockTransactionRepository {
-    await Task { @DatabaseActor () -> MockTransactionRepository in
-        let repository = MockTransactionRepository()
-        configure?(repository)
-        return repository
-    }.value
+    let repository = MockTransactionRepository()
+    configure?(repository)
+    return repository
 }
 
 @MainActor
 private func makeBudgetRepository(
-    configure: (@DatabaseActor (MockBudgetRepository) -> Void)? = nil,
+    configure: ((MockBudgetRepository) -> Void)? = nil,
 ) async -> MockBudgetRepository {
-    await Task { @DatabaseActor () -> MockBudgetRepository in
-        let repository = MockBudgetRepository()
-        configure?(repository)
-        return repository
-    }.value
+    let repository = MockBudgetRepository()
+    configure?(repository)
+    return repository
 }
 
-@DatabaseActor
 private final class MockTransactionRepository: TransactionRepository {
     internal var transactionCount: Int = 0
     internal var snapshotTransactions: [Transaction] = []
@@ -313,15 +298,15 @@ private final class MockTransactionRepository: TransactionRepository {
     internal var snapshotInstitutions: [FinancialInstitution] = []
     internal private(set) var deleteAllTransactionsCallCount: Int = 0
 
-    internal func fetchTransactions(query: TransactionQuery) throws -> [Transaction] {
+    internal func fetchTransactions(query: TransactionQuery) async throws -> [Transaction] {
         unsupported(#function)
     }
 
-    internal func fetchAllTransactions() throws -> [Transaction] {
+    internal func fetchAllTransactions() async throws -> [Transaction] {
         snapshotTransactions
     }
 
-    internal func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot {
+    internal func fetchCSVExportSnapshot() async throws -> TransactionCSVExportSnapshot {
         TransactionCSVExportSnapshot(
             transactions: snapshotTransactions,
             categories: snapshotCategories,
@@ -329,15 +314,15 @@ private final class MockTransactionRepository: TransactionRepository {
         )
     }
 
-    internal func countTransactions() throws -> Int {
+    internal func countTransactions() async throws -> Int {
         transactionCount
     }
 
-    internal func fetchInstitutions() throws -> [FinancialInstitution] {
+    internal func fetchInstitutions() async throws -> [FinancialInstitution] {
         snapshotInstitutions
     }
 
-    internal func fetchCategories() throws -> [Kakeibo.Category] {
+    internal func fetchCategories() async throws -> [Kakeibo.Category] {
         snapshotCategories
     }
 
@@ -345,40 +330,39 @@ private final class MockTransactionRepository: TransactionRepository {
     internal func observeTransactions(
         query: TransactionQuery,
         onChange: @escaping @MainActor ([Transaction]) -> Void,
-    ) throws -> ObservationToken {
+    ) async throws -> ObservationToken {
         unsupported(#function)
     }
 
-    internal func findTransaction(id: UUID) throws -> Transaction? {
+    internal func findTransaction(id: UUID) async throws -> Transaction? {
         unsupported(#function)
     }
 
-    internal func findByIdentifier(_ identifier: String) throws -> Transaction? {
+    internal func findByIdentifier(_ identifier: String) async throws -> Transaction? {
         unsupported(#function)
     }
 
     @discardableResult
-    internal func insert(_ input: TransactionInput) throws -> UUID {
+    internal func insert(_ input: TransactionInput) async throws -> UUID {
         unsupported(#function)
     }
 
-    internal func update(_ input: TransactionUpdateInput) throws {
+    internal func update(_ input: TransactionUpdateInput) async throws {
         unsupported(#function)
     }
 
-    internal func deleteAllTransactions() throws {
+    internal func deleteAllTransactions() async throws {
         deleteAllTransactionsCallCount += 1
         transactionCount = 0
     }
 
-    internal func delete(id: UUID) throws {
+    internal func delete(id: UUID) async throws {
         unsupported(#function)
     }
 
-    internal func saveChanges() throws {}
+    internal func saveChanges() async throws {}
 }
 
-@DatabaseActor
 private final class MockBudgetRepository: BudgetRepository {
     internal var budgetCount: Int = 0
     internal var annualBudgetConfigCount: Int = 0
@@ -390,87 +374,87 @@ private final class MockBudgetRepository: BudgetRepository {
     internal private(set) var deleteAllCategoriesCallCount: Int = 0
     internal private(set) var deleteAllInstitutionsCallCount: Int = 0
 
-    internal func fetchSnapshot(for year: Int) throws -> BudgetSnapshot {
+    internal func fetchSnapshot(for year: Int) async throws -> BudgetSnapshot {
         unsupported(#function)
     }
 
-    internal func category(id: UUID) throws -> Kakeibo.Category? {
+    internal func category(id: UUID) async throws -> Kakeibo.Category? {
         unsupported(#function)
     }
 
-    internal func findCategoryByName(_ name: String, parentId: UUID?) throws -> Kakeibo.Category? {
+    internal func findCategoryByName(_ name: String, parentId: UUID?) async throws -> Kakeibo.Category? {
         unsupported(#function)
     }
 
-    internal func createCategory(name: String, parentId: UUID?) throws -> UUID {
+    internal func createCategory(name: String, parentId: UUID?) async throws -> UUID {
         unsupported(#function)
     }
 
-    internal func countCategories() throws -> Int {
+    internal func countCategories() async throws -> Int {
         categoryCount
     }
 
-    internal func findInstitutionByName(_ name: String) throws -> FinancialInstitution? {
+    internal func findInstitutionByName(_ name: String) async throws -> FinancialInstitution? {
         unsupported(#function)
     }
 
-    internal func createInstitution(name: String) throws -> UUID {
+    internal func createInstitution(name: String) async throws -> UUID {
         unsupported(#function)
     }
 
-    internal func countFinancialInstitutions() throws -> Int {
+    internal func countFinancialInstitutions() async throws -> Int {
         institutionCount
     }
 
-    internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfig? {
+    internal func annualBudgetConfig(for year: Int) async throws -> AnnualBudgetConfig? {
         nil
     }
 
-    internal func countAnnualBudgetConfigs() throws -> Int {
+    internal func countAnnualBudgetConfigs() async throws -> Int {
         annualBudgetConfigCount
     }
 
-    internal func addBudget(_ input: BudgetInput) throws {
+    internal func addBudget(_ input: BudgetInput) async throws {
         unsupported(#function)
     }
 
-    internal func updateBudget(input: BudgetUpdateInput) throws {
+    internal func updateBudget(input: BudgetUpdateInput) async throws {
         unsupported(#function)
     }
 
-    internal func deleteBudget(id: UUID) throws {
+    internal func deleteBudget(id: UUID) async throws {
         unsupported(#function)
     }
 
-    internal func deleteAllBudgets() throws {
+    internal func deleteAllBudgets() async throws {
         deleteAllBudgetsCallCount += 1
         budgetCount = 0
     }
 
-    internal func deleteAllAnnualBudgetConfigs() throws {
+    internal func deleteAllAnnualBudgetConfigs() async throws {
         deleteAllConfigsCallCount += 1
         annualBudgetConfigCount = 0
     }
 
-    internal func deleteAllCategories() throws {
+    internal func deleteAllCategories() async throws {
         deleteAllCategoriesCallCount += 1
         categoryCount = 0
     }
 
-    internal func deleteAllFinancialInstitutions() throws {
+    internal func deleteAllFinancialInstitutions() async throws {
         deleteAllInstitutionsCallCount += 1
         institutionCount = 0
     }
 
-    internal func countBudgets() throws -> Int {
+    internal func countBudgets() async throws -> Int {
         budgetCount
     }
 
-    internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) throws {
+    internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) async throws {
         unsupported(#function)
     }
 
-    internal func saveChanges() throws {}
+    internal func saveChanges() async throws {}
 }
 
 private func unsupported(_ function: StaticString) -> Never {

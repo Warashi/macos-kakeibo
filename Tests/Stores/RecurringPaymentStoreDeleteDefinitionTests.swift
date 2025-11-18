@@ -76,10 +76,8 @@ internal struct RecurringPaymentStoreDeleteDefinitionTests {
     private func makeStore(referenceDate: Date) async throws -> (RecurringPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await SwiftDataRecurringPaymentRepository(
-            modelContainer: container,
-            currentDateProvider: { referenceDate },
-        )
+        let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
+        await repository.useCurrentDateProvider { referenceDate }
         let store = RecurringPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },

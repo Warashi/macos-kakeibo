@@ -17,9 +17,9 @@ internal enum TransactionStackBuilder {
     /// - Parameter modelContainer: SwiftData ModelContainer
     /// - Returns: Repository / UseCase のセット
     internal static func makeDependencies(modelContainer: ModelContainer) async -> TransactionStackDependencies {
-        let repository = await SwiftDataTransactionRepository(modelContainer: modelContainer)
-        let listUseCase = await DefaultTransactionListUseCase(repository: repository)
-        let formUseCase = await DefaultTransactionFormUseCase(repository: repository)
+        let repository = SwiftDataTransactionRepository(modelContainer: modelContainer)
+        let listUseCase = DefaultTransactionListUseCase(repository: repository)
+        let formUseCase = DefaultTransactionFormUseCase(repository: repository)
         return TransactionStackDependencies(
             repository: repository,
             listUseCase: listUseCase,

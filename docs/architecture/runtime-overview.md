@@ -26,7 +26,7 @@ View ──binds──> Store (@Observable)
 - 取引スタックは `TransactionStackBuilder` で Repository / UseCase をまとめて生成し、`TransactionListView` などの SwiftUI View はこのビルダー経由で `TransactionStore` を準備します。`@ModelActor` 化時はビルダー内の初期化コードのみ差し替えればよく、View/Store の変更を最小限に抑えられます。
 - 予算スタックは `BudgetStackBuilder` で `BudgetStore` の依存（Repository / Monthly & Annual / RecurringPayment UseCase / Mutation UseCase）を一元化し、`BudgetView` からはビルダーを呼び出すだけで済むようにしています。ModelActor へ切り替える際はこのビルダーで Repository の実装を差し替えます。
 - 定期支払いスタックは `RecurringPaymentStackBuilder` が一覧・突合ストア向けの Repository / Service を構築し、`RecurringPaymentListView` や `RecurringPaymentReconciliationView` からの依存注入を一本化しています。SwiftData -> ModelActor の切り替えもこのビルダー差し替えで完結します。
-- 設定/CSV インポート画面は `SettingsStackBuilder` で `SettingsStore` / `ImportStore` の依存をまとめて用意し、共通の Repository セットを再利用します。`SettingsView` や `CSVImportView` ではビルダーを呼ぶだけでよく、`Task { @DatabaseActor ... }` の重複を排除しています。
+- 設定/CSV インポート画面は `SettingsStackBuilder` で `SettingsStore` / `ImportStore` の依存をまとめて用意し、共通の Repository セットを再利用します。`SettingsView` や `CSVImportView` ではビルダーを呼ぶだけでよく、View 側での明示的な Task/actor 指定を排除しています。
 
 ## 計算チェーンとキャッシュ
 

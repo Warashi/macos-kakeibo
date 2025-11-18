@@ -10,21 +10,19 @@ internal struct TransactionStackBuilderTests {
         let container = try ModelContainer.createInMemoryContainer()
         let dependencies = await TransactionStackBuilder.makeDependencies(modelContainer: container)
 
-        try await Task { @DatabaseActor in
-            let input = TransactionInput(
-                date: Date(),
-                title: "昼食",
-                memo: "テストデータ",
-                amount: Decimal(-1200),
-                isIncludedInCalculation: true,
-                isTransfer: false,
-                financialInstitutionId: nil,
-                majorCategoryId: nil,
-                minorCategoryId: nil
-            )
-            _ = try dependencies.repository.insert(input)
-            try dependencies.repository.saveChanges()
-        }.value
+        let input = TransactionInput(
+            date: Date(),
+            title: "昼食",
+            memo: "テストデータ",
+            amount: Decimal(-1200),
+            isIncludedInCalculation: true,
+            isTransfer: false,
+            financialInstitutionId: nil,
+            majorCategoryId: nil,
+            minorCategoryId: nil
+        )
+        _ = try await dependencies.repository.insert(input)
+        try await dependencies.repository.saveChanges()
 
         let store = await TransactionStackBuilder.makeStore(modelContainer: container)
         await store.refresh()
@@ -40,21 +38,19 @@ internal struct TransactionStackBuilderTests {
         let modelActor = TransactionModelActor(modelContainer: container)
         let dependencies = await TransactionStackBuilder.makeDependencies(modelActor: modelActor)
 
-        try await Task { @DatabaseActor in
-            let input = TransactionInput(
-                date: Date(),
-                title: "夕食",
-                memo: "ModelActor 経由",
-                amount: Decimal(-1800),
-                isIncludedInCalculation: true,
-                isTransfer: false,
-                financialInstitutionId: nil,
-                majorCategoryId: nil,
-                minorCategoryId: nil
-            )
-            _ = try dependencies.repository.insert(input)
-            try dependencies.repository.saveChanges()
-        }.value
+        let input = TransactionInput(
+            date: Date(),
+            title: "夕食",
+            memo: "ModelActor 経由",
+            amount: Decimal(-1800),
+            isIncludedInCalculation: true,
+            isTransfer: false,
+            financialInstitutionId: nil,
+            majorCategoryId: nil,
+            minorCategoryId: nil
+        )
+        _ = try await dependencies.repository.insert(input)
+        try await dependencies.repository.saveChanges()
 
         let store = await TransactionStackBuilder.makeStore(modelActor: modelActor)
         await store.refresh()

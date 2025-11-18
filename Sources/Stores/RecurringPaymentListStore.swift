@@ -124,18 +124,18 @@ internal final class RecurringPaymentListStore {
             statusFilter: statusFilter,
         )
 
-        return await (try? repository.occurrences(query: query)) ?? []
+        return (try? await repository.occurrences(query: query)) ?? []
     }
 
     private func fetchDefinitions() async -> [UUID: RecurringPaymentDefinition] {
-        let definitions = await (try? repository.definitions(filter: nil)) ?? []
+        let definitions = (try? await repository.definitions(filter: nil)) ?? []
         return Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
     }
 
     private func balanceLookup(for definitionIds: [UUID]) async -> [UUID: RecurringPaymentSavingBalance] {
         guard !definitionIds.isEmpty else { return [:] }
         let query = RecurringPaymentBalanceQuery(definitionIds: Set(definitionIds))
-        let balances = await (try? repository.balances(query: query)) ?? []
+        let balances = (try? await repository.balances(query: query)) ?? []
         return Dictionary(uniqueKeysWithValues: balances.map { ($0.definitionId, $0) })
     }
 

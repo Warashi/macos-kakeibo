@@ -1,7 +1,6 @@
 import Foundation
 
-@DatabaseActor
-internal protocol TransactionFormUseCaseProtocol: AnyObject, Sendable {
+internal protocol TransactionFormUseCaseProtocol: Sendable {
     func save(
         state: TransactionFormState,
         editingTransactionId: UUID?,
@@ -25,8 +24,7 @@ internal enum TransactionFormError: Error, Equatable {
     }
 }
 
-@DatabaseActor
-internal final class DefaultTransactionFormUseCase: TransactionFormUseCaseProtocol {
+internal struct DefaultTransactionFormUseCase: TransactionFormUseCaseProtocol {
     private let repository: TransactionRepository
 
     internal init(repository: TransactionRepository) {
@@ -71,19 +69,19 @@ internal final class DefaultTransactionFormUseCase: TransactionFormUseCaseProtoc
         }
 
         do {
-            try repository.saveChanges()
+            try await repository.saveChanges()
         } catch {
             throw TransactionFormError.persistenceFailed(error.localizedDescription)
         }
     }
 
     internal func delete(transactionId: UUID) async throws {
-        guard try repository.findTransaction(id: transactionId) != nil else {
+        guard try await repository.findTransaction(id: transactionId) != nil else {
             throw TransactionFormError.persistenceFailed("取引が見つかりません")
         }
-        try repository.delete(id: transactionId)
+        try await repository.delete(id: transactionId)
         do {
-            try repository.saveChanges()
+            try await repository.saveChanges()
         } catch {
             throw TransactionFormError.persistenceFailed(error.localizedDescription)
         }
@@ -97,7 +95,7 @@ private extension DefaultTransactionFormUseCase {
         amount: Decimal,
         referenceData: TransactionReferenceData,
     ) async throws {
-        guard try repository.findTransaction(id: transactionId) != nil else {
+        guard try await repository.findTransaction(id: transactionId) != nil else {
             throw TransactionFormError.persistenceFailed("更新対象の取引が見つかりません")
         }
 
@@ -105,7 +103,7 @@ private extension DefaultTransactionFormUseCase {
             state: state,
             amount: amount,
         )
-        try repository.update(TransactionUpdateInput(id: transactionId, input: input))
+        try await repository.update(TransactionUpdateInput(id: transactionId, input: input))
     }
 
     func createNewTransaction(
@@ -117,7 +115,7 @@ private extension DefaultTransactionFormUseCase {
             state: state,
             amount: amount,
         )
-        _ = try repository.insert(input)
+        _ = try await repository.insert(input)
     }
 
     func validate(state: TransactionFormState, referenceData: TransactionReferenceData) -> [String] {

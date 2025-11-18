@@ -17,8 +17,8 @@ internal struct RecurringPaymentReconciliationViewTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let recurringPaymentRepository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
-        let transactionRepository = await SwiftDataTransactionRepository(modelContainer: container)
-        let occurrencesService = await DefaultRecurringPaymentOccurrencesService(repository: recurringPaymentRepository)
+        let transactionRepository = SwiftDataTransactionRepository(modelContainer: container)
+        let occurrencesService = DefaultRecurringPaymentOccurrencesService(repository: recurringPaymentRepository)
         let store = RecurringPaymentReconciliationStore(
             repository: recurringPaymentRepository,
             transactionRepository: transactionRepository,

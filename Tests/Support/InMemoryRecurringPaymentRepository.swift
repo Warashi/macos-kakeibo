@@ -28,7 +28,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         self.currentDateProvider = currentDateProvider
     }
 
-    internal func definitions(filter: RecurringPaymentDefinitionFilter?) throws -> [RecurringPaymentDefinition] {
+    internal func definitions(filter: RecurringPaymentDefinitionFilter?) async throws -> [RecurringPaymentDefinition] {
         var results = Array(definitionsStorage.values)
         if let ids = filter?.ids {
             results = results.filter { ids.contains($0.id) }
@@ -47,7 +47,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         return results.map { RecurringPaymentDefinition(from: $0) }
     }
 
-    internal func occurrences(query: RecurringPaymentOccurrenceQuery?) throws -> [RecurringPaymentOccurrence] {
+    internal func occurrences(query: RecurringPaymentOccurrenceQuery?) async throws -> [RecurringPaymentOccurrence] {
         var results = definitionsStorage.values.flatMap(\.occurrences)
         if let ids = query?.definitionIds {
             results = results.filter { ids.contains($0.definition.id) }
@@ -62,7 +62,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
             .map { RecurringPaymentOccurrence(from: $0) }
     }
 
-    internal func balances(query: RecurringPaymentBalanceQuery?) throws -> [RecurringPaymentSavingBalance] {
+    internal func balances(query: RecurringPaymentBalanceQuery?) async throws -> [RecurringPaymentSavingBalance] {
         var results = Array(balancesStorage.values)
         if let ids = query?.definitionIds {
             results = results.filter { ids.contains($0.definition.id) }
@@ -71,8 +71,8 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
     }
 
     @discardableResult
-    internal func createDefinition(_ input: RecurringPaymentDefinitionInput) throws -> UUID {
-        let category = try resolvedSwiftDataCategory(id: input.categoryId)
+    internal func createDefinition(_ input: RecurringPaymentDefinitionInput) async throws -> UUID {
+        let category = try await resolvedSwiftDataCategory(id: input.categoryId)
 
         let definition = SwiftDataRecurringPaymentDefinition(
             name: input.name,
@@ -103,12 +103,12 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
     internal func updateDefinition(
         definitionId: UUID,
         input: RecurringPaymentDefinitionInput,
-    ) throws {
+    ) async throws {
         guard let definition = definitionsStorage[definitionId] else {
             throw RecurringPaymentDomainError.definitionNotFound
         }
 
-        let category = try resolvedSwiftDataCategory(id: input.categoryId)
+        let category = try await resolvedSwiftDataCategory(id: input.categoryId)
 
         definition.name = input.name
         definition.notes = input.notes
@@ -134,7 +134,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         }
     }
 
-    internal func deleteDefinition(definitionId: UUID) throws {
+    internal func deleteDefinition(definitionId: UUID) async throws {
         definitionsStorage.removeValue(forKey: definitionId)
         balancesStorage.removeValue(forKey: definitionId)
     }
@@ -144,7 +144,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
-    ) throws -> RecurringPaymentSynchronizationSummary {
+    ) async throws -> RecurringPaymentSynchronizationSummary {
         guard let definition = definitionsStorage[definitionId] else {
             throw RecurringPaymentDomainError.definitionNotFound
         }
@@ -189,7 +189,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
-    ) throws -> RecurringPaymentSynchronizationSummary {
+    ) async throws -> RecurringPaymentSynchronizationSummary {
         guard let occurrence = findOccurrence(id: occurrenceId) else {
             throw RecurringPaymentDomainError.occurrenceNotFound
         }
@@ -206,7 +206,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
             throw RecurringPaymentDomainError.validationFailed(errors)
         }
 
-        return try synchronize(
+        return try await synchronize(
             definitionId: occurrence.definition.id,
             horizonMonths: horizonMonths,
             referenceDate: currentDateProvider(),
@@ -218,7 +218,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
-    ) throws -> RecurringPaymentSynchronizationSummary? {
+    ) async throws -> RecurringPaymentSynchronizationSummary? {
         guard let occurrence = findOccurrence(id: occurrenceId) else {
             throw RecurringPaymentDomainError.occurrenceNotFound
         }
@@ -243,18 +243,18 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
             return nil
         }
 
-        return try synchronize(
+        return try await synchronize(
             definitionId: occurrence.definition.id,
             horizonMonths: horizonMonths,
             referenceDate: now,
         )
     }
 
-    internal func saveChanges() throws {
+    internal func saveChanges() async throws {
         // No-op for in-memory implementation
     }
 
-    private func resolvedSwiftDataCategory(id: UUID?) throws -> Kakeibo.SwiftDataCategory? {
+    private func resolvedSwiftDataCategory(id: UUID?) async throws -> Kakeibo.SwiftDataCategory? {
         guard let id else { return nil }
         guard let category = categoryLookup[id] else {
             throw RecurringPaymentDomainError.categoryNotFound

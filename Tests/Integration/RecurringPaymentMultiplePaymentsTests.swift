@@ -11,7 +11,6 @@ internal struct RecurringPaymentMultiplePaymentsTests {
     private let balanceService: RecurringPaymentBalanceService = RecurringPaymentBalanceService()
 
     @Test("複数回支払い：2回目、3回目の支払い")
-    @DatabaseActor
     internal func multiplePaymentsScenario() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
@@ -55,7 +54,6 @@ internal struct RecurringPaymentMultiplePaymentsTests {
     }
 
     /// 1回目のサイクルを実行
-    @DatabaseActor
     private func performFirstCycle(
         definition: SwiftDataRecurringPaymentDefinition,
         balance: SwiftDataRecurringPaymentSavingBalance?,
@@ -84,7 +82,6 @@ internal struct RecurringPaymentMultiplePaymentsTests {
     }
 
     /// 2回目のサイクルを実行
-    @DatabaseActor
     private func performSecondCycle(
         definition: SwiftDataRecurringPaymentDefinition,
         balance: SwiftDataRecurringPaymentSavingBalance?,
@@ -113,7 +110,6 @@ internal struct RecurringPaymentMultiplePaymentsTests {
     }
 
     /// 3回目のサイクルを実行
-    @DatabaseActor
     private func performThirdCycle(
         definition: SwiftDataRecurringPaymentDefinition,
         balance: SwiftDataRecurringPaymentSavingBalance?,
@@ -140,7 +136,6 @@ internal struct RecurringPaymentMultiplePaymentsTests {
     }
 
     /// 指定範囲の月次積立を実行するヘルパー関数
-    @DatabaseActor
     private func performSavingCycle(
         definition: SwiftDataRecurringPaymentDefinition,
         balance: SwiftDataRecurringPaymentSavingBalance?,
@@ -161,7 +156,6 @@ internal struct RecurringPaymentMultiplePaymentsTests {
     }
 
     /// 支払い実績を作成するヘルパー関数
-    @DatabaseActor
     private func createOccurrence(
         definition: SwiftDataRecurringPaymentDefinition,
         params: CycleParams,

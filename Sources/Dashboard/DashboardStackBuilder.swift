@@ -14,7 +14,7 @@ internal struct DashboardStackDependencies {
 internal enum DashboardStackBuilder {
     /// DashboardStore の依存を構築
     internal static func makeDependencies(modelContainer: ModelContainer) async -> DashboardStackDependencies {
-        let repository = await SwiftDataDashboardRepository(modelContainer: modelContainer)
+        let repository = SwiftDataDashboardRepository(modelContainer: modelContainer)
         let dashboardService = DashboardService()
         return DashboardStackDependencies(
             repository: repository,

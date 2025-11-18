@@ -22,8 +22,8 @@ internal struct TransactionStoreTests {
             createdAt: Date(),
             updatedAt: Date(),
         )
-        let listUseCase = await TransactionListUseCaseStub(transactions: [transaction])
-        let formUseCase = await TransactionFormUseCaseStub()
+        let listUseCase = TransactionListUseCaseStub(transactions: [transaction])
+        let formUseCase = TransactionFormUseCaseStub()
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
 
         // 初期化の完了を待つ
@@ -32,17 +32,15 @@ internal struct TransactionStoreTests {
         #expect(store.transactions.count == 1)
         #expect(store.availableInstitutions.count == 1)
         #expect(store.availableCategories.count == 2)
-        let filters = await Task { @DatabaseActor in
-            listUseCase.observedFilters
-        }.value
+        let filters = listUseCase.observedFilters
         #expect(filters.count == 2)
         #expect(filters.first?.month == store.currentMonth)
     }
 
     @Test("フィルタ変更でUseCaseが再実行される")
     internal func changingFiltersReloadsTransactions() async {
-        let listUseCase = await TransactionListUseCaseStub(transactions: [])
-        let formUseCase = await TransactionFormUseCaseStub()
+        let listUseCase = TransactionListUseCaseStub(transactions: [])
+        let formUseCase = TransactionFormUseCaseStub()
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
 
         await store.refresh()
@@ -50,17 +48,15 @@ internal struct TransactionStoreTests {
         // フィルタ変更後の非同期処理の完了を待つ
         try? await Task.sleep(for: .milliseconds(10))
 
-        let filters = await Task { @DatabaseActor in
-            listUseCase.observedFilters
-        }.value
+        let filters = listUseCase.observedFilters
         #expect(filters.count == 3)
         #expect(filters.last?.filterKind == .income)
     }
 
     @Test("新規作成準備でフォームが初期化される")
     internal func prepareForNewTransactionInitializesForm() async {
-        let listUseCase = await TransactionListUseCaseStub(transactions: [])
-        let formUseCase = await TransactionFormUseCaseStub()
+        let listUseCase = TransactionListUseCaseStub(transactions: [])
+        let formUseCase = TransactionFormUseCaseStub()
         let today = Date.from(year: 2025, month: 11, day: 15) ?? Date()
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { today })
 
@@ -73,11 +69,9 @@ internal struct TransactionStoreTests {
 
     @Test("保存失敗時はエラーメッセージが表示される")
     internal func saveFailureUpdatesFormErrors() async {
-        let listUseCase = await TransactionListUseCaseStub(transactions: [])
-        let formUseCase = await TransactionFormUseCaseStub()
-        await Task { @DatabaseActor in
-            formUseCase.saveError = TransactionFormError.validationFailed(["テストエラー"])
-        }.value
+        let listUseCase = TransactionListUseCaseStub(transactions: [])
+        let formUseCase = TransactionFormUseCaseStub()
+        formUseCase.saveError = TransactionFormError.validationFailed(["テストエラー"])
         let store = TransactionStore(
             listUseCase: listUseCase,
             formUseCase: formUseCase,
@@ -107,8 +101,8 @@ internal struct TransactionStoreTests {
             createdAt: Date(),
             updatedAt: Date(),
         )
-        let listUseCase = await TransactionListUseCaseStub(transactions: [transaction])
-        let formUseCase = await TransactionFormUseCaseStub()
+        let listUseCase = TransactionListUseCaseStub(transactions: [transaction])
+        let formUseCase = TransactionFormUseCaseStub()
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
 
         // 初期化Task の完了を待つ
@@ -119,13 +113,9 @@ internal struct TransactionStoreTests {
         try? await Task.sleep(for: .milliseconds(100))
 
         #expect(result)
-        let deletedIds = await Task { @DatabaseActor in
-            formUseCase.deletedTransactionIds
-        }.value
+        let deletedIds = formUseCase.deletedTransactionIds
         #expect(deletedIds.contains(transaction.id))
-        let filters = await Task { @DatabaseActor in
-            listUseCase.observedFilters
-        }.value
+        let filters = listUseCase.observedFilters
         #expect(filters.count == 4)
     }
 }
@@ -140,7 +130,6 @@ private extension TransactionStoreTests {
 
 // MARK: - Stubs
 
-@DatabaseActor
 private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol, @unchecked Sendable {
     internal var transactions: [Transaction]
     internal var referenceData: TransactionReferenceData
@@ -178,7 +167,6 @@ private final class TransactionListUseCaseStub: TransactionListUseCaseProtocol, 
     }
 }
 
-@DatabaseActor
 private final class TransactionFormUseCaseStub: TransactionFormUseCaseProtocol, @unchecked Sendable {
     internal var saveError: Error?
     internal var deleteError: Error?

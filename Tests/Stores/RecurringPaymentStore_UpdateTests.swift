@@ -248,11 +248,9 @@ internal struct RecurringPaymentStoreUpdateTests {
     private func makeStore(referenceDate: Date) async throws -> (RecurringPaymentStore, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let repository = await SwiftDataRecurringPaymentRepository(
-            modelContainer: container,
-            currentDateProvider: { referenceDate },
-            sharedContext: context,
-        )
+        let repository = SwiftDataRecurringPaymentRepository(modelContainer: container)
+        await repository.useCurrentDateProvider { referenceDate }
+        await repository.useSharedContext(context)
         let store = RecurringPaymentStore(
             repository: repository,
             currentDateProvider: { referenceDate },

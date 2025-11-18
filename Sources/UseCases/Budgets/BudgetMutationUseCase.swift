@@ -1,6 +1,5 @@
 import Foundation
 
-@DatabaseActor
 internal protocol BudgetMutationUseCaseProtocol: Sendable {
     func addBudget(input: BudgetInput) async throws
     func updateBudget(_ budget: Budget, input: BudgetInput) async throws
@@ -8,8 +7,7 @@ internal protocol BudgetMutationUseCaseProtocol: Sendable {
     func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) async throws
 }
 
-@DatabaseActor
-internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol {
+internal struct DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol {
     private let repository: BudgetRepository
 
     internal init(repository: BudgetRepository) {
@@ -23,9 +21,9 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
             endYear: input.endYear,
             endMonth: input.endMonth,
         )
-        try validateCategoryExists(id: input.categoryId)
-        try repository.addBudget(input)
-        try repository.saveChanges()
+        try await validateCategoryExists(id: input.categoryId)
+        try await repository.addBudget(input)
+        try await repository.saveChanges()
     }
 
     internal func updateBudget(_ budget: Budget, input: BudgetInput) async throws {
@@ -35,33 +33,33 @@ internal final class DefaultBudgetMutationUseCase: BudgetMutationUseCaseProtocol
             endYear: input.endYear,
             endMonth: input.endMonth,
         )
-        try validateCategoryExists(id: input.categoryId)
-        try repository.updateBudget(
+        try await validateCategoryExists(id: input.categoryId)
+        try await repository.updateBudget(
             input: BudgetUpdateInput(
                 id: budget.id,
                 input: input,
             ),
         )
-        try repository.saveChanges()
+        try await repository.saveChanges()
     }
 
     internal func deleteBudget(_ budget: Budget) async throws {
-        try repository.deleteBudget(id: budget.id)
-        try repository.saveChanges()
+        try await repository.deleteBudget(id: budget.id)
+        try await repository.saveChanges()
     }
 
     internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) async throws {
         try validateAllocationDrafts(input.allocations)
-        try validateCategoriesExist(in: input.allocations)
-        try repository.upsertAnnualBudgetConfig(input)
-        try repository.saveChanges()
+        try await validateCategoriesExist(in: input.allocations)
+        try await repository.upsertAnnualBudgetConfig(input)
+        try await repository.saveChanges()
     }
 }
 
 private extension DefaultBudgetMutationUseCase {
-    func validateCategoryExists(id: UUID?) throws {
+    func validateCategoryExists(id: UUID?) async throws {
         guard let id else { return }
-        guard try repository.category(id: id) != nil else {
+        guard try await repository.category(id: id) != nil else {
             throw BudgetStoreError.categoryNotFound
         }
     }
@@ -93,9 +91,9 @@ private extension DefaultBudgetMutationUseCase {
         }
     }
 
-    func validateCategoriesExist(in drafts: [AnnualAllocationDraft]) throws {
+    func validateCategoriesExist(in drafts: [AnnualAllocationDraft]) async throws {
         for draft in drafts {
-            guard try repository.category(id: draft.categoryId) != nil else {
+            guard try await repository.category(id: draft.categoryId) != nil else {
                 throw BudgetStoreError.categoryNotFound
             }
         }

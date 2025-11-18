@@ -63,9 +63,7 @@ internal struct CSVImporterTests {
         #expect(summary.updatedCount == 0)
         #expect(summary.skippedCount == 0)
 
-        let transactions = await Task { @DatabaseActor in
-            transactionRepository.transactions
-        }.value
+        let transactions = transactionRepository.transactions
         #expect(transactions.count == 1)
         let transaction = try #require(transactions.first)
         #expect(transaction.title == "ランチ")
@@ -111,9 +109,7 @@ internal struct CSVImporterTests {
         #expect(summary.importedCount == 0)
         #expect(summary.updatedCount == 1)
 
-        let transactions = await Task { @DatabaseActor in
-            transactionRepository.transactions
-        }.value
+        let transactions = transactionRepository.transactions
         let stored = try #require(transactions.first)
         #expect(stored.title == "ディナー")
         #expect(stored.amount == -2500)
@@ -135,15 +131,13 @@ internal struct CSVImporterTests {
         InMemoryTransactionRepository,
         InMemoryBudgetRepository,
     ) {
-        await Task { @DatabaseActor in
-            let transactionRepository = InMemoryTransactionRepository()
-            let budgetRepository = InMemoryBudgetRepository()
-            let importer = CSVImporter(
-                transactionRepository: transactionRepository,
-                budgetRepository: budgetRepository,
-            )
-            return (importer, transactionRepository, budgetRepository)
-        }.value
+        let transactionRepository = InMemoryTransactionRepository()
+        let budgetRepository = InMemoryBudgetRepository()
+        let importer = CSVImporter(
+            transactionRepository: transactionRepository,
+            budgetRepository: budgetRepository,
+        )
+        return (importer, transactionRepository, budgetRepository)
     }
 
     private func sampleDocument() -> CSVDocument {

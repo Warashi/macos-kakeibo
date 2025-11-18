@@ -69,9 +69,7 @@ internal struct ImportStoreTests {
         #expect(summary.importedCount == 1)
         #expect(summary.updatedCount == 0)
 
-        let transactions = await Task { @DatabaseActor in
-            transactionRepository.transactions
-        }.value
+        let transactions = try await transactionRepository.fetchAllTransactions()
         #expect(transactions.count == 1)
         #expect(transactions.first?.title == "ランチ")
     }
@@ -83,15 +81,13 @@ internal struct ImportStoreTests {
         InMemoryTransactionRepository,
         InMemoryBudgetRepository,
     ) {
-        await Task { @DatabaseActor in
-            let transactionRepository = InMemoryTransactionRepository()
-            let budgetRepository = InMemoryBudgetRepository()
-            let store = ImportStore(
-                transactionRepository: transactionRepository,
-                budgetRepository: budgetRepository,
-            )
-            return (store, transactionRepository, budgetRepository)
-        }.value
+        let transactionRepository = InMemoryTransactionRepository()
+        let budgetRepository = InMemoryBudgetRepository()
+        let store = ImportStore(
+            transactionRepository: transactionRepository,
+            budgetRepository: budgetRepository,
+        )
+        return (store, transactionRepository, budgetRepository)
     }
 
     private func sampleDocument() -> CSVDocument {

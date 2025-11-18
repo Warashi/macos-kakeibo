@@ -12,25 +12,24 @@ internal struct TransactionQuery {
     internal let sortOption: TransactionSortOption
 }
 
-@DatabaseActor
 internal protocol TransactionRepository: Sendable {
-    func fetchTransactions(query: TransactionQuery) throws -> [Transaction]
-    func fetchAllTransactions() throws -> [Transaction]
-    func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot
-    func countTransactions() throws -> Int
-    func fetchInstitutions() throws -> [FinancialInstitution]
-    func fetchCategories() throws -> [Category]
+    func fetchTransactions(query: TransactionQuery) async throws -> [Transaction]
+    func fetchAllTransactions() async throws -> [Transaction]
+    func fetchCSVExportSnapshot() async throws -> TransactionCSVExportSnapshot
+    func countTransactions() async throws -> Int
+    func fetchInstitutions() async throws -> [FinancialInstitution]
+    func fetchCategories() async throws -> [Category]
     @discardableResult
     func observeTransactions(
         query: TransactionQuery,
         onChange: @escaping @MainActor ([Transaction]) -> Void,
-    ) throws -> ObservationToken
-    func findTransaction(id: UUID) throws -> Transaction?
-    func findByIdentifier(_ identifier: String) throws -> Transaction?
+    ) async throws -> ObservationToken
+    func findTransaction(id: UUID) async throws -> Transaction?
+    func findByIdentifier(_ identifier: String) async throws -> Transaction?
     @discardableResult
-    func insert(_ input: TransactionInput) throws -> UUID
-    func update(_ input: TransactionUpdateInput) throws
-    func deleteAllTransactions() throws
-    func delete(id: UUID) throws
-    func saveChanges() throws
+    func insert(_ input: TransactionInput) async throws -> UUID
+    func update(_ input: TransactionUpdateInput) async throws
+    func deleteAllTransactions() async throws
+    func delete(id: UUID) async throws
+    func saveChanges() async throws
 }

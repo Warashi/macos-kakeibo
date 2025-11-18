@@ -6,7 +6,6 @@ import Testing
 @Suite(.serialized)
 internal struct RecurringPaymentOccurrencesServiceTests {
     @Test("同期で不正な周期を検出する")
-    @DatabaseActor
     internal func synchronizeValidatesRecurrence() async throws {
         let definition = SwiftDataRecurringPaymentDefinition(
             name: "不正定義",
@@ -17,8 +16,8 @@ internal struct RecurringPaymentOccurrencesServiceTests {
         let repository = InMemoryRecurringPaymentRepository(definitions: [definition])
         let service = DefaultRecurringPaymentOccurrencesService(repository: repository)
 
-        #expect(throws: RecurringPaymentDomainError.invalidRecurrence) {
-            try service.synchronizeOccurrences(
+        await #expect(throws: RecurringPaymentDomainError.invalidRecurrence) {
+            try await service.synchronizeOccurrences(
                 definitionId: definition.id,
                 horizonMonths: 12,
                 referenceDate: nil,
@@ -27,7 +26,6 @@ internal struct RecurringPaymentOccurrencesServiceTests {
     }
 
     @Test("完了処理でOccurrenceが更新され再同期が走る")
-    @DatabaseActor
     internal func markOccurrenceCompletedUpdatesModel() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 3, day: 1))
         let occurrence = SwiftDataRecurringPaymentOccurrence(
@@ -66,7 +64,6 @@ internal struct RecurringPaymentOccurrencesServiceTests {
     }
 
     @Test("updateOccurrenceはステータスが変わらなければ同期をスキップする")
-    @DatabaseActor
     internal func updateOccurrenceSkipsSyncWhenStatusUnchanged() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 7, day: 15))
         let occurrence = SwiftDataRecurringPaymentOccurrence(

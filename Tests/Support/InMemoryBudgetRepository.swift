@@ -14,7 +14,7 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
         self.institutions = Dictionary(uniqueKeysWithValues: institutions.map { ($0.id, $0) })
     }
 
-    internal func fetchSnapshot(for year: Int) throws -> BudgetSnapshot {
+    internal func fetchSnapshot(for year: Int) async throws -> BudgetSnapshot {
         BudgetSnapshot(
             budgets: [],
             transactions: [],
@@ -26,15 +26,15 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
         )
     }
 
-    internal func category(id: UUID) throws -> Kakeibo.Category? {
+    internal func category(id: UUID) async throws -> Kakeibo.Category? {
         categories[id]
     }
 
-    internal func findCategoryByName(_ name: String, parentId: UUID?) throws -> Kakeibo.Category? {
+    internal func findCategoryByName(_ name: String, parentId: UUID?) async throws -> Kakeibo.Category? {
         categories.values.first { $0.name == name && $0.parentId == parentId }
     }
 
-    internal func createCategory(name: String, parentId: UUID?) throws -> UUID {
+    internal func createCategory(name: String, parentId: UUID?) async throws -> UUID {
         let id = UUID()
         let now = Date()
         let dto = Kakeibo.Category(
@@ -50,15 +50,15 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
         return id
     }
 
-    internal func countCategories() throws -> Int {
+    internal func countCategories() async throws -> Int {
         categories.count
     }
 
-    internal func findInstitutionByName(_ name: String) throws -> FinancialInstitution? {
+    internal func findInstitutionByName(_ name: String) async throws -> FinancialInstitution? {
         institutions.values.first { $0.name == name }
     }
 
-    internal func createInstitution(name: String) throws -> UUID {
+    internal func createInstitution(name: String) async throws -> UUID {
         let id = UUID()
         let now = Date()
         let dto = FinancialInstitution(
@@ -72,51 +72,51 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
         return id
     }
 
-    internal func countFinancialInstitutions() throws -> Int {
+    internal func countFinancialInstitutions() async throws -> Int {
         institutions.count
     }
 
-    internal func annualBudgetConfig(for year: Int) throws -> AnnualBudgetConfig? {
+    internal func annualBudgetConfig(for year: Int) async throws -> AnnualBudgetConfig? {
         nil
     }
 
-    internal func countAnnualBudgetConfigs() throws -> Int {
+    internal func countAnnualBudgetConfigs() async throws -> Int {
         0
     }
 
-    internal func addBudget(_ input: BudgetInput) throws {
+    internal func addBudget(_ input: BudgetInput) async throws {
         unsupported(#function)
     }
 
-    internal func updateBudget(input: BudgetUpdateInput) throws {
+    internal func updateBudget(input: BudgetUpdateInput) async throws {
         unsupported(#function)
     }
 
-    internal func deleteBudget(id: UUID) throws {
+    internal func deleteBudget(id: UUID) async throws {
         unsupported(#function)
     }
 
-    internal func deleteAllBudgets() throws {}
+    internal func deleteAllBudgets() async throws {}
 
-    internal func deleteAllAnnualBudgetConfigs() throws {}
+    internal func deleteAllAnnualBudgetConfigs() async throws {}
 
-    internal func deleteAllCategories() throws {
+    internal func deleteAllCategories() async throws {
         categories.removeAll()
     }
 
-    internal func deleteAllFinancialInstitutions() throws {
+    internal func deleteAllFinancialInstitutions() async throws {
         institutions.removeAll()
     }
 
-    internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) throws {
+    internal func upsertAnnualBudgetConfig(_ input: AnnualBudgetConfigInput) async throws {
         unsupported(#function)
     }
 
-    internal func countBudgets() throws -> Int {
+    internal func countBudgets() async throws -> Int {
         0
     }
 
-    internal func saveChanges() throws {
+    internal func saveChanges() async throws {
         saveCallCount += 1
     }
 }

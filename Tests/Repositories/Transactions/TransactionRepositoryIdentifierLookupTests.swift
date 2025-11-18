@@ -9,7 +9,7 @@ internal struct TransactionRepositoryIdentifierLookupTests {
     @MainActor
     internal func swiftDataRepositoryFindsIdentifier() async throws {
         let container = try ModelContainer.createInMemoryContainer()
-        let repository = await SwiftDataTransactionRepository(modelContainer: container)
+        let repository = SwiftDataTransactionRepository(modelContainer: container)
 
         let identifier = "IMPORT-001"
         let input = TransactionInput(
@@ -32,8 +32,7 @@ internal struct TransactionRepositoryIdentifierLookupTests {
     }
 
     @Test("インメモリ実装で識別子検索できる")
-    @DatabaseActor
-    internal func inMemoryRepositoryFindsIdentifier() throws {
+    internal func inMemoryRepositoryFindsIdentifier() async throws {
         let repository = InMemoryTransactionRepository()
 
         let input = TransactionInput(
@@ -48,9 +47,9 @@ internal struct TransactionRepositoryIdentifierLookupTests {
             minorCategoryId: nil,
             importIdentifier: "IMPORT-002",
         )
-        _ = try repository.insert(input)
+        _ = try await repository.insert(input)
 
-        let found = try repository.findByIdentifier("IMPORT-002")
+        let found = try await repository.findByIdentifier("IMPORT-002")
         #expect(found?.title == "買い物")
     }
 }

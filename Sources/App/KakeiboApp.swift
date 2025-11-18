@@ -9,9 +9,6 @@ internal struct KakeiboApp: App {
         do {
             let container = try ModelContainer.createKakeiboContainer()
             modelContainer = container
-            Task {
-                await DatabaseActor.shared.configure(modelContainer: container)
-            }
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }

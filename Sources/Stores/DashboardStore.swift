@@ -143,9 +143,7 @@ internal final class DashboardStore {
         let targetYear = currentYear
         let targetMonth = currentMonth
         do {
-            let snapshot = try await Task { @DatabaseActor in
-                try repository.fetchSnapshot(year: targetYear, month: targetMonth)
-            }.value
+            let snapshot = try await repository.fetchSnapshot(year: targetYear, month: targetMonth)
 
             guard !Task.isCancelled else { return }
 
@@ -216,9 +214,7 @@ internal final class DashboardStore {
 
     private func bootstrapInitialState() async {
         let defaultYear = currentYear
-        let resolvedYear = await (try? Task { @DatabaseActor in
-            try repository.resolveInitialYear(defaultYear: defaultYear)
-        }.value) ?? defaultYear
+        let resolvedYear = (try? await repository.resolveInitialYear(defaultYear: defaultYear)) ?? defaultYear
         if resolvedYear != currentYear {
             currentYear = resolvedYear
         }

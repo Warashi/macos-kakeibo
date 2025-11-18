@@ -14,8 +14,8 @@ internal struct SettingsStackDependencies: Sendable {
 internal enum SettingsStackBuilder {
     /// 依存関係を構築
     internal static func makeDependencies(modelContainer: ModelContainer) async -> SettingsStackDependencies {
-        let transactionRepository = await SwiftDataTransactionRepository(modelContainer: modelContainer)
-        let budgetRepository = await SwiftDataBudgetRepository(modelContainer: modelContainer)
+        let transactionRepository = SwiftDataTransactionRepository(modelContainer: modelContainer)
+        let budgetRepository = SwiftDataBudgetRepository(modelContainer: modelContainer)
         return SettingsStackDependencies(
             transactionRepository: transactionRepository,
             budgetRepository: budgetRepository

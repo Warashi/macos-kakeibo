@@ -19,11 +19,11 @@ internal enum BudgetStackBuilder {
     /// - Parameter modelContainer: SwiftData ModelContainer
     /// - Returns: Repository / UseCase のセット
     internal static func makeDependencies(modelContainer: ModelContainer) async -> BudgetStackDependencies {
-        let repository = await SwiftDataBudgetRepository(modelContainer: modelContainer)
+        let repository = SwiftDataBudgetRepository(modelContainer: modelContainer)
         let monthlyUseCase = DefaultMonthlyBudgetUseCase()
         let annualUseCase = DefaultAnnualBudgetUseCase()
         let recurringPaymentUseCase = DefaultRecurringPaymentSavingsUseCase()
-        let mutationUseCase = await DefaultBudgetMutationUseCase(repository: repository)
+        let mutationUseCase = DefaultBudgetMutationUseCase(repository: repository)
         return BudgetStackDependencies(
             repository: repository,
             monthlyUseCase: monthlyUseCase,

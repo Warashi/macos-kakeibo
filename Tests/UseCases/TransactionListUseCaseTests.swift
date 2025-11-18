@@ -3,7 +3,6 @@ import Foundation
 import Testing
 
 @Suite(.serialized)
-@DatabaseActor
 internal struct TransactionListUseCaseTests {
     @Test("指定した月の取引のみ取得する")
     internal func fetchesOnlySelectedMonth() async throws {

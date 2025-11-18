@@ -1,35 +1,48 @@
 import Foundation
 import SwiftData
 
-@DatabaseActor
-internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
-    private let modelContainer: ModelContainer
-    private let sharedContext: ModelContext?
-    private let scheduleService: RecurringPaymentScheduleService
-    private let currentDateProvider: () -> Date
-
-    internal init(
-        modelContainer: ModelContainer,
-        scheduleService: RecurringPaymentScheduleService = RecurringPaymentScheduleService(),
-        currentDateProvider: @escaping () -> Date = { Date() },
-        sharedContext: ModelContext? = nil,
-    ) {
-        self.modelContainer = modelContainer
-        self.sharedContext = sharedContext
-        self.scheduleService = scheduleService
-        self.currentDateProvider = currentDateProvider
-    }
+@ModelActor
+internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
+    private var contextOverride: ModelContext?
+    private var scheduleService: RecurringPaymentScheduleService = RecurringPaymentScheduleService()
+    private var currentDateProvider: () -> Date = { Date() }
 
     private func makeContext() -> ModelContext {
-        if let sharedContext {
-            return sharedContext
+        if let contextOverride {
+            return contextOverride
         }
-        return ModelContext(modelContainer)
+        return modelContext
+    }
+
+    internal func useSharedContext(_ context: ModelContext?) {
+        contextOverride = context
+    }
+
+    internal func useScheduleService(_ service: RecurringPaymentScheduleService) {
+        scheduleService = service
+    }
+
+    internal func useCurrentDateProvider(_ provider: @escaping @Sendable () -> Date) {
+        currentDateProvider = provider
+    }
+
+    internal func configure(
+        calendar: Calendar = Calendar(identifier: .gregorian),
+        currentDateProvider: @escaping @Sendable () -> Date = { Date() }
+    ) {
+        let japaneseProvider = JapaneseHolidayProvider(calendar: calendar)
+        let customProvider = CustomHolidayProvider(modelContainer: modelContainer, calendar: calendar)
+        let compositeProvider = CompositeHolidayProvider(providers: [japaneseProvider, customProvider])
+        scheduleService = RecurringPaymentScheduleService(
+            calendar: calendar,
+            holidayProvider: compositeProvider
+        )
+        self.currentDateProvider = currentDateProvider
     }
 
     // Convenience initializer removed to encourage ModelContainer-based usage.
 
-    internal func definitions(filter: RecurringPaymentDefinitionFilter?) throws -> [RecurringPaymentDefinition] {
+    internal func definitions(filter: RecurringPaymentDefinitionFilter?) async throws -> [RecurringPaymentDefinition] {
         let context = makeContext()
         let descriptor = RecurringPaymentQueries.definitions(
             predicate: definitionPredicate(for: filter),
@@ -52,7 +65,7 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
         return results.map { RecurringPaymentDefinition(from: $0) }
     }
 
-    internal func occurrences(query: RecurringPaymentOccurrenceQuery?) throws -> [RecurringPaymentOccurrence] {
+    internal func occurrences(query: RecurringPaymentOccurrenceQuery?) async throws -> [RecurringPaymentOccurrence] {
         let context = makeContext()
         let descriptor = RecurringPaymentQueries.occurrences(
             predicate: occurrencePredicate(for: query),
@@ -71,7 +84,7 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
         return results.map { RecurringPaymentOccurrence(from: $0) }
     }
 
-    internal func balances(query: RecurringPaymentBalanceQuery?) throws -> [RecurringPaymentSavingBalance] {
+    internal func balances(query: RecurringPaymentBalanceQuery?) async throws -> [RecurringPaymentSavingBalance] {
         let context = makeContext()
         let descriptor = RecurringPaymentQueries.balances(
             predicate: balancePredicate(for: query),
@@ -81,9 +94,9 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
     }
 
     @discardableResult
-    internal func createDefinition(_ input: RecurringPaymentDefinitionInput) throws -> UUID {
+    internal func createDefinition(_ input: RecurringPaymentDefinitionInput) async throws -> UUID {
         let context = makeContext()
-        let category = try resolvedCategory(id: input.categoryId, context: context)
+        let category = try await resolvedCategory(id: input.categoryId, context: context)
 
         let definition = SwiftDataRecurringPaymentDefinition(
             name: input.name,
@@ -113,10 +126,10 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
     internal func updateDefinition(
         definitionId: UUID,
         input: RecurringPaymentDefinitionInput,
-    ) throws {
+    ) async throws {
         let context = makeContext()
-        let definition = try findDefinition(id: definitionId, context: context)
-        let category = try resolvedCategory(id: input.categoryId, context: context)
+        let definition = try await findDefinition(id: definitionId, context: context)
+        let category = try await resolvedCategory(id: input.categoryId, context: context)
 
         definition.name = input.name
         definition.notes = input.notes
@@ -140,9 +153,9 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
         try context.save()
     }
 
-    internal func deleteDefinition(definitionId: UUID) throws {
+    internal func deleteDefinition(definitionId: UUID) async throws {
         let context = makeContext()
-        let definition = try findDefinition(id: definitionId, context: context)
+        let definition = try await findDefinition(id: definitionId, context: context)
         context.delete(definition)
         try context.save()
     }
@@ -152,9 +165,9 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
         definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date? = nil,
-    ) throws -> RecurringPaymentSynchronizationSummary {
+    ) async throws -> RecurringPaymentSynchronizationSummary {
         let context = makeContext()
-        let definition = try findDefinition(id: definitionId, context: context)
+        let definition = try await findDefinition(id: definitionId, context: context)
 
         guard definition.recurrenceIntervalMonths > 0 else {
             throw RecurringPaymentDomainError.invalidRecurrence
@@ -200,14 +213,16 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
         occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
-    ) throws -> RecurringPaymentSynchronizationSummary {
+    ) async throws -> RecurringPaymentSynchronizationSummary {
         let context = makeContext()
-        let occurrence = try findOccurrence(id: occurrenceId, context: context)
+        let occurrence = try await findOccurrence(id: occurrenceId, context: context)
 
         occurrence.actualDate = input.actualDate
         occurrence.actualAmount = input.actualAmount
-        occurrence.transaction = try input.transaction.map { dto in
-            try findTransaction(id: dto.id, context: context)
+        if let dto = input.transaction {
+            occurrence.transaction = try await findTransaction(id: dto.id, context: context)
+        } else {
+            occurrence.transaction = nil
         }
         occurrence.status = .completed
         occurrence.updatedAt = currentDateProvider()
@@ -219,7 +234,7 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
 
         try context.save()
 
-        return try synchronize(
+        return try await synchronize(
             definitionId: occurrence.definition.id,
             horizonMonths: horizonMonths,
             referenceDate: currentDateProvider(),
@@ -231,9 +246,9 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
         occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
-    ) throws -> RecurringPaymentSynchronizationSummary? {
+    ) async throws -> RecurringPaymentSynchronizationSummary? {
         let context = makeContext()
-        let occurrence = try findOccurrence(id: occurrenceId, context: context)
+        let occurrence = try await findOccurrence(id: occurrenceId, context: context)
         let now = currentDateProvider()
         let wasCompleted = occurrence.status == .completed
         let willBeCompleted = input.status == .completed
@@ -241,8 +256,10 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
         occurrence.status = input.status
         occurrence.actualDate = input.actualDate
         occurrence.actualAmount = input.actualAmount
-        occurrence.transaction = try input.transaction.map { dto in
-            try findTransaction(id: dto.id, context: context)
+        if let dto = input.transaction {
+            occurrence.transaction = try await findTransaction(id: dto.id, context: context)
+        } else {
+            occurrence.transaction = nil
         }
         occurrence.updatedAt = now
 
@@ -257,20 +274,20 @@ internal final class SwiftDataRecurringPaymentRepository: RecurringPaymentReposi
             return nil
         }
 
-        return try synchronize(
+        return try await synchronize(
             definitionId: occurrence.definition.id,
             horizonMonths: horizonMonths,
             referenceDate: now,
         )
     }
 
-    internal func saveChanges() throws {
+    internal func saveChanges() async throws {
         // Each repository method persists immediately; no shared context to save.
     }
 }
 
 private extension SwiftDataRecurringPaymentRepository {
-    func findOccurrence(id: UUID, context: ModelContext) throws -> SwiftDataRecurringPaymentOccurrence {
+    func findOccurrence(id: UUID, context: ModelContext) async throws -> SwiftDataRecurringPaymentOccurrence {
         let predicate = #Predicate<SwiftDataRecurringPaymentOccurrence> { occurrence in
             occurrence.id == id
         }
@@ -281,7 +298,7 @@ private extension SwiftDataRecurringPaymentRepository {
         return occurrence
     }
 
-    func findDefinition(id: UUID, context: ModelContext) throws -> SwiftDataRecurringPaymentDefinition {
+    func findDefinition(id: UUID, context: ModelContext) async throws -> SwiftDataRecurringPaymentDefinition {
         let predicate = #Predicate<SwiftDataRecurringPaymentDefinition> { definition in
             definition.id == id
         }
@@ -292,7 +309,7 @@ private extension SwiftDataRecurringPaymentRepository {
         return definition
     }
 
-    func findTransaction(id: UUID, context: ModelContext) throws -> SwiftDataTransaction {
+    func findTransaction(id: UUID, context: ModelContext) async throws -> SwiftDataTransaction {
         let predicate = #Predicate<SwiftDataTransaction> { transaction in
             transaction.id == id
         }
@@ -342,7 +359,7 @@ private extension SwiftDataRecurringPaymentRepository {
         }
     }
 
-    func resolvedCategory(id: UUID?, context: ModelContext) throws -> SwiftDataCategory? {
+    func resolvedCategory(id: UUID?, context: ModelContext) async throws -> SwiftDataCategory? {
         guard let id else { return nil }
         guard let category = try context.fetch(CategoryQueries.byId(id)).first else {
             throw RecurringPaymentDomainError.categoryNotFound

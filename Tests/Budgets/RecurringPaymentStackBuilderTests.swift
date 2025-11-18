@@ -11,21 +11,19 @@ internal struct RecurringPaymentStackBuilderTests {
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
         let now = Date()
 
-        try await Task { @DatabaseActor in
-            let input = RecurringPaymentDefinitionInput(
-                name: "家賃",
-                amount: Decimal(100_000),
-                recurrenceIntervalMonths: 1,
-                firstOccurrenceDate: now
-            )
-            let definitionId = try repository.createDefinition(input)
-            _ = try repository.synchronize(
-                definitionId: definitionId,
-                horizonMonths: 1,
-                referenceDate: now
-            )
-            try repository.saveChanges()
-        }.value
+        let input = RecurringPaymentDefinitionInput(
+            name: "家賃",
+            amount: Decimal(100_000),
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: now
+        )
+        let definitionId = try await repository.createDefinition(input)
+        _ = try await repository.synchronize(
+            definitionId: definitionId,
+            horizonMonths: 1,
+            referenceDate: now
+        )
+        try await repository.saveChanges()
 
         let store = await RecurringPaymentStackBuilder.makeListStore(modelContainer: container)
         await store.refreshEntries()
@@ -38,38 +36,36 @@ internal struct RecurringPaymentStackBuilderTests {
     func makeReconciliationStoreLoadsRows() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
-        let transactionRepository = await SwiftDataTransactionRepository(modelContainer: container)
+        let transactionRepository = SwiftDataTransactionRepository(modelContainer: container)
         let now = Date()
 
-        try await Task { @DatabaseActor in
-            let input = RecurringPaymentDefinitionInput(
-                name: "保険料",
-                amount: Decimal(12_000),
-                recurrenceIntervalMonths: 1,
-                firstOccurrenceDate: now
-            )
-            let definitionId = try repository.createDefinition(input)
-            _ = try repository.synchronize(
-                definitionId: definitionId,
-                horizonMonths: 1,
-                referenceDate: now
-            )
-            try repository.saveChanges()
+        let input = RecurringPaymentDefinitionInput(
+            name: "保険料",
+            amount: Decimal(12_000),
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: now
+        )
+        let definitionId = try await repository.createDefinition(input)
+        _ = try await repository.synchronize(
+            definitionId: definitionId,
+            horizonMonths: 1,
+            referenceDate: now
+        )
+        try await repository.saveChanges()
 
-            let transactionInput = TransactionInput(
-                date: now,
-                title: "保険料",
-                memo: "",
-                amount: Decimal(-12_000),
-                isIncludedInCalculation: true,
-                isTransfer: false,
-                financialInstitutionId: nil,
-                majorCategoryId: nil,
-                minorCategoryId: nil
-            )
-            _ = try transactionRepository.insert(transactionInput)
-            try transactionRepository.saveChanges()
-        }.value
+        let transactionInput = TransactionInput(
+            date: now,
+            title: "保険料",
+            memo: "",
+            amount: Decimal(-12_000),
+            isIncludedInCalculation: true,
+            isTransfer: false,
+            financialInstitutionId: nil,
+            majorCategoryId: nil,
+            minorCategoryId: nil
+        )
+        _ = try await transactionRepository.insert(transactionInput)
+        try await transactionRepository.saveChanges()
 
         let store = await RecurringPaymentStackBuilder.makeReconciliationStore(modelContainer: container)
         await store.refresh()
@@ -109,21 +105,19 @@ internal struct RecurringPaymentStackBuilderTests {
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
         let now = Date()
 
-        try await Task { @DatabaseActor in
-            let input = RecurringPaymentDefinitionInput(
-                name: "通信費",
-                amount: Decimal(5_500),
-                recurrenceIntervalMonths: 1,
-                firstOccurrenceDate: now
-            )
-            let definitionId = try repository.createDefinition(input)
-            _ = try repository.synchronize(
-                definitionId: definitionId,
-                horizonMonths: 1,
-                referenceDate: now
-            )
-            try repository.saveChanges()
-        }.value
+        let input = RecurringPaymentDefinitionInput(
+            name: "通信費",
+            amount: Decimal(5_500),
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: now
+        )
+        let definitionId = try await repository.createDefinition(input)
+        _ = try await repository.synchronize(
+            definitionId: definitionId,
+            horizonMonths: 1,
+            referenceDate: now
+        )
+        try await repository.saveChanges()
 
         let store = await RecurringPaymentStackBuilder.makeListStore(modelActor: modelActor)
         await store.refreshEntries()
@@ -137,38 +131,36 @@ internal struct RecurringPaymentStackBuilderTests {
         let container = try ModelContainer.createInMemoryContainer()
         let modelActor = RecurringPaymentModelActor(modelContainer: container)
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
-        let transactionRepository = await SwiftDataTransactionRepository(modelContainer: container)
+        let transactionRepository = SwiftDataTransactionRepository(modelContainer: container)
         let now = Date()
 
-        try await Task { @DatabaseActor in
-            let input = RecurringPaymentDefinitionInput(
-                name: "公共料金",
-                amount: Decimal(7_000),
-                recurrenceIntervalMonths: 1,
-                firstOccurrenceDate: now
-            )
-            let definitionId = try repository.createDefinition(input)
-            _ = try repository.synchronize(
-                definitionId: definitionId,
-                horizonMonths: 1,
-                referenceDate: now
-            )
-            try repository.saveChanges()
+        let input = RecurringPaymentDefinitionInput(
+            name: "公共料金",
+            amount: Decimal(7_000),
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: now
+        )
+        let definitionId = try await repository.createDefinition(input)
+        _ = try await repository.synchronize(
+            definitionId: definitionId,
+            horizonMonths: 1,
+            referenceDate: now
+        )
+        try await repository.saveChanges()
 
-            let transactionInput = TransactionInput(
-                date: now,
-                title: "公共料金",
-                memo: "",
-                amount: Decimal(-7_000),
-                isIncludedInCalculation: true,
-                isTransfer: false,
-                financialInstitutionId: nil,
-                majorCategoryId: nil,
-                minorCategoryId: nil
-            )
-            _ = try transactionRepository.insert(transactionInput)
-            try transactionRepository.saveChanges()
-        }.value
+        let transactionInput = TransactionInput(
+            date: now,
+            title: "公共料金",
+            memo: "",
+            amount: Decimal(-7_000),
+            isIncludedInCalculation: true,
+            isTransfer: false,
+            financialInstitutionId: nil,
+            majorCategoryId: nil,
+            minorCategoryId: nil
+        )
+        _ = try await transactionRepository.insert(transactionInput)
+        try await transactionRepository.saveChanges()
 
         let store = await RecurringPaymentStackBuilder.makeReconciliationStore(modelActor: modelActor)
         await store.refresh()

@@ -1,22 +1,25 @@
 import Foundation
 import SwiftData
 
-@DatabaseActor
-internal final class SwiftDataDashboardRepository: DashboardRepository {
-    private let modelContainer: ModelContainer
+@ModelActor
+internal actor SwiftDataDashboardRepository: DashboardRepository {
+    private var contextOverride: ModelContext?
 
-    internal init(modelContainer: ModelContainer) {
-        self.modelContainer = modelContainer
+    private var context: ModelContext {
+        contextOverride ?? modelContext
     }
 
-    internal func fetchSnapshot(year: Int, month: Int) throws -> DashboardSnapshot {
-        let context = ModelContext(modelContainer)
-        let monthlyTransactions = try fetchTransactions(
+    internal func useSharedContext(_ context: ModelContext?) {
+        contextOverride = context
+    }
+
+    internal func fetchSnapshot(year: Int, month: Int) async throws -> DashboardSnapshot {
+        let monthlyTransactions = try await fetchTransactions(
             context: context,
             year: year,
             month: month,
         )
-        let annualTransactions = try fetchTransactions(
+        let annualTransactions = try await fetchTransactions(
             context: context,
             year: year,
             month: nil,
@@ -34,8 +37,7 @@ internal final class SwiftDataDashboardRepository: DashboardRepository {
         )
     }
 
-    internal func resolveInitialYear(defaultYear: Int) throws -> Int {
-        let context = ModelContext(modelContainer)
+    internal func resolveInitialYear(defaultYear: Int) async throws -> Int {
         if try context.fetch(BudgetQueries.annualConfig(for: defaultYear)).first != nil {
             return defaultYear
         }
@@ -48,7 +50,7 @@ private extension SwiftDataDashboardRepository {
         context: ModelContext,
         year: Int,
         month: Int?,
-    ) throws -> [Transaction] {
+    ) async throws -> [Transaction] {
         guard let startDate = Date.from(year: year, month: month ?? 1) else {
             return []
         }

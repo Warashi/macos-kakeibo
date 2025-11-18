@@ -15,20 +15,18 @@ internal struct BudgetStackBuilderTests {
         let currentYear = calendar.component(.year, from: now)
         let currentMonth = calendar.component(.month, from: now)
 
-        try await Task { @DatabaseActor in
-            let majorId = try dependencies.repository.createCategory(name: "生活費", parentId: nil)
-            let minorId = try dependencies.repository.createCategory(name: "食費", parentId: majorId)
-            let input = BudgetInput(
-                amount: Decimal(50_000),
-                categoryId: minorId,
-                startYear: currentYear,
-                startMonth: currentMonth,
-                endYear: currentYear,
-                endMonth: currentMonth
-            )
-            try dependencies.repository.addBudget(input)
-            try dependencies.repository.saveChanges()
-        }.value
+        let majorId = try await dependencies.repository.createCategory(name: "生活費", parentId: nil)
+        let minorId = try await dependencies.repository.createCategory(name: "食費", parentId: majorId)
+        let input = BudgetInput(
+            amount: Decimal(50_000),
+            categoryId: minorId,
+            startYear: currentYear,
+            startMonth: currentMonth,
+            endYear: currentYear,
+            endMonth: currentMonth
+        )
+        try await dependencies.repository.addBudget(input)
+        try await dependencies.repository.saveChanges()
 
         let store = await BudgetStackBuilder.makeStore(modelContainer: container)
         await store.refresh()
@@ -44,23 +42,21 @@ internal struct BudgetStackBuilderTests {
         let modelActor = BudgetModelActor(modelContainer: container)
         let dependencies = await BudgetStackBuilder.makeDependencies(modelActor: modelActor)
 
-        try await Task { @DatabaseActor in
-            let calendar = Calendar(identifier: .gregorian)
-            let now = Date()
-            let year = calendar.component(.year, from: now)
-            let month = calendar.component(.month, from: now)
-            let categoryId = try dependencies.repository.createCategory(name: "住居", parentId: nil)
-            let input = BudgetInput(
-                amount: Decimal(80_000),
-                categoryId: categoryId,
-                startYear: year,
-                startMonth: month,
-                endYear: year,
-                endMonth: month
-            )
-            try dependencies.repository.addBudget(input)
-            try dependencies.repository.saveChanges()
-        }.value
+        let calendar = Calendar(identifier: .gregorian)
+        let now = Date()
+        let year = calendar.component(.year, from: now)
+        let month = calendar.component(.month, from: now)
+        let categoryId = try await dependencies.repository.createCategory(name: "住居", parentId: nil)
+        let input = BudgetInput(
+            amount: Decimal(80_000),
+            categoryId: categoryId,
+            startYear: year,
+            startMonth: month,
+            endYear: year,
+            endMonth: month
+        )
+        try await dependencies.repository.addBudget(input)
+        try await dependencies.repository.saveChanges()
 
         let store = await BudgetStackBuilder.makeStore(modelActor: modelActor)
         await store.refresh()

@@ -107,12 +107,10 @@ internal final class SettingsStore {
             defaultValue: true,
         )
 
-        let initialStatistics = await Task { @DatabaseActor () -> DataStatistics? in
-            try? makeStatistics(
-                transactionRepository: transactionRepository,
-                budgetRepository: budgetRepository,
-            )
-        }.value
+        let initialStatistics = try? await makeStatistics(
+            transactionRepository: transactionRepository,
+            budgetRepository: budgetRepository
+        )
         statistics = initialStatistics ?? .empty
     }
 
@@ -132,12 +130,10 @@ internal final class SettingsStore {
 
     /// データ件数を再計算
     internal func refreshStatistics() async {
-        let result = await Task { @DatabaseActor () -> DataStatistics? in
-            try? makeStatistics(
-                transactionRepository: transactionRepository,
-                budgetRepository: budgetRepository,
-            )
-        }.value
+        let result = try? await makeStatistics(
+            transactionRepository: transactionRepository,
+            budgetRepository: budgetRepository
+        )
         statistics = result ?? .empty
     }
 
@@ -145,11 +141,8 @@ internal final class SettingsStore {
 
     /// 取引のCSVエクスポートを実行
     internal func exportTransactionsCSV() async throws -> CSVExportResult {
-        let exporter = csvExporter
-        return try await Task { @DatabaseActor () throws -> CSVExportResult in
-            let snapshot = try transactionRepository.fetchCSVExportSnapshot()
-            return try exporter.exportTransactions(snapshot)
-        }.value
+        let snapshot = try await transactionRepository.fetchCSVExportSnapshot()
+        return try csvExporter.exportTransactions(snapshot)
     }
 
     // MARK: - Backup & Restore
@@ -191,13 +184,11 @@ internal final class SettingsStore {
         isProcessingDeletion = true
         defer { isProcessingDeletion = false }
 
-        try await Task { @DatabaseActor in
-            try transactionRepository.deleteAllTransactions()
-            try budgetRepository.deleteAllBudgets()
-            try budgetRepository.deleteAllAnnualBudgetConfigs()
-            try budgetRepository.deleteAllCategories()
-            try budgetRepository.deleteAllFinancialInstitutions()
-        }.value
+        try await transactionRepository.deleteAllTransactions()
+        try await budgetRepository.deleteAllBudgets()
+        try await budgetRepository.deleteAllAnnualBudgetConfigs()
+        try await budgetRepository.deleteAllCategories()
+        try await budgetRepository.deleteAllFinancialInstitutions()
         await refreshStatistics()
         lastRestoreSummary = nil
         lastBackupMetadata = nil
@@ -227,16 +218,15 @@ private extension UserDefaults {
 
 // MARK: - Persistence Helpers
 
-@DatabaseActor
 private func makeStatistics(
     transactionRepository: TransactionRepository,
     budgetRepository: BudgetRepository,
-) throws -> SettingsStore.DataStatistics {
-    try SettingsStore.DataStatistics(
-        transactions: transactionRepository.countTransactions(),
-        categories: budgetRepository.countCategories(),
-        budgets: budgetRepository.countBudgets(),
-        annualBudgetConfigs: budgetRepository.countAnnualBudgetConfigs(),
-        financialInstitutions: budgetRepository.countFinancialInstitutions(),
+) async throws -> SettingsStore.DataStatistics {
+    SettingsStore.DataStatistics(
+        transactions: try await transactionRepository.countTransactions(),
+        categories: try await budgetRepository.countCategories(),
+        budgets: try await budgetRepository.countBudgets(),
+        annualBudgetConfigs: try await budgetRepository.countAnnualBudgetConfigs(),
+        financialInstitutions: try await budgetRepository.countFinancialInstitutions()
     )
 }

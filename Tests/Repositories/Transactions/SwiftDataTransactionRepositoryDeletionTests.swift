@@ -4,10 +4,9 @@ import SwiftData
 import Testing
 
 @Suite("SwiftDataTransactionRepositoryDeletion", .serialized)
-@DatabaseActor
 internal struct SwiftDataTransactionRepositoryDeletionTests {
     @Test("全取引を削除できる")
-    internal func deletesAllTransactions() throws {
+    internal func deletesAllTransactions() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let repository = SwiftDataTransactionRepository(modelContainer: container)
 
@@ -22,13 +21,13 @@ internal struct SwiftDataTransactionRepositoryDeletionTests {
             majorCategoryId: nil,
             minorCategoryId: nil,
         )
-        _ = try repository.insert(input)
-        _ = try repository.insert(input)
-        try repository.saveChanges()
-        #expect(try repository.countTransactions() == 2)
+        _ = try await repository.insert(input)
+        _ = try await repository.insert(input)
+        try await repository.saveChanges()
+        #expect(try await repository.countTransactions() == 2)
 
-        try repository.deleteAllTransactions()
+        try await repository.deleteAllTransactions()
 
-        #expect(try repository.countTransactions() == 0)
+        #expect(try await repository.countTransactions() == 0)
     }
 }

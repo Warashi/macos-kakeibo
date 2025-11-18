@@ -19,9 +19,9 @@ internal struct TransactionListViewTests {
             for: SwiftDataTransaction.self, SwiftDataCategory.self, SwiftDataFinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
-        let repository = await SwiftDataTransactionRepository(modelContainer: container)
-        let listUseCase = await DefaultTransactionListUseCase(repository: repository)
-        let formUseCase = await DefaultTransactionFormUseCase(repository: repository)
+        let repository = SwiftDataTransactionRepository(modelContainer: container)
+        let listUseCase = DefaultTransactionListUseCase(repository: repository)
+        let formUseCase = DefaultTransactionFormUseCase(repository: repository)
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase)
 
         let view = TransactionListContentView(store: store)
@@ -34,9 +34,9 @@ internal struct TransactionListViewTests {
             for: SwiftDataTransaction.self, SwiftDataCategory.self, SwiftDataFinancialInstitution.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true),
         )
-        let repository = await SwiftDataTransactionRepository(modelContainer: container)
-        let listUseCase = await DefaultTransactionListUseCase(repository: repository)
-        let formUseCase = await DefaultTransactionFormUseCase(repository: repository)
+        let repository = SwiftDataTransactionRepository(modelContainer: container)
+        let listUseCase = DefaultTransactionListUseCase(repository: repository)
+        let formUseCase = DefaultTransactionFormUseCase(repository: repository)
         let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase)
 
         let filterBar = TransactionFilterBar(store: store)

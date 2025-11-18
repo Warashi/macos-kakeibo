@@ -17,33 +17,33 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         self.categories = categories
     }
 
-    internal func fetchTransactions(query: TransactionQuery) throws -> [Transaction] {
+    internal func fetchTransactions(query: TransactionQuery) async throws -> [Transaction] {
         transactions.filter { transaction in
             matches(transaction: transaction, query: query)
         }
     }
 
-    internal func fetchAllTransactions() throws -> [Transaction] {
+    internal func fetchAllTransactions() async throws -> [Transaction] {
         transactions
     }
 
-    internal func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot {
+    internal func fetchCSVExportSnapshot() async throws -> TransactionCSVExportSnapshot {
         try TransactionCSVExportSnapshot(
-            transactions: fetchAllTransactions(),
-            categories: fetchCategories(),
-            institutions: fetchInstitutions(),
+            transactions: await fetchAllTransactions(),
+            categories: await fetchCategories(),
+            institutions: await fetchInstitutions(),
         )
     }
 
-    internal func countTransactions() throws -> Int {
+    internal func countTransactions() async throws -> Int {
         transactions.count
     }
 
-    internal func fetchInstitutions() throws -> [FinancialInstitution] {
+    internal func fetchInstitutions() async throws -> [FinancialInstitution] {
         institutions
     }
 
-    internal func fetchCategories() throws -> [Kakeibo.Category] {
+    internal func fetchCategories() async throws -> [Kakeibo.Category] {
         categories
     }
 
@@ -51,24 +51,24 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
     internal func observeTransactions(
         query: TransactionQuery,
         onChange: @escaping @MainActor ([Transaction]) -> Void,
-    ) throws -> ObservationToken {
-        let snapshot = try fetchTransactions(query: query)
+    ) async throws -> ObservationToken {
+        let snapshot = try await fetchTransactions(query: query)
         MainActor.assumeIsolated {
             onChange(snapshot)
         }
         return ObservationToken {}
     }
 
-    internal func findTransaction(id: UUID) throws -> Transaction? {
+    internal func findTransaction(id: UUID) async throws -> Transaction? {
         transactions.first { $0.id == id }
     }
 
-    internal func findByIdentifier(_ identifier: String) throws -> Transaction? {
+    internal func findByIdentifier(_ identifier: String) async throws -> Transaction? {
         transactions.first { $0.importIdentifier == identifier }
     }
 
     @discardableResult
-    internal func insert(_ input: TransactionInput) throws -> UUID {
+    internal func insert(_ input: TransactionInput) async throws -> UUID {
         let now = Date()
         let transaction = Transaction(
             id: UUID(),
@@ -89,7 +89,7 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         return transaction.id
     }
 
-    internal func update(_ input: TransactionUpdateInput) throws {
+    internal func update(_ input: TransactionUpdateInput) async throws {
         guard let index = transactions.firstIndex(where: { $0.id == input.id }) else {
             throw RepositoryError.notFound
         }
@@ -111,18 +111,18 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
         )
     }
 
-    internal func delete(id: UUID) throws {
+    internal func delete(id: UUID) async throws {
         guard let index = transactions.firstIndex(where: { $0.id == id }) else {
             throw RepositoryError.notFound
         }
         transactions.remove(at: index)
     }
 
-    internal func deleteAllTransactions() throws {
+    internal func deleteAllTransactions() async throws {
         transactions.removeAll()
     }
 
-    internal func saveChanges() throws {
+    internal func saveChanges() async throws {
         saveCallCount += 1
     }
 }

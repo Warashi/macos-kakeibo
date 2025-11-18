@@ -1,43 +1,47 @@
 import Foundation
 import SwiftData
 
-@DatabaseActor
-internal final class SwiftDataTransactionRepository: TransactionRepository {
-    private let modelContext: ModelContext
+@ModelActor
+internal actor SwiftDataTransactionRepository: TransactionRepository {
+    private var contextOverride: ModelContext?
 
-    internal init(modelContainer: ModelContainer) {
-        self.modelContext = ModelContext(modelContainer)
+    private var context: ModelContext {
+        contextOverride ?? modelContext
     }
 
-    internal func fetchTransactions(query: TransactionQuery) throws -> [Transaction] {
-        let transactions = try modelContext.fetch(TransactionQueries.list(query: query))
+    internal func useSharedContext(_ context: ModelContext?) {
+        contextOverride = context
+    }
+
+    internal func fetchTransactions(query: TransactionQuery) async throws -> [Transaction] {
+        let transactions = try context.fetch(TransactionQueries.list(query: query))
         return transactions.map { Transaction(from: $0) }
     }
 
-    internal func fetchAllTransactions() throws -> [Transaction] {
-        let transactions = try modelContext.fetch(TransactionQueries.allSorted())
+    internal func fetchAllTransactions() async throws -> [Transaction] {
+        let transactions = try context.fetch(TransactionQueries.allSorted())
         return transactions.map { Transaction(from: $0) }
     }
 
-    internal func fetchCSVExportSnapshot() throws -> TransactionCSVExportSnapshot {
+    internal func fetchCSVExportSnapshot() async throws -> TransactionCSVExportSnapshot {
         try TransactionCSVExportSnapshot(
-            transactions: fetchAllTransactions(),
-            categories: fetchCategories(),
-            institutions: fetchInstitutions(),
+            transactions: await fetchAllTransactions(),
+            categories: await fetchCategories(),
+            institutions: await fetchInstitutions(),
         )
     }
 
-    internal func countTransactions() throws -> Int {
-        try modelContext.count(SwiftDataTransaction.self)
+    internal func countTransactions() async throws -> Int {
+        try context.count(SwiftDataTransaction.self)
     }
 
-    internal func fetchInstitutions() throws -> [FinancialInstitution] {
-        let institutions = try modelContext.fetch(FinancialInstitutionQueries.sortedByDisplayOrder())
+    internal func fetchInstitutions() async throws -> [FinancialInstitution] {
+        let institutions = try context.fetch(FinancialInstitutionQueries.sortedByDisplayOrder())
         return institutions.map { FinancialInstitution(from: $0) }
     }
 
-    internal func fetchCategories() throws -> [Category] {
-        let categories = try modelContext.fetch(CategoryQueries.sortedForDisplay())
+    internal func fetchCategories() async throws -> [Category] {
+        let categories = try context.fetch(CategoryQueries.sortedForDisplay())
         return categories.map { Category(from: $0) }
     }
 
@@ -45,24 +49,24 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
     internal func observeTransactions(
         query: TransactionQuery,
         onChange: @escaping @MainActor ([Transaction]) -> Void,
-    ) throws -> ObservationToken {
+    ) async throws -> ObservationToken {
         let descriptor = TransactionQueries.observation(query: query)
-        return modelContext.observe(descriptor: descriptor) { transactions in
+        return context.observe(descriptor: descriptor) { transactions in
             let dtos = transactions.map { Transaction(from: $0) }
             onChange(dtos)
         }
     }
 
-    internal func findTransaction(id: UUID) throws -> Transaction? {
-        try modelContext.fetch(TransactionQueries.byId(id)).first.map { Transaction(from: $0) }
+    internal func findTransaction(id: UUID) async throws -> Transaction? {
+        try context.fetch(TransactionQueries.byId(id)).first.map { Transaction(from: $0) }
     }
 
-    internal func findByIdentifier(_ identifier: String) throws -> Transaction? {
-        try modelContext.fetch(TransactionQueries.byImportIdentifier(identifier)).first.map { Transaction(from: $0) }
+    internal func findByIdentifier(_ identifier: String) async throws -> Transaction? {
+        try context.fetch(TransactionQueries.byImportIdentifier(identifier)).first.map { Transaction(from: $0) }
     }
 
     @discardableResult
-    internal func insert(_ input: TransactionInput) throws -> UUID {
+    internal func insert(_ input: TransactionInput) async throws -> UUID {
         let transaction = try SwiftDataTransaction(
             date: input.date,
             title: input.title,
@@ -75,12 +79,12 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
             majorCategory: resolveCategory(id: input.majorCategoryId),
             minorCategory: resolveCategory(id: input.minorCategoryId),
         )
-        modelContext.insert(transaction)
+        context.insert(transaction)
         return transaction.id
     }
 
-    internal func update(_ input: TransactionUpdateInput) throws {
-        guard let transaction = try modelContext.fetch(TransactionQueries.byId(input.id)).first else {
+    internal func update(_ input: TransactionUpdateInput) async throws {
+        guard let transaction = try context.fetch(TransactionQueries.byId(input.id)).first else {
             throw RepositoryError.notFound
         }
 
@@ -96,31 +100,31 @@ internal final class SwiftDataTransactionRepository: TransactionRepository {
         transaction.updatedAt = Date()
     }
 
-    internal func deleteAllTransactions() throws {
+    internal func deleteAllTransactions() async throws {
         let descriptor: ModelFetchRequest<SwiftDataTransaction> = ModelFetchFactory.make()
-        let transactions = try modelContext.fetch(descriptor)
+        let transactions = try context.fetch(descriptor)
         for transaction in transactions {
-            modelContext.delete(transaction)
+            context.delete(transaction)
         }
-        try saveChanges()
+        try await saveChanges()
     }
 
-    internal func delete(id: UUID) throws {
-        guard let transaction = try modelContext.fetch(TransactionQueries.byId(id)).first else {
+    internal func delete(id: UUID) async throws {
+        guard let transaction = try context.fetch(TransactionQueries.byId(id)).first else {
             throw RepositoryError.notFound
         }
-        modelContext.delete(transaction)
+        context.delete(transaction)
     }
 
-    internal func saveChanges() throws {
-        try modelContext.save()
+    internal func saveChanges() async throws {
+        try context.save()
     }
 }
 
 private extension SwiftDataTransactionRepository {
     func resolveInstitution(id: UUID?) throws -> SwiftDataFinancialInstitution? {
         guard let id else { return nil }
-        guard let institution = try modelContext.fetch(FinancialInstitutionQueries.byId(id)).first else {
+        guard let institution = try context.fetch(FinancialInstitutionQueries.byId(id)).first else {
             throw RepositoryError.notFound
         }
         return institution
@@ -128,7 +132,7 @@ private extension SwiftDataTransactionRepository {
 
     func resolveCategory(id: UUID?) throws -> SwiftDataCategory? {
         guard let id else { return nil }
-        guard let category = try modelContext.fetch(CategoryQueries.byId(id)).first else {
+        guard let category = try context.fetch(CategoryQueries.byId(id)).first else {
             throw RepositoryError.notFound
         }
         return category

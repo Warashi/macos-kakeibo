@@ -150,7 +150,7 @@ internal struct DashboardView: View {
 private extension DashboardView {
     func prepareStoreIfNeeded() {
         guard store == nil else { return }
-        Task { @DatabaseActor in
+        Task {
             guard await MainActor.run(body: { store == nil }) else { return }
             guard let container = await MainActor.run(body: { modelContainer }) else {
                 assertionFailure("ModelContainer is unavailable")

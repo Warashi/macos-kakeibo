@@ -61,37 +61,36 @@ internal struct RecurringPaymentSynchronizationSummary {
     internal let removedCount: Int
 }
 
-@DatabaseActor
 internal protocol RecurringPaymentRepository: Sendable {
-    func definitions(filter: RecurringPaymentDefinitionFilter?) throws -> [RecurringPaymentDefinition]
-    func occurrences(query: RecurringPaymentOccurrenceQuery?) throws -> [RecurringPaymentOccurrence]
-    func balances(query: RecurringPaymentBalanceQuery?) throws -> [RecurringPaymentSavingBalance]
+    func definitions(filter: RecurringPaymentDefinitionFilter?) async throws -> [RecurringPaymentDefinition]
+    func occurrences(query: RecurringPaymentOccurrenceQuery?) async throws -> [RecurringPaymentOccurrence]
+    func balances(query: RecurringPaymentBalanceQuery?) async throws -> [RecurringPaymentSavingBalance]
 
     @discardableResult
-    func createDefinition(_ input: RecurringPaymentDefinitionInput) throws -> UUID
-    func updateDefinition(definitionId: UUID, input: RecurringPaymentDefinitionInput) throws
-    func deleteDefinition(definitionId: UUID) throws
+    func createDefinition(_ input: RecurringPaymentDefinitionInput) async throws -> UUID
+    func updateDefinition(definitionId: UUID, input: RecurringPaymentDefinitionInput) async throws
+    func deleteDefinition(definitionId: UUID) async throws
 
     @discardableResult
     func synchronize(
         definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
-    ) throws -> RecurringPaymentSynchronizationSummary
+    ) async throws -> RecurringPaymentSynchronizationSummary
 
     @discardableResult
     func markOccurrenceCompleted(
         occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
-    ) throws -> RecurringPaymentSynchronizationSummary
+    ) async throws -> RecurringPaymentSynchronizationSummary
 
     @discardableResult
     func updateOccurrence(
         occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
-    ) throws -> RecurringPaymentSynchronizationSummary?
+    ) async throws -> RecurringPaymentSynchronizationSummary?
 
-    func saveChanges() throws
+    func saveChanges() async throws
 }

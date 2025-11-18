@@ -1,8 +1,7 @@
 import Foundation
 @testable import Kakeibo
 
-@DatabaseActor
-internal final class SpyRecurringPaymentOccurrencesService: RecurringPaymentOccurrencesService {
+internal actor SpyRecurringPaymentOccurrencesService: RecurringPaymentOccurrencesService {
     internal struct SynchronizeCall {
         internal let definitionId: UUID
         internal let horizonMonths: Int
@@ -36,7 +35,7 @@ internal final class SpyRecurringPaymentOccurrencesService: RecurringPaymentOccu
         definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
-    ) throws -> RecurringPaymentSynchronizationSummary {
+    ) async throws -> RecurringPaymentSynchronizationSummary {
         synchronizeCalls.append(
             SynchronizeCall(
                 definitionId: definitionId,
@@ -44,7 +43,7 @@ internal final class SpyRecurringPaymentOccurrencesService: RecurringPaymentOccu
                 referenceDate: referenceDate,
             ),
         )
-        return try wrapped.synchronizeOccurrences(
+        return try await wrapped.synchronizeOccurrences(
             definitionId: definitionId,
             horizonMonths: horizonMonths,
             referenceDate: referenceDate,
@@ -56,7 +55,7 @@ internal final class SpyRecurringPaymentOccurrencesService: RecurringPaymentOccu
         occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
-    ) throws -> RecurringPaymentSynchronizationSummary {
+    ) async throws -> RecurringPaymentSynchronizationSummary {
         markCompletionCalls.append(
             MarkCompletionCall(
                 occurrenceId: occurrenceId,
@@ -64,7 +63,7 @@ internal final class SpyRecurringPaymentOccurrencesService: RecurringPaymentOccu
                 horizonMonths: horizonMonths,
             ),
         )
-        return try wrapped.markOccurrenceCompleted(
+        return try await wrapped.markOccurrenceCompleted(
             occurrenceId: occurrenceId,
             input: input,
             horizonMonths: horizonMonths,
@@ -76,7 +75,7 @@ internal final class SpyRecurringPaymentOccurrencesService: RecurringPaymentOccu
         occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
-    ) throws -> RecurringPaymentSynchronizationSummary? {
+    ) async throws -> RecurringPaymentSynchronizationSummary? {
         updateCalls.append(
             UpdateCall(
                 occurrenceId: occurrenceId,
@@ -84,7 +83,7 @@ internal final class SpyRecurringPaymentOccurrencesService: RecurringPaymentOccu
                 horizonMonths: horizonMonths,
             ),
         )
-        return try wrapped.updateOccurrence(
+        return try await wrapped.updateOccurrence(
             occurrenceId: occurrenceId,
             input: input,
             horizonMonths: horizonMonths,

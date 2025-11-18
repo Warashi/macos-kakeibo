@@ -4,10 +4,9 @@ import SwiftData
 import Testing
 
 @Suite("SwiftDataTransactionRepositoryExport", .serialized)
-@DatabaseActor
 internal struct SwiftDataTransactionRepositoryExportTests {
     @Test("CSVエクスポート用スナップショットを取得できる")
-    internal func buildsSnapshot() throws {
+    internal func buildsSnapshot() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let institution = SwiftDataFinancialInstitution(name: "銀行")
@@ -30,10 +29,10 @@ internal struct SwiftDataTransactionRepositoryExportTests {
             majorCategoryId: major.id,
             minorCategoryId: minor.id,
         )
-        _ = try repository.insert(input)
-        try repository.saveChanges()
+        _ = try await repository.insert(input)
+        try await repository.saveChanges()
 
-        let snapshot = try repository.fetchCSVExportSnapshot()
+        let snapshot = try await repository.fetchCSVExportSnapshot()
 
         #expect(snapshot.transactions.count == 1)
         #expect(snapshot.categories.contains(where: { $0.id == major.id }))

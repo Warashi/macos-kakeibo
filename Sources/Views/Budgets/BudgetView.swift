@@ -422,7 +422,7 @@ private extension BudgetView {
             }
             return false
         }()
-        Task { @DatabaseActor in
+        Task {
             guard let container = await MainActor.run(body: { modelContainer }) else {
                 assertionFailure("ModelContainer is unavailable")
                 return
@@ -479,7 +479,7 @@ private extension BudgetView {
     func deletePendingRecurringPayment() {
         guard let definition = recurringPaymentPendingDeletion else { return }
         let definitionId = definition.id
-        Task { @DatabaseActor in
+        Task {
             guard let container = await MainActor.run(body: { modelContainer }) else {
                 assertionFailure("ModelContainer is unavailable")
                 return

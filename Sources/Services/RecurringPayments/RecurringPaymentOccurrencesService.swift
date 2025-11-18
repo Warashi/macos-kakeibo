@@ -1,31 +1,29 @@
 import Foundation
 
-@DatabaseActor
 internal protocol RecurringPaymentOccurrencesService: Sendable {
     @discardableResult
     func synchronizeOccurrences(
         definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
-    ) throws -> RecurringPaymentSynchronizationSummary
+    ) async throws -> RecurringPaymentSynchronizationSummary
 
     @discardableResult
     func markOccurrenceCompleted(
         occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
-    ) throws -> RecurringPaymentSynchronizationSummary
+    ) async throws -> RecurringPaymentSynchronizationSummary
 
     @discardableResult
     func updateOccurrence(
         occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
-    ) throws -> RecurringPaymentSynchronizationSummary?
+    ) async throws -> RecurringPaymentSynchronizationSummary?
 }
 
-@DatabaseActor
-internal final class DefaultRecurringPaymentOccurrencesService: RecurringPaymentOccurrencesService {
+internal struct DefaultRecurringPaymentOccurrencesService: RecurringPaymentOccurrencesService {
     private let repository: RecurringPaymentRepository
 
     internal init(repository: RecurringPaymentRepository) {
@@ -36,8 +34,8 @@ internal final class DefaultRecurringPaymentOccurrencesService: RecurringPayment
         definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
-    ) throws -> RecurringPaymentSynchronizationSummary {
-        try repository.synchronize(
+    ) async throws -> RecurringPaymentSynchronizationSummary {
+        try await repository.synchronize(
             definitionId: definitionId,
             horizonMonths: horizonMonths,
             referenceDate: referenceDate,
@@ -48,8 +46,8 @@ internal final class DefaultRecurringPaymentOccurrencesService: RecurringPayment
         occurrenceId: UUID,
         input: OccurrenceCompletionInput,
         horizonMonths: Int,
-    ) throws -> RecurringPaymentSynchronizationSummary {
-        try repository.markOccurrenceCompleted(
+    ) async throws -> RecurringPaymentSynchronizationSummary {
+        try await repository.markOccurrenceCompleted(
             occurrenceId: occurrenceId,
             input: input,
             horizonMonths: horizonMonths,
@@ -60,8 +58,8 @@ internal final class DefaultRecurringPaymentOccurrencesService: RecurringPayment
         occurrenceId: UUID,
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
-    ) throws -> RecurringPaymentSynchronizationSummary? {
-        try repository.updateOccurrence(
+    ) async throws -> RecurringPaymentSynchronizationSummary? {
+        try await repository.updateOccurrence(
             occurrenceId: occurrenceId,
             input: input,
             horizonMonths: horizonMonths,
