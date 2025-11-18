@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct RecurringPaymentReconciliationPresenter {
+internal struct RecurringPaymentReconciliationPresenter: Sendable {
     internal struct Presentation {
         internal let rows: [OccurrenceRow]
         internal let occurrenceLookup: [UUID: RecurringPaymentOccurrence]
