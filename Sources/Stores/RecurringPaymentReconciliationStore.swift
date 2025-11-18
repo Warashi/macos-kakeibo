@@ -2,11 +2,17 @@ import Foundation
 import Observation
 
 @Observable
-@MainActor
-internal final class RecurringPaymentReconciliationStore {
+internal final class RecurringPaymentReconciliationStore: @unchecked Sendable {
     internal typealias OccurrenceRow = RecurringPaymentReconciliationPresenter.OccurrenceRow
     internal typealias TransactionCandidate = RecurringPaymentReconciliationPresenter.TransactionCandidate
     internal typealias TransactionCandidateScore = RecurringPaymentReconciliationPresenter.TransactionCandidateScore
+    private struct RefreshComputation {
+        let transactions: [Transaction]
+        let rows: [OccurrenceRow]
+        let occurrenceLookup: [UUID: RecurringPaymentOccurrence]
+        let definitionsLookup: [UUID: RecurringPaymentDefinition]
+        let linkedTransactionLookup: [UUID: UUID]
+    }
 
     // MARK: - Nested Types
 
@@ -113,65 +119,30 @@ internal final class RecurringPaymentReconciliationStore {
 
 internal extension RecurringPaymentReconciliationStore {
     func refresh() async {
-        errorMessage = nil
-        statusMessage = nil
-        isLoading = true
-        defer { isLoading = false }
+        await MainActor.run {
+            errorMessage = nil
+            statusMessage = nil
+            isLoading = true
+        }
+        defer {
+            Task { @MainActor in
+                self.isLoading = false
+            }
+        }
 
         do {
-            transactions = try await transactionRepository.fetchAllTransactions()
-
-            let definitions = try await repository.definitions(filter: nil)
-                .sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
-            let referenceDate = currentDateProvider()
-
-            let occurrences = try await repository.occurrences(query: nil)
-
-            definitionsLookup = Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
-
-            var categoriesDict: [UUID: String] = [:]
-            for def in definitions {
-                if let categoryId = def.categoryId {
-                    if categoriesDict[categoryId] == nil {
-                        categoriesDict[categoryId] = def.name
-                    }
-                }
-            }
-
-            let transactionsDict = Dictionary(uniqueKeysWithValues: transactions.map { ($0.id, $0.title) })
-
-            let presentation = presenter.makePresentation(
-                input: RecurringPaymentReconciliationPresenter.PresentationInput(
-                    occurrences: occurrences,
-                    definitions: definitionsLookup,
-                    categories: categoriesDict,
-                    transactions: transactionsDict,
-                    referenceDate: referenceDate,
-                ),
-            )
-
-            rows = presentation.rows
-            occurrenceLookup = presentation.occurrenceLookup
-            linkedTransactionLookup = presentation.linkedTransactionLookup
-            applyFilters()
-
-            if let selectedOccurrenceId,
-               occurrenceLookup[selectedOccurrenceId] != nil,
-               filteredRows.contains(where: { $0.id == selectedOccurrenceId }) {
-                updateEditorState()
-            } else {
-                selectedOccurrenceId = filteredRows.first?.id
+            let result = try await loadRefreshComputation()
+            await MainActor.run {
+                self.applyRefreshResult(result)
             }
         } catch {
-            rows = []
-            filteredRows = []
-            occurrenceLookup = [:]
-            linkedTransactionLookup = [:]
-            candidateTransactions = []
-            errorMessage = "定期支払い情報の取得に失敗しました: \(error.localizedDescription)"
+            await MainActor.run {
+                self.applyRefreshFailure(error)
+            }
         }
     }
 
+    @MainActor
     func selectCandidate(_ candidateId: UUID?) {
         selectedTransactionId = candidateId
         guard let candidateId,
@@ -184,22 +155,38 @@ internal extension RecurringPaymentReconciliationStore {
     }
 
     func saveSelectedOccurrence() async {
-        guard let occurrenceId = selectedOccurrenceId else {
-            errorMessage = "保存対象の定期支払いを選択してください。"
+        let (occurrenceId, amountText, actualDate, selectedTransactionId) = await MainActor.run {
+            (self.selectedOccurrenceId, self.actualAmountText, self.actualDate, self.selectedTransactionId)
+        }
+
+        guard let occurrenceId else {
+            await MainActor.run {
+                self.errorMessage = "保存対象の定期支払いを選択してください。"
+            }
             return
         }
 
-        guard let amount = decimalAmount(from: actualAmountText), amount > 0 else {
-            errorMessage = "実績金額を正しく入力してください。"
+        guard let amount = decimalAmount(from: amountText), amount > 0 else {
+            await MainActor.run {
+                self.errorMessage = "実績金額を正しく入力してください。"
+            }
             return
         }
 
-        isSaving = true
-        errorMessage = nil
-        statusMessage = nil
-        defer { isSaving = false }
+        let transaction = await MainActor.run {
+            self.transactionById(selectedTransactionId)
+        }
 
-        let transaction = selectedTransactionId.flatMap(transactionById)
+        await MainActor.run {
+            isSaving = true
+            errorMessage = nil
+            statusMessage = nil
+        }
+        defer {
+            Task { @MainActor in
+                self.isSaving = false
+            }
+        }
 
         do {
             let input = OccurrenceCompletionInput(
@@ -212,31 +199,50 @@ internal extension RecurringPaymentReconciliationStore {
                 input: input,
                 horizonMonths: horizonMonths,
             )
-            statusMessage = "実績を保存しました。"
+            await MainActor.run {
+                statusMessage = "実績を保存しました。"
+            }
             await refresh()
-            selectedOccurrenceId = occurrenceId
+            await MainActor.run {
+                selectedOccurrenceId = occurrenceId
+            }
         } catch let storeError as RecurringPaymentDomainError {
+            let message: String
             switch storeError {
             case let .validationFailed(messages):
-                errorMessage = messages.joined(separator: "\n")
+                message = messages.joined(separator: "\n")
             default:
-                errorMessage = "実績の保存に失敗しました: \(storeError)"
+                message = "実績の保存に失敗しました: \(storeError)"
+            }
+            await MainActor.run {
+                errorMessage = message
             }
         } catch {
-            errorMessage = "実績の保存に失敗しました: \(error.localizedDescription)"
+            await MainActor.run {
+                errorMessage = "実績の保存に失敗しました: \(error.localizedDescription)"
+            }
         }
     }
 
     func unlinkSelectedOccurrence() async {
-        guard let occurrenceId = selectedOccurrenceId else {
-            errorMessage = "解除対象の定期支払いを選択してください。"
+        let occurrenceId = await MainActor.run { self.selectedOccurrenceId }
+        guard let occurrenceId else {
+            await MainActor.run {
+                self.errorMessage = "解除対象の定期支払いを選択してください。"
+            }
             return
         }
 
-        isSaving = true
-        errorMessage = nil
-        statusMessage = nil
-        defer { isSaving = false }
+        await MainActor.run {
+            isSaving = true
+            errorMessage = nil
+            statusMessage = nil
+        }
+        defer {
+            Task { @MainActor in
+                self.isSaving = false
+            }
+        }
 
         do {
             try await occurrencesService.updateOccurrence(
@@ -249,14 +255,21 @@ internal extension RecurringPaymentReconciliationStore {
                 ),
                 horizonMonths: horizonMonths,
             )
-            statusMessage = "取引リンクを解除しました。"
+            await MainActor.run {
+                statusMessage = "取引リンクを解除しました。"
+            }
             await refresh()
-            selectedOccurrenceId = occurrenceId
+            await MainActor.run {
+                selectedOccurrenceId = occurrenceId
+            }
         } catch {
-            errorMessage = "リンク解除に失敗しました: \(error.localizedDescription)"
+            await MainActor.run {
+                errorMessage = "リンク解除に失敗しました: \(error.localizedDescription)"
+            }
         }
     }
 
+    @MainActor
     func resetFormToExpectedValues() {
         guard let occurrence = selectedOccurrence else { return }
         actualAmountText = occurrence.expectedAmount.plainString
@@ -264,6 +277,7 @@ internal extension RecurringPaymentReconciliationStore {
         selectedTransactionId = occurrence.transactionId
     }
 
+    @MainActor
     func clearError() {
         errorMessage = nil
     }
@@ -272,6 +286,74 @@ internal extension RecurringPaymentReconciliationStore {
 // MARK: - Private Helpers
 
 private extension RecurringPaymentReconciliationStore {
+    private func loadRefreshComputation() async throws -> RefreshComputation {
+        let transactions = try await transactionRepository.fetchAllTransactions()
+
+        let definitions = try await repository
+            .definitions(filter: nil)
+            .sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
+        let occurrences = try await repository.occurrences(query: nil)
+
+        let definitionsLookup = Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
+
+        var categoriesDict: [UUID: String] = [:]
+        for definition in definitions {
+            if let categoryId = definition.categoryId, categoriesDict[categoryId] == nil {
+                categoriesDict[categoryId] = definition.name
+            }
+        }
+
+        let transactionsDict = Dictionary(uniqueKeysWithValues: transactions.map { ($0.id, $0.title) })
+
+        let presentation = presenter.makePresentation(
+            input: RecurringPaymentReconciliationPresenter.PresentationInput(
+                occurrences: occurrences,
+                definitions: definitionsLookup,
+                categories: categoriesDict,
+                transactions: transactionsDict,
+                referenceDate: currentDateProvider(),
+            )
+        )
+
+        return RefreshComputation(
+            transactions: transactions,
+            rows: presentation.rows,
+            occurrenceLookup: presentation.occurrenceLookup,
+            definitionsLookup: definitionsLookup,
+            linkedTransactionLookup: presentation.linkedTransactionLookup
+        )
+    }
+
+    @MainActor
+    private func applyRefreshResult(_ result: RefreshComputation) {
+        transactions = result.transactions
+        definitionsLookup = result.definitionsLookup
+        rows = result.rows
+        occurrenceLookup = result.occurrenceLookup
+        linkedTransactionLookup = result.linkedTransactionLookup
+        candidateTransactions = []
+        applyFilters()
+
+        if let selectedOccurrenceId,
+           occurrenceLookup[selectedOccurrenceId] != nil,
+           filteredRows.contains(where: { $0.id == selectedOccurrenceId }) {
+            updateEditorState()
+        } else {
+            selectedOccurrenceId = filteredRows.first?.id
+        }
+    }
+
+    @MainActor
+    private func applyRefreshFailure(_ error: Error) {
+        transactions = []
+        rows = []
+        filteredRows = []
+        occurrenceLookup = [:]
+        linkedTransactionLookup = [:]
+        candidateTransactions = []
+        errorMessage = "定期支払い情報の取得に失敗しました: \(error.localizedDescription)"
+    }
+
     var selectedOccurrence: RecurringPaymentOccurrence? {
         guard let id = selectedOccurrenceId else { return nil }
         return occurrenceLookup[id]
@@ -339,7 +421,9 @@ private extension RecurringPaymentReconciliationStore {
             ?? Decimal(string: normalized)
     }
 
-    private func transactionById(_ id: UUID) -> Transaction? {
-        transactions.first { $0.id == id }
+    @MainActor
+    private func transactionById(_ id: UUID?) -> Transaction? {
+        guard let id else { return nil }
+        return transactions.first { $0.id == id }
     }
 }
