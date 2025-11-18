@@ -116,6 +116,29 @@ internal struct CSVImporterTests {
         #expect(stored.importIdentifier == sampleIdentifier)
     }
 
+    @Test("進捗クロージャはMainActorに縛られない")
+    internal func performImport_reportsProgressOffMainActor() async throws {
+        let (importer, _, _) = await makeImporter()
+
+        let preview = try await importer.makePreview(
+            document: sampleDocument(recordCount: 3),
+            mapping: sampleMapping(),
+            configuration: CSVImportConfiguration(hasHeaderRow: true),
+        )
+
+        let recorder = ThreadFlagRecorder()
+        _ = try await importer.performImport(
+            preview: preview,
+            batchSize: 1
+        ) { _, _ in
+            recorder.record(Thread.isMainThread)
+        }
+
+        let flags = recorder.values
+        #expect(!flags.isEmpty)
+        #expect(flags.allSatisfy { $0 == false })
+    }
+
     // MARK: - Helpers
 
     private let sampleIdentifier: String = "TX-0001"
@@ -140,15 +163,31 @@ internal struct CSVImporterTests {
         return (importer, transactionRepository, budgetRepository)
     }
 
-    private func sampleDocument() -> CSVDocument {
-        CSVDocument(rows: [
-            sampleHeaderRow,
-            CSVRow(index: 1, values: [
-                sampleIdentifier,
-                "2024/01/01", "ランチ", "-1200", "社食",
-                "食費", "外食", "メイン口座", "1", "0",
-            ]),
-        ])
+    private func sampleDocument(recordCount: Int = 1) -> CSVDocument {
+        var rows: [CSVRow] = [sampleHeaderRow]
+        for index in 0 ..< recordCount {
+            let identifier: String
+            if index == 0 {
+                identifier = sampleIdentifier
+            } else {
+                identifier = String(format: "TX-%04d", index + 1)
+            }
+            rows.append(
+                CSVRow(index: index + 1, values: [
+                    identifier,
+                    "2024/01/\(String(format: "%02d", index + 1))",
+                    index.isMultiple(of: 2) ? "ランチ" : "ディナー",
+                    "-\(1200 + (index * 100))",
+                    "サンプル\(index)",
+                    "食費",
+                    "外食",
+                    "メイン口座",
+                    "1",
+                    "0",
+                ])
+            )
+        }
+        return CSVDocument(rows: rows)
     }
 
     private func sampleMapping() -> CSVColumnMapping {
@@ -164,5 +203,22 @@ internal struct CSVImporterTests {
         mapping.assign(.includeInCalculation, to: 8)
         mapping.assign(.transfer, to: 9)
         return mapping
+    }
+
+    private final class ThreadFlagRecorder: @unchecked Sendable {
+        private let lock = NSLock()
+        private var storage: [Bool] = []
+
+        func record(_ value: Bool) {
+            lock.lock()
+            storage.append(value)
+            lock.unlock()
+        }
+
+        var values: [Bool] {
+            lock.lock()
+            defer { lock.unlock() }
+            return storage
+        }
     }
 }

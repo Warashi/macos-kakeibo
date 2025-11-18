@@ -364,7 +364,10 @@ private extension ImportStore {
                 preview: preview,
             ) { [weak self] current, total in
                 guard let self else { return }
-                self.updateImportProgress(current: current, total: total)
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    self.updateImportProgress(current: current, total: total)
+                }
             }
             await MainActor.run {
                 self.summary = summary

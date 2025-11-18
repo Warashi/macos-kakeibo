@@ -64,7 +64,7 @@ internal actor CSVImporter {
     internal func performImport(
         preview: CSVImportPreview,
         batchSize: Int = 50,
-        onProgress: (@MainActor (Int, Int) -> Void)? = nil,
+        onProgress: (@Sendable (Int, Int) -> Void)? = nil,
     ) async throws -> CSVImportSummary {
         guard !preview.validRecords.isEmpty else {
             throw ImportError.nothingToImport
@@ -94,15 +94,13 @@ internal actor CSVImporter {
 
             processedCount += 1
 
-            // バッチごとに保存してUIスレッドを譲渡
+            // バッチごとに保存して他のタスクへ実行権を譲渡
             if processedCount % batchSize == 0 {
                 try await transactionRepository.saveChanges()
                 if let onProgress {
-                    await MainActor.run {
-                        onProgress(processedCount, totalCount)
-                    }
+                    onProgress(processedCount, totalCount)
                 }
-                await Task.yield() // メインスレッドを譲渡
+                await Task.yield() // 他のタスクへ実行権を譲渡
             }
         }
 
@@ -110,9 +108,7 @@ internal actor CSVImporter {
         try await transactionRepository.saveChanges()
         try await budgetRepository.saveChanges()
         if let onProgress {
-            await MainActor.run {
-                onProgress(totalCount, totalCount)
-            }
+            onProgress(totalCount, totalCount)
         }
 
         return CSVImportSummary(
