@@ -74,6 +74,27 @@ internal struct ImportStoreTests {
         #expect(transactions.first?.title == "ランチ")
     }
 
+    @Test("取り込み完了後にステータスがリセットされる")
+    internal func importProgressIsClearedAfterProcessing() async throws {
+        let (store, _, _) = await makeStore()
+        await MainActor.run {
+            store.applyDocument(sampleDocument(rowCount: 2), fileName: "sample.csv")
+        }
+
+        await store.handleNextAction() // column mapping
+        await store.handleNextAction() // validation
+        await store.handleNextAction() // import
+
+        let status = await MainActor.run { store.statusMessage }
+        #expect(status == "取り込みが完了しました")
+
+        let finalProgress = await MainActor.run { store.importProgress }
+        #expect(finalProgress == nil)
+
+        let isProcessing = await MainActor.run { store.isProcessing }
+        #expect(isProcessing == false)
+    }
+
     // MARK: - Helpers
 
     private func makeStore() async -> (
@@ -90,15 +111,41 @@ internal struct ImportStoreTests {
         return (store, transactionRepository, budgetRepository)
     }
 
-    private func sampleDocument() -> CSVDocument {
-        CSVDocument(rows: [
+    private func sampleDocument(rowCount: Int = 1) -> CSVDocument {
+        var rows: [CSVRow] = [
             CSVRow(index: 0, values: [
                 "日付", "内容", "金額", "メモ", "大項目", "中項目", "金融機関", "計算対象", "振替",
             ]),
+        ]
+        guard rowCount > 0 else {
+            return CSVDocument(rows: rows)
+        }
+
+        rows.append(
             CSVRow(index: 1, values: [
                 "2024/01/01", "ランチ", "-1200", "同僚と",
                 "食費", "外食", "メイン口座", "1", "0",
-            ]),
-        ])
+            ])
+        )
+
+        if rowCount > 1 {
+            for index in 1 ..< rowCount {
+                rows.append(
+                    CSVRow(index: index + 1, values: [
+                        "2024/01/\(String(format: "%02d", index + 1))",
+                        "ランチ\(index + 1)",
+                        "-\(1200 + (index * 100))",
+                        "同僚と\(index + 1)",
+                        "食費",
+                        "外食",
+                        "メイン口座",
+                        "1",
+                        "0",
+                    ])
+                )
+            }
+        }
+
+        return CSVDocument(rows: rows)
     }
 }

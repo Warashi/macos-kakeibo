@@ -305,6 +305,9 @@ private struct CSVValidationStepView: View {
         VStack(alignment: .leading, spacing: 12) {
             if let preview = store.preview {
                 CSVPreviewSummaryView(preview: preview, summary: store.summary)
+                if let progress = store.importProgress {
+                    CSVImportProgressView(progress: progress)
+                }
 
                 Divider()
 
@@ -380,6 +383,24 @@ private struct CSVPreviewSummaryView: View {
         .frame(maxWidth: .infinity)
         .padding()
         .background(Color.gray.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private struct CSVImportProgressView: View {
+    internal let progress: (current: Int, total: Int)
+
+    internal var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("取り込み中... (\(progress.current)/\(progress.total))")
+                .font(.subheadline.weight(.semibold))
+            ProgressView(
+                value: Double(progress.current),
+                total: Double(max(progress.total, 1))
+            )
+            .progressViewStyle(.linear)
+        }
+        .padding()
+        .background(Color.blue.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
     }
 }
 
