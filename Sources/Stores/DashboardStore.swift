@@ -7,7 +7,6 @@ import Observation
 /// - 月次/年次の総括計算
 /// - カテゴリ別ハイライトの集計
 /// - 年次特別枠の残額計算
-@MainActor
 @Observable
 internal final class DashboardStore {
     // MARK: - Dependencies
@@ -140,31 +139,46 @@ internal final class DashboardStore {
 
     /// データを再読み込みして計算結果を更新
     internal func refresh() async {
-        let targetYear = currentYear
-        let targetMonth = currentMonth
+        let context = await MainActor.run {
+            RefreshContext(
+                year: currentYear,
+                month: currentMonth,
+                displayMode: displayMode
+            )
+        }
         do {
-            let snapshot = try await repository.fetchSnapshot(year: targetYear, month: targetMonth)
+            let snapshot = try await repository.fetchSnapshot(year: context.year, month: context.month)
 
             guard !Task.isCancelled else { return }
 
             let result = dashboardService.calculate(
                 snapshot: snapshot,
-                year: targetYear,
-                month: targetMonth,
-                displayMode: displayMode,
+                year: context.year,
+                month: context.month,
+                displayMode: context.displayMode
             )
 
-            monthlySummary = result.monthlySummary
-            annualSummary = result.annualSummary
-            monthlyBudgetCalculation = result.monthlyBudgetCalculation
-            annualBudgetUsage = result.annualBudgetUsage
-            monthlyAllocation = result.monthlyAllocation
-            categoryHighlights = result.categoryHighlights
-            annualBudgetProgressCalculation = result.annualBudgetProgressCalculation
-            annualBudgetCategoryEntries = result.annualBudgetCategoryEntries
+            await MainActor.run {
+                guard currentYear == context.year,
+                      currentMonth == context.month,
+                      displayMode == context.displayMode else { return }
+                applyRefreshResult(result)
+            }
         } catch {
             // Keep previous state if fetching fails
         }
+    }
+
+    @MainActor
+    private func applyRefreshResult(_ result: DashboardResult) {
+        monthlySummary = result.monthlySummary
+        annualSummary = result.annualSummary
+        monthlyBudgetCalculation = result.monthlyBudgetCalculation
+        annualBudgetUsage = result.annualBudgetUsage
+        monthlyAllocation = result.monthlyAllocation
+        categoryHighlights = result.categoryHighlights
+        annualBudgetProgressCalculation = result.annualBudgetProgressCalculation
+        annualBudgetCategoryEntries = result.annualBudgetCategoryEntries
     }
 
     // MARK: - Actions
@@ -213,11 +227,21 @@ internal final class DashboardStore {
     }
 
     private func bootstrapInitialState() async {
-        let defaultYear = currentYear
+        let defaultYear = await MainActor.run { self.currentYear }
         let resolvedYear = (try? await repository.resolveInitialYear(defaultYear: defaultYear)) ?? defaultYear
-        if resolvedYear != currentYear {
-            currentYear = resolvedYear
+        await MainActor.run {
+            if self.currentYear != resolvedYear {
+                self.currentYear = resolvedYear
+            }
         }
         await refresh()
     }
 }
+
+private struct RefreshContext {
+    let year: Int
+    let month: Int
+    let displayMode: DashboardStore.DisplayMode
+}
+
+extension DashboardStore: @unchecked Sendable {}
