@@ -3,7 +3,6 @@ import Observation
 import SwiftData
 
 /// 設定画面全体を管理するストア
-@MainActor
 @Observable
 internal final class SettingsStore {
     // MARK: - Nested Types
@@ -130,11 +129,13 @@ internal final class SettingsStore {
 
     /// データ件数を再計算
     internal func refreshStatistics() async {
-        let result = try? await makeStatistics(
+        let result = (try? await makeStatistics(
             transactionRepository: transactionRepository,
             budgetRepository: budgetRepository
-        )
-        statistics = result ?? .empty
+        )) ?? .empty
+        await MainActor.run {
+            self.statistics = result
+        }
     }
 
     // MARK: - CSV Export
@@ -148,51 +149,77 @@ internal final class SettingsStore {
     // MARK: - Backup & Restore
 
     /// バックアップを作成
-    @MainActor
     internal func createBackupArchive() async throws -> BackupArchive {
-        isProcessingBackup = true
-        defer {
-            isProcessingBackup = false
+        await MainActor.run {
+            self.isProcessingBackup = true
         }
-        let payload = try await backupManager.buildPayload()
-        let archive = try await backupManager.createBackup(payload: payload)
-        lastBackupMetadata = archive.metadata
-        statusMessage = "バックアップを作成しました"
-        return archive
+        do {
+            let payload = try await backupManager.buildPayload()
+            let archive = try await backupManager.createBackup(payload: payload)
+            await MainActor.run {
+                self.isProcessingBackup = false
+                self.lastBackupMetadata = archive.metadata
+                self.statusMessage = "バックアップを作成しました"
+            }
+            return archive
+        } catch {
+            await MainActor.run {
+                self.isProcessingBackup = false
+            }
+            throw error
+        }
     }
 
     /// バックアップから復元
     /// - Parameter data: バックアップデータ
     /// - Returns: 復元サマリ
-    @MainActor
     internal func restoreBackup(from data: Data) async throws -> BackupRestoreSummary {
-        isProcessingBackup = true
-        defer {
-            isProcessingBackup = false
+        await MainActor.run {
+            self.isProcessingBackup = true
         }
-        let payload = try await backupManager.decodeBackup(from: data)
-        let summary = try await backupManager.restorePayload(payload)
-        lastRestoreSummary = summary
-        lastBackupMetadata = summary.metadata
-        await refreshStatistics()
-        statusMessage = "バックアップから復元しました"
-        return summary
+        do {
+            let payload = try await backupManager.decodeBackup(from: data)
+            let summary = try await backupManager.restorePayload(payload)
+            await refreshStatistics()
+            await MainActor.run {
+                self.isProcessingBackup = false
+                self.lastRestoreSummary = summary
+                self.lastBackupMetadata = summary.metadata
+                self.statusMessage = "バックアップから復元しました"
+            }
+            return summary
+        } catch {
+            await MainActor.run {
+                self.isProcessingBackup = false
+            }
+            throw error
+        }
     }
 
     /// すべてのデータを削除
     internal func deleteAllData() async throws {
-        isProcessingDeletion = true
-        defer { isProcessingDeletion = false }
-
-        try await transactionRepository.deleteAllTransactions()
-        try await budgetRepository.deleteAllBudgets()
-        try await budgetRepository.deleteAllAnnualBudgetConfigs()
-        try await budgetRepository.deleteAllCategories()
-        try await budgetRepository.deleteAllFinancialInstitutions()
-        await refreshStatistics()
-        lastRestoreSummary = nil
-        lastBackupMetadata = nil
-        statusMessage = "すべてのデータを削除しました"
+        await MainActor.run {
+            self.isProcessingDeletion = true
+        }
+        do {
+            try await transactionRepository.deleteAllTransactions()
+            try await budgetRepository.deleteAllBudgets()
+            try await budgetRepository.deleteAllAnnualBudgetConfigs()
+            try await budgetRepository.deleteAllCategories()
+            try await budgetRepository.deleteAllFinancialInstitutions()
+            await refreshStatistics()
+            await MainActor.run {
+                self.isProcessingDeletion = false
+                self.lastRestoreSummary = nil
+                self.lastBackupMetadata = nil
+                self.statusMessage = "すべてのデータを削除しました"
+            }
+        } catch {
+            await MainActor.run {
+                self.isProcessingDeletion = false
+            }
+            throw error
+        }
     }
 
     // MARK: - Internal Keys
@@ -230,3 +257,5 @@ private func makeStatistics(
         financialInstitutions: try await budgetRepository.countFinancialInstitutions()
     )
 }
+
+extension SettingsStore: @unchecked Sendable {}
