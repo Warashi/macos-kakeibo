@@ -12,7 +12,7 @@ internal struct BudgetRecurringPaymentSection: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("定期支払い")
-                    .font(.title2.bold())
+                    .font(.headline)
                 Spacer()
                 Button {
                     onAdd()
@@ -22,12 +22,11 @@ internal struct BudgetRecurringPaymentSection: View {
             }
 
             if recurringPaymentDefinitions.isEmpty {
-                ContentUnavailableView {
-                    Label("定期支払いがありません", systemImage: "calendar.badge.exclamationmark")
-                } description: {
-                    Text("定期的な大きな支払いを登録して、月次の積立計画を立てましょう。")
-                }
-                .frame(height: 200)
+                EmptyStatePlaceholder(
+                    systemImage: "calendar.badge.exclamationmark",
+                    title: "定期支払いがありません",
+                    message: "定期的な大きな支払いを登録して、月次の積立計画を立てましょう。",
+                )
             } else {
                 VStack(spacing: 12) {
                     ForEach(recurringPaymentDefinitions) { definition in
@@ -40,9 +39,7 @@ internal struct BudgetRecurringPaymentSection: View {
                 }
             }
         }
-        .padding()
-        .background(Color.backgroundSecondary)
-        .cornerRadius(10)
+        .cardStyle()
     }
 
     private var recurringPaymentDefinitions: [SwiftDataRecurringPaymentDefinition] {

@@ -24,13 +24,11 @@ internal struct AnnualBudgetGrid: View {
                     .font(.headline)
 
                 if rows.isEmpty {
-                    ContentUnavailableView {
-                        Label("年次予算が未設定です", systemImage: "calendar")
-                            .font(.title2)
-                    } description: {
-                        Text("月次予算を登録すると年次集計が自動で表示されます。")
-                    }
-                    .frame(maxWidth: .infinity)
+                    EmptyStatePlaceholder(
+                        systemImage: "calendar",
+                        title: "年次予算が未設定です",
+                        message: "月次予算を登録すると年次集計が自動で表示されます。",
+                    )
                 } else {
                     Table(rows) {
                         TableColumn("カテゴリ") { entry in

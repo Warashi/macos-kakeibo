@@ -49,13 +49,11 @@ internal struct AnnualBudgetPanel: View {
                     }
                     .frame(minHeight: 200)
                 } else {
-                    ContentUnavailableView {
-                        Label("年次特別枠が未設定です", systemImage: "calendar")
-                            .font(.title2)
-                    } description: {
-                        Text("\(year.yearDisplayString)年の年次特別枠を作成すると配分一覧が表示されます。")
-                    }
-                    .frame(maxWidth: .infinity)
+                    EmptyStatePlaceholder(
+                        systemImage: "calendar",
+                        title: "年次特別枠が未設定です",
+                        message: "\(year.yearDisplayString)年の年次特別枠を作成すると配分一覧が表示されます。",
+                    )
                 }
             }
         }

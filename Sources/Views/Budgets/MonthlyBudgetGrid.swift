@@ -36,13 +36,11 @@ internal struct MonthlyBudgetGrid: View {
                 }
 
                 if rows.isEmpty {
-                    ContentUnavailableView {
-                        Label("予算が未設定です", systemImage: "square.grid.2x2")
-                            .font(.title2)
-                    } description: {
-                        Text("「予算を追加」ボタンから月次予算を登録できます。")
-                    }
-                    .frame(maxWidth: .infinity)
+                    EmptyStatePlaceholder(
+                        systemImage: "square.grid.2x2",
+                        title: "予算が未設定です",
+                        message: "「予算を追加」ボタンから月次予算を登録できます。",
+                    )
                 } else {
                     Table(rows) {
                         TableColumn("カテゴリ") { entry in

@@ -264,11 +264,12 @@ private struct RecurringPaymentEntriesTableView: View {
 
     internal var body: some View {
         if store.cachedEntries.isEmpty {
-            ContentUnavailableView {
-                Label("定期支払いがありません", systemImage: "tray")
-            } description: {
-                Text("フィルタを変更するか、定期支払いを追加してください。")
-            }
+            EmptyStatePlaceholder(
+                systemImage: "tray",
+                title: "定期支払いがありません",
+                message: "フィルタを変更するか、定期支払いを追加してください。",
+                minHeight: 320,
+            )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             Table(store.cachedEntries) {
