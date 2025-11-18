@@ -347,6 +347,8 @@ private extension TransactionStore {
         transactionsHandle?.cancel()
         transactionsHandle = nil
         do {
+            let transactions = try await listUseCase.loadTransactions(filter: filter)
+            applyTransactions(transactions)
             let handle = try await listUseCase.observeTransactions(filter: filter) { [weak self] result in
                 Task { @MainActor in
                     self?.applyTransactions(result)
