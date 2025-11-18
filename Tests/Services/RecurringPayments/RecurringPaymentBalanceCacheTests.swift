@@ -127,4 +127,39 @@ internal struct RecurringPaymentBalanceCacheTests {
         #expect(metrics.hits == 1)
         #expect(metrics.invalidations == 1)
     }
+
+    @Test("キャッシュは並列アクセスでも安全に参照できる")
+    internal func supportsConcurrentCacheAccess() async throws {
+        let cache = RecurringPaymentBalanceCache()
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for index in 0..<50 {
+                let key = BalanceCacheKey(
+                    definitionId: UUID(),
+                    balanceId: UUID(),
+                    year: 2025,
+                    month: (index % 12) + 1,
+                    startYear: 2024,
+                    startMonth: 1,
+                    definitionVersion: index,
+                    balanceVersion: index
+                )
+                let snapshot = BalanceSnapshot(
+                    totalSavedAmount: Decimal(index * 1000),
+                    totalPaidAmount: Decimal(index * 500),
+                    lastUpdatedYear: 2025,
+                    lastUpdatedMonth: key.month
+                )
+                group.addTask {
+                    cache.store(snapshot: snapshot, for: key)
+                }
+                group.addTask {
+                    _ = cache.snapshot(for: key)
+                }
+            }
+            try await group.waitForAll()
+        }
+
+        let metrics = cache.metricsSnapshot
+        #expect(metrics.hits + metrics.misses >= 50)
+    }
 }
