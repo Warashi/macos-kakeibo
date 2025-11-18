@@ -98,7 +98,7 @@ internal struct SettingsStoreTests {
             budgetRepository.deleteAllBudgetsCallCount,
             budgetRepository.deleteAllConfigsCallCount,
             budgetRepository.deleteAllCategoriesCallCount,
-            budgetRepository.deleteAllInstitutionsCallCount
+            budgetRepository.deleteAllInstitutionsCallCount,
         )
         #expect(deleteCalls.0 == 1)
         #expect(deleteCalls.1 == 1)
@@ -236,7 +236,7 @@ internal struct SettingsStoreTests {
             modelContainer: container,
             userDefaults: defaults,
             transactionRepository: transactionRepository,
-            budgetRepository: budgetRepository
+            budgetRepository: budgetRepository,
         )
 
         let backgroundTask = Task.detached {
@@ -362,7 +362,7 @@ private final class MockTransactionRepository: TransactionRepository {
     @discardableResult
     internal func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @Sendable ([Transaction]) -> Void
+        onChange: @escaping @Sendable ([Transaction]) -> Void,
     ) async throws -> ObservationHandle {
         unsupported(#function)
     }

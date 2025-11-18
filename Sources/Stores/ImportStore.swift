@@ -274,7 +274,7 @@ internal extension ImportStore {
 
 private extension ImportStore {
     func generatePreview() async {
-        guard let document = document else {
+        guard let document else {
             errorMessage = "CSVファイルが読み込まれていません"
             return
         }
@@ -308,7 +308,7 @@ private extension ImportStore {
     }
 
     func performImport() async {
-        guard let preview = preview else {
+        guard let preview else {
             errorMessage = "プレビューが生成されていません"
             return
         }
@@ -327,7 +327,7 @@ private extension ImportStore {
 
         do {
             let summary = try await importer.performImport(
-                preview: preview
+                preview: preview,
             ) { [weak self] current, total in
                 Task { @MainActor [weak self] in
                     guard let self else { return }

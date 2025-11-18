@@ -23,7 +23,7 @@ internal enum TransactionStackBuilder {
         return TransactionStackDependencies(
             repository: repository,
             listUseCase: listUseCase,
-            formUseCase: formUseCase
+            formUseCase: formUseCase,
         )
     }
 
@@ -35,7 +35,7 @@ internal enum TransactionStackBuilder {
         return await MainActor.run {
             TransactionStore(
                 listUseCase: dependencies.listUseCase,
-                formUseCase: dependencies.formUseCase
+                formUseCase: dependencies.formUseCase,
             )
         }
     }
@@ -54,7 +54,7 @@ internal enum TransactionStackBuilder {
         return await MainActor.run {
             TransactionStore(
                 listUseCase: dependencies.listUseCase,
-                formUseCase: dependencies.formUseCase
+                formUseCase: dependencies.formUseCase,
             )
         }
     }

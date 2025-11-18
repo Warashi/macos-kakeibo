@@ -19,7 +19,7 @@ internal struct DashboardStackBuilderTests {
             date: expenseDate,
             title: "ランチ",
             amount: -1500,
-            majorCategory: category
+            majorCategory: category,
         )
         context.insert(transaction)
         try context.save()

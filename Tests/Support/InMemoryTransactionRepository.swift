@@ -28,10 +28,10 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
     }
 
     internal func fetchCSVExportSnapshot() async throws -> TransactionCSVExportSnapshot {
-        try TransactionCSVExportSnapshot(
-            transactions: await fetchAllTransactions(),
-            categories: await fetchCategories(),
-            institutions: await fetchInstitutions(),
+        try await TransactionCSVExportSnapshot(
+            transactions: fetchAllTransactions(),
+            categories: fetchCategories(),
+            institutions: fetchInstitutions(),
         )
     }
 
@@ -50,7 +50,7 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
     @discardableResult
     internal func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @Sendable ([Transaction]) -> Void
+        onChange: @escaping @Sendable ([Transaction]) -> Void,
     ) async throws -> ObservationHandle {
         let snapshot = try await fetchTransactions(query: query)
         onChange(snapshot)

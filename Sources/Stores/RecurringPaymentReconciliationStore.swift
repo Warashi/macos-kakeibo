@@ -175,19 +175,18 @@ internal extension RecurringPaymentReconciliationStore {
                 _ = try await service.markOccurrenceCompleted(
                     occurrenceId: occurrenceId,
                     input: input,
-                    horizonMonths: horizonMonths
+                    horizonMonths: horizonMonths,
                 )
             }.value
             statusMessage = "実績を保存しました。"
             await refresh()
             selectedOccurrenceId = occurrenceId
         } catch let storeError as RecurringPaymentDomainError {
-            let message: String
-            switch storeError {
+            let message: String = switch storeError {
             case let .validationFailed(messages):
-                message = messages.joined(separator: "\n")
+                messages.joined(separator: "\n")
             default:
-                message = "実績の保存に失敗しました: \(storeError)"
+                "実績の保存に失敗しました: \(storeError)"
             }
             errorMessage = message
         } catch {
@@ -216,9 +215,9 @@ internal extension RecurringPaymentReconciliationStore {
                         status: .planned,
                         actualDate: nil,
                         actualAmount: nil,
-                        transaction: nil
+                        transaction: nil,
                     ),
-                    horizonMonths: horizonMonths
+                    horizonMonths: horizonMonths,
                 )
             }.value
             statusMessage = "取引リンクを解除しました。"
@@ -275,8 +274,8 @@ private extension RecurringPaymentReconciliationStore {
                     definitions: definitionsLookup,
                     categories: categoriesDict,
                     transactions: transactionsDict,
-                    referenceDate: referenceDate
-                )
+                    referenceDate: referenceDate,
+                ),
             )
 
             return RefreshComputation(
@@ -284,7 +283,7 @@ private extension RecurringPaymentReconciliationStore {
                 rows: presentation.rows,
                 occurrenceLookup: presentation.occurrenceLookup,
                 definitionsLookup: definitionsLookup,
-                linkedTransactionLookup: presentation.linkedTransactionLookup
+                linkedTransactionLookup: presentation.linkedTransactionLookup,
             )
         }.value
     }
@@ -366,12 +365,12 @@ private extension RecurringPaymentReconciliationStore {
             linkedTransactionLookup: linkedTransactionLookup,
             windowDays: candidateSearchWindowDays,
             limit: candidateLimit,
-            currentDate: currentDateProvider()
+            currentDate: currentDateProvider(),
         )
         candidateTransactions = presenter.transactionCandidates(
             for: occurrence,
             definition: definition,
-            context: context
+            context: context,
         )
     }
 

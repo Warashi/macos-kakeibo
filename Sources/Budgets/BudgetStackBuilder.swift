@@ -29,7 +29,7 @@ internal enum BudgetStackBuilder {
             monthlyUseCase: monthlyUseCase,
             annualUseCase: annualUseCase,
             recurringPaymentUseCase: recurringPaymentUseCase,
-            mutationUseCase: mutationUseCase
+            mutationUseCase: mutationUseCase,
         )
     }
 
@@ -44,7 +44,7 @@ internal enum BudgetStackBuilder {
                 monthlyUseCase: dependencies.monthlyUseCase,
                 annualUseCase: dependencies.annualUseCase,
                 recurringPaymentUseCase: dependencies.recurringPaymentUseCase,
-                mutationUseCase: dependencies.mutationUseCase
+                mutationUseCase: dependencies.mutationUseCase,
             )
         }
     }
@@ -67,7 +67,7 @@ internal enum BudgetStackBuilder {
                 monthlyUseCase: dependencies.monthlyUseCase,
                 annualUseCase: dependencies.annualUseCase,
                 recurringPaymentUseCase: dependencies.recurringPaymentUseCase,
-                mutationUseCase: dependencies.mutationUseCase
+                mutationUseCase: dependencies.mutationUseCase,
             )
         }
     }

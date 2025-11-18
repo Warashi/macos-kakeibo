@@ -4,7 +4,7 @@ import SwiftData
 @ModelActor
 internal actor SwiftDataBudgetRepository: BudgetRepository {
     private lazy var recurringPaymentRepository: RecurringPaymentRepository = SwiftDataRecurringPaymentRepository(
-        modelContainer: modelContainer
+        modelContainer: modelContainer,
     )
 
     private var context: ModelContext { modelContext }
@@ -101,9 +101,9 @@ internal actor SwiftDataBudgetRepository: BudgetRepository {
     }
 
     internal func addBudget(_ input: BudgetInput) async throws {
-        let budget = SwiftDataBudget(
+        let budget = try await SwiftDataBudget(
             amount: input.amount,
-            category: try await resolveCategory(id: input.categoryId),
+            category: resolveCategory(id: input.categoryId),
             startYear: input.startYear,
             startMonth: input.startMonth,
             endYear: input.endYear,

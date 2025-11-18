@@ -1,6 +1,6 @@
 import Foundation
-import SwiftData
 @testable import Kakeibo
+import SwiftData
 import Testing
 
 @Suite(.serialized)
@@ -19,7 +19,7 @@ internal struct TransactionStackBuilderTests {
             isTransfer: false,
             financialInstitutionId: nil,
             majorCategoryId: nil,
-            minorCategoryId: nil
+            minorCategoryId: nil,
         )
         _ = try await dependencies.repository.insert(input)
         try await dependencies.repository.saveChanges()
@@ -47,7 +47,7 @@ internal struct TransactionStackBuilderTests {
             isTransfer: false,
             financialInstitutionId: nil,
             majorCategoryId: nil,
-            minorCategoryId: nil
+            minorCategoryId: nil,
         )
         _ = try await dependencies.repository.insert(input)
         try await dependencies.repository.saveChanges()

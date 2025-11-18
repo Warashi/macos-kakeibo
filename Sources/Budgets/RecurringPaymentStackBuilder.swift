@@ -25,7 +25,8 @@ internal struct RecurringPaymentStoreDependencies {
 internal enum RecurringPaymentStackBuilder {
     /// 定期支払い一覧ストアの依存を構築
     /// - Parameter modelContainer: SwiftData ModelContainer
-    internal static func makeListDependencies(modelContainer: ModelContainer) async -> RecurringPaymentListDependencies {
+    internal static func makeListDependencies(modelContainer: ModelContainer) async
+    -> RecurringPaymentListDependencies {
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: modelContainer)
         return RecurringPaymentListDependencies(repository: repository)
     }
@@ -40,7 +41,7 @@ internal enum RecurringPaymentStackBuilder {
 
     /// 突合ストアの依存を構築
     internal static func makeReconciliationDependencies(
-        modelContainer: ModelContainer
+        modelContainer: ModelContainer,
     ) async -> RecurringPaymentReconciliationDependencies {
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: modelContainer)
         let transactionRepository = SwiftDataTransactionRepository(modelContainer: modelContainer)
@@ -48,26 +49,27 @@ internal enum RecurringPaymentStackBuilder {
         return RecurringPaymentReconciliationDependencies(
             repository: repository,
             transactionRepository: transactionRepository,
-            occurrencesService: occurrencesService
+            occurrencesService: occurrencesService,
         )
     }
 
     /// 定期支払い突合ストアを構築
     internal static func makeReconciliationStore(
-        modelContainer: ModelContainer
+        modelContainer: ModelContainer,
     ) async -> RecurringPaymentReconciliationStore {
         let dependencies = await makeReconciliationDependencies(modelContainer: modelContainer)
         return await MainActor.run {
             RecurringPaymentReconciliationStore(
                 repository: dependencies.repository,
                 transactionRepository: dependencies.transactionRepository,
-                occurrencesService: dependencies.occurrencesService
+                occurrencesService: dependencies.occurrencesService,
             )
         }
     }
 
     /// 定期支払い CRUD ストアの依存を構築
-    internal static func makeStoreDependencies(modelContainer: ModelContainer) async -> RecurringPaymentStoreDependencies {
+    internal static func makeStoreDependencies(modelContainer: ModelContainer) async
+    -> RecurringPaymentStoreDependencies {
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: modelContainer)
         return RecurringPaymentStoreDependencies(repository: repository)
     }
@@ -79,7 +81,8 @@ internal enum RecurringPaymentStackBuilder {
     }
 
     /// 定期支払い一覧ストアの依存を ModelActor から構築
-    internal static func makeListDependencies(modelActor: RecurringPaymentModelActor) async -> RecurringPaymentListDependencies {
+    internal static func makeListDependencies(modelActor: RecurringPaymentModelActor) async
+    -> RecurringPaymentListDependencies {
         let container = modelActor.modelContainer
         return await makeListDependencies(modelContainer: container)
     }
@@ -93,25 +96,28 @@ internal enum RecurringPaymentStackBuilder {
     }
 
     /// 突合ストアの依存を ModelActor から構築
-    internal static func makeReconciliationDependencies(modelActor: RecurringPaymentModelActor) async -> RecurringPaymentReconciliationDependencies {
+    internal static func makeReconciliationDependencies(modelActor: RecurringPaymentModelActor) async
+    -> RecurringPaymentReconciliationDependencies {
         let container = modelActor.modelContainer
         return await makeReconciliationDependencies(modelContainer: container)
     }
 
     /// 定期支払い突合ストアを ModelActor ベースで構築
-    internal static func makeReconciliationStore(modelActor: RecurringPaymentModelActor) async -> RecurringPaymentReconciliationStore {
+    internal static func makeReconciliationStore(modelActor: RecurringPaymentModelActor) async
+    -> RecurringPaymentReconciliationStore {
         let dependencies = await makeReconciliationDependencies(modelActor: modelActor)
         return await MainActor.run {
             RecurringPaymentReconciliationStore(
                 repository: dependencies.repository,
                 transactionRepository: dependencies.transactionRepository,
-                occurrencesService: dependencies.occurrencesService
+                occurrencesService: dependencies.occurrencesService,
             )
         }
     }
 
     /// 定期支払い CRUD ストアの依存を ModelActor から構築
-    internal static func makeStoreDependencies(modelActor: RecurringPaymentModelActor) async -> RecurringPaymentStoreDependencies {
+    internal static func makeStoreDependencies(modelActor: RecurringPaymentModelActor) async
+    -> RecurringPaymentStoreDependencies {
         let container = modelActor.modelContainer
         return await makeStoreDependencies(modelContainer: container)
     }

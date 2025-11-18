@@ -18,7 +18,7 @@ internal enum SettingsStackBuilder {
         let budgetRepository = SwiftDataBudgetRepository(modelContainer: modelContainer)
         return SettingsStackDependencies(
             transactionRepository: transactionRepository,
-            budgetRepository: budgetRepository
+            budgetRepository: budgetRepository,
         )
     }
 
@@ -29,7 +29,7 @@ internal enum SettingsStackBuilder {
         return await SettingsStore(
             modelContainer: modelContainer,
             transactionRepository: dependencies.transactionRepository,
-            budgetRepository: dependencies.budgetRepository
+            budgetRepository: dependencies.budgetRepository,
         )
     }
 
@@ -39,7 +39,7 @@ internal enum SettingsStackBuilder {
         let dependencies = await makeDependencies(modelContainer: modelContainer)
         return ImportStore(
             transactionRepository: dependencies.transactionRepository,
-            budgetRepository: dependencies.budgetRepository
+            budgetRepository: dependencies.budgetRepository,
         )
     }
 }

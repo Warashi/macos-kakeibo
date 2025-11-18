@@ -128,7 +128,7 @@ internal struct RecurringPaymentStoreUpdateTests {
         try await store.synchronizeOccurrences(definitionId: definitionId, horizonMonths: 12)
         let occurrenceId = try withDefinition(id: definitionId, in: container) { definition in
             let occurrence = try #require(definition.occurrences.min(by: { $0.scheduledDate < $1.scheduledDate }))
-            #expect(definition.occurrences.count > 0)
+            #expect(!definition.occurrences.isEmpty)
             return occurrence.id
         }
         let occurrenceCountBefore = try withDefinition(id: definitionId, in: container) { definition in
@@ -305,11 +305,11 @@ private extension RecurringPaymentStoreUpdateTests {
     func withDefinition<T>(
         id: UUID,
         in container: ModelContainer,
-        _ body: (SwiftDataRecurringPaymentDefinition) throws -> T
+        _ body: (SwiftDataRecurringPaymentDefinition) throws -> T,
     ) throws -> T {
         let context = ModelContext(container)
         let descriptor = RecurringPaymentQueries.definitions(
-            predicate: #Predicate { $0.id == id }
+            predicate: #Predicate { $0.id == id },
         )
         let definition = try #require(context.fetch(descriptor).first)
         return try body(definition)
@@ -318,11 +318,11 @@ private extension RecurringPaymentStoreUpdateTests {
     func withOccurrence<T>(
         id: UUID,
         in container: ModelContainer,
-        _ body: (SwiftDataRecurringPaymentOccurrence) throws -> T
+        _ body: (SwiftDataRecurringPaymentOccurrence) throws -> T,
     ) throws -> T {
         let context = ModelContext(container)
         let descriptor = RecurringPaymentQueries.occurrences(
-            predicate: #Predicate { $0.id == id }
+            predicate: #Predicate { $0.id == id },
         )
         let occurrence = try #require(context.fetch(descriptor).first)
         return try body(occurrence)

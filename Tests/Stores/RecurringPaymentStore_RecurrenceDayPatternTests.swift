@@ -109,7 +109,7 @@ internal struct RecurringPaymentStoreDayPatternTests {
 
         let verificationContext = ModelContext(container)
         let descriptor = RecurringPaymentQueries.definitions(
-            predicate: #Predicate { $0.id == definitionId }
+            predicate: #Predicate { $0.id == definitionId },
         )
         let updatedDefinition = try #require(verificationContext.fetch(descriptor).first)
         #expect(updatedDefinition.recurrenceDayPattern == .endOfMonth)
@@ -155,7 +155,7 @@ internal struct RecurringPaymentStoreDayPatternTests {
 
         let verificationContext = ModelContext(container)
         let descriptor = RecurringPaymentQueries.definitions(
-            predicate: #Predicate { $0.id == definitionId }
+            predicate: #Predicate { $0.id == definitionId },
         )
         let updatedDefinition = try #require(verificationContext.fetch(descriptor).first)
         #expect(updatedDefinition.dateAdjustmentPolicy == .moveToNextBusinessDay)

@@ -329,13 +329,13 @@ internal struct RecurringPaymentListStoreFilterTests {
             name: "定期支払いテスト",
             amount: 10000,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date()
+            firstOccurrenceDate: Date.from(year: 2025, month: 1) ?? Date(),
         )
         let occurrence = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2025, month: 2) ?? Date(),
             expectedAmount: 10000,
-            status: .planned
+            status: .planned,
         )
         context.insert(definition)
         context.insert(occurrence)
@@ -343,7 +343,7 @@ internal struct RecurringPaymentListStoreFilterTests {
 
         store.dateRange = DateRange(
             startDate: Date.from(year: 2024, month: 1) ?? Date.distantPast,
-            endDate: Date.from(year: 2026, month: 12) ?? Date.distantFuture
+            endDate: Date.from(year: 2026, month: 12) ?? Date.distantFuture,
         )
 
         let backgroundTask = Task.detached {

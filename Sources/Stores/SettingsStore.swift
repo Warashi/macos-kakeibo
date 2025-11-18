@@ -109,7 +109,7 @@ internal final class SettingsStore {
 
         let initialStatistics = try? await makeStatistics(
             transactionRepository: transactionRepository,
-            budgetRepository: budgetRepository
+            budgetRepository: budgetRepository,
         )
         statistics = initialStatistics ?? .empty
     }
@@ -130,9 +130,9 @@ internal final class SettingsStore {
 
     /// データ件数を再計算
     internal func refreshStatistics() async {
-        statistics = (try? await makeStatistics(
+        statistics = await (try? makeStatistics(
             transactionRepository: transactionRepository,
-            budgetRepository: budgetRepository
+            budgetRepository: budgetRepository,
         )) ?? .empty
     }
 
@@ -229,11 +229,11 @@ private func makeStatistics(
     transactionRepository: TransactionRepository,
     budgetRepository: BudgetRepository,
 ) async throws -> SettingsStore.DataStatistics {
-    SettingsStore.DataStatistics(
-        transactions: try await transactionRepository.countTransactions(),
-        categories: try await budgetRepository.countCategories(),
-        budgets: try await budgetRepository.countBudgets(),
-        annualBudgetConfigs: try await budgetRepository.countAnnualBudgetConfigs(),
-        financialInstitutions: try await budgetRepository.countFinancialInstitutions()
+    try await SettingsStore.DataStatistics(
+        transactions: transactionRepository.countTransactions(),
+        categories: budgetRepository.countCategories(),
+        budgets: budgetRepository.countBudgets(),
+        annualBudgetConfigs: budgetRepository.countAnnualBudgetConfigs(),
+        financialInstitutions: budgetRepository.countFinancialInstitutions(),
     )
 }

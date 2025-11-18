@@ -18,14 +18,14 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
 
     internal func configure(
         calendar: Calendar = Calendar(identifier: .gregorian),
-        currentDateProvider: @escaping @Sendable () -> Date = { Date() }
+        currentDateProvider: @escaping @Sendable () -> Date = { Date() },
     ) {
         let japaneseProvider = JapaneseHolidayProvider(calendar: calendar)
         let customProvider = CustomHolidayProvider(modelContainer: modelContainer, calendar: calendar)
         let compositeProvider = CompositeHolidayProvider(providers: [japaneseProvider, customProvider])
         scheduleService = RecurringPaymentScheduleService(
             calendar: calendar,
-            holidayProvider: compositeProvider
+            holidayProvider: compositeProvider,
         )
         self.currentDateProvider = currentDateProvider
     }
@@ -149,8 +149,8 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
 
         let occurrencesToDelete = try context.fetch(
             RecurringPaymentQueries.occurrences(
-                predicate: #Predicate { $0.definitionId == definitionId }
-            )
+                predicate: #Predicate { $0.definitionId == definitionId },
+            ),
         )
         if !occurrencesToDelete.isEmpty {
             occurrencesToDelete.forEach { context.delete($0) }
@@ -228,7 +228,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
             status: .completed,
             actualDate: input.actualDate,
             actualAmount: input.actualAmount,
-            transaction: transactionModel
+            transaction: transactionModel,
         )
         guard errors.isEmpty else {
             throw RecurringPaymentDomainError.validationFailed(errors)
@@ -267,7 +267,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
             status: input.status,
             actualDate: input.actualDate,
             actualAmount: input.actualAmount,
-            transaction: transactionModel
+            transaction: transactionModel,
         )
         guard errors.isEmpty else {
             throw RecurringPaymentDomainError.validationFailed(errors)
@@ -380,7 +380,7 @@ private extension SwiftDataRecurringPaymentRepository {
 
     func validateDefinition(
         input: RecurringPaymentDefinitionInput,
-        category: SwiftDataCategory?
+        category: SwiftDataCategory?,
     ) -> [String] {
         let candidate = SwiftDataRecurringPaymentDefinition(
             name: input.name,
@@ -394,7 +394,7 @@ private extension SwiftDataRecurringPaymentRepository {
             savingStrategy: input.savingStrategy,
             customMonthlySavingAmount: input.customMonthlySavingAmount,
             dateAdjustmentPolicy: input.dateAdjustmentPolicy,
-            recurrenceDayPattern: input.recurrenceDayPattern
+            recurrenceDayPattern: input.recurrenceDayPattern,
         )
         return candidate.validate()
     }
@@ -404,7 +404,7 @@ private extension SwiftDataRecurringPaymentRepository {
         status: RecurringPaymentStatus,
         actualDate: Date?,
         actualAmount: Decimal?,
-        transaction: SwiftDataTransaction?
+        transaction: SwiftDataTransaction?,
     ) -> [String] {
         let candidate = SwiftDataRecurringPaymentOccurrence(
             definition: occurrence.definition,
@@ -413,14 +413,14 @@ private extension SwiftDataRecurringPaymentRepository {
             status: status,
             actualDate: actualDate,
             actualAmount: actualAmount,
-            transaction: transaction
+            transaction: transaction,
         )
         return candidate.validate()
     }
 
     func resolvedTransaction(
         from dto: Transaction?,
-        context: ModelContext
+        context: ModelContext,
     ) async throws -> SwiftDataTransaction? {
         guard let dto else { return nil }
         return try await findTransaction(id: dto.id, context: context)

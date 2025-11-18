@@ -116,7 +116,7 @@ internal struct ImportStoreTests {
             CSVRow(index: 1, values: [
                 "2024/01/01", "ランチ", "-1200", "同僚と",
                 "食費", "外食", "メイン口座", "1", "0",
-            ])
+            ]),
         )
 
         if rowCount > 1 {
@@ -132,7 +132,7 @@ internal struct ImportStoreTests {
                         "メイン口座",
                         "1",
                         "0",
-                    ])
+                    ]),
                 )
             }
         }

@@ -13,7 +13,7 @@ internal struct EmptyStatePlaceholder: View {
         systemImage: String,
         title: String,
         message: String,
-        minHeight: CGFloat = 200
+        minHeight: CGFloat = 200,
     ) {
         self.systemImage = systemImage
         self.title = title

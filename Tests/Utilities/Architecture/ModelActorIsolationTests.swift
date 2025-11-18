@@ -44,7 +44,7 @@ private extension ModelActorIsolationTests {
             let content = try String(contentsOf: fileURL)
             #expect(
                 content.contains(disallowedToken) == false,
-                "\(fileURL.path) で \"\(disallowedToken)\" が使われています。"
+                "\(fileURL.path) で \"\(disallowedToken)\" が使われています。",
             )
         }
     }

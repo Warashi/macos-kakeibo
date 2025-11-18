@@ -12,7 +12,7 @@ internal struct EmptyStatePlaceholderTests {
             systemImage: "tray",
             title: "データがありません",
             message: "サンプルメッセージ",
-            minHeight: 120
+            minHeight: 120,
         )
         let _: any View = view
     }

@@ -16,10 +16,10 @@ internal actor SwiftDataTransactionRepository: TransactionRepository {
     }
 
     internal func fetchCSVExportSnapshot() async throws -> TransactionCSVExportSnapshot {
-        try TransactionCSVExportSnapshot(
-            transactions: await fetchAllTransactions(),
-            categories: await fetchCategories(),
-            institutions: await fetchInstitutions(),
+        try await TransactionCSVExportSnapshot(
+            transactions: fetchAllTransactions(),
+            categories: fetchCategories(),
+            institutions: fetchInstitutions(),
         )
     }
 
@@ -40,7 +40,7 @@ internal actor SwiftDataTransactionRepository: TransactionRepository {
     @discardableResult
     internal func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @Sendable ([Transaction]) -> Void
+        onChange: @escaping @Sendable ([Transaction]) -> Void,
     ) async throws -> ObservationHandle {
         let descriptor = TransactionQueries.observation(query: query)
         return context.observe(
@@ -48,7 +48,7 @@ internal actor SwiftDataTransactionRepository: TransactionRepository {
             transform: { transactions in
                 transactions.map { Transaction(from: $0) }
             },
-            onChange: onChange
+            onChange: onChange,
         )
     }
 

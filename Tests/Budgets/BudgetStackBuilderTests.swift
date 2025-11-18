@@ -1,6 +1,6 @@
 import Foundation
-import SwiftData
 @testable import Kakeibo
+import SwiftData
 import Testing
 
 @Suite(.serialized)
@@ -18,12 +18,12 @@ internal struct BudgetStackBuilderTests {
         let majorId = try await dependencies.repository.createCategory(name: "生活費", parentId: nil)
         let minorId = try await dependencies.repository.createCategory(name: "食費", parentId: majorId)
         let input = BudgetInput(
-            amount: Decimal(50_000),
+            amount: Decimal(50000),
             categoryId: minorId,
             startYear: currentYear,
             startMonth: currentMonth,
             endYear: currentYear,
-            endMonth: currentMonth
+            endMonth: currentMonth,
         )
         try await dependencies.repository.addBudget(input)
         try await dependencies.repository.saveChanges()
@@ -33,7 +33,7 @@ internal struct BudgetStackBuilderTests {
 
         let budgets = await MainActor.run { store.monthlyBudgets }
         #expect(budgets.count == 1)
-        #expect(budgets.first?.amount == Decimal(50_000))
+        #expect(budgets.first?.amount == Decimal(50000))
     }
 
     @Test("BudgetModelActor 経由でも BudgetStore を構築できる")
@@ -48,12 +48,12 @@ internal struct BudgetStackBuilderTests {
         let month = calendar.component(.month, from: now)
         let categoryId = try await dependencies.repository.createCategory(name: "住居", parentId: nil)
         let input = BudgetInput(
-            amount: Decimal(80_000),
+            amount: Decimal(80000),
             categoryId: categoryId,
             startYear: year,
             startMonth: month,
             endYear: year,
-            endMonth: month
+            endMonth: month,
         )
         try await dependencies.repository.addBudget(input)
         try await dependencies.repository.saveChanges()
@@ -63,6 +63,6 @@ internal struct BudgetStackBuilderTests {
 
         let budgets = await MainActor.run { store.monthlyBudgets }
         #expect(budgets.count == 1)
-        #expect(budgets.first?.amount == Decimal(80_000))
+        #expect(budgets.first?.amount == Decimal(80000))
     }
 }

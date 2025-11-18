@@ -1,6 +1,6 @@
 import Foundation
-import SwiftData
 @testable import Kakeibo
+import SwiftData
 import Testing
 
 @Suite(.serialized)
@@ -15,13 +15,13 @@ internal struct RecurringPaymentStackBuilderTests {
             name: "家賃",
             amount: Decimal(100_000),
             recurrenceIntervalMonths: 1,
-            firstOccurrenceDate: now
+            firstOccurrenceDate: now,
         )
         let definitionId = try await repository.createDefinition(input)
         _ = try await repository.synchronize(
             definitionId: definitionId,
             horizonMonths: 1,
-            referenceDate: now
+            referenceDate: now,
         )
         try await repository.saveChanges()
 
@@ -41,15 +41,15 @@ internal struct RecurringPaymentStackBuilderTests {
 
         let input = RecurringPaymentDefinitionInput(
             name: "保険料",
-            amount: Decimal(12_000),
+            amount: Decimal(12000),
             recurrenceIntervalMonths: 1,
-            firstOccurrenceDate: now
+            firstOccurrenceDate: now,
         )
         let definitionId = try await repository.createDefinition(input)
         _ = try await repository.synchronize(
             definitionId: definitionId,
             horizonMonths: 1,
-            referenceDate: now
+            referenceDate: now,
         )
         try await repository.saveChanges()
 
@@ -57,12 +57,12 @@ internal struct RecurringPaymentStackBuilderTests {
             date: now,
             title: "保険料",
             memo: "",
-            amount: Decimal(-12_000),
+            amount: Decimal(-12000),
             isIncludedInCalculation: true,
             isTransfer: false,
             financialInstitutionId: nil,
             majorCategoryId: nil,
-            minorCategoryId: nil
+            minorCategoryId: nil,
         )
         _ = try await transactionRepository.insert(transactionInput)
         try await transactionRepository.saveChanges()
@@ -81,9 +81,9 @@ internal struct RecurringPaymentStackBuilderTests {
 
         let input = RecurringPaymentDefinitionInput(
             name: "サブスクリプション",
-            amount: Decimal(1_200),
+            amount: Decimal(1200),
             recurrenceIntervalMonths: 1,
-            firstOccurrenceDate: Date()
+            firstOccurrenceDate: Date(),
         )
         try await store.createDefinition(input)
 
@@ -113,15 +113,15 @@ internal struct RecurringPaymentStackBuilderTests {
 
         let input = RecurringPaymentDefinitionInput(
             name: "通信費",
-            amount: Decimal(5_500),
+            amount: Decimal(5500),
             recurrenceIntervalMonths: 1,
-            firstOccurrenceDate: now
+            firstOccurrenceDate: now,
         )
         let definitionId = try await repository.createDefinition(input)
         _ = try await repository.synchronize(
             definitionId: definitionId,
             horizonMonths: 1,
-            referenceDate: now
+            referenceDate: now,
         )
         try await repository.saveChanges()
 
@@ -142,15 +142,15 @@ internal struct RecurringPaymentStackBuilderTests {
 
         let input = RecurringPaymentDefinitionInput(
             name: "公共料金",
-            amount: Decimal(7_000),
+            amount: Decimal(7000),
             recurrenceIntervalMonths: 1,
-            firstOccurrenceDate: now
+            firstOccurrenceDate: now,
         )
         let definitionId = try await repository.createDefinition(input)
         _ = try await repository.synchronize(
             definitionId: definitionId,
             horizonMonths: 1,
-            referenceDate: now
+            referenceDate: now,
         )
         try await repository.saveChanges()
 
@@ -158,12 +158,12 @@ internal struct RecurringPaymentStackBuilderTests {
             date: now,
             title: "公共料金",
             memo: "",
-            amount: Decimal(-7_000),
+            amount: Decimal(-7000),
             isIncludedInCalculation: true,
             isTransfer: false,
             financialInstitutionId: nil,
             majorCategoryId: nil,
-            minorCategoryId: nil
+            minorCategoryId: nil,
         )
         _ = try await transactionRepository.insert(transactionInput)
         try await transactionRepository.saveChanges()
@@ -183,9 +183,9 @@ internal struct RecurringPaymentStackBuilderTests {
 
         let input = RecurringPaymentDefinitionInput(
             name: "ジム",
-            amount: Decimal(9_800),
+            amount: Decimal(9800),
             recurrenceIntervalMonths: 1,
-            firstOccurrenceDate: Date()
+            firstOccurrenceDate: Date(),
         )
         try await store.createDefinition(input)
 

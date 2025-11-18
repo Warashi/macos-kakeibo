@@ -5,7 +5,7 @@ import OSLog
 internal enum SecurityScopedResourceAccess {
     private static let logger = Logger(
         subsystem: "com.warashi.macos-kakeibo",
-        category: "SecurityScopedResourceAccess"
+        category: "SecurityScopedResourceAccess",
     )
 
     /// セキュリティスコープ付きURLでワーククロージャを実行する。
@@ -14,12 +14,12 @@ internal enum SecurityScopedResourceAccess {
     internal static func perform<T>(
         with url: URL,
         controller: SecurityScopedResourceAccessControlling = SystemResourceAccessController(),
-        _ work: @Sendable () throws -> T
+        _ work: @Sendable () throws -> T,
     ) rethrows -> T {
         let session = SecurityScopedAccessSession(
             url: url,
             controller: controller,
-            logger: logger
+            logger: logger,
         )
         defer { session.finish() }
         return try work()
@@ -30,12 +30,12 @@ internal enum SecurityScopedResourceAccess {
     internal static func performAsync<T>(
         with url: URL,
         controller: SecurityScopedResourceAccessControlling = SystemResourceAccessController(),
-        _ work: @Sendable () async throws -> T
+        _ work: @Sendable () async throws -> T,
     ) async rethrows -> T {
         let session = SecurityScopedAccessSession(
             url: url,
             controller: controller,
-            logger: logger
+            logger: logger,
         )
         defer { session.finish() }
         return try await work()
@@ -67,7 +67,7 @@ private final class SecurityScopedAccessSession {
     init(
         url: URL,
         controller: SecurityScopedResourceAccessControlling,
-        logger: Logger
+        logger: Logger,
     ) {
         self.url = url
         self.controller = controller
@@ -88,7 +88,7 @@ private final class SecurityScopedAccessSession {
     }
 
     deinit {
-        if didStart && !didStop {
+        if didStart, !didStop {
             assertionFailure("SecurityScopedAccessSession for \(self.url) ended without stopping access.")
         }
     }

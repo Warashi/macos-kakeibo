@@ -223,7 +223,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
             name: "定期支払い",
             amount: 20000,
             recurrenceIntervalMonths: 12,
-            firstOccurrenceDate: referenceDate
+            firstOccurrenceDate: referenceDate,
         )
         context.insert(definition)
 
@@ -231,7 +231,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
             definition: definition,
             scheduledDate: referenceDate,
             expectedAmount: 20000,
-            status: .planned
+            status: .planned,
         )
         definition.occurrences = [occurrence]
         try context.save()

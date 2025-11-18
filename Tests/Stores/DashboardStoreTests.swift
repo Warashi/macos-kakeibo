@@ -454,7 +454,7 @@ internal struct DashboardStoreTests {
             date: targetDate,
             title: "生活費テスト",
             amount: -2000,
-            majorCategory: category
+            majorCategory: category,
         ))
         try context.save()
 

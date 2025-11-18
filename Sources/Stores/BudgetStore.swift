@@ -174,7 +174,7 @@ internal extension BudgetStore {
                     month: month,
                     monthlyUseCase: monthlyUseCase,
                     annualUseCase: annualUseCase,
-                    recurringPaymentUseCase: recurringPaymentUseCase
+                    recurringPaymentUseCase: recurringPaymentUseCase,
                 )
             }.value
 
@@ -212,14 +212,13 @@ internal extension BudgetStore {
         recurringPaymentSavingsEntries = []
     }
 
-    nonisolated
-    private static func makeCalculationResult(
+    private nonisolated static func makeCalculationResult(
         snapshot: BudgetSnapshot,
         year: Int,
         month: Int,
         monthlyUseCase: MonthlyBudgetUseCaseProtocol,
         annualUseCase: AnnualBudgetUseCaseProtocol,
-        recurringPaymentUseCase: RecurringPaymentSavingsUseCaseProtocol
+        recurringPaymentUseCase: RecurringPaymentSavingsUseCaseProtocol,
     ) -> BudgetCalculationResult {
         BudgetCalculationResult(
             year: year,
@@ -227,58 +226,58 @@ internal extension BudgetStore {
             monthlyBudgets: monthlyUseCase.monthlyBudgets(
                 snapshot: snapshot,
                 year: year,
-                month: month
+                month: month,
             ),
             selectableCategories: snapshot.categories,
             monthlyBudgetCalculation: monthlyUseCase.monthlyCalculation(
                 snapshot: snapshot,
                 year: year,
-                month: month
+                month: month,
             ),
             categoryBudgetEntries: monthlyUseCase.categoryEntries(
                 snapshot: snapshot,
                 year: year,
-                month: month
+                month: month,
             ),
             overallBudgetEntry: monthlyUseCase.overallEntry(
                 snapshot: snapshot,
                 year: year,
-                month: month
+                month: month,
             ),
             annualBudgetConfig: snapshot.annualBudgetConfig,
             annualBudgetUsage: annualUseCase.annualBudgetUsage(
                 snapshot: snapshot,
                 year: year,
-                month: month
+                month: month,
             ),
             annualOverallBudgetEntry: annualUseCase.annualOverallEntry(
                 snapshot: snapshot,
-                year: year
+                year: year,
             ),
             annualCategoryBudgetEntries: annualUseCase.annualCategoryEntries(
                 snapshot: snapshot,
-                year: year
+                year: year,
             ),
             monthlyRecurringPaymentSavingsTotal: recurringPaymentUseCase.monthlySavingsTotal(
                 snapshot: snapshot,
                 year: year,
-                month: month
+                month: month,
             ),
             categoryRecurringPaymentSavings: recurringPaymentUseCase.categorySavings(
                 snapshot: snapshot,
                 year: year,
-                month: month
+                month: month,
             ),
             recurringPaymentSavingsCalculations: recurringPaymentUseCase.calculations(
                 snapshot: snapshot,
                 year: year,
-                month: month
+                month: month,
             ),
             recurringPaymentSavingsEntries: recurringPaymentUseCase.entries(
                 snapshot: snapshot,
                 year: year,
-                month: month
-            )
+                month: month,
+            ),
         )
     }
 
@@ -406,6 +405,7 @@ private extension BudgetStore {
             currentMonth = state.month
         }
     }
+
     @MainActor
     private func applySnapshot(_ newSnapshot: BudgetSnapshot?) -> Task<Void, Never> {
         snapshot = newSnapshot

@@ -18,7 +18,7 @@ internal enum DashboardStackBuilder {
         let dashboardService = DashboardService()
         return DashboardStackDependencies(
             repository: repository,
-            dashboardService: dashboardService
+            dashboardService: dashboardService,
         )
     }
 
@@ -28,7 +28,7 @@ internal enum DashboardStackBuilder {
         return await MainActor.run {
             DashboardStore(
                 repository: dependencies.repository,
-                dashboardService: dependencies.dashboardService
+                dashboardService: dependencies.dashboardService,
             )
         }
     }

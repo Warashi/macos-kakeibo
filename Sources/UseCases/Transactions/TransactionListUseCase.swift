@@ -31,7 +31,7 @@ internal protocol TransactionListUseCaseProtocol: Sendable {
     @discardableResult
     func observeTransactions(
         filter: TransactionListFilter,
-        onChange: @escaping @Sendable ([Transaction]) -> Void
+        onChange: @escaping @Sendable ([Transaction]) -> Void,
     ) async throws -> ObservationHandle
 }
 
@@ -56,7 +56,7 @@ internal struct DefaultTransactionListUseCase: TransactionListUseCaseProtocol {
     @discardableResult
     internal func observeTransactions(
         filter: TransactionListFilter,
-        onChange: @escaping @Sendable ([Transaction]) -> Void
+        onChange: @escaping @Sendable ([Transaction]) -> Void,
     ) async throws -> ObservationHandle {
         let filteredDelivery: @Sendable ([Transaction]) -> Void = { transactions in
             let filtered = Self.filterTransactions(transactions, filter: filter)
@@ -64,7 +64,7 @@ internal struct DefaultTransactionListUseCase: TransactionListUseCaseProtocol {
         }
         return try await repository.observeTransactions(
             query: filter.asQuery,
-            onChange: filteredDelivery
+            onChange: filteredDelivery,
         )
     }
 }

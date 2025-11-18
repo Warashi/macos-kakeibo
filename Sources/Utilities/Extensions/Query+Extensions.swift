@@ -55,12 +55,12 @@ internal extension ModelContext {
     func observe<T: PersistentModel, U: Sendable>(
         descriptor: ModelFetchRequest<T>,
         transform: @escaping @Sendable ([T]) -> U,
-        onChange: @escaping @Sendable (U) -> Void
+        onChange: @escaping @Sendable (U) -> Void,
     ) -> ObservationHandle {
         observeInternal(
             descriptor: descriptor,
             transform: transform,
-            delivery: onChange
+            delivery: onChange,
         )
     }
 
@@ -74,7 +74,7 @@ internal extension ModelContext {
     func observeOnMainActor<T: PersistentModel, U: Sendable>(
         descriptor: ModelFetchRequest<T>,
         transform: @escaping @Sendable ([T]) -> U,
-        onChange: @escaping @MainActor (U) -> Void
+        onChange: @escaping @MainActor (U) -> Void,
     ) -> ObservationHandle {
         observeInternal(descriptor: descriptor, transform: transform) { transformed in
             Task { @MainActor in
@@ -91,13 +91,13 @@ private extension ModelContext {
     func observeInternal<T: PersistentModel, U: Sendable>(
         descriptor: ModelFetchRequest<T>,
         transform: @escaping @Sendable ([T]) -> U,
-        delivery: @escaping @Sendable (U) -> Void
+        delivery: @escaping @Sendable (U) -> Void,
     ) -> ObservationHandle {
         let worker = ModelObservationWorker(
             modelContainer: container,
             descriptor: descriptor,
             transform: transform,
-            delivery: delivery
+            delivery: delivery,
         )
         Task(priority: .userInitiated) {
             await worker.start()
@@ -126,7 +126,7 @@ private actor ModelObservationWorker<Model: PersistentModel, Output: Sendable> {
         modelContainer: ModelContainer,
         descriptor: ModelFetchRequest<Model>,
         transform: @escaping @Sendable ([Model]) -> Output,
-        delivery: @escaping @Sendable (Output) -> Void
+        delivery: @escaping @Sendable (Output) -> Void,
     ) {
         self.modelContainer = modelContainer
         self.descriptor = descriptor
@@ -151,7 +151,7 @@ private actor ModelObservationWorker<Model: PersistentModel, Output: Sendable> {
     private func runObservationLoop() async {
         let notifications = NotificationCenter.default.notifications(
             named: .NSManagedObjectContextDidSave,
-            object: nil
+            object: nil,
         )
 
         for await _ in notifications {

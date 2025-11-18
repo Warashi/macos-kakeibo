@@ -53,7 +53,7 @@ internal final class SecurityScopedResourceAccessTests: XCTestCase {
             try SecurityScopedResourceAccess.perform(with: url, controller: controller) {
                 throw SampleError.failure
             },
-            "perform should propagate the thrown error"
+            "perform should propagate the thrown error",
         ) { error in
             XCTAssertTrue(error is SampleError)
         }

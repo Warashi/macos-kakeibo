@@ -53,7 +53,7 @@ internal struct TransactionStoreTests {
             majorCategoryId: nil,
             minorCategoryId: nil,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
         let listUseCase = TransactionListUseCaseStub(transactions: [transaction])
         let formUseCase = TransactionFormUseCaseStub()
@@ -191,7 +191,7 @@ private actor TransactionListUseCaseStub: TransactionListUseCaseProtocol {
     @discardableResult
     internal func observeTransactions(
         filter: TransactionListFilter,
-        onChange: @escaping @Sendable ([Transaction]) -> Void
+        onChange: @escaping @Sendable ([Transaction]) -> Void,
     ) async throws -> ObservationHandle {
         observedFilters.append(filter)
         onChange(transactions)

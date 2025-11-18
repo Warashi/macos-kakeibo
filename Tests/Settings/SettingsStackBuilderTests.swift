@@ -1,6 +1,6 @@
 import Foundation
-import SwiftData
 @testable import Kakeibo
+import SwiftData
 import Testing
 
 @Suite(.serialized)

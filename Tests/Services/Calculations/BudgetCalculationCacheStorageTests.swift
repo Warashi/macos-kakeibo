@@ -150,7 +150,7 @@ internal struct BudgetCalculationCacheStorageTests {
         let cache = BudgetCalculationCache()
         let filter = FilterSignature(filter: .default)
         try await withThrowingTaskGroup(of: Void.self) { group in
-            for offset in 0..<50 {
+            for offset in 0 ..< 50 {
                 let key = MonthlyBudgetCacheKey(
                     year: 2025,
                     month: (offset % 12) + 1,

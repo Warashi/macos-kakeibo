@@ -143,7 +143,7 @@ internal final class DashboardStore {
         let context = RefreshContext(
             year: currentYear,
             month: currentMonth,
-            displayMode: displayMode
+            displayMode: displayMode,
         )
         do {
             let snapshot = try await repository.fetchSnapshot(year: context.year, month: context.month)
@@ -154,7 +154,7 @@ internal final class DashboardStore {
                 snapshot: snapshot,
                 year: context.year,
                 month: context.month,
-                displayMode: context.displayMode
+                displayMode: context.displayMode,
             )
 
             guard currentYear == context.year,
@@ -225,7 +225,7 @@ internal final class DashboardStore {
 
     private func bootstrapInitialState() async {
         let defaultYear = currentYear
-        let resolvedYear = (try? await repository.resolveInitialYear(defaultYear: defaultYear)) ?? defaultYear
+        let resolvedYear = await (try? repository.resolveInitialYear(defaultYear: defaultYear)) ?? defaultYear
         if currentYear != resolvedYear {
             currentYear = resolvedYear
         }

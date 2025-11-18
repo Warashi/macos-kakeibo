@@ -395,7 +395,7 @@ private struct CSVImportProgressView: View {
                 .font(.subheadline.weight(.semibold))
             ProgressView(
                 value: Double(progress.current),
-                total: Double(max(progress.total, 1))
+                total: Double(max(progress.total, 1)),
             )
             .progressViewStyle(.linear)
         }

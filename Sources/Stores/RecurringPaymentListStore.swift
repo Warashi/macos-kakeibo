@@ -16,6 +16,7 @@ internal final class RecurringPaymentListStore {
         let selectedStatus: RecurringPaymentStatus?
         let sortOrder: SortOrder
     }
+
     private struct EntriesComputationResult {
         let entries: [RecurringPaymentListEntry]
         let definitions: [UUID: RecurringPaymentDefinition]
@@ -79,7 +80,7 @@ internal final class RecurringPaymentListStore {
             searchText: searchText,
             categorySelection: categoryFilter.selection,
             selectedStatus: selectedStatus,
-            sortOrder: sortOrder
+            sortOrder: sortOrder,
         )
         let result = await loadEntries(for: requestState)
         updateCategoryOptionsIfNeeded(from: result.definitions, categories: result.categories)
@@ -122,19 +123,19 @@ internal final class RecurringPaymentListStore {
             let occurrences = await Self.fetchOccurrences(
                 repository: repository,
                 dateRange: state.dateRange,
-                selectedStatus: state.selectedStatus
+                selectedStatus: state.selectedStatus,
             )
             let definitions = await Self.fetchDefinitions(repository: repository)
             let balances = await Self.balanceLookup(
                 repository: repository,
-                definitionIds: Array(definitions.keys)
+                definitionIds: Array(definitions.keys),
             )
             let categories = Self.fetchCategoryNames(from: definitions)
             let filter = RecurringPaymentListFilter(
                 dateRange: state.dateRange,
                 searchText: SearchText(state.searchText),
                 categoryFilter: state.categorySelection,
-                sortOrder: state.sortOrder
+                sortOrder: state.sortOrder,
             )
 
             let entries = presenter.entries(
@@ -144,8 +145,8 @@ internal final class RecurringPaymentListStore {
                     balances: balances,
                     categories: categories,
                     filter: filter,
-                    now: now
-                )
+                    now: now,
+                ),
             )
             return EntriesComputationResult(entries: entries, definitions: definitions, categories: categories)
         }.value
@@ -154,7 +155,7 @@ internal final class RecurringPaymentListStore {
     private nonisolated static func fetchOccurrences(
         repository: RecurringPaymentRepository,
         dateRange: DateRange,
-        selectedStatus: RecurringPaymentStatus?
+        selectedStatus: RecurringPaymentStatus?,
     ) async -> [RecurringPaymentOccurrence] {
         let range = RecurringPaymentOccurrenceRange(
             startDate: dateRange.startDate,
@@ -166,25 +167,27 @@ internal final class RecurringPaymentListStore {
             statusFilter: statusFilter,
         )
 
-        return (try? await repository.occurrences(query: query)) ?? []
+        return await (try? repository.occurrences(query: query)) ?? []
     }
 
-    private nonisolated static func fetchDefinitions(repository: RecurringPaymentRepository) async -> [UUID: RecurringPaymentDefinition] {
-        let definitions = (try? await repository.definitions(filter: nil)) ?? []
+    private nonisolated static func fetchDefinitions(repository: RecurringPaymentRepository) async
+    -> [UUID: RecurringPaymentDefinition] {
+        let definitions = await (try? repository.definitions(filter: nil)) ?? []
         return Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
     }
 
     private nonisolated static func balanceLookup(
         repository: RecurringPaymentRepository,
-        definitionIds: [UUID]
+        definitionIds: [UUID],
     ) async -> [UUID: RecurringPaymentSavingBalance] {
         guard !definitionIds.isEmpty else { return [:] }
         let query = RecurringPaymentBalanceQuery(definitionIds: Set(definitionIds))
-        let balances = (try? await repository.balances(query: query)) ?? []
+        let balances = await (try? repository.balances(query: query)) ?? []
         return Dictionary(uniqueKeysWithValues: balances.map { ($0.definitionId, $0) })
     }
 
-    private nonisolated static func fetchCategoryNames(from definitions: [UUID: RecurringPaymentDefinition]) -> [UUID: String] {
+    private nonisolated static func fetchCategoryNames(from definitions: [UUID: RecurringPaymentDefinition])
+    -> [UUID: String] {
         var categoryNames: [UUID: String] = [:]
         for definition in definitions.values {
             if let categoryId = definition.categoryId {

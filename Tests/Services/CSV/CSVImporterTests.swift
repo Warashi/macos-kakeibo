@@ -129,7 +129,7 @@ internal struct CSVImporterTests {
         let recorder = ThreadFlagRecorder()
         _ = try await importer.performImport(
             preview: preview,
-            batchSize: 1
+            batchSize: 1,
         ) { _, _ in
             recorder.record(Thread.isMainThread)
         }
@@ -166,11 +166,10 @@ internal struct CSVImporterTests {
     private func sampleDocument(recordCount: Int = 1) -> CSVDocument {
         var rows: [CSVRow] = [sampleHeaderRow]
         for index in 0 ..< recordCount {
-            let identifier: String
-            if index == 0 {
-                identifier = sampleIdentifier
+            let identifier: String = if index == 0 {
+                sampleIdentifier
             } else {
-                identifier = String(format: "TX-%04d", index + 1)
+                String(format: "TX-%04d", index + 1)
             }
             rows.append(
                 CSVRow(index: index + 1, values: [
@@ -184,7 +183,7 @@ internal struct CSVImporterTests {
                     "メイン口座",
                     "1",
                     "0",
-                ])
+                ]),
             )
         }
         return CSVDocument(rows: rows)

@@ -104,7 +104,7 @@ internal struct ModelContextObservationTests {
                 Task {
                     await recorder.record(count: count, isMainThread: isMainThread)
                 }
-            }
+            },
         )
 
         context.insert(SwiftDataTransaction(date: Date(), title: "テスト", amount: -1000))
@@ -133,7 +133,7 @@ internal struct ModelContextObservationTests {
             onChange: { titles in
                 receivedSnapshots.append(titles)
                 #expect(Thread.isMainThread)
-            }
+            },
         )
 
         context.insert(SwiftDataTransaction(date: Date(), title: "夕食", amount: -1500))

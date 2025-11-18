@@ -132,7 +132,7 @@ internal struct RecurringPaymentBalanceCacheTests {
     internal func supportsConcurrentCacheAccess() async throws {
         let cache = RecurringPaymentBalanceCache()
         try await withThrowingTaskGroup(of: Void.self) { group in
-            for index in 0..<50 {
+            for index in 0 ..< 50 {
                 let key = BalanceCacheKey(
                     definitionId: UUID(),
                     balanceId: UUID(),
@@ -141,13 +141,13 @@ internal struct RecurringPaymentBalanceCacheTests {
                     startYear: 2024,
                     startMonth: 1,
                     definitionVersion: index,
-                    balanceVersion: index
+                    balanceVersion: index,
                 )
                 let snapshot = BalanceSnapshot(
                     totalSavedAmount: Decimal(index * 1000),
                     totalPaidAmount: Decimal(index * 500),
                     lastUpdatedYear: 2025,
-                    lastUpdatedMonth: key.month
+                    lastUpdatedMonth: key.month,
                 )
                 group.addTask {
                     cache.store(snapshot: snapshot, for: key)
