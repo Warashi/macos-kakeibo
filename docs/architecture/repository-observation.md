@@ -21,6 +21,13 @@ transactionsToken = try listUseCase.observeTransactions(filter: filter) { [weak 
 }
 ```
 
+## Concurrency モデル
+
+- Store 自体は `@MainActor` で保護せず、`refresh()` や `reload...()` のような重い処理は `Task.detached` / `ModelActor` 上で実行する。
+- フェッチ結果を Store の公開プロパティへ反映するときのみ `await MainActor.run { ... }` もしくは `@MainActor` メソッドからまとめて更新し、UI スレッドの負荷を最小化する。
+- SwiftData の監視結果は `ModelContext.observe` で DTO に変換したのち、UI で利用したい場合に限り `observeOnMainActor` を通じて MainActor に橋渡しする。
+- Store メソッドは MainActor 以外のアクタから安全に呼び出せることをテストで保証し、UI 側は `Task { await store.refresh() }` のように自由に呼べる。
+
 ## メモリ管理
 
 - Store で監視を開始するたびに既存トークンを `cancel()` してから新しいトークンを保持する。
