@@ -28,6 +28,7 @@ internal struct TransactionStoreTests {
 
         // 初期化の完了を待つ
         await store.refresh()
+        try? await Task.sleep(for: .milliseconds(20))
 
         #expect(store.transactions.count == 1)
         #expect(store.availableInstitutions.count == 1)

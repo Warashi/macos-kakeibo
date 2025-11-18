@@ -136,6 +136,7 @@ private actor ModelObservationWorker<Model: PersistentModel, Output: Sendable> {
 
     func start() {
         guard observationTask == nil else { return }
+        deliverSnapshot()
         observationTask = Task(priority: .userInitiated) { [weak self] in
             guard let self else { return }
             await self.runObservationLoop()

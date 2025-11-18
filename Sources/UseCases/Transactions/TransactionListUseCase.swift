@@ -62,20 +62,10 @@ internal struct DefaultTransactionListUseCase: TransactionListUseCaseProtocol {
             let filtered = Self.filterTransactions(transactions, filter: filter)
             onChange(filtered)
         }
-        let handle = try await repository.observeTransactions(
+        return try await repository.observeTransactions(
             query: filter.asQuery,
             onChange: filteredDelivery
         )
-        do {
-            try await Task.detached(priority: .userInitiated) {
-                let initial = try await self.loadTransactions(filter: filter)
-                onChange(initial)
-            }.value
-        } catch {
-            handle.cancel()
-            throw error
-        }
-        return handle
     }
 }
 

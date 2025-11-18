@@ -28,8 +28,9 @@ internal struct TransactionRepositoryObservationTests {
         }
         defer { token.cancel() }
 
+        try? await Task.sleep(for: .milliseconds(50))
         let initialSnapshots = await recorder.snapshots()
-        #expect(initialSnapshots.isEmpty)
+        #expect(initialSnapshots.last?.isEmpty == true)
 
         let initialInput = TransactionInput(
             date: month,
