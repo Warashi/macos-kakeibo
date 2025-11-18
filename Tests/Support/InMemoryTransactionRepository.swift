@@ -50,12 +50,10 @@ internal final class InMemoryTransactionRepository: TransactionRepository {
     @discardableResult
     internal func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @MainActor ([Transaction]) -> Void,
+        onChange: @escaping @Sendable ([Transaction]) -> Void
     ) async throws -> ObservationToken {
         let snapshot = try await fetchTransactions(query: query)
-        MainActor.assumeIsolated {
-            onChange(snapshot)
-        }
+        onChange(snapshot)
         return ObservationToken {}
     }
 

@@ -48,13 +48,16 @@ internal actor SwiftDataTransactionRepository: TransactionRepository {
     @discardableResult
     internal func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @MainActor ([Transaction]) -> Void,
+        onChange: @escaping @Sendable ([Transaction]) -> Void
     ) async throws -> ObservationToken {
         let descriptor = TransactionQueries.observation(query: query)
-        return context.observe(descriptor: descriptor) { transactions in
-            let dtos = transactions.map { Transaction(from: $0) }
-            onChange(dtos)
-        }
+        return context.observe(
+            descriptor: descriptor,
+            transform: { transactions in
+                transactions.map { Transaction(from: $0) }
+            },
+            onChange: onChange
+        )
     }
 
     internal func findTransaction(id: UUID) async throws -> Transaction? {

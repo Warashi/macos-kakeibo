@@ -329,7 +329,7 @@ private final class MockTransactionRepository: TransactionRepository {
     @discardableResult
     internal func observeTransactions(
         query: TransactionQuery,
-        onChange: @escaping @MainActor ([Transaction]) -> Void,
+        onChange: @escaping @Sendable ([Transaction]) -> Void
     ) async throws -> ObservationToken {
         unsupported(#function)
     }

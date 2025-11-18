@@ -331,9 +331,11 @@ private extension TransactionStore {
         transactionsToken?.cancel()
         do {
             transactionsToken = try await listUseCase.observeTransactions(filter: makeFilter()) { [weak self] result in
-                guard let self else { return }
-                self.transactions = result
-                self.listErrorMessage = nil
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    self.transactions = result
+                    self.listErrorMessage = nil
+                }
             }
         } catch {
             transactionsToken = nil

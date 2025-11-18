@@ -4,7 +4,6 @@ import SwiftData
 import Testing
 
 @Suite("SwiftDataTransactionRepositoryObservation", .serialized)
-@MainActor
 internal struct TransactionRepositoryObservationTests {
     @Test("取引の追加・更新・削除で通知される")
     internal func notifiesOnMutations() async throws {
@@ -21,13 +20,16 @@ internal struct TransactionRepositoryObservationTests {
             sortOption: .dateDescending,
         )
 
-        var snapshots: [[Transaction]] = []
+        let recorder = TransactionSnapshotRecorder()
         let token = try await repository.observeTransactions(query: query) { transactions in
-            snapshots.append(transactions)
+            Task {
+                await recorder.record(transactions)
+            }
         }
         defer { token.cancel() }
 
-        #expect(snapshots.isEmpty)
+        let initialSnapshots = await recorder.snapshots()
+        #expect(initialSnapshots.isEmpty)
 
         let initialInput = TransactionInput(
             date: month,
@@ -45,8 +47,9 @@ internal struct TransactionRepositoryObservationTests {
         try await repository.saveChanges()
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        #expect(!snapshots.isEmpty)
-        #expect(snapshots.last?.contains(where: { $0.id == transactionId }) == true)
+        let afterInsert = await recorder.snapshots()
+        #expect(!afterInsert.isEmpty)
+        #expect(afterInsert.last?.contains(where: { $0.id == transactionId }) == true)
 
         let updatedInput = TransactionInput(
             date: month,
@@ -64,7 +67,8 @@ internal struct TransactionRepositoryObservationTests {
         try await repository.saveChanges()
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        #expect(snapshots.last?
+        let afterUpdate = await recorder.snapshots()
+        #expect(afterUpdate.last?
             .first(where: { $0.id == transactionId })?
             .title == "ディナー")
 
@@ -72,7 +76,8 @@ internal struct TransactionRepositoryObservationTests {
         try await repository.saveChanges()
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        #expect(snapshots.last?.isEmpty == true)
+        let afterDelete = await recorder.snapshots()
+        #expect(afterDelete.last?.isEmpty == true)
     }
 }
 
@@ -82,5 +87,17 @@ private extension TransactionRepositoryObservationTests {
         let repository = SwiftDataTransactionRepository(modelContainer: container)
         let month = Date.from(year: 2025, month: 11, day: 1) ?? Date()
         return (repository, month)
+    }
+}
+
+private actor TransactionSnapshotRecorder {
+    private var storage: [[Transaction]] = []
+
+    func record(_ snapshot: [Transaction]) {
+        storage.append(snapshot)
+    }
+
+    func snapshots() -> [[Transaction]] {
+        storage
     }
 }

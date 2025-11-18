@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct TransactionListFilter {
+internal struct TransactionListFilter: Sendable {
     internal var month: Date
     internal var searchText: SearchText
     internal var filterKind: TransactionFilterKind
@@ -31,7 +31,7 @@ internal protocol TransactionListUseCaseProtocol: Sendable {
     @discardableResult
     func observeTransactions(
         filter: TransactionListFilter,
-        onChange: @escaping @MainActor ([Transaction]) -> Void,
+        onChange: @escaping @Sendable ([Transaction]) -> Void
     ) async throws -> ObservationToken
 }
 
@@ -56,17 +56,21 @@ internal struct DefaultTransactionListUseCase: TransactionListUseCaseProtocol {
     @discardableResult
     internal func observeTransactions(
         filter: TransactionListFilter,
-        onChange: @escaping @MainActor ([Transaction]) -> Void,
+        onChange: @escaping @Sendable ([Transaction]) -> Void
     ) async throws -> ObservationToken {
-        let token = try await repository.observeTransactions(query: filter.asQuery) { transactions in
+        let filteredDelivery: @Sendable ([Transaction]) -> Void = { transactions in
             let filtered = Self.filterTransactions(transactions, filter: filter)
             onChange(filtered)
         }
+        let token = try await repository.observeTransactions(
+            query: filter.asQuery,
+            onChange: filteredDelivery
+        )
         do {
-            let initial = try await loadTransactions(filter: filter)
-            await MainActor.run {
+            try await Task.detached(priority: .userInitiated) {
+                let initial = try await self.loadTransactions(filter: filter)
                 onChange(initial)
-            }
+            }.value
         } catch {
             token.cancel()
             throw error
