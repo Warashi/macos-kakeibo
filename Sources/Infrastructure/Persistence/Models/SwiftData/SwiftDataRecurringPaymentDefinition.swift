@@ -126,48 +126,67 @@ internal extension SwiftDataRecurringPaymentDefinition {
 internal extension SwiftDataRecurringPaymentDefinition {
     func validate() -> [String] {
         var errors: [String] = []
-        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if trimmedName.isEmpty {
-            errors.append("名称を入力してください")
-        }
-
-        if amount <= 0 {
-            errors.append("金額は1円以上を設定してください")
-        }
-
-        if recurrenceIntervalMonths <= 0 {
-            errors.append("周期（月数）は1以上を指定してください")
-        }
-
-        if leadTimeMonths < 0 {
-            errors.append("リードタイム（月数）は0以上を指定してください")
-        }
-
-        if savingStrategy == .customMonthly {
-            if let customAmount = customMonthlySavingAmount {
-                if customAmount <= 0 {
-                    errors.append("カスタム積立金額は1以上を指定してください")
-                }
-            } else {
-                errors.append("カスタム積立金額を入力してください")
-            }
-        }
-
-        if savingStrategy != .customMonthly, customMonthlySavingAmount != nil {
-            errors.append("カスタム積立金額はカスタム積立モードでのみ使用できます")
-        }
-
-        if let endDate {
-            if endDate < firstOccurrenceDate {
-                errors.append("終了日は開始日以降を指定してください")
-            }
-        }
-
+        errors.append(contentsOf: validateName())
+        errors.append(contentsOf: validateAmount())
+        errors.append(contentsOf: validateRecurrenceInterval())
+        errors.append(contentsOf: validateLeadTime())
+        errors.append(contentsOf: validateSavingStrategyConfiguration())
+        errors.append(contentsOf: validateEndDate())
         return errors
     }
 
     var isValid: Bool {
         validate().isEmpty
+    }
+
+    private func validateName() -> [String] {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedName.isEmpty else { return [] }
+        return ["名称を入力してください"]
+    }
+
+    private func validateAmount() -> [String] {
+        guard amount > 0 else {
+            return ["金額は1円以上を設定してください"]
+        }
+        return []
+    }
+
+    private func validateRecurrenceInterval() -> [String] {
+        guard recurrenceIntervalMonths > 0 else {
+            return ["周期（月数）は1以上を指定してください"]
+        }
+        return []
+    }
+
+    private func validateLeadTime() -> [String] {
+        guard leadTimeMonths >= 0 else {
+            return ["リードタイム（月数）は0以上を指定してください"]
+        }
+        return []
+    }
+
+    private func validateSavingStrategyConfiguration() -> [String] {
+        switch savingStrategy {
+        case .customMonthly:
+            guard let customAmount = customMonthlySavingAmount else {
+                return ["カスタム積立金額を入力してください"]
+            }
+            guard customAmount > 0 else {
+                return ["カスタム積立金額は1以上を指定してください"]
+            }
+            return []
+        case .disabled, .evenlyDistributed:
+            guard customMonthlySavingAmount != nil else { return [] }
+            return ["カスタム積立金額はカスタム積立モードでのみ使用できます"]
+        }
+    }
+
+    private func validateEndDate() -> [String] {
+        guard let endDate else { return [] }
+        guard endDate >= firstOccurrenceDate else {
+            return ["終了日は開始日以降を指定してください"]
+        }
+        return []
     }
 }
