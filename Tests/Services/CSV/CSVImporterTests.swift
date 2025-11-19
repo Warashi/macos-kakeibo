@@ -6,7 +6,8 @@ import Testing
 internal struct CSVImporterTests {
     @Test("マッピング済みCSVからプレビューを生成できる")
     internal func makePreview_success() async throws {
-        let (importer, _, _) = await makeImporter()
+        let fixture = await makeImporter()
+        let importer = fixture.importer
 
         let document = sampleDocument()
         let config = CSVImportConfiguration(hasHeaderRow: true)
@@ -33,7 +34,8 @@ internal struct CSVImporterTests {
 
     @Test("必須カラムの割り当てが無い場合はエラー")
     internal func makePreview_requiresMapping() async throws {
-        let (importer, _, _) = await makeImporter()
+        let fixture = await makeImporter()
+        let importer = fixture.importer
 
         let document = sampleDocument()
         var mapping = CSVColumnMapping()
@@ -50,7 +52,9 @@ internal struct CSVImporterTests {
 
     @Test("プレビュー済みデータを取り込める")
     internal func performImport_createsTransactions() async throws {
-        let (importer, transactionRepository, _) = await makeImporter()
+        let fixture = await makeImporter()
+        let importer = fixture.importer
+        let transactionRepository = fixture.transactionRepository
 
         let preview = try await importer.makePreview(
             document: sampleDocument(),
@@ -73,7 +77,9 @@ internal struct CSVImporterTests {
 
     @Test("同じIDの行は更新される")
     internal func performImport_updatesExistingTransactions() async throws {
-        let (importer, transactionRepository, _) = await makeImporter()
+        let fixture = await makeImporter()
+        let importer = fixture.importer
+        let transactionRepository = fixture.transactionRepository
         let config = CSVImportConfiguration(hasHeaderRow: true)
 
         let preview = try await importer.makePreview(
@@ -118,7 +124,8 @@ internal struct CSVImporterTests {
 
     @Test("進捗クロージャはMainActorに縛られない")
     internal func performImport_reportsProgressOffMainActor() async throws {
-        let (importer, _, _) = await makeImporter()
+        let fixture = await makeImporter()
+        let importer = fixture.importer
 
         let preview = try await importer.makePreview(
             document: sampleDocument(recordCount: 3),
@@ -149,18 +156,18 @@ internal struct CSVImporterTests {
         ])
     }
 
-    private func makeImporter() async -> (
-        CSVImporter,
-        InMemoryTransactionRepository,
-        InMemoryBudgetRepository,
-    ) {
+    private func makeImporter() async -> CSVImporterFixture {
         let transactionRepository = InMemoryTransactionRepository()
         let budgetRepository = InMemoryBudgetRepository()
         let importer = CSVImporter(
             transactionRepository: transactionRepository,
             budgetRepository: budgetRepository,
         )
-        return (importer, transactionRepository, budgetRepository)
+        return CSVImporterFixture(
+            importer: importer,
+            transactionRepository: transactionRepository,
+            budgetRepository: budgetRepository
+        )
     }
 
     private func sampleDocument(recordCount: Int = 1) -> CSVDocument {
@@ -205,7 +212,7 @@ internal struct CSVImporterTests {
     }
 
     private final class ThreadFlagRecorder: @unchecked Sendable {
-        private let lock = NSLock()
+        private let lock: NSLock = NSLock()
         private var storage: [Bool] = []
 
         func record(_ value: Bool) {
@@ -220,4 +227,10 @@ internal struct CSVImporterTests {
             return storage
         }
     }
+}
+
+private struct CSVImporterFixture {
+    internal let importer: CSVImporter
+    internal let transactionRepository: InMemoryTransactionRepository
+    internal let budgetRepository: InMemoryBudgetRepository
 }

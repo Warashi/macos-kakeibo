@@ -6,7 +6,8 @@ import Testing
 internal struct ImportStoreTests {
     @Test("CSVドキュメントを適用すると初期状態がセットされる")
     internal func applyDocument_setsInitialState() async throws {
-        let (store, _, _) = await makeStore()
+        let fixture = await makeStore()
+        let store = fixture.store
 
         store.applyDocument(sampleDocument(), fileName: "sample.csv")
 
@@ -25,7 +26,8 @@ internal struct ImportStoreTests {
 
     @Test("ファイル選択から列マッピングへ進める")
     internal func proceedToColumnMapping() async throws {
-        let (store, _, _) = await makeStore()
+        let fixture = await makeStore()
+        let store = fixture.store
         store.applyDocument(sampleDocument(), fileName: "sample.csv")
 
         let initialStep = store.step
@@ -37,7 +39,8 @@ internal struct ImportStoreTests {
 
     @Test("列マッピングから検証ステップに進める")
     internal func generatePreviewMovesToValidation() async throws {
-        let (store, _, _) = await makeStore()
+        let fixture = await makeStore()
+        let store = fixture.store
         store.applyDocument(sampleDocument(), fileName: "sample.csv")
 
         await store.handleNextAction() // -> column mapping
@@ -51,7 +54,9 @@ internal struct ImportStoreTests {
 
     @Test("検証ステップで取り込みを実行できる")
     internal func performImportCreatesTransactions() async throws {
-        let (store, transactionRepository, _) = await makeStore()
+        let fixture = await makeStore()
+        let store = fixture.store
+        let transactionRepository = fixture.transactionRepository
         store.applyDocument(sampleDocument(), fileName: "sample.csv")
 
         await store.handleNextAction() // column mapping
@@ -69,7 +74,8 @@ internal struct ImportStoreTests {
 
     @Test("取り込み完了後にステータスがリセットされる")
     internal func importProgressIsClearedAfterProcessing() async throws {
-        let (store, _, _) = await makeStore()
+        let fixture = await makeStore()
+        let store = fixture.store
         store.applyDocument(sampleDocument(rowCount: 2), fileName: "sample.csv")
 
         await store.handleNextAction() // column mapping
@@ -88,18 +94,18 @@ internal struct ImportStoreTests {
 
     // MARK: - Helpers
 
-    private func makeStore() async -> (
-        ImportStore,
-        InMemoryTransactionRepository,
-        InMemoryBudgetRepository,
-    ) {
+    private func makeStore() async -> ImportStoreFixture {
         let transactionRepository = InMemoryTransactionRepository()
         let budgetRepository = InMemoryBudgetRepository()
         let store = ImportStore(
             transactionRepository: transactionRepository,
             budgetRepository: budgetRepository,
         )
-        return (store, transactionRepository, budgetRepository)
+        return ImportStoreFixture(
+            store: store,
+            transactionRepository: transactionRepository,
+            budgetRepository: budgetRepository
+        )
     }
 
     private func sampleDocument(rowCount: Int = 1) -> CSVDocument {
@@ -139,4 +145,10 @@ internal struct ImportStoreTests {
 
         return CSVDocument(rows: rows)
     }
+}
+
+private struct ImportStoreFixture {
+    internal let store: ImportStore
+    internal let transactionRepository: InMemoryTransactionRepository
+    internal let budgetRepository: InMemoryBudgetRepository
 }
