@@ -330,7 +330,7 @@ internal struct RecurringPaymentListStoreFilterTests {
             otherMajor: otherMajor,
             majorDefinition: definitionMajor,
             minorDefinition: definitionMinor,
-            otherDefinition: definitionOther
+            otherDefinition: definitionOther,
         )
     }
 
@@ -383,7 +383,7 @@ internal struct RecurringPaymentListStoreFilterTests {
             major: major,
             minor: minor,
             anotherMinor: anotherMinor,
-            minorDefinition: definitionMinor
+            minorDefinition: definitionMinor,
         )
     }
 }

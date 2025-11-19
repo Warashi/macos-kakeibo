@@ -226,12 +226,12 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
             status: .completed,
             actualDate: input.actualDate,
             actualAmount: input.actualAmount,
-            transaction: transactionModel
+            transaction: transactionModel,
         )
 
         let errors = validateOccurrenceUpdate(
             occurrence: occurrence,
-            values: updateValues
+            values: updateValues,
         )
         guard errors.isEmpty else {
             throw RecurringPaymentDomainError.validationFailed(errors)
@@ -267,13 +267,13 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
             status: input.status,
             actualDate: input.actualDate,
             actualAmount: input.actualAmount,
-            transaction: transactionModel
+            transaction: transactionModel,
         )
         let willBeCompleted = updateValues.status == .completed
 
         let errors = validateOccurrenceUpdate(
             occurrence: occurrence,
-            values: updateValues
+            values: updateValues,
         )
         guard errors.isEmpty else {
             throw RecurringPaymentDomainError.validationFailed(errors)
@@ -407,7 +407,7 @@ private extension SwiftDataRecurringPaymentRepository {
 
     func validateOccurrenceUpdate(
         occurrence: SwiftDataRecurringPaymentOccurrence,
-        values: OccurrenceUpdateValues
+        values: OccurrenceUpdateValues,
     ) -> [String] {
         let candidate = SwiftDataRecurringPaymentOccurrence(
             definition: occurrence.definition,

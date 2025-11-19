@@ -104,7 +104,7 @@ internal struct ImportStoreTests {
         return ImportStoreFixture(
             store: store,
             transactionRepository: transactionRepository,
-            budgetRepository: budgetRepository
+            budgetRepository: budgetRepository,
         )
     }
 

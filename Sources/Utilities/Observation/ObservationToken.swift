@@ -9,7 +9,7 @@ internal final class ObservationToken: Sendable {
     }
 
     private let lock: OSAllocatedUnfairLock<CancellationState> = OSAllocatedUnfairLock(
-        initialState: CancellationState()
+        initialState: CancellationState(),
     )
 
     internal init(cancellationHandler: @escaping @Sendable () -> Void) {

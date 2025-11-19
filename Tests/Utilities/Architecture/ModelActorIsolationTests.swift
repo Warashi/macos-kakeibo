@@ -53,7 +53,7 @@ private extension ModelActorIsolationTests {
         var files: [URL] = []
         let enumerator: FileManager.DirectoryEnumerator? = FileManager.default.enumerator(
             at: directory,
-            includingPropertiesForKeys: [.isDirectoryKey]
+            includingPropertiesForKeys: [.isDirectoryKey],
         )
         while let element = enumerator?.nextObject() as? URL {
             let resourceValues = try element.resourceValues(forKeys: [.isDirectoryKey])

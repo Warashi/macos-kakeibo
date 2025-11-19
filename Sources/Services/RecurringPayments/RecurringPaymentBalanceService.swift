@@ -287,7 +287,7 @@ internal final class RecurringPaymentBalanceCache: Sendable {
     }
 
     private let storage: OSAllocatedUnfairLock<Storage> = OSAllocatedUnfairLock(
-        initialState: Storage()
+        initialState: Storage(),
     )
 
     internal var metricsSnapshot: RecurringPaymentBalanceCacheMetrics {

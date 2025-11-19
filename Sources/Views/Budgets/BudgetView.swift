@@ -435,9 +435,9 @@ private extension BudgetView {
     private func resolvedRecurringPaymentSaveMode() -> RecurringPaymentSaveMode? {
         switch recurringPaymentEditorMode {
         case .create:
-            return .create
+            .create
         case let .edit(definition):
-            return .update(definition.id)
+            .update(definition.id)
         }
     }
 

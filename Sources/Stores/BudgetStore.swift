@@ -180,7 +180,7 @@ internal extension BudgetStore {
             month: month,
             monthlyUseCase: monthlyUseCase,
             annualUseCase: annualUseCase,
-            recurringPaymentUseCase: recurringPaymentUseCase
+            recurringPaymentUseCase: recurringPaymentUseCase,
         )
 
         let task = Task { [context, weak self] in
@@ -223,7 +223,7 @@ internal extension BudgetStore {
     }
 
     private nonisolated static func makeCalculationResult(
-        context: BudgetCalculationContext
+        context: BudgetCalculationContext,
     ) -> BudgetCalculationResult {
         let snapshot = context.snapshot
         let year = context.year

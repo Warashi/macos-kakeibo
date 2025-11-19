@@ -166,7 +166,7 @@ internal struct CSVImporterTests {
         return CSVImporterFixture(
             importer: importer,
             transactionRepository: transactionRepository,
-            budgetRepository: budgetRepository
+            budgetRepository: budgetRepository,
         )
     }
 
