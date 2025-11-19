@@ -7,7 +7,7 @@ import Testing
 @MainActor
 internal struct SettingsStackBuilderTests {
     @Test("SettingsStore を構築して統計を初期化できる")
-    func makeSettingsStoreInitializesStatistics() async throws {
+    internal func makeSettingsStoreInitializesStatistics() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let store = await SettingsStackBuilder.makeSettingsStore(modelContainer: container)
 
@@ -16,7 +16,7 @@ internal struct SettingsStackBuilderTests {
     }
 
     @Test("ImportStore を構築して初期ステップを保持する")
-    func makeImportStoreInitializesState() async throws {
+    internal func makeImportStoreInitializesState() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let store = await SettingsStackBuilder.makeImportStore(modelContainer: container)
 
