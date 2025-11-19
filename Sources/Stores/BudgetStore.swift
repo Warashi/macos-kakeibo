@@ -231,7 +231,7 @@ internal extension BudgetStore {
         let monthlyUseCase = context.monthlyUseCase
         let annualUseCase = context.annualUseCase
         let recurringPaymentUseCase = context.recurringPaymentUseCase
-        BudgetCalculationResult(
+        return BudgetCalculationResult(
             year: year,
             month: month,
             monthlyBudgets: monthlyUseCase.monthlyBudgets(
