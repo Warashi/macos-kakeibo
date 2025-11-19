@@ -8,7 +8,9 @@ internal final class ObservationToken: Sendable {
         var handler: (@Sendable () -> Void)?
     }
 
-    private let lock = OSAllocatedUnfairLock(initialState: CancellationState())
+    private let lock: OSAllocatedUnfairLock<CancellationState> = OSAllocatedUnfairLock(
+        initialState: CancellationState()
+    )
 
     internal init(cancellationHandler: @escaping @Sendable () -> Void) {
         lock.withLock { state in

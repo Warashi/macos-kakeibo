@@ -3,7 +3,7 @@ import OSLog
 
 /// ユーザーが選択したセキュリティスコープ付きURLへのアクセスを管理する
 internal enum SecurityScopedResourceAccess {
-    private static let logger = Logger(
+    private static let logger: Logger = Logger(
         subsystem: "com.warashi.macos-kakeibo",
         category: "SecurityScopedResourceAccess",
     )
