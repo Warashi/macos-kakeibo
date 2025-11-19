@@ -14,7 +14,7 @@ internal struct RecurringPaymentOccurrencesServiceTests {
             firstOccurrenceDate: Date(),
         )
         let repository = InMemoryRecurringPaymentRepository(definitions: [definition])
-        let service = DefaultRecurringPaymentOccurrencesService(repository: repository)
+        let service = RecurringPaymentOccurrencesServiceImpl(repository: repository)
 
         await #expect(throws: RecurringPaymentDomainError.invalidRecurrence) {
             try await service.synchronizeOccurrences(
@@ -46,7 +46,7 @@ internal struct RecurringPaymentOccurrencesServiceTests {
             definitions: [definition],
             currentDateProvider: { referenceDate },
         )
-        let service = DefaultRecurringPaymentOccurrencesService(repository: repository)
+        let service = RecurringPaymentOccurrencesServiceImpl(repository: repository)
 
         let result = try await service.markOccurrenceCompleted(
             occurrenceId: occurrence.id,
@@ -84,7 +84,7 @@ internal struct RecurringPaymentOccurrencesServiceTests {
             definitions: [definition],
             currentDateProvider: { referenceDate },
         )
-        let service = DefaultRecurringPaymentOccurrencesService(repository: repository)
+        let service = RecurringPaymentOccurrencesServiceImpl(repository: repository)
 
         let summary = try await service.updateOccurrence(
             occurrenceId: occurrence.id,

@@ -23,7 +23,7 @@ internal protocol RecurringPaymentOccurrencesService: Sendable {
     ) async throws -> RecurringPaymentSynchronizationSummary?
 }
 
-internal struct DefaultRecurringPaymentOccurrencesService: RecurringPaymentOccurrencesService {
+internal struct RecurringPaymentOccurrencesServiceImpl: RecurringPaymentOccurrencesService {
     private let repository: RecurringPaymentRepository
 
     internal init(repository: RecurringPaymentRepository) {
