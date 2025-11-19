@@ -25,6 +25,15 @@ internal final class BudgetStore {
     private let mutationUseCase: BudgetMutationUseCaseProtocol
     private let currentDateProvider: () -> Date
 
+    private struct BudgetCalculationContext: Sendable {
+        internal let snapshot: BudgetSnapshot
+        internal let year: Int
+        internal let month: Int
+        internal let monthlyUseCase: MonthlyBudgetUseCaseProtocol
+        internal let annualUseCase: AnnualBudgetUseCaseProtocol
+        internal let recurringPaymentUseCase: RecurringPaymentSavingsUseCaseProtocol
+    }
+
     // MARK: - State
 
     private var snapshot: BudgetSnapshot?
@@ -165,24 +174,25 @@ internal extension BudgetStore {
         let monthlyUseCase = self.monthlyUseCase
         let annualUseCase = self.annualUseCase
         let recurringPaymentUseCase = self.recurringPaymentUseCase
+        let context = BudgetCalculationContext(
+            snapshot: snapshot,
+            year: year,
+            month: month,
+            monthlyUseCase: monthlyUseCase,
+            annualUseCase: annualUseCase,
+            recurringPaymentUseCase: recurringPaymentUseCase
+        )
 
-        let task = Task { [snapshot, year, month, monthlyUseCase, annualUseCase, recurringPaymentUseCase, weak self] in
+        let task = Task { [context, weak self] in
             let result = await Task.detached(priority: .userInitiated) {
-                BudgetStore.makeCalculationResult(
-                    snapshot: snapshot,
-                    year: year,
-                    month: month,
-                    monthlyUseCase: monthlyUseCase,
-                    annualUseCase: annualUseCase,
-                    recurringPaymentUseCase: recurringPaymentUseCase,
-                )
+                BudgetStore.makeCalculationResult(context: context)
             }.value
 
             guard !Task.isCancelled else { return }
 
             await MainActor.run { [weak self] in
                 guard let self else { return }
-                guard self.currentYear == year, self.currentMonth == month else { return }
+                guard self.currentYear == context.year, self.currentMonth == context.month else { return }
                 self.applyCalculationResult(result)
             }
         }
@@ -213,13 +223,14 @@ internal extension BudgetStore {
     }
 
     private nonisolated static func makeCalculationResult(
-        snapshot: BudgetSnapshot,
-        year: Int,
-        month: Int,
-        monthlyUseCase: MonthlyBudgetUseCaseProtocol,
-        annualUseCase: AnnualBudgetUseCaseProtocol,
-        recurringPaymentUseCase: RecurringPaymentSavingsUseCaseProtocol,
+        context: BudgetCalculationContext
     ) -> BudgetCalculationResult {
+        let snapshot = context.snapshot
+        let year = context.year
+        let month = context.month
+        let monthlyUseCase = context.monthlyUseCase
+        let annualUseCase = context.annualUseCase
+        let recurringPaymentUseCase = context.recurringPaymentUseCase
         BudgetCalculationResult(
             year: year,
             month: month,
