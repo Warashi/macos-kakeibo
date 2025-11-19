@@ -222,22 +222,25 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         let occurrence = try await findOccurrence(id: occurrenceId, context: context)
         let transactionModel = try await resolvedTransaction(from: input.transaction, context: context)
         let now = currentDateProvider()
-
-        let errors = validateOccurrenceUpdate(
-            occurrence: occurrence,
+        let updateValues = OccurrenceUpdateValues(
             status: .completed,
             actualDate: input.actualDate,
             actualAmount: input.actualAmount,
-            transaction: transactionModel,
+            transaction: transactionModel
+        )
+
+        let errors = validateOccurrenceUpdate(
+            occurrence: occurrence,
+            values: updateValues
         )
         guard errors.isEmpty else {
             throw RecurringPaymentDomainError.validationFailed(errors)
         }
 
-        occurrence.actualDate = input.actualDate
-        occurrence.actualAmount = input.actualAmount
-        occurrence.transaction = transactionModel
-        occurrence.status = .completed
+        occurrence.actualDate = updateValues.actualDate
+        occurrence.actualAmount = updateValues.actualAmount
+        occurrence.transaction = updateValues.transaction
+        occurrence.status = updateValues.status
         occurrence.updatedAt = now
 
         try context.save()
@@ -259,24 +262,27 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         let occurrence = try await findOccurrence(id: occurrenceId, context: context)
         let now = currentDateProvider()
         let wasCompleted = occurrence.status == .completed
-        let willBeCompleted = input.status == .completed
         let transactionModel = try await resolvedTransaction(from: input.transaction, context: context)
-
-        let errors = validateOccurrenceUpdate(
-            occurrence: occurrence,
+        let updateValues = OccurrenceUpdateValues(
             status: input.status,
             actualDate: input.actualDate,
             actualAmount: input.actualAmount,
-            transaction: transactionModel,
+            transaction: transactionModel
+        )
+        let willBeCompleted = updateValues.status == .completed
+
+        let errors = validateOccurrenceUpdate(
+            occurrence: occurrence,
+            values: updateValues
         )
         guard errors.isEmpty else {
             throw RecurringPaymentDomainError.validationFailed(errors)
         }
 
-        occurrence.status = input.status
-        occurrence.actualDate = input.actualDate
-        occurrence.actualAmount = input.actualAmount
-        occurrence.transaction = transactionModel
+        occurrence.status = updateValues.status
+        occurrence.actualDate = updateValues.actualDate
+        occurrence.actualAmount = updateValues.actualAmount
+        occurrence.transaction = updateValues.transaction
         occurrence.updatedAt = now
 
         try context.save()
@@ -401,19 +407,16 @@ private extension SwiftDataRecurringPaymentRepository {
 
     func validateOccurrenceUpdate(
         occurrence: SwiftDataRecurringPaymentOccurrence,
-        status: RecurringPaymentStatus,
-        actualDate: Date?,
-        actualAmount: Decimal?,
-        transaction: SwiftDataTransaction?,
+        values: OccurrenceUpdateValues
     ) -> [String] {
         let candidate = SwiftDataRecurringPaymentOccurrence(
             definition: occurrence.definition,
             scheduledDate: occurrence.scheduledDate,
             expectedAmount: occurrence.expectedAmount,
-            status: status,
-            actualDate: actualDate,
-            actualAmount: actualAmount,
-            transaction: transaction,
+            status: values.status,
+            actualDate: values.actualDate,
+            actualAmount: values.actualAmount,
+            transaction: values.transaction,
         )
         return candidate.validate()
     }
@@ -425,4 +428,11 @@ private extension SwiftDataRecurringPaymentRepository {
         guard let dto else { return nil }
         return try await findTransaction(id: dto.id, context: context)
     }
+}
+
+private struct OccurrenceUpdateValues {
+    internal let status: RecurringPaymentStatus
+    internal let actualDate: Date?
+    internal let actualAmount: Decimal?
+    internal let transaction: SwiftDataTransaction?
 }
