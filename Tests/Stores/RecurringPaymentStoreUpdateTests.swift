@@ -6,7 +6,7 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct RecurringPaymentStoreUpdateDefinitionTests {
+internal struct RecurringPaymentStoreUpdateTests {
     @Test("定義更新：正常系で定義が更新される")
     internal func updateDefinition_success() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))

@@ -6,7 +6,7 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-internal struct RecurringPaymentStoreDeleteDefinitionTests {
+internal struct RecurringPaymentStoreDeleteTests {
     @Test("定義削除：正常系で定義が削除される")
     internal func deleteDefinition_success() async throws {
         let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
