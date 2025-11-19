@@ -1,5 +1,5 @@
 import Foundation
-import Synchronization
+import os.lock
 @testable import Kakeibo
 import Testing
 
@@ -213,16 +213,16 @@ internal struct CSVImporterTests {
     }
 
     private struct ThreadFlagRecorder: Sendable {
-        private let state: ManagedCriticalState<[Bool]> = ManagedCriticalState([])
+        private let lock: OSAllocatedUnfairLock<[Bool]> = OSAllocatedUnfairLock(initialState: [])
 
         func record(_ value: Bool) {
-            state.withCriticalRegion { storage in
+            lock.withLock { storage in
                 storage.append(value)
             }
         }
 
         var values: [Bool] {
-            state.withCriticalRegion { $0 }
+            lock.withLock { $0 }
         }
     }
 }

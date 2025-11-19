@@ -1,5 +1,5 @@
 @testable import Kakeibo
-import Synchronization
+import os.lock
 import XCTest
 
 internal final class SecurityScopedResourceAccessTests: XCTestCase {
@@ -80,37 +80,39 @@ internal final class SecurityScopedResourceAccessTests: XCTestCase {
     }
 }
 
-private struct ResourceAccessControllerState {
-    var startCalls: [URL] = []
-    var stopCalls: [URL] = []
-}
-
 private final class MockResourceAccessController: SecurityScopedResourceAccessControlling, Sendable {
     private let startResult: Bool
-    private let state: ManagedCriticalState<ResourceAccessControllerState> = ManagedCriticalState(ResourceAccessControllerState())
+    private let lock: OSAllocatedUnfairLock<ResourceAccessControllerState> = OSAllocatedUnfairLock(
+        initialState: ResourceAccessControllerState(),
+    )
 
     init(startResult: Bool) {
         self.startResult = startResult
     }
 
     var startCalls: [URL] {
-        state.withCriticalRegion { $0.startCalls }
+        lock.withLock { $0.startCalls }
     }
 
     var stopCalls: [URL] {
-        state.withCriticalRegion { $0.stopCalls }
+        lock.withLock { $0.stopCalls }
     }
 
     func startAccessing(_ url: URL) -> Bool {
-        state.withCriticalRegion { state in
+        lock.withLock { state in
             state.startCalls.append(url)
         }
         return startResult
     }
 
     func stopAccessing(_ url: URL) {
-        state.withCriticalRegion { state in
+        lock.withLock { state in
             state.stopCalls.append(url)
         }
     }
+}
+
+private struct ResourceAccessControllerState {
+    var startCalls: [URL] = []
+    var stopCalls: [URL] = []
 }
