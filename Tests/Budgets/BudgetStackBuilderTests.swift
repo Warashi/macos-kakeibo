@@ -6,7 +6,7 @@ import Testing
 @Suite(.serialized)
 internal struct BudgetStackBuilderTests {
     @Test("BudgetStore を構築して予算を読み込める")
-    func makeStoreLoadsBudgets() async throws {
+    internal func makeStoreLoadsBudgets() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let dependencies = await BudgetStackBuilder.makeDependencies(modelContainer: container)
 
@@ -37,7 +37,7 @@ internal struct BudgetStackBuilderTests {
     }
 
     @Test("BudgetModelActor 経由でも BudgetStore を構築できる")
-    func makeStoreViaModelActor() async throws {
+    internal func makeStoreViaModelActor() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let modelActor = BudgetModelActor(modelContainer: container)
         let dependencies = await BudgetStackBuilder.makeDependencies(modelActor: modelActor)
