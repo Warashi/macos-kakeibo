@@ -386,17 +386,38 @@ private extension BudgetView {
 
     @MainActor
     func saveRecurringPayment() {
+        guard let context = makeRecurringPaymentSaveContext() else {
+            return
+        }
+        Task {
+            await performRecurringPaymentSave(using: context)
+        }
+    }
+
+    @MainActor
+    private func makeRecurringPaymentSaveContext() -> RecurringPaymentSaveContext? {
         guard recurringPaymentFormState.isValid else {
             recurringPaymentFormError = "入力内容を確認してください"
-            return
+            return nil
         }
 
         guard let amount = recurringPaymentFormState.decimalAmount else {
             recurringPaymentFormError = "金額を正しく入力してください"
-            return
+            return nil
         }
 
-        let input = RecurringPaymentDefinitionInput(
+        guard let mode = resolvedRecurringPaymentSaveMode() else {
+            recurringPaymentFormError = "編集対象が不明です"
+            return nil
+        }
+
+        let input = buildRecurringPaymentInput(amount: amount)
+        return RecurringPaymentSaveContext(input: input, mode: mode)
+    }
+
+    @MainActor
+    private func buildRecurringPaymentInput(amount: Decimal) -> RecurringPaymentDefinitionInput {
+        RecurringPaymentDefinitionInput(
             name: recurringPaymentFormState.nameText.trimmingCharacters(in: .whitespacesAndNewlines),
             notes: recurringPaymentFormState.notesText,
             amount: amount,
@@ -409,55 +430,58 @@ private extension BudgetView {
             dateAdjustmentPolicy: recurringPaymentFormState.dateAdjustmentPolicy,
             recurrenceDayPattern: recurringPaymentFormState.recurrenceDayPattern,
         )
-        let editorMode = recurringPaymentEditorMode
-        let editDefinitionId: UUID? = {
-            if case let .edit(definition) = editorMode {
-                return definition.id
-            }
-            return nil
-        }()
-        let isCreateMode = {
-            if case .create = editorMode {
-                return true
-            }
-            return false
-        }()
-        Task {
-            guard let container = await MainActor.run(body: { modelContainer }) else {
-                assertionFailure("ModelContainer is unavailable")
-                return
-            }
-            let recurringPaymentStore = await RecurringPaymentStackBuilder.makeStore(modelContainer: container)
+    }
 
-            do {
-                if isCreateMode {
-                    try await recurringPaymentStore.createDefinition(input)
-                } else if let definitionId = editDefinitionId {
-                    try await recurringPaymentStore.updateDefinition(definitionId: definitionId, input: input)
-                } else {
-                    await MainActor.run {
-                        recurringPaymentFormError = "編集対象が不明です"
-                    }
-                    return
-                }
-                await MainActor.run {
-                    isPresentingRecurringPaymentEditor = false
-                }
-            } catch RecurringPaymentDomainError.categoryNotFound {
-                await MainActor.run {
-                    recurringPaymentFormError = "選択したカテゴリが見つかりませんでした"
-                }
-            } catch let RecurringPaymentDomainError.validationFailed(errors) {
-                await MainActor.run {
-                    recurringPaymentFormError = errors.joined(separator: "\n")
-                }
-            } catch {
-                await MainActor.run {
-                    showError(message: "定期支払いの保存に失敗しました: \(error.localizedDescription)")
-                }
+    private func resolvedRecurringPaymentSaveMode() -> RecurringPaymentSaveMode? {
+        switch recurringPaymentEditorMode {
+        case .create:
+            return .create
+        case let .edit(definition):
+            return .update(definition.id)
+        }
+    }
+
+    private func performRecurringPaymentSave(using context: RecurringPaymentSaveContext) async {
+        guard let container = await MainActor.run(body: { modelContainer }) else {
+            assertionFailure("ModelContainer is unavailable")
+            return
+        }
+        let recurringPaymentStore = await RecurringPaymentStackBuilder.makeStore(modelContainer: container)
+
+        do {
+            switch context.mode {
+            case .create:
+                try await recurringPaymentStore.createDefinition(context.input)
+            case let .update(identifier):
+                try await recurringPaymentStore.updateDefinition(definitionId: identifier, input: context.input)
+            }
+            await MainActor.run {
+                isPresentingRecurringPaymentEditor = false
+            }
+        } catch RecurringPaymentDomainError.categoryNotFound {
+            await MainActor.run {
+                recurringPaymentFormError = "選択したカテゴリが見つかりませんでした"
+            }
+        } catch let RecurringPaymentDomainError.validationFailed(errors) {
+            await MainActor.run {
+                recurringPaymentFormError = errors.joined(separator: "\n")
+            }
+        } catch {
+            await MainActor.run {
+                showError(message: "定期支払いの保存に失敗しました: \(error.localizedDescription)")
             }
         }
     }
+}
+
+private struct RecurringPaymentSaveContext {
+    internal let input: RecurringPaymentDefinitionInput
+    internal let mode: RecurringPaymentSaveMode
+}
+
+private enum RecurringPaymentSaveMode {
+    case create
+    case update(UUID)
 }
 
 // MARK: - Delete
