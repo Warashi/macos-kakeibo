@@ -1,4 +1,5 @@
 @testable import Kakeibo
+import Synchronization
 import XCTest
 
 internal final class SecurityScopedResourceAccessTests: XCTestCase {
