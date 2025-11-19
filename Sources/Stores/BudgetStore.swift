@@ -103,6 +103,9 @@ internal final class BudgetStore {
     /// 定期支払い積立の表示用エントリ
     internal var recurringPaymentSavingsEntries: [RecurringPaymentSavingsEntry] = []
 
+    /// 定期支払い定義一覧（スナップショット由来）
+    internal private(set) var recurringPaymentDefinitions: [RecurringPaymentDefinition] = []
+
     @ObservationIgnored
     private var calculationTask: Task<Void, Never>?
 
@@ -420,6 +423,7 @@ private extension BudgetStore {
     @MainActor
     private func applySnapshot(_ newSnapshot: BudgetSnapshot?) -> Task<Void, Never> {
         snapshot = newSnapshot
+        recurringPaymentDefinitions = newSnapshot?.recurringPaymentDefinitions ?? []
         refreshToken = UUID()
         return scheduleRecalculation()
     }

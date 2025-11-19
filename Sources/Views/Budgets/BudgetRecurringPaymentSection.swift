@@ -1,11 +1,12 @@
-import SwiftData
+import Foundation
 import SwiftUI
 
 /// 予算ビューの定期支払いリストセクション
 internal struct BudgetRecurringPaymentSection: View {
-    @Environment(\.modelContext) private var modelContext: ModelContext
-    internal let onEdit: (SwiftDataRecurringPaymentDefinition) -> Void
-    internal let onDelete: (SwiftDataRecurringPaymentDefinition) -> Void
+    internal let definitions: [RecurringPaymentDefinition]
+    internal let categories: [Category]
+    internal let onEdit: (RecurringPaymentDefinition) -> Void
+    internal let onDelete: (RecurringPaymentDefinition) -> Void
     internal let onAdd: () -> Void
 
     internal var body: some View {
@@ -21,7 +22,7 @@ internal struct BudgetRecurringPaymentSection: View {
                 }
             }
 
-            if recurringPaymentDefinitions.isEmpty {
+            if sortedDefinitions.isEmpty {
                 EmptyStatePlaceholder(
                     systemImage: "calendar.badge.exclamationmark",
                     title: "定期支払いがありません",
@@ -29,9 +30,10 @@ internal struct BudgetRecurringPaymentSection: View {
                 )
             } else {
                 VStack(spacing: 12) {
-                    ForEach(recurringPaymentDefinitions) { definition in
+                    ForEach(sortedDefinitions) { definition in
                         RecurringPaymentRow(
                             definition: definition,
+                            categoryName: categoryName(for: definition),
                             onEdit: { onEdit(definition) },
                             onDelete: { onDelete(definition) },
                         )
@@ -42,13 +44,27 @@ internal struct BudgetRecurringPaymentSection: View {
         .cardStyle()
     }
 
-    private var recurringPaymentDefinitions: [SwiftDataRecurringPaymentDefinition] {
-        let descriptor: ModelFetchRequest<SwiftDataRecurringPaymentDefinition> = ModelFetchFactory.make(
-            sortBy: [
-                SortDescriptor(\SwiftDataRecurringPaymentDefinition.firstOccurrenceDate),
-                SortDescriptor(\SwiftDataRecurringPaymentDefinition.name),
-            ],
-        )
-        return (try? modelContext.fetch(descriptor)) ?? []
+    private var sortedDefinitions: [RecurringPaymentDefinition] {
+        definitions.sorted { lhs, rhs in
+            if lhs.firstOccurrenceDate == rhs.firstOccurrenceDate {
+                return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+            }
+            return lhs.firstOccurrenceDate < rhs.firstOccurrenceDate
+        }
+    }
+
+    private var categoryLookup: [UUID: Category] {
+        Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
+    }
+
+    private func categoryName(for definition: RecurringPaymentDefinition) -> String? {
+        guard let categoryId = definition.categoryId else { return nil }
+        guard let category = categoryLookup[categoryId] else { return nil }
+
+        if let parentId = category.parentId, let parent = categoryLookup[parentId] {
+            return "\(parent.name) / \(category.name)"
+        }
+
+        return category.name
     }
 }

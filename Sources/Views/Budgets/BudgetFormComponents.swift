@@ -1,4 +1,4 @@
-import SwiftData
+import Foundation
 import SwiftUI
 
 // MARK: - Common Field Layout
@@ -20,7 +20,8 @@ internal struct LabeledField<Content: View>: View {
 // MARK: - Special Payment Row
 
 internal struct RecurringPaymentRow: View {
-    internal let definition: SwiftDataRecurringPaymentDefinition
+    internal let definition: RecurringPaymentDefinition
+    internal let categoryName: String?
     internal let onEdit: () -> Void
     internal let onDelete: () -> Void
 
@@ -30,8 +31,8 @@ internal struct RecurringPaymentRow: View {
                 HStack {
                     Text(definition.name)
                         .font(.headline)
-                    if let category = definition.category {
-                        Text(category.fullName)
+                    if let categoryName {
+                        Text(categoryName)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, 8)

@@ -276,7 +276,7 @@ internal struct RecurringPaymentFormState {
         selectedMinorCategoryId ?? selectedMajorCategoryId
     }
 
-    internal mutating func load(from definition: SwiftDataRecurringPaymentDefinition) {
+    internal mutating func load(from definition: RecurringPaymentDefinition, categories: [Category]) {
         nameText = definition.name
         notesText = definition.notes
         amountText = definition.amount.plainString
@@ -284,18 +284,7 @@ internal struct RecurringPaymentFormState {
         recurrenceMonths = definition.recurrenceIntervalMonths % 12
         firstOccurrenceDate = definition.firstOccurrenceDate
         leadTimeMonths = definition.leadTimeMonths
-        if let category = definition.category {
-            if category.isMajor {
-                selectedMajorCategoryId = category.id
-                selectedMinorCategoryId = nil
-            } else {
-                selectedMajorCategoryId = category.parent?.id
-                selectedMinorCategoryId = category.id
-            }
-        } else {
-            selectedMajorCategoryId = nil
-            selectedMinorCategoryId = nil
-        }
+        updateCategorySelection(for: definition.categoryId, categories: categories)
         savingStrategy = definition.savingStrategy
         customMonthlySavingAmountText = definition.customMonthlySavingAmount?.plainString ?? ""
         dateAdjustmentPolicy = definition.dateAdjustmentPolicy
@@ -366,13 +355,36 @@ internal struct RecurringPaymentFormState {
 
         return true
     }
+
+    private mutating func updateCategorySelection(for categoryId: UUID?, categories: [Category]) {
+        guard let categoryId else {
+            selectedMajorCategoryId = nil
+            selectedMinorCategoryId = nil
+            return
+        }
+
+        let lookup = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
+        guard let category = lookup[categoryId] else {
+            selectedMajorCategoryId = nil
+            selectedMinorCategoryId = nil
+            return
+        }
+
+        if category.isMajor {
+            selectedMajorCategoryId = category.id
+            selectedMinorCategoryId = nil
+        } else {
+            selectedMajorCategoryId = category.parentId
+            selectedMinorCategoryId = category.id
+        }
+    }
 }
 
 // MARK: - Special Payment Editor Mode
 
 internal enum RecurringPaymentEditorMode {
     case create
-    case edit(SwiftDataRecurringPaymentDefinition)
+    case edit(RecurringPaymentDefinition)
 
     internal var title: String {
         switch self {

@@ -24,7 +24,7 @@ internal struct BudgetView: View {
     @State private var recurringPaymentFormError: String?
 
     @State private var budgetPendingDeletion: Budget?
-    @State private var recurringPaymentPendingDeletion: SwiftDataRecurringPaymentDefinition?
+    @State private var recurringPaymentPendingDeletion: RecurringPaymentDefinition?
     @State private var errorMessage: String?
     @State private var isShowingErrorAlert: Bool = false
 
@@ -61,6 +61,8 @@ internal struct BudgetView: View {
                                 )
 
                                 BudgetRecurringPaymentSection(
+                                    definitions: store.recurringPaymentDefinitions,
+                                    categories: store.selectableCategories,
                                     onEdit: { presentRecurringPaymentEditor(for: $0) },
                                     onDelete: { recurringPaymentPendingDeletion = $0 },
                                     onAdd: { presentRecurringPaymentEditor(for: nil) },
@@ -82,6 +84,8 @@ internal struct BudgetView: View {
                                 )
 
                                 BudgetRecurringPaymentSection(
+                                    definitions: store.recurringPaymentDefinitions,
+                                    categories: store.selectableCategories,
                                     onEdit: { presentRecurringPaymentEditor(for: $0) },
                                     onDelete: { recurringPaymentPendingDeletion = $0 },
                                     onAdd: { presentRecurringPaymentEditor(for: nil) },
@@ -368,11 +372,12 @@ private extension BudgetView {
 // MARK: - Special Payment Editor
 
 private extension BudgetView {
-    func presentRecurringPaymentEditor(for definition: SwiftDataRecurringPaymentDefinition?) {
+    func presentRecurringPaymentEditor(for definition: RecurringPaymentDefinition?) {
+        guard let store else { return }
         recurringPaymentFormError = nil
         if let definition {
             recurringPaymentEditorMode = .edit(definition)
-            recurringPaymentFormState.load(from: definition)
+            recurringPaymentFormState.load(from: definition, categories: store.selectableCategories)
         } else {
             recurringPaymentEditorMode = .create
             recurringPaymentFormState.reset()
@@ -386,11 +391,10 @@ private extension BudgetView {
 
     @MainActor
     func saveRecurringPayment() {
-        guard let context = makeRecurringPaymentSaveContext() else {
-            return
-        }
+        guard let context = makeRecurringPaymentSaveContext() else { return }
+        guard let budgetStore = store else { return }
         Task {
-            await performRecurringPaymentSave(using: context)
+            await performRecurringPaymentSave(using: context, budgetStore: budgetStore)
         }
     }
 
@@ -441,7 +445,10 @@ private extension BudgetView {
         }
     }
 
-    private func performRecurringPaymentSave(using context: RecurringPaymentSaveContext) async {
+    private func performRecurringPaymentSave(
+        using context: RecurringPaymentSaveContext,
+        budgetStore: BudgetStore
+    ) async {
         guard let container = await MainActor.run(body: { modelContainer }) else {
             assertionFailure("ModelContainer is unavailable")
             return
@@ -455,6 +462,7 @@ private extension BudgetView {
             case let .update(identifier):
                 try await recurringPaymentStore.updateDefinition(definitionId: identifier, input: context.input)
             }
+            await budgetStore.refresh()
             await MainActor.run {
                 isPresentingRecurringPaymentEditor = false
             }
@@ -474,12 +482,12 @@ private extension BudgetView {
     }
 }
 
-private struct RecurringPaymentSaveContext {
+private struct RecurringPaymentSaveContext: Sendable {
     internal let input: RecurringPaymentDefinitionInput
     internal let mode: RecurringPaymentSaveMode
 }
 
-private enum RecurringPaymentSaveMode {
+private enum RecurringPaymentSaveMode: Sendable {
     case create
     case update(UUID)
 }
@@ -502,6 +510,7 @@ private extension BudgetView {
     @MainActor
     func deletePendingRecurringPayment() {
         guard let definition = recurringPaymentPendingDeletion else { return }
+        guard let budgetStore = store else { return }
         let definitionId = definition.id
         Task {
             guard let container = await MainActor.run(body: { modelContainer }) else {
@@ -511,6 +520,7 @@ private extension BudgetView {
             let recurringPaymentStore = await RecurringPaymentStackBuilder.makeStore(modelContainer: container)
             do {
                 try await recurringPaymentStore.deleteDefinition(definitionId: definitionId)
+                await budgetStore.refresh()
             } catch {
                 await MainActor.run {
                     showError(message: "定期支払いの削除に失敗しました: \(error.localizedDescription)")
