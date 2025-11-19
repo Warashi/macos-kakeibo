@@ -6,13 +6,11 @@ import UniformTypeIdentifiers
 internal struct DataManagementPanel: View {
     @Bindable private var store: SettingsStore
 
-    @State private var backupDocument: DataFileDocument = DataFileDocument()
-    @State private var csvDocument: DataFileDocument = DataFileDocument()
-    @State private var showBackupExporter: Bool = false
-    @State private var showCSVExporter: Bool = false
+    @State private var exportDocument: DataFileDocument = DataFileDocument()
+    @State private var exportFileName: String = ""
+    @State private var exportContentType: UTType = .json
+    @State private var showFileExporter: Bool = false
     @State private var showBackupImporter: Bool = false
-    @State private var backupFileName: String = ""
-    @State private var csvFileName: String = ""
     @State private var showDeleteConfirmationDialog: Bool = false
     @State private var showDeleteVerificationSheet: Bool = false
     @State private var deleteVerificationText: String = ""
@@ -37,17 +35,10 @@ internal struct DataManagementPanel: View {
             },
         )
         .fileExporter(
-            isPresented: $showBackupExporter,
-            document: backupDocument,
-            contentType: .json,
-            defaultFilename: backupFileName,
-            onCompletion: handleExportCompletion,
-        )
-        .fileExporter(
-            isPresented: $showCSVExporter,
-            document: csvDocument,
-            contentType: .commaSeparatedText,
-            defaultFilename: csvFileName,
+            isPresented: $showFileExporter,
+            document: exportDocument,
+            contentType: exportContentType,
+            defaultFilename: exportFileName,
             onCompletion: handleExportCompletion,
         )
         .fileImporter(
@@ -89,9 +80,11 @@ internal struct DataManagementPanel: View {
             do {
                 let archive = try await store.createBackupArchive()
                 await MainActor.run {
-                    backupDocument = DataFileDocument(data: archive.data)
-                    backupFileName = archive.suggestedFileName
-                    showBackupExporter = true
+                    presentExporter(
+                        data: archive.data,
+                        fileName: archive.suggestedFileName,
+                        contentType: .json
+                    )
                 }
             } catch {
                 await MainActor.run {
@@ -106,9 +99,11 @@ internal struct DataManagementPanel: View {
             do {
                 let result = try await store.exportTransactionsCSV()
                 await MainActor.run {
-                    csvDocument = DataFileDocument(data: result.data)
-                    csvFileName = makeCSVFileName()
-                    showCSVExporter = true
+                    presentExporter(
+                        data: result.data,
+                        fileName: makeCSVFileName(),
+                        contentType: .commaSeparatedText
+                    )
                     store.statusMessage = "取引\(result.rowCount)件をエクスポートしました"
                 }
             } catch {
@@ -177,6 +172,14 @@ internal struct DataManagementPanel: View {
                 deleteVerificationText = ""
             }
         }
+    }
+
+    @MainActor
+    private func presentExporter(data: Data, fileName: String, contentType: UTType) {
+        exportDocument = DataFileDocument(data: data)
+        exportFileName = fileName
+        exportContentType = contentType
+        showFileExporter = true
     }
 }
 
