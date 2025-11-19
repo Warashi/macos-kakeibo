@@ -88,11 +88,15 @@ internal struct DataManagementPanel: View {
         Task {
             do {
                 let archive = try await store.createBackupArchive()
-                backupDocument = DataFileDocument(data: archive.data)
-                backupFileName = archive.suggestedFileName
-                showBackupExporter = true
+                await MainActor.run {
+                    backupDocument = DataFileDocument(data: archive.data)
+                    backupFileName = archive.suggestedFileName
+                    showBackupExporter = true
+                }
             } catch {
-                store.statusMessage = "バックアップに失敗しました: \(error.localizedDescription)"
+                await MainActor.run {
+                    store.statusMessage = "バックアップに失敗しました: \(error.localizedDescription)"
+                }
             }
         }
     }
@@ -101,12 +105,16 @@ internal struct DataManagementPanel: View {
         Task {
             do {
                 let result = try await store.exportTransactionsCSV()
-                csvDocument = DataFileDocument(data: result.data)
-                csvFileName = makeCSVFileName()
-                showCSVExporter = true
-                store.statusMessage = "取引\(result.rowCount)件をエクスポートしました"
+                await MainActor.run {
+                    csvDocument = DataFileDocument(data: result.data)
+                    csvFileName = makeCSVFileName()
+                    showCSVExporter = true
+                    store.statusMessage = "取引\(result.rowCount)件をエクスポートしました"
+                }
             } catch {
-                store.statusMessage = "CSVエクスポートに失敗しました: \(error.localizedDescription)"
+                await MainActor.run {
+                    store.statusMessage = "CSVエクスポートに失敗しました: \(error.localizedDescription)"
+                }
             }
         }
     }
@@ -132,7 +140,9 @@ internal struct DataManagementPanel: View {
                 }
                 _ = try await store.restoreBackup(from: data)
             } catch {
-                store.statusMessage = "復元に失敗しました: \(error.localizedDescription)"
+                await MainActor.run {
+                    store.statusMessage = "復元に失敗しました: \(error.localizedDescription)"
+                }
             }
         }
     }
@@ -158,10 +168,14 @@ internal struct DataManagementPanel: View {
             do {
                 try await store.deleteAllData()
             } catch {
-                store.statusMessage = "データ削除に失敗しました: \(error.localizedDescription)"
+                await MainActor.run {
+                    store.statusMessage = "データ削除に失敗しました: \(error.localizedDescription)"
+                }
             }
-            showDeleteVerificationSheet = false
-            deleteVerificationText = ""
+            await MainActor.run {
+                showDeleteVerificationSheet = false
+                deleteVerificationText = ""
+            }
         }
     }
 }
