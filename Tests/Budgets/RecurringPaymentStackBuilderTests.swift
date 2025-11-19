@@ -6,7 +6,7 @@ import Testing
 @Suite(.serialized)
 internal struct RecurringPaymentStackBuilderTests {
     @Test("RecurringPaymentListStore を構築してエントリを読み込める")
-    func makeListStoreLoadsEntries() async throws {
+    internal func makeListStoreLoadsEntries() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
         let now = Date()
@@ -33,7 +33,7 @@ internal struct RecurringPaymentStackBuilderTests {
     }
 
     @Test("RecurringPaymentReconciliationStore を構築して行を読み込める")
-    func makeReconciliationStoreLoadsRows() async throws {
+    internal func makeReconciliationStoreLoadsRows() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
         let transactionRepository = SwiftDataTransactionRepository(modelContainer: container)
@@ -75,7 +75,7 @@ internal struct RecurringPaymentStackBuilderTests {
     }
 
     @Test("RecurringPaymentStore を構築して CRUD を実行できる")
-    func makeStoreSupportsCRUD() async throws {
+    internal func makeStoreSupportsCRUD() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let store = await RecurringPaymentStackBuilder.makeStore(modelContainer: container)
 
@@ -105,7 +105,7 @@ internal struct RecurringPaymentStackBuilderTests {
     }
 
     @Test("RecurringPaymentModelActor 経由でも ListStore を構築できる")
-    func makeListStoreViaModelActor() async throws {
+    internal func makeListStoreViaModelActor() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let modelActor = RecurringPaymentModelActor(modelContainer: container)
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
@@ -133,7 +133,7 @@ internal struct RecurringPaymentStackBuilderTests {
     }
 
     @Test("RecurringPaymentModelActor 経由でも ReconciliationStore を構築できる")
-    func makeReconciliationStoreViaModelActor() async throws {
+    internal func makeReconciliationStoreViaModelActor() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let modelActor = RecurringPaymentModelActor(modelContainer: container)
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
@@ -176,7 +176,7 @@ internal struct RecurringPaymentStackBuilderTests {
     }
 
     @Test("RecurringPaymentModelActor 経由でも CRUD ストアを構築できる")
-    func makeStoreViaModelActor() async throws {
+    internal func makeStoreViaModelActor() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let modelActor = RecurringPaymentModelActor(modelContainer: container)
         let store = await RecurringPaymentStackBuilder.makeStore(modelActor: modelActor)
