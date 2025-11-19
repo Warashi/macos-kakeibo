@@ -2,7 +2,7 @@ import Foundation
 @testable import Kakeibo
 
 internal enum DomainFixtures {
-    static func category(
+    internal static func category(
         id: UUID = UUID(),
         name: String = "カテゴリ",
         displayOrder: Int = 0,
@@ -23,7 +23,7 @@ internal enum DomainFixtures {
         )
     }
 
-    static func budget(
+    internal static func budget(
         id: UUID = UUID(),
         amount: Decimal = 10000,
         categoryId: UUID? = nil,
@@ -50,7 +50,7 @@ internal enum DomainFixtures {
         )
     }
 
-    static func transaction(
+    internal static func transaction(
         id: UUID = UUID(),
         date: Date = Date(),
         title: String = "取引",
@@ -85,7 +85,7 @@ internal enum DomainFixtures {
         )
     }
 
-    static func financialInstitution(
+    internal static func financialInstitution(
         id: UUID = UUID(),
         name: String = "テスト銀行",
         displayOrder: Int = 0,
@@ -101,7 +101,7 @@ internal enum DomainFixtures {
         )
     }
 
-    static func annualBudgetAllocation(
+    internal static func annualBudgetAllocation(
         id: UUID = UUID(),
         amount: Decimal = 10000,
         category: Kakeibo.Category,
@@ -121,7 +121,7 @@ internal enum DomainFixtures {
         )
     }
 
-    static func annualBudgetConfig(
+    internal static func annualBudgetConfig(
         id: UUID = UUID(),
         year: Int,
         totalAmount: Decimal,
@@ -141,7 +141,7 @@ internal enum DomainFixtures {
         )
     }
 
-    static func recurringPaymentDefinition(
+    internal static func recurringPaymentDefinition(
         id: UUID = UUID(),
         name: String = "定期支払い",
         notes: String = "",
@@ -178,7 +178,7 @@ internal enum DomainFixtures {
         )
     }
 
-    static func recurringPaymentOccurrence(
+    internal static func recurringPaymentOccurrence(
         id: UUID = UUID(),
         definition: RecurringPaymentDefinition,
         scheduledDate: Date = Date(),
@@ -204,7 +204,7 @@ internal enum DomainFixtures {
         )
     }
 
-    static func recurringPaymentSavingBalance(
+    internal static func recurringPaymentSavingBalance(
         id: UUID = UUID(),
         definition: RecurringPaymentDefinition,
         totalSavedAmount: Decimal = 0,
