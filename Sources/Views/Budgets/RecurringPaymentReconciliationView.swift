@@ -8,7 +8,7 @@ internal struct RecurringPaymentReconciliationView: View {
     internal var body: some View {
         Group {
             if let store {
-                RecurringPaymentReconciliationContentView(store: store)
+                RecurringPaymentReconciliationContent(store: store)
             } else {
                 ProgressView("定期支払い情報を読み込み中…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -35,7 +35,7 @@ internal struct RecurringPaymentReconciliationView: View {
     }
 }
 
-internal struct RecurringPaymentReconciliationContentView: View {
+internal struct RecurringPaymentReconciliationContent: View {
     @Bindable internal var store: RecurringPaymentReconciliationStore
     @State private var isErrorAlertPresented: Bool = false
 

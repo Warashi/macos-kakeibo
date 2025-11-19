@@ -24,7 +24,7 @@ internal struct RecurringPaymentReconciliationViewTests {
             transactionRepository: transactionRepository,
             occurrencesService: occurrencesService,
         )
-        let view = RecurringPaymentReconciliationContentView(store: store)
+        let view = RecurringPaymentReconciliationContent(store: store)
         let _: any View = view
     }
 }
