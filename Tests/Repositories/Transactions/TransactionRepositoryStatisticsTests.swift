@@ -3,8 +3,8 @@ import Foundation
 import SwiftData
 import Testing
 
-@Suite("SwiftDataTransactionRepositoryStatistics", .serialized)
-internal struct SwiftDataTransactionRepositoryStatisticsTests {
+@Suite("TransactionRepositoryStatistics", .serialized)
+internal struct TransactionRepositoryStatisticsTests {
     @Test("取引件数をカウントできる")
     internal func countsTransactions() async throws {
         let container = try ModelContainer.createInMemoryContainer()

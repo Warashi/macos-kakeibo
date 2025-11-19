@@ -3,8 +3,8 @@ import Foundation
 import SwiftData
 import Testing
 
-@Suite("SwiftDataTransactionRepositoryExport", .serialized)
-internal struct SwiftDataTransactionRepositoryExportTests {
+@Suite("TransactionRepositoryExport", .serialized)
+internal struct TransactionRepositoryExportTests {
     @Test("CSVエクスポート用スナップショットを取得できる")
     internal func buildsSnapshot() async throws {
         let container = try ModelContainer.createInMemoryContainer()

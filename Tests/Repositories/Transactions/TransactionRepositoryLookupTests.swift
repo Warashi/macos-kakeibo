@@ -3,8 +3,8 @@ import Foundation
 import SwiftData
 import Testing
 
-@Suite("TransactionRepositoryIdentifierLookup", .serialized)
-internal struct TransactionRepositoryIdentifierLookupTests {
+@Suite("TransactionRepositoryLookup", .serialized)
+internal struct TransactionRepositoryLookupTests {
     @Test("SwiftData実装で識別子検索できる")
     @MainActor
     internal func swiftDataRepositoryFindsIdentifier() async throws {

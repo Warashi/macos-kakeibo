@@ -3,8 +3,8 @@ import Foundation
 import SwiftData
 import Testing
 
-@Suite("SwiftDataBudgetRepositoryCategoryInstitution", .serialized)
-internal struct SwiftDataBudgetRepositoryCategoryInstitutionTests {
+@Suite("BudgetRepositoryCategory", .serialized)
+internal struct BudgetRepositoryCategoryTests {
     @Test("親情報付きでカテゴリを検索できる")
     internal func findsCategoryByNameWithParent() async throws {
         let (repository, context) = try await makeRepository()
@@ -61,7 +61,7 @@ internal struct SwiftDataBudgetRepositoryCategoryInstitutionTests {
     }
 }
 
-private extension SwiftDataBudgetRepositoryCategoryInstitutionTests {
+private extension BudgetRepositoryCategoryTests {
     func makeRepository() async throws -> (SwiftDataBudgetRepository, ModelContext) {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)

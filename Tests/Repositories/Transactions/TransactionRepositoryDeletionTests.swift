@@ -3,8 +3,8 @@ import Foundation
 import SwiftData
 import Testing
 
-@Suite("SwiftDataTransactionRepositoryDeletion", .serialized)
-internal struct SwiftDataTransactionRepositoryDeletionTests {
+@Suite("TransactionRepositoryDeletion", .serialized)
+internal struct TransactionRepositoryDeletionTests {
     @Test("全取引を削除できる")
     internal func deletesAllTransactions() async throws {
         let container = try ModelContainer.createInMemoryContainer()
