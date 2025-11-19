@@ -19,8 +19,8 @@ internal actor CSVImporter {
         }
     }
 
-    let transactionRepository: TransactionRepository
-    let budgetRepository: BudgetRepository
+    internal let transactionRepository: TransactionRepository
+    internal let budgetRepository: BudgetRepository
     internal let dateFormatters: [DateFormatter]
     internal let locale: Foundation.Locale
 
