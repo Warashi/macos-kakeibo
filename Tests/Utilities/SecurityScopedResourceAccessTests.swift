@@ -79,21 +79,37 @@ internal final class SecurityScopedResourceAccessTests: XCTestCase {
     }
 }
 
-private final class MockResourceAccessController: SecurityScopedResourceAccessControlling, @unchecked Sendable {
+private struct ResourceAccessControllerState {
+    var startCalls: [URL] = []
+    var stopCalls: [URL] = []
+}
+
+private final class MockResourceAccessController: SecurityScopedResourceAccessControlling, Sendable {
     private let startResult: Bool
-    private(set) var startCalls: [URL] = []
-    private(set) var stopCalls: [URL] = []
+    private let state: ManagedCriticalState<ResourceAccessControllerState> = ManagedCriticalState(ResourceAccessControllerState())
 
     init(startResult: Bool) {
         self.startResult = startResult
     }
 
+    var startCalls: [URL] {
+        state.withCriticalRegion { $0.startCalls }
+    }
+
+    var stopCalls: [URL] {
+        state.withCriticalRegion { $0.stopCalls }
+    }
+
     func startAccessing(_ url: URL) -> Bool {
-        startCalls.append(url)
+        state.withCriticalRegion { state in
+            state.startCalls.append(url)
+        }
         return startResult
     }
 
     func stopAccessing(_ url: URL) {
-        stopCalls.append(url)
+        state.withCriticalRegion { state in
+            state.stopCalls.append(url)
+        }
     }
 }

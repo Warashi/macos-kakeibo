@@ -211,20 +211,17 @@ internal struct CSVImporterTests {
         return mapping
     }
 
-    private final class ThreadFlagRecorder: @unchecked Sendable {
-        private let lock: NSLock = NSLock()
-        private var storage: [Bool] = []
+    private struct ThreadFlagRecorder: Sendable {
+        private let state: ManagedCriticalState<[Bool]> = ManagedCriticalState([])
 
         func record(_ value: Bool) {
-            lock.lock()
-            storage.append(value)
-            lock.unlock()
+            state.withCriticalRegion { storage in
+                storage.append(value)
+            }
         }
 
         var values: [Bool] {
-            lock.lock()
-            defer { lock.unlock() }
-            return storage
+            state.withCriticalRegion { $0 }
         }
     }
 }
