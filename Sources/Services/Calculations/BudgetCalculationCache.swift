@@ -89,7 +89,9 @@ internal final class BudgetCalculationCache: Sendable {
         var metrics: StorageMetrics = StorageMetrics()
     }
 
-    private let storage = OSAllocatedUnfairLock(initialState: Storage())
+    private let storage: OSAllocatedUnfairLock<Storage> = OSAllocatedUnfairLock(
+        initialState: Storage()
+    )
 
     internal var metricsSnapshot: BudgetCalculationCacheMetrics {
         storage.withLock { storage in
