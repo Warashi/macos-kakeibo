@@ -8,7 +8,7 @@ import Testing
 @MainActor
 internal struct DashboardStackBuilderTests {
     @Test("DashboardStore を構築して月次サマリを読み込める")
-    func makeStoreLoadsMonthlySummary() async throws {
+    internal func makeStoreLoadsMonthlySummary() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
