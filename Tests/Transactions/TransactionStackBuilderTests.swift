@@ -6,7 +6,7 @@ import Testing
 @Suite(.serialized)
 internal struct TransactionStackBuilderTests {
     @Test("TransactionStore を構築して初期データを読み込める")
-    func makeStoreLoadsTransactions() async throws {
+    internal func makeStoreLoadsTransactions() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let dependencies = await TransactionStackBuilder.makeDependencies(modelContainer: container)
 
@@ -33,7 +33,7 @@ internal struct TransactionStackBuilderTests {
     }
 
     @Test("TransactionModelActor 経由でも TransactionStore を構築できる")
-    func makeStoreViaModelActor() async throws {
+    internal func makeStoreViaModelActor() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let modelActor = TransactionModelActor(modelContainer: container)
         let dependencies = await TransactionStackBuilder.makeDependencies(modelActor: modelActor)
