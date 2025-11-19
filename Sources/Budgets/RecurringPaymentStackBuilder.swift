@@ -7,7 +7,7 @@ internal struct RecurringPaymentListDependencies {
 }
 
 /// 定期支払い突合ストア用の依存関係
-internal struct RecurringPaymentReconciliationDependencies {
+internal struct RecurringPaymentReconciliationDeps {
     internal let repository: RecurringPaymentRepository
     internal let transactionRepository: TransactionRepository
     internal let occurrencesService: RecurringPaymentOccurrencesService
@@ -42,11 +42,11 @@ internal enum RecurringPaymentStackBuilder {
     /// 突合ストアの依存を構築
     internal static func makeReconciliationDependencies(
         modelContainer: ModelContainer,
-    ) async -> RecurringPaymentReconciliationDependencies {
+    ) async -> RecurringPaymentReconciliationDeps {
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: modelContainer)
         let transactionRepository = SwiftDataTransactionRepository(modelContainer: modelContainer)
         let occurrencesService = DefaultRecurringPaymentOccurrencesService(repository: repository)
-        return RecurringPaymentReconciliationDependencies(
+        return RecurringPaymentReconciliationDeps(
             repository: repository,
             transactionRepository: transactionRepository,
             occurrencesService: occurrencesService,
@@ -97,7 +97,7 @@ internal enum RecurringPaymentStackBuilder {
 
     /// 突合ストアの依存を ModelActor から構築
     internal static func makeReconciliationDependencies(modelActor: RecurringPaymentModelActor) async
-    -> RecurringPaymentReconciliationDependencies {
+    -> RecurringPaymentReconciliationDeps {
         let container = modelActor.modelContainer
         return await makeReconciliationDependencies(modelContainer: container)
     }
