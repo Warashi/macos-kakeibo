@@ -6,9 +6,7 @@ macOS向けの家計簿アプリケーション。SwiftUI + SwiftDataで構築�
 
 - macOS 26.0以降
 - Xcode（Swift 6.2対応版）
-- XcodeGen
-- SwiftLint
-- SwiftFormat
+- Mint
 
 ## ビルド方法
 
