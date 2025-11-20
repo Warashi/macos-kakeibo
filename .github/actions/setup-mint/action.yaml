@@ -42,6 +42,7 @@ runs:
 
     - name: Clean up Mint checkout
       if: steps.cache-mint.outputs.cache-hit != 'true'
+      shell: bash
       run: rm -rf Mint
 
     - name: Add Mint to PATH
