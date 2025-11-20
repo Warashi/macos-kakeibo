@@ -4,7 +4,7 @@ DERIVED_DATA=build/DerivedData
 APP_NAME=$(SCHEME).app
 INSTALL_PATH=/Applications
 
-.PHONY: generate build release run lint format test clean install
+.PHONY: generate build release run lint lint-swiftlint lint-swiftformat format test clean install
 
 generate:
 	mint run xcodegen generate
@@ -28,8 +28,12 @@ release: generate
 run: build
 	open $(DERIVED_DATA)/Build/Products/Debug/$(SCHEME).app
 
-lint:
+lint: lint-swiftlint lint-swiftformat
+
+lint-swiftlint:
 	mint run swiftlint lint
+
+lint-swiftformat:
 	mint run swiftformat --lint .
 
 format:
