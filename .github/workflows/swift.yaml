@@ -12,5 +12,18 @@ jobs:
     steps:
     - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
     - uses: ./.github/actions/setup-mint
-    - name: Run lint and tests
-      run: make -k -j lint test
+    - name: Run swiftlint
+      id: swiftlint
+      continue-on-error: true
+      run: make lint-swiftlint
+    - name: Run swiftformat
+      id: swiftformat
+      continue-on-error: true
+      run: make lint-swiftformat
+    - name: Run test
+      id: test
+      continue-on-error: true
+      run: make test
+    - name: set workflow status
+      if: ${{ steps.swiftlint.outcome == 'failure' || steps.swiftformat.outcome == 'failure' || steps.test.outcome == 'failure' }}
+      run: exit 1
