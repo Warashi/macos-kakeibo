@@ -37,7 +37,7 @@ runs:
       shell: bash
       run: |
         cd Mint
-        swift run mint install yonaskolb/Mint${{ inputs.version != 'latest' && ('@' + inputs.version) || '' }} --verbose
+        swift run mint install --verbose yonaskolb/Mint${{ inputs.version != 'latest' && '@' || '' }}${{ inputs.version != latest && inputs.version || '' }}
 
     - name: Add Mint to PATH
       shell: bash
