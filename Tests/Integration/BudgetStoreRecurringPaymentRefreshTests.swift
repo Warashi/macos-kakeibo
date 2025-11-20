@@ -17,16 +17,16 @@ internal struct BudgetStoreRecurringPaymentRefreshTests {
         await budgetStore.refresh()
 
         #expect(budgetStore.recurringPaymentDefinitions.count == 1)
-        #expect(budgetStore.monthlyRecurringPaymentSavingsTotal == Decimal(10_000))
+        #expect(budgetStore.monthlyRecurringPaymentSavingsTotal == Decimal(10000))
         let entry = try #require(budgetStore.recurringPaymentSavingsEntries.first)
         #expect(entry.name == "自動車税")
-        #expect(entry.monthlySaving == Decimal(10_000))
+        #expect(entry.monthlySaving == Decimal(10000))
     }
 
     @Test("定期支払いを削除するとBudgetStoreから即時に消える")
     internal func refreshAfterDeletingRecurringPayment() async throws {
         let (budgetStore, recurringStore) = try await makeStores()
-        try await recurringStore.createDefinition(makeInput(name: "車検", amount: 60_000, recurrenceMonths: 6))
+        try await recurringStore.createDefinition(makeInput(name: "車検", amount: 60000, recurrenceMonths: 6))
         await budgetStore.refresh()
 
         let definitionId = try #require(budgetStore.recurringPaymentDefinitions.first?.id)
@@ -56,7 +56,7 @@ internal struct BudgetStoreRecurringPaymentRefreshTests {
             amount: amount,
             recurrenceIntervalMonths: recurrenceMonths,
             firstOccurrenceDate: Date.from(year: 2026, month: 5, day: 1) ?? Date(),
-            leadTimeMonths: 0
+            leadTimeMonths: 0,
         )
     }
 }

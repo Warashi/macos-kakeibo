@@ -1,6 +1,6 @@
 import Foundation
-import os.lock
 @testable import Kakeibo
+import os.lock
 import Testing
 
 @Suite(.serialized)

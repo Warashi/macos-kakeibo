@@ -83,7 +83,7 @@ internal struct DataManagementPanel: View {
                     presentExporter(
                         data: archive.data,
                         fileName: archive.suggestedFileName,
-                        contentType: .json
+                        contentType: .json,
                     )
                 }
             } catch {
@@ -102,7 +102,7 @@ internal struct DataManagementPanel: View {
                     presentExporter(
                         data: result.data,
                         fileName: makeCSVFileName(),
-                        contentType: .commaSeparatedText
+                        contentType: .commaSeparatedText,
                     )
                     store.statusMessage = "取引\(result.rowCount)件をエクスポートしました"
                 }

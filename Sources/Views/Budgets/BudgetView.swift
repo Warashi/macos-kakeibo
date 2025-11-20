@@ -447,7 +447,7 @@ private extension BudgetView {
 
     private func performRecurringPaymentSave(
         using context: RecurringPaymentSaveContext,
-        budgetStore: BudgetStore
+        budgetStore: BudgetStore,
     ) async {
         guard let container = await MainActor.run(body: { modelContainer }) else {
             assertionFailure("ModelContainer is unavailable")
