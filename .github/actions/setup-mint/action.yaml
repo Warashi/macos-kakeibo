@@ -1,0 +1,45 @@
+name: 'Setup Mint'
+description: 'An action that sets up Mint'
+inputs:
+  version:
+    description: 'Mint version to install. defaults to latest if not specified.'
+    required: false
+    default: latest
+  cache:
+    description: 'Enable caching of Mint packages'
+    required: false
+    default: true
+  cache-dependency-file:
+    description: 'File to use as a cache key. Defaults to Mintfile.'
+    required: false
+    default: Mintfile
+outputs: {}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Cache Mint packages
+      if: ${{ inputs.cache == 'true' }}
+      id: cache-mint
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      with:
+        path: ~/.mint
+        key: ${{ runner.os }}-mint-${{ inputs.version }}-${{ hashFiles(inputs.cache-dependency-file) }}
+
+    - name: Checkout yonaskolb/Mint
+      if: steps.cache-mint.outputs.cache-hit != 'true'
+      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      with:
+        repository: yonaskolb/Mint
+
+    - name: Install Mint
+      if: steps.cache-mint.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        cd Mint
+        swift run mint install yonaskolb/Mint${{ inputs.version != 'latest' && ('@' + inputs.version) || '' }} --verbose
+
+    - name: Add Mint to PATH
+      shell: bash
+      run: |
+        echo "$HOME/.mint/bin" >> $GITHUB_PATH

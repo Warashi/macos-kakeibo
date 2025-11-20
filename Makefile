@@ -7,7 +7,7 @@ INSTALL_PATH=/Applications
 .PHONY: generate build release run lint format test clean install
 
 generate:
-	xcodegen generate
+	mint run xcodegen generate
 
 build: generate
 	xcodebuild -project $(PROJECT) \
@@ -29,12 +29,12 @@ run: build
 	open $(DERIVED_DATA)/Build/Products/Debug/$(SCHEME).app
 
 lint:
-	swiftlint lint
-	swiftformat --lint .
+	mint run swiftlint lint
+	mint run swiftformat --lint .
 
 format:
-	swiftlint lint --autocorrect
-	swiftformat .
+	mint run swiftlint lint --autocorrect
+	mint run swiftformat .
 
 test: generate
 	xcodebuild -project $(PROJECT) \
