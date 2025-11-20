@@ -31,14 +31,18 @@ runs:
       uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       with:
         repository: yonaskolb/Mint
-        path: ${{ runner.temp }}/Mint
+        path: Mint
 
     - name: Install Mint
       if: steps.cache-mint.outputs.cache-hit != 'true'
       shell: bash
-      working-directory: ${{ runner.temp }}/Mint
+      working-directory: Mint
       run: |
         swift run mint install --verbose 'yonaskolb/Mint${{ inputs.version != 'latest' && '@' || '' }}${{ inputs.version != 'latest' && inputs.version || '' }}'
+
+    - name: Clean up Mint checkout
+      if: steps.cache-mint.outputs.cache-hit != 'true'
+      run: rm -rf Mint
 
     - name: Add Mint to PATH
       shell: bash
