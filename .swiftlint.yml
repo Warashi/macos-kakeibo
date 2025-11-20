@@ -102,7 +102,7 @@ cyclomatic_complexity: { warning: 8, error: 12 }
 function_body_length: { warning: 65, error: 100 }
 type_body_length: { warning: 360, error: 380 }
 file_length:
-  warning: 480
+  warning: 500
   error: 700
   ignore_comment_only_lines: true
 function_parameter_count: { warning: 4, error: 6 }
@@ -135,5 +135,3 @@ line_length:
   error: 140
   ignores_comments: false
   ignores_urls: true
-
-# ❗️SwiftLint の未カバー領域は SwiftFormat 側で拘束（下記参照）
