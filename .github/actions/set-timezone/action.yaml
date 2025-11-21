@@ -1,0 +1,27 @@
+name: 'Set Timezone'
+description: 'An action that sets the timezone for subsequent steps in a GitHub Actions workflow.'
+inputs:
+  timezone:
+    description: 'The timezone to set (e.g., "America/New_York").'
+    required: true
+    default: 'UTC'
+outputs: {}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set Timezone for Linux
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo timedatectl set-timezone "${{ inputs.timezone }}"
+    - name: Set Timezone for macOS
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        sudo systemsetup -settimezone "${{ inputs.timezone }}"
+    - name: Set Timezone for Windows
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        tzutil /s "${{ inputs.timezone }}"
