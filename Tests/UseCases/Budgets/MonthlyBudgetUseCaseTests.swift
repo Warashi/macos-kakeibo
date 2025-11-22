@@ -19,6 +19,8 @@ internal struct MonthlyBudgetUseCaseTests {
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],
             recurringPaymentOccurrences: [],
+            savingsGoals: [],
+            savingsGoalBalances: [],
         )
         let useCase = DefaultMonthlyBudgetUseCase()
 
@@ -46,6 +48,8 @@ internal struct MonthlyBudgetUseCaseTests {
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],
             recurringPaymentOccurrences: [],
+            savingsGoals: [],
+            savingsGoalBalances: [],
         )
         let useCase = DefaultMonthlyBudgetUseCase()
 
@@ -72,6 +76,8 @@ internal struct MonthlyBudgetUseCaseTests {
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],
             recurringPaymentOccurrences: [],
+            savingsGoals: [],
+            savingsGoalBalances: [],
         )
         let useCase = DefaultMonthlyBudgetUseCase()
 

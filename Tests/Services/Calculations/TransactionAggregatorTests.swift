@@ -167,6 +167,115 @@ internal struct TransactionAggregatorTests {
         #expect(result.totalExpense == expectedExpense)
     }
 
+    @Test("貯蓄を含む月次集計")
+    internal func monthlySummary_withSavings() throws {
+        // Given
+        let (transactions, categories) = createSampleTransactionsWithCategories()
+        let savingsGoals = createSampleSavingsGoals()
+        let year = 2025
+        let month = 11
+
+        // When
+        let result = aggregator.aggregateMonthly(
+            transactions: transactions,
+            categories: categories,
+            year: year,
+            month: month,
+            filter: .default,
+            savingsGoals: savingsGoals,
+        )
+
+        // Then
+        #expect(result.year == year)
+        #expect(result.month == month)
+        #expect(result.totalSavings == 60_000) // 10000 + 50000
+        // net = totalIncome - totalExpense - totalSavings
+        #expect(result.net == result.totalIncome - result.totalExpense - 60_000)
+    }
+
+    @Test("非アクティブな貯蓄目標は集計に含まれない")
+    internal func monthlySummary_inactiveSavingsExcluded() throws {
+        // Given
+        let (transactions, categories) = createSampleTransactionsWithCategories()
+        var savingsGoals = createSampleSavingsGoals()
+
+        // 2つ目の貯蓄目標を非アクティブに
+        savingsGoals[1] = SavingsGoal(
+            id: savingsGoals[1].id,
+            name: savingsGoals[1].name,
+            targetAmount: savingsGoals[1].targetAmount,
+            monthlySavingAmount: savingsGoals[1].monthlySavingAmount,
+            categoryId: savingsGoals[1].categoryId,
+            notes: savingsGoals[1].notes,
+            startDate: savingsGoals[1].startDate,
+            targetDate: savingsGoals[1].targetDate,
+            isActive: false, // 非アクティブ
+            createdAt: savingsGoals[1].createdAt,
+            updatedAt: savingsGoals[1].updatedAt,
+        )
+
+        // When
+        let result = aggregator.aggregateMonthly(
+            transactions: transactions,
+            categories: categories,
+            year: 2025,
+            month: 11,
+            filter: .default,
+            savingsGoals: savingsGoals,
+        )
+
+        // Then
+        #expect(result.totalSavings == 10_000) // アクティブな目標のみ
+    }
+
+    @Test("貯蓄目標がない場合は総貯蓄額が0")
+    internal func monthlySummary_noSavingsGoals() throws {
+        // Given
+        let (transactions, categories) = createSampleTransactionsWithCategories()
+        let savingsGoals: [SavingsGoal] = []
+
+        // When
+        let result = aggregator.aggregateMonthly(
+            transactions: transactions,
+            categories: categories,
+            year: 2025,
+            month: 11,
+            filter: .default,
+            savingsGoals: savingsGoals,
+        )
+
+        // Then
+        #expect(result.totalSavings == 0)
+        #expect(result.net == result.totalIncome - result.totalExpense)
+    }
+
+    @Test("年次集計：貯蓄を含む")
+    internal func annualSummary_withSavings() throws {
+        // Given
+        let (transactions, categories) = createSampleTransactionsWithCategories()
+        let savingsGoals = createSampleSavingsGoals()
+        let year = 2025
+
+        // When
+        let result = aggregator.aggregateAnnually(
+            transactions: transactions,
+            categories: categories,
+            year: year,
+            filter: .default,
+            savingsGoals: savingsGoals,
+        )
+
+        // Then
+        #expect(result.year == year)
+        #expect(result.totalSavings == 720_000) // (10000 + 50000) * 12ヶ月
+        #expect(result.net == result.totalIncome - result.totalExpense - 720_000)
+        #expect(result.monthlySummaries.count == 12)
+        // 各月の貯蓄額を確認
+        for monthlySummary in result.monthlySummaries {
+            #expect(monthlySummary.totalSavings == 60_000)
+        }
+    }
+
     // MARK: - Helper Methods
 
     private func createSampleTransactionsWithCategories() -> ([Transaction], [Kakeibo.Category]) {
@@ -205,5 +314,36 @@ internal struct TransactionAggregatorTests {
             financialInstitutionId: financialInstitutionId,
             majorCategoryId: categoryId,
         )
+    }
+
+    private func createSampleSavingsGoals() -> [SavingsGoal] {
+        [
+            SavingsGoal(
+                id: UUID(),
+                name: "緊急費用",
+                targetAmount: nil,
+                monthlySavingAmount: 10_000,
+                categoryId: nil,
+                notes: nil,
+                startDate: Date(),
+                targetDate: nil,
+                isActive: true,
+                createdAt: Date(),
+                updatedAt: Date(),
+            ),
+            SavingsGoal(
+                id: UUID(),
+                name: "旅行積立",
+                targetAmount: 500_000,
+                monthlySavingAmount: 50_000,
+                categoryId: nil,
+                notes: nil,
+                startDate: Date(),
+                targetDate: nil,
+                isActive: true,
+                createdAt: Date(),
+                updatedAt: Date(),
+            ),
+        ]
     }
 }

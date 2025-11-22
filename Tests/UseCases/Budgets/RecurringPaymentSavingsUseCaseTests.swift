@@ -30,6 +30,8 @@ internal struct RecurringPaymentSavingsUseCaseTests {
             recurringPaymentDefinitions: [definition],
             recurringPaymentBalances: [],
             recurringPaymentOccurrences: [],
+            savingsGoals: [],
+            savingsGoalBalances: [],
         )
         let useCase = DefaultRecurringPaymentSavingsUseCase()
 
@@ -75,6 +77,8 @@ internal struct RecurringPaymentSavingsUseCaseTests {
             recurringPaymentDefinitions: [definition],
             recurringPaymentBalances: [balance],
             recurringPaymentOccurrences: [],
+            savingsGoals: [],
+            savingsGoalBalances: [],
         )
         let useCase = DefaultRecurringPaymentSavingsUseCase()
 

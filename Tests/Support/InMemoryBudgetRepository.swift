@@ -23,6 +23,8 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
             recurringPaymentDefinitions: [],
             recurringPaymentBalances: [],
             recurringPaymentOccurrences: [],
+            savingsGoals: [],
+            savingsGoalBalances: [],
         )
     }
 
