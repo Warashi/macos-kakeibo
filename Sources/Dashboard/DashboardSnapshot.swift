@@ -7,4 +7,6 @@ internal struct DashboardSnapshot: Sendable {
     internal let budgets: [Budget]
     internal let categories: [Category]
     internal let config: AnnualBudgetConfig?
+    internal let savingsGoals: [SavingsGoal]
+    internal let savingsGoalBalances: [SavingsGoalBalance]
 }

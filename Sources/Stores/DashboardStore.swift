@@ -71,6 +71,9 @@ internal final class DashboardStore {
     /// 年次カテゴリ別予算進捗
     internal var annualBudgetCategoryEntries: [AnnualBudgetEntry]
 
+    /// 貯蓄サマリ
+    internal var savingsSummary: SavingsSummary
+
     // MARK: - Initialization
 
     /// イニシャライザ
@@ -123,6 +126,10 @@ internal final class DashboardStore {
         self.categoryHighlights = []
         self.annualBudgetProgressCalculation = nil
         self.annualBudgetCategoryEntries = []
+        self.savingsSummary = SavingsSummary(
+            totalMonthlySavings: 0,
+            goalSummaries: []
+        )
 
         // すべての stored property の初期化が完了したので、年のフォールバックチェックが可能
         Task { @MainActor [weak self] in
@@ -178,6 +185,7 @@ internal final class DashboardStore {
         categoryHighlights = result.categoryHighlights
         annualBudgetProgressCalculation = result.annualBudgetProgressCalculation
         annualBudgetCategoryEntries = result.annualBudgetCategoryEntries
+        savingsSummary = result.savingsSummary
     }
 
     // MARK: - Actions

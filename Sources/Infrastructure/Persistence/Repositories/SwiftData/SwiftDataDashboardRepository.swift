@@ -9,16 +9,25 @@ internal actor SwiftDataDashboardRepository: DashboardRepository {
         let monthlyTransactions = try await fetchTransactions(
             context: context,
             year: year,
-            month: month,
+            month: month
         )
         let annualTransactions = try await fetchTransactions(
             context: context,
             year: year,
-            month: nil,
+            month: nil
         )
         let budgets = try context.fetch(BudgetQueries.budgets(overlapping: year)).map { Budget(from: $0) }
         let categories = try context.fetch(CategoryQueries.sortedForDisplay()).map { Category(from: $0) }
         let config = try context.fetch(BudgetQueries.annualConfig(for: year)).first.map { AnnualBudgetConfig(from: $0) }
+
+        // 貯蓄目標と残高を取得
+        let savingsGoalDescriptor = FetchDescriptor<SwiftDataSavingsGoal>()
+        let swiftDataSavingsGoals = try context.fetch(savingsGoalDescriptor)
+        let savingsGoals = swiftDataSavingsGoals.map { SavingsGoal(from: $0) }
+
+        let balanceDescriptor = FetchDescriptor<SwiftDataSavingsGoalBalance>()
+        let swiftDataBalances = try context.fetch(balanceDescriptor)
+        let savingsGoalBalances = swiftDataBalances.map { SavingsGoalBalance(from: $0) }
 
         return DashboardSnapshot(
             monthlyTransactions: monthlyTransactions,
@@ -26,6 +35,8 @@ internal actor SwiftDataDashboardRepository: DashboardRepository {
             budgets: budgets,
             categories: categories,
             config: config,
+            savingsGoals: savingsGoals,
+            savingsGoalBalances: savingsGoalBalances
         )
     }
 

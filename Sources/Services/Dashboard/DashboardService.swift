@@ -46,6 +46,7 @@ internal final class DashboardService {
             year: year,
             month: month,
             filter: .default,
+            savingsGoals: snapshot.savingsGoals
         )
 
         let annualSummary = aggregator.aggregateAnnually(
@@ -53,6 +54,7 @@ internal final class DashboardService {
             categories: snapshot.categories,
             year: year,
             filter: .default,
+            savingsGoals: snapshot.savingsGoals
         )
 
         let monthlyBudgetCalculation = budgetCalculator.calculateMonthlyBudget(
@@ -82,7 +84,12 @@ internal final class DashboardService {
         let (progressCalculation, categoryEntries) = calculateAnnualBudgetProgress(
             snapshot: snapshot,
             year: year,
-            excludedCategoryIds: excludedCategoryIds,
+            excludedCategoryIds: excludedCategoryIds
+        )
+
+        let savingsSummary = calculateSavingsSummary(
+            goals: snapshot.savingsGoals,
+            balances: snapshot.savingsGoalBalances
         )
 
         return DashboardResult(
@@ -94,6 +101,7 @@ internal final class DashboardService {
             categoryHighlights: categoryHighlights,
             annualBudgetProgressCalculation: progressCalculation,
             annualBudgetCategoryEntries: categoryEntries,
+            savingsSummary: savingsSummary
         )
     }
 
@@ -145,7 +153,7 @@ internal final class DashboardService {
     private func calculateAnnualBudgetProgress(
         snapshot: DashboardSnapshot,
         year: Int,
-        excludedCategoryIds: Set<UUID>,
+        excludedCategoryIds: Set<UUID>
     ) -> (BudgetCalculation?, [AnnualBudgetEntry]) {
         let progressResult = annualBudgetProgressCalculator.calculate(
             budgets: snapshot.budgets,
@@ -153,7 +161,7 @@ internal final class DashboardService {
             categories: snapshot.categories,
             year: year,
             filter: .default,
-            excludedCategoryIds: excludedCategoryIds,
+            excludedCategoryIds: excludedCategoryIds
         )
 
         if progressResult.overallEntry == nil, progressResult.categoryEntries.isEmpty {
@@ -161,6 +169,41 @@ internal final class DashboardService {
         } else {
             return (progressResult.aggregateCalculation, progressResult.categoryEntries)
         }
+    }
+
+    private func calculateSavingsSummary(
+        goals: [SavingsGoal],
+        balances: [SavingsGoalBalance]
+    ) -> SavingsSummary {
+        let balanceMap = Dictionary(uniqueKeysWithValues: balances.map { ($0.goalId, $0) })
+
+        let totalMonthlySavings = goals
+            .filter { $0.isActive }
+            .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
+
+        let goalSummaries = goals.map { goal in
+            let balance = balanceMap[goal.id]
+            let currentBalance = balance?.balance ?? 0
+            let progress: Double = if let targetAmount = goal.targetAmount, targetAmount > 0 {
+                min(1.0, NSDecimalNumber(decimal: currentBalance).doubleValue / NSDecimalNumber(decimal: targetAmount).doubleValue)
+            } else {
+                0.0
+            }
+
+            return SavingsGoalSummary(
+                goalId: goal.id,
+                name: goal.name,
+                monthlySavingAmount: goal.monthlySavingAmount,
+                currentBalance: currentBalance,
+                targetAmount: goal.targetAmount,
+                progress: progress
+            )
+        }
+
+        return SavingsSummary(
+            totalMonthlySavings: totalMonthlySavings,
+            goalSummaries: goalSummaries
+        )
     }
 }
 
@@ -176,4 +219,21 @@ internal struct DashboardResult {
     internal let categoryHighlights: [CategorySummary]
     internal let annualBudgetProgressCalculation: BudgetCalculation?
     internal let annualBudgetCategoryEntries: [AnnualBudgetEntry]
+    internal let savingsSummary: SavingsSummary
+}
+
+/// 貯蓄サマリ
+internal struct SavingsSummary: Sendable {
+    internal let totalMonthlySavings: Decimal
+    internal let goalSummaries: [SavingsGoalSummary]
+}
+
+/// 貯蓄目標サマリ
+internal struct SavingsGoalSummary: Sendable {
+    internal let goalId: UUID
+    internal let name: String
+    internal let monthlySavingAmount: Decimal
+    internal let currentBalance: Decimal
+    internal let targetAmount: Decimal?
+    internal let progress: Double
 }
