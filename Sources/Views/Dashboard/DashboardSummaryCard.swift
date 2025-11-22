@@ -57,6 +57,11 @@ internal struct DashboardSummaryCard: View {
                 color: .expense,
             ),
             SummaryMetric(
+                title: "貯蓄",
+                amount: displayMode == .monthly ? monthlySummary.totalSavings : annualSummary.totalSavings,
+                color: .info,
+            ),
+            SummaryMetric(
                 title: "差引",
                 amount: displayMode == .monthly ? monthlySummary.net : annualSummary.net,
                 color: (displayMode == .monthly ? monthlySummary.net : annualSummary.net) >= 0 ? .positive : .negative,

@@ -121,6 +121,8 @@ internal struct DashboardView: View {
     @ViewBuilder
     private func detailLeftColumn(store: DashboardStore) -> some View {
         VStack(spacing: 20) {
+            SavingsSummaryCard(savingsSummary: store.savingsSummary)
+
             BudgetDistributionCard(
                 displayMode: store.displayMode,
                 monthlyCategoryCalculations: store.monthlyBudgetCalculation.categoryCalculations,
