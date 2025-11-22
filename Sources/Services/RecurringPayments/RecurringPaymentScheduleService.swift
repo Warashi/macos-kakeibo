@@ -81,7 +81,7 @@ internal struct RecurringPaymentScheduleService {
             for: definition,
             seedDate: seedDate,
             referenceDate: referenceDate,
-            horizonMonths: horizonMonths
+            horizonMonths: horizonMonths,
         )
 
         let locked = definition.occurrences.filter(\.isSchedulingLocked)
@@ -93,7 +93,7 @@ internal struct RecurringPaymentScheduleService {
                 removed: [],
                 locked: locked,
                 occurrences: definition.occurrences,
-                referenceDate: referenceDate
+                referenceDate: referenceDate,
             )
         }
 
@@ -103,7 +103,7 @@ internal struct RecurringPaymentScheduleService {
             targets: targets,
             definition: definition,
             referenceDate: referenceDate,
-            effectiveNextDate: effectiveNextDate
+            effectiveNextDate: effectiveNextDate,
         )
 
         let occurrences = (result.matched + locked).sorted(by: { $0.scheduledDate < $1.scheduledDate })
@@ -114,7 +114,7 @@ internal struct RecurringPaymentScheduleService {
             removed: result.remaining,
             locked: locked,
             occurrences: occurrences,
-            referenceDate: referenceDate
+            referenceDate: referenceDate,
         )
     }
 
@@ -291,7 +291,7 @@ internal struct RecurringPaymentScheduleService {
     /// - Returns: 次回支払い予定日
     private func computeNextUpcomingDate(
         for definition: SwiftDataRecurringPaymentDefinition,
-        targets: [ScheduleTarget]
+        targets: [ScheduleTarget],
     ) -> Date? {
         let nextUpcomingDate = definition.occurrences
             .filter { $0.status != .completed && $0.status != .cancelled }
@@ -312,7 +312,7 @@ internal struct RecurringPaymentScheduleService {
         targets: [ScheduleTarget],
         definition: SwiftDataRecurringPaymentDefinition,
         referenceDate: Date,
-        effectiveNextDate: Date?
+        effectiveNextDate: Date?,
     ) -> SyncProcessingResult {
         var editableOccurrences = definition.occurrences.filter { !$0.isSchedulingLocked }
         var created: [SwiftDataRecurringPaymentOccurrence] = []
@@ -323,14 +323,14 @@ internal struct RecurringPaymentScheduleService {
             let isNextUpcoming = effectiveNextDate.map { isSameDay(target.scheduledDate, $0) } ?? false
 
             if let existingIndex = editableOccurrences.firstIndex(
-                where: { isSameDay($0.scheduledDate, target.scheduledDate) }
+                where: { isSameDay($0.scheduledDate, target.scheduledDate) },
             ) {
                 let occurrence = editableOccurrences.remove(at: existingIndex)
                 let changed = apply(
                     target: target,
                     to: occurrence,
                     referenceDate: referenceDate,
-                    isNextUpcoming: isNextUpcoming
+                    isNextUpcoming: isNextUpcoming,
                 )
                 if changed {
                     updated.append(occurrence)
@@ -344,8 +344,8 @@ internal struct RecurringPaymentScheduleService {
                     status: defaultStatus(
                         for: target.scheduledDate,
                         referenceDate: referenceDate,
-                        isNextUpcoming: isNextUpcoming
-                    )
+                        isNextUpcoming: isNextUpcoming,
+                    ),
                 )
                 occurrence.updatedAt = referenceDate
                 created.append(occurrence)
@@ -357,7 +357,7 @@ internal struct RecurringPaymentScheduleService {
             created: created,
             updated: updated,
             matched: matched,
-            remaining: editableOccurrences
+            remaining: editableOccurrences,
         )
     }
 

@@ -5,14 +5,14 @@ extension BackupManager {
     @discardableResult
     internal func insertFinancialInstitutions(
         _ dtos: [BackupFinancialInstitutionDTO],
-        context: ModelContext
+        context: ModelContext,
     ) throws -> [UUID: SwiftDataFinancialInstitution] {
         var result: [UUID: SwiftDataFinancialInstitution] = [:]
         for dto in dtos {
             let institution = SwiftDataFinancialInstitution(
                 id: dto.id,
                 name: dto.name,
-                displayOrder: dto.displayOrder
+                displayOrder: dto.displayOrder,
             )
             institution.createdAt = dto.createdAt
             institution.updatedAt = dto.updatedAt
@@ -25,7 +25,7 @@ extension BackupManager {
     @discardableResult
     internal func insertCategories(
         _ dtos: [BackupCategory],
-        context: ModelContext
+        context: ModelContext,
     ) throws -> [UUID: SwiftDataCategory] {
         var result: [UUID: SwiftDataCategory] = [:]
 
@@ -34,7 +34,7 @@ extension BackupManager {
                 id: dto.id,
                 name: dto.name,
                 allowsAnnualBudget: dto.allowsAnnualBudget,
-                displayOrder: dto.displayOrder
+                displayOrder: dto.displayOrder,
             )
             category.createdAt = dto.createdAt
             category.updatedAt = dto.updatedAt
@@ -57,7 +57,7 @@ extension BackupManager {
     internal func insertBudgets(
         _ dtos: [BackupBudgetDTO],
         categories: [UUID: SwiftDataCategory],
-        context: ModelContext
+        context: ModelContext,
     ) throws {
         for dto in dtos {
             let budget = SwiftDataBudget(
@@ -67,7 +67,7 @@ extension BackupManager {
                 startYear: dto.startYear,
                 startMonth: dto.startMonth,
                 endYear: dto.endYear,
-                endMonth: dto.endMonth
+                endMonth: dto.endMonth,
             )
             budget.createdAt = dto.createdAt
             budget.updatedAt = dto.updatedAt
@@ -78,7 +78,7 @@ extension BackupManager {
     @discardableResult
     internal func insertAnnualBudgetConfigs(
         _ dtos: [BackupAnnualBudgetConfig],
-        context: ModelContext
+        context: ModelContext,
     ) throws -> [UUID: SwiftDataAnnualBudgetConfig] {
         var result: [UUID: SwiftDataAnnualBudgetConfig] = [:]
         for dto in dtos {
@@ -86,7 +86,7 @@ extension BackupManager {
                 id: dto.id,
                 year: dto.year,
                 totalAmount: dto.totalAmount,
-                policy: dto.policy
+                policy: dto.policy,
             )
             config.createdAt = dto.createdAt
             config.updatedAt = dto.updatedAt
@@ -101,7 +101,7 @@ extension BackupManager {
         _ dtos: [BackupTransactionDTO],
         categories: [UUID: SwiftDataCategory],
         institutions: [UUID: SwiftDataFinancialInstitution],
-        context: ModelContext
+        context: ModelContext,
     ) throws -> [UUID: SwiftDataTransaction] {
         var result: [UUID: SwiftDataTransaction] = [:]
         for dto in dtos {
@@ -115,7 +115,7 @@ extension BackupManager {
                 isTransfer: dto.isTransfer,
                 financialInstitution: dto.financialInstitutionId.flatMap { institutions[$0] },
                 majorCategory: dto.majorCategoryId.flatMap { categories[$0] },
-                minorCategory: dto.minorCategoryId.flatMap { categories[$0] }
+                minorCategory: dto.minorCategoryId.flatMap { categories[$0] },
             )
             transaction.createdAt = dto.createdAt
             transaction.updatedAt = dto.updatedAt
@@ -127,14 +127,14 @@ extension BackupManager {
 
     internal func insertCustomHolidays(
         _ dtos: [BackupCustomHolidayDTO],
-        context: ModelContext
+        context: ModelContext,
     ) throws {
         for dto in dtos {
             let holiday = SwiftDataCustomHoliday(
                 id: dto.id,
                 date: dto.date,
                 name: dto.name,
-                isRecurring: dto.isRecurring
+                isRecurring: dto.isRecurring,
             )
             holiday.createdAt = dto.createdAt
             holiday.updatedAt = dto.updatedAt
@@ -146,14 +146,14 @@ extension BackupManager {
         _ dtos: [BackupAnnualBudgetAllocationDTO],
         categories: [UUID: SwiftDataCategory],
         configs: [UUID: SwiftDataAnnualBudgetConfig],
-        context: ModelContext
+        context: ModelContext,
     ) throws {
         for dto in dtos {
             guard let category = categories[dto.categoryId] else { continue }
             let allocation = SwiftDataAnnualBudgetAllocation(
                 id: dto.id,
                 amount: dto.amount,
-                category: category
+                category: category,
             )
             if let policyOverrideRawValue = dto.policyOverrideRawValue {
                 allocation.policyOverrideRawValue = policyOverrideRawValue
@@ -171,7 +171,7 @@ extension BackupManager {
     internal func insertRecurringPaymentDefinitions(
         _ dtos: [BackupRecurringPaymentDefinitionDTO],
         categories: [UUID: SwiftDataCategory],
-        context: ModelContext
+        context: ModelContext,
     ) throws -> [UUID: SwiftDataRecurringPaymentDefinition] {
         var result: [UUID: SwiftDataRecurringPaymentDefinition] = [:]
         for dto in dtos {
@@ -187,7 +187,7 @@ extension BackupManager {
                 savingStrategy: dto.savingStrategy,
                 customMonthlySavingAmount: dto.customMonthlySavingAmount,
                 dateAdjustmentPolicy: dto.dateAdjustmentPolicy,
-                recurrenceDayPattern: dto.recurrenceDayPattern
+                recurrenceDayPattern: dto.recurrenceDayPattern,
             )
             definition.createdAt = dto.createdAt
             definition.updatedAt = dto.updatedAt
@@ -201,7 +201,7 @@ extension BackupManager {
         _ dtos: [BackupRecurringPaymentOccurrenceDTO],
         definitions: [UUID: SwiftDataRecurringPaymentDefinition],
         transactions: [UUID: SwiftDataTransaction],
-        context: ModelContext
+        context: ModelContext,
     ) throws {
         for dto in dtos {
             guard let definition = definitions[dto.definitionId] else { continue }
@@ -213,7 +213,7 @@ extension BackupManager {
                 status: dto.status,
                 actualDate: dto.actualDate,
                 actualAmount: dto.actualAmount,
-                transaction: dto.transactionId.flatMap { transactions[$0] }
+                transaction: dto.transactionId.flatMap { transactions[$0] },
             )
             occurrence.createdAt = dto.createdAt
             occurrence.updatedAt = dto.updatedAt
@@ -224,7 +224,7 @@ extension BackupManager {
     internal func insertRecurringPaymentSavingBalances(
         _ dtos: [BackupRecurringPaymentSavingBalanceDTO],
         definitions: [UUID: SwiftDataRecurringPaymentDefinition],
-        context: ModelContext
+        context: ModelContext,
     ) throws {
         for dto in dtos {
             guard let definition = definitions[dto.definitionId] else { continue }
@@ -234,7 +234,7 @@ extension BackupManager {
                 totalSavedAmount: dto.totalSavedAmount,
                 totalPaidAmount: dto.totalPaidAmount,
                 lastUpdatedYear: dto.lastUpdatedYear,
-                lastUpdatedMonth: dto.lastUpdatedMonth
+                lastUpdatedMonth: dto.lastUpdatedMonth,
             )
             balance.createdAt = dto.createdAt
             balance.updatedAt = dto.updatedAt

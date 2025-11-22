@@ -34,18 +34,18 @@ internal final class DashboardService {
         snapshot: DashboardSnapshot,
         year: Int,
         month: Int,
-        displayMode: DashboardStore.DisplayMode
+        displayMode: DashboardStore.DisplayMode,
     ) -> DashboardResult {
         let excludedCategoryIds = snapshot.config?.fullCoverageCategoryIDs(
-            includingChildrenFrom: snapshot.categories
+            includingChildrenFrom: snapshot.categories,
         ) ?? []
 
         let reconciledTransactionIds = collectReconciledTransactionIds(
-            from: snapshot.recurringPaymentOccurrences
+            from: snapshot.recurringPaymentOccurrences,
         )
         let filter = buildAggregationFilter(reconciledTransactionIds: reconciledTransactionIds)
         let monthlyRecurringPaymentAllocation = calculateMonthlyRecurringPaymentAllocation(
-            from: snapshot.recurringPaymentDefinitions
+            from: snapshot.recurringPaymentDefinitions,
         )
 
         let (monthlySummary, annualSummary) = calculateSummaries(
@@ -54,40 +54,33 @@ internal final class DashboardService {
                 year: year,
                 month: month,
                 filter: filter,
-                monthlyRecurringPaymentAllocation: monthlyRecurringPaymentAllocation
-            )
+                monthlyRecurringPaymentAllocation: monthlyRecurringPaymentAllocation,
+            ),
         )
 
-        let (
-            monthlyBudgetCalculation,
-            annualBudgetUsage,
-            monthlyAllocation,
-            categoryHighlights,
-            progressCalculation,
-            categoryEntries,
-            savingsSummary,
-            recurringPaymentSummary
-        ) = calculateBudgetsAndProgress(
-            snapshot: snapshot,
-            year: year,
-            month: month,
-            excludedCategoryIds: excludedCategoryIds,
-            monthlySummary: monthlySummary,
-            annualSummary: annualSummary,
-            displayMode: displayMode
+        let result = calculateBudgetsAndProgress(
+            params: BudgetCalculationParams(
+                snapshot: snapshot,
+                year: year,
+                month: month,
+                excludedCategoryIds: excludedCategoryIds,
+                monthlySummary: monthlySummary,
+                annualSummary: annualSummary,
+                displayMode: displayMode,
+            ),
         )
 
         return DashboardResult(
             monthlySummary: monthlySummary,
             annualSummary: annualSummary,
-            monthlyBudgetCalculation: monthlyBudgetCalculation,
-            annualBudgetUsage: annualBudgetUsage,
-            monthlyAllocation: monthlyAllocation,
-            categoryHighlights: categoryHighlights,
-            annualBudgetProgressCalculation: progressCalculation,
-            annualBudgetCategoryEntries: categoryEntries,
-            savingsSummary: savingsSummary,
-            recurringPaymentSummary: recurringPaymentSummary
+            monthlyBudgetCalculation: result.monthlyBudgetCalculation,
+            annualBudgetUsage: result.annualBudgetUsage,
+            monthlyAllocation: result.monthlyAllocation,
+            categoryHighlights: result.categoryHighlights,
+            annualBudgetProgressCalculation: result.progressCalculation,
+            annualBudgetCategoryEntries: result.categoryEntries,
+            savingsSummary: result.savingsSummary,
+            recurringPaymentSummary: result.recurringPaymentSummary,
         )
     }
 
@@ -102,34 +95,40 @@ internal final class DashboardService {
         internal let monthlyRecurringPaymentAllocation: Decimal
     }
 
+    private struct BudgetCalculationParams {
+        internal let snapshot: DashboardSnapshot
+        internal let year: Int
+        internal let month: Int
+        internal let excludedCategoryIds: [UUID]
+        internal let monthlySummary: MonthlySummary
+        internal let annualSummary: AnnualSummary
+        internal let displayMode: DashboardStore.DisplayMode
+    }
+
+    /// 予算・進捗計算結果
+    private struct BudgetAndProgressResult {
+        internal let monthlyBudgetCalculation: MonthlyBudgetCalculation
+        internal let annualBudgetUsage: AnnualBudgetUsage?
+        internal let monthlyAllocation: MonthlyAllocation?
+        internal let categoryHighlights: [CategorySummary]
+        internal let progressCalculation: AnnualBudgetProgressCalculation?
+        internal let categoryEntries: [AnnualBudgetCategoryEntry]
+        internal let savingsSummary: SavingsSummary
+        internal let recurringPaymentSummary: RecurringPaymentSummary
+    }
+
     /// 予算・進捗・サマリを計算
-    /// - Parameters:
-    ///   - snapshot: ダッシュボードスナップショット
-    ///   - year: 対象年
-    ///   - month: 対象月
-    ///   - excludedCategoryIds: 除外カテゴリID
-    ///   - monthlySummary: 月次サマリ
-    ///   - annualSummary: 年次サマリ
-    ///   - displayMode: 表示モード
-    /// - Returns: (月次予算, 年次予算使用量, 月次配分, カテゴリハイライト, 進捗計算, カテゴリエントリ, 貯蓄サマリ, 定期支払いサマリ)
-    private func calculateBudgetsAndProgress(
-        snapshot: DashboardSnapshot,
-        year: Int,
-        month: Int,
-        excludedCategoryIds: [UUID],
-        monthlySummary: MonthlySummary,
-        annualSummary: AnnualSummary,
-        displayMode: DashboardStore.DisplayMode
-    ) -> (
-        MonthlyBudgetCalculation,
-        AnnualBudgetUsage?,
-        MonthlyAllocation?,
-        [CategorySummary],
-        AnnualBudgetProgressCalculation?,
-        [AnnualBudgetCategoryEntry],
-        SavingsSummary,
-        RecurringPaymentSummary
-    ) {
+    /// - Parameter params: 予算計算パラメータ
+    /// - Returns: 予算・進捗計算結果
+    private func calculateBudgetsAndProgress(params: BudgetCalculationParams) -> BudgetAndProgressResult {
+        let snapshot = params.snapshot
+        let year = params.year
+        let month = params.month
+        let excludedCategoryIds = params.excludedCategoryIds
+        let monthlySummary = params.monthlySummary
+        let annualSummary = params.annualSummary
+        let displayMode = params.displayMode
+
         let monthlyBudgetCalculation = budgetCalculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
                 transactions: snapshot.monthlyTransactions,
@@ -138,31 +137,31 @@ internal final class DashboardService {
                 year: year,
                 month: month,
                 filter: .default,
-                excludedCategoryIds: excludedCategoryIds
-            )
+                excludedCategoryIds: excludedCategoryIds,
+            ),
         )
 
         let (annualBudgetUsage, monthlyAllocation) = calculateAnnualBudgetAllocation(
             snapshot: snapshot,
             year: year,
-            month: month
+            month: month,
         )
 
         let categoryHighlights = calculateCategoryHighlights(
             monthlySummary: monthlySummary,
             annualSummary: annualSummary,
-            displayMode: displayMode
+            displayMode: displayMode,
         )
 
         let (progressCalculation, categoryEntries) = calculateAnnualBudgetProgress(
             snapshot: snapshot,
             year: year,
-            excludedCategoryIds: excludedCategoryIds
+            excludedCategoryIds: excludedCategoryIds,
         )
 
         let savingsSummary = calculateSavingsSummary(
             goals: snapshot.savingsGoals,
-            balances: snapshot.savingsGoalBalances
+            balances: snapshot.savingsGoalBalances,
         )
 
         let recurringPaymentSummary = calculateRecurringPaymentSummary(
@@ -171,19 +170,19 @@ internal final class DashboardService {
                 occurrences: snapshot.recurringPaymentOccurrences,
                 balances: snapshot.recurringPaymentBalances,
                 year: year,
-                month: month
-            )
+                month: month,
+            ),
         )
 
-        return (
-            monthlyBudgetCalculation,
-            annualBudgetUsage,
-            monthlyAllocation,
-            categoryHighlights,
-            progressCalculation,
-            categoryEntries,
-            savingsSummary,
-            recurringPaymentSummary
+        return BudgetAndProgressResult(
+            monthlyBudgetCalculation: monthlyBudgetCalculation,
+            annualBudgetUsage: annualBudgetUsage,
+            monthlyAllocation: monthlyAllocation,
+            categoryHighlights: categoryHighlights,
+            progressCalculation: progressCalculation,
+            categoryEntries: categoryEntries,
+            savingsSummary: savingsSummary,
+            recurringPaymentSummary: recurringPaymentSummary,
         )
     }
 
@@ -191,7 +190,7 @@ internal final class DashboardService {
     /// - Parameter params: サマリ計算パラメータ
     /// - Returns: (月次サマリ, 年次サマリ)
     private func calculateSummaries(
-        params: SummaryCalculationParams
+        params: SummaryCalculationParams,
     ) -> (MonthlySummary, AnnualSummary) {
         let monthlySummary = aggregator.aggregateMonthly(
             transactions: params.snapshot.monthlyTransactions,
@@ -200,7 +199,7 @@ internal final class DashboardService {
             month: params.month,
             filter: params.filter,
             savingsGoals: params.snapshot.savingsGoals,
-            recurringPaymentAllocation: params.monthlyRecurringPaymentAllocation
+            recurringPaymentAllocation: params.monthlyRecurringPaymentAllocation,
         )
 
         let annualSummary = aggregator.aggregateAnnually(
@@ -209,7 +208,7 @@ internal final class DashboardService {
             year: params.year,
             filter: params.filter,
             savingsGoals: params.snapshot.savingsGoals,
-            recurringPaymentDefinitions: params.snapshot.recurringPaymentDefinitions
+            recurringPaymentDefinitions: params.snapshot.recurringPaymentDefinitions,
         )
 
         return (monthlySummary, annualSummary)
@@ -219,9 +218,9 @@ internal final class DashboardService {
     /// - Parameter occurrences: 定期支払い発生一覧
     /// - Returns: 突合済みトランザクションIDのセット
     private func collectReconciledTransactionIds(
-        from occurrences: [RecurringPaymentOccurrence]
+        from occurrences: [RecurringPaymentOccurrence],
     ) -> Set<UUID> {
-        Set(occurrences.compactMap { $0.transactionId })
+        Set(occurrences.compactMap(\.transactionId))
     }
 
     /// 集計用フィルタを構築
@@ -229,14 +228,14 @@ internal final class DashboardService {
     ///   - reconciledTransactionIds: 突合済みトランザクションID
     /// - Returns: 集計フィルタ
     private func buildAggregationFilter(
-        reconciledTransactionIds: Set<UUID>
+        reconciledTransactionIds: Set<UUID>,
     ) -> AggregationFilter {
         AggregationFilter(
             includeOnlyCalculationTarget: true,
             excludeTransfers: true,
             financialInstitutionId: nil,
             categoryId: nil,
-            excludedTransactionIds: reconciledTransactionIds
+            excludedTransactionIds: reconciledTransactionIds,
         )
     }
 
@@ -244,7 +243,7 @@ internal final class DashboardService {
     /// - Parameter definitions: 定期支払い定義一覧
     /// - Returns: 月次積立額の合計
     private func calculateMonthlyRecurringPaymentAllocation(
-        from definitions: [RecurringPaymentDefinition]
+        from definitions: [RecurringPaymentDefinition],
     ) -> Decimal {
         definitions
             .filter { $0.savingStrategy != .disabled }
@@ -364,7 +363,7 @@ internal final class DashboardService {
     }
 
     private func calculateRecurringPaymentSummary(
-        params: RecurringPaymentSummaryParams
+        params: RecurringPaymentSummaryParams,
     ) -> RecurringPaymentSummary {
         let year = params.year
         let month = params.month
