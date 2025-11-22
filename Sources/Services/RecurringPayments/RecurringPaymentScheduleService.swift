@@ -81,7 +81,7 @@ internal struct RecurringPaymentScheduleService {
             for: definition,
             seedDate: seedDate,
             referenceDate: referenceDate,
-            horizonMonths: horizonMonths,
+            horizonMonths: horizonMonths
         )
 
         let locked = definition.occurrences.filter(\.isSchedulingLocked)
@@ -93,67 +93,28 @@ internal struct RecurringPaymentScheduleService {
                 removed: [],
                 locked: locked,
                 occurrences: definition.occurrences,
-                referenceDate: referenceDate,
+                referenceDate: referenceDate
             )
         }
 
-        var editableOccurrences = definition.occurrences.filter { !$0.isSchedulingLocked }
-        var created: [SwiftDataRecurringPaymentOccurrence] = []
-        var updated: [SwiftDataRecurringPaymentOccurrence] = []
-        var matched: [SwiftDataRecurringPaymentOccurrence] = []
+        let effectiveNextDate = computeNextUpcomingDate(for: definition, targets: targets)
 
-        // 未完了の最も早い予定日を特定（直近の次の支払い）
-        let nextUpcomingDate = definition.occurrences
-            .filter { $0.status != .completed && $0.status != .cancelled }
-            .map(\.scheduledDate)
-            .min()
+        let result = processSyncTargets(
+            targets: targets,
+            definition: definition,
+            referenceDate: referenceDate,
+            effectiveNextDate: effectiveNextDate
+        )
 
-        // nextUpcomingDate がない場合は、targets の最初が次の予定
-        let effectiveNextDate = nextUpcomingDate ?? targets.first?.scheduledDate
-
-        for target in targets {
-            let isNextUpcoming = effectiveNextDate.map { isSameDay(target.scheduledDate, $0) } ?? false
-
-            if let existingIndex = editableOccurrences.firstIndex(
-                where: { isSameDay($0.scheduledDate, target.scheduledDate) },
-            ) {
-                let occurrence = editableOccurrences.remove(at: existingIndex)
-                let changed = apply(
-                    target: target,
-                    to: occurrence,
-                    referenceDate: referenceDate,
-                    isNextUpcoming: isNextUpcoming,
-                )
-                if changed {
-                    updated.append(occurrence)
-                }
-                matched.append(occurrence)
-            } else {
-                let occurrence = SwiftDataRecurringPaymentOccurrence(
-                    definition: definition,
-                    scheduledDate: target.scheduledDate,
-                    expectedAmount: target.expectedAmount,
-                    status: defaultStatus(
-                        for: target.scheduledDate,
-                        referenceDate: referenceDate,
-                        isNextUpcoming: isNextUpcoming,
-                    ),
-                )
-                occurrence.updatedAt = referenceDate
-                created.append(occurrence)
-                matched.append(occurrence)
-            }
-        }
-
-        let occurrences = (matched + locked).sorted(by: { $0.scheduledDate < $1.scheduledDate })
+        let occurrences = (result.matched + locked).sorted(by: { $0.scheduledDate < $1.scheduledDate })
 
         return SynchronizationResult(
-            created: created,
-            updated: updated,
-            removed: editableOccurrences,
+            created: result.created,
+            updated: result.updated,
+            removed: result.remaining,
             locked: locked,
             occurrences: occurrences,
-            referenceDate: referenceDate,
+            referenceDate: referenceDate
         )
     }
 
@@ -313,6 +274,83 @@ internal struct RecurringPaymentScheduleService {
             value: definition.recurrenceIntervalMonths,
             to: latestCompleted,
         ) ?? definition.firstOccurrenceDate
+    }
+
+    /// 未完了の次回支払い予定日を計算
+    /// - Parameters:
+    ///   - definition: 定期支払い定義
+    ///   - targets: スケジュールターゲット一覧
+    /// - Returns: 次回支払い予定日
+    private func computeNextUpcomingDate(
+        for definition: SwiftDataRecurringPaymentDefinition,
+        targets: [ScheduleTarget],
+    ) -> Date? {
+        let nextUpcomingDate = definition.occurrences
+            .filter { $0.status != .completed && $0.status != .cancelled }
+            .map(\.scheduledDate)
+            .min()
+
+        return nextUpcomingDate ?? targets.first?.scheduledDate
+    }
+
+    /// スケジュールターゲットを処理し、Occurrence を作成・更新
+    /// - Parameters:
+    ///   - targets: スケジュールターゲット一覧
+    ///   - definition: 定期支払い定義
+    ///   - referenceDate: 判定基準日
+    ///   - effectiveNextDate: 次回支払い予定日
+    /// - Returns: (作成されたOccurrence, 更新されたOccurrence, マッチしたOccurrence)
+    private func processSyncTargets(
+        targets: [ScheduleTarget],
+        definition: SwiftDataRecurringPaymentDefinition,
+        referenceDate: Date,
+        effectiveNextDate: Date?,
+    ) -> (
+        created: [SwiftDataRecurringPaymentOccurrence],
+        updated: [SwiftDataRecurringPaymentOccurrence],
+        matched: [SwiftDataRecurringPaymentOccurrence],
+        remaining: [SwiftDataRecurringPaymentOccurrence]
+    ) {
+        var editableOccurrences = definition.occurrences.filter { !$0.isSchedulingLocked }
+        var created: [SwiftDataRecurringPaymentOccurrence] = []
+        var updated: [SwiftDataRecurringPaymentOccurrence] = []
+        var matched: [SwiftDataRecurringPaymentOccurrence] = []
+
+        for target in targets {
+            let isNextUpcoming = effectiveNextDate.map { isSameDay(target.scheduledDate, $0) } ?? false
+
+            if let existingIndex = editableOccurrences.firstIndex(
+                where: { isSameDay($0.scheduledDate, target.scheduledDate) }
+            ) {
+                let occurrence = editableOccurrences.remove(at: existingIndex)
+                let changed = apply(
+                    target: target,
+                    to: occurrence,
+                    referenceDate: referenceDate,
+                    isNextUpcoming: isNextUpcoming
+                )
+                if changed {
+                    updated.append(occurrence)
+                }
+                matched.append(occurrence)
+            } else {
+                let occurrence = SwiftDataRecurringPaymentOccurrence(
+                    definition: definition,
+                    scheduledDate: target.scheduledDate,
+                    expectedAmount: target.expectedAmount,
+                    status: defaultStatus(
+                        for: target.scheduledDate,
+                        referenceDate: referenceDate,
+                        isNextUpcoming: isNextUpcoming
+                    )
+                )
+                occurrence.updatedAt = referenceDate
+                created.append(occurrence)
+                matched.append(occurrence)
+            }
+        }
+
+        return (created, updated, matched, editableOccurrences)
     }
 
     @discardableResult
