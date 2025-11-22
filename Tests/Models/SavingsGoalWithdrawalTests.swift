@@ -9,7 +9,7 @@ internal struct SavingsGoalWithdrawalTests {
         SwiftDataSavingsGoal(
             name: "緊急費用",
             targetAmount: 100_000,
-            monthlySavingAmount: 10_000,
+            monthlySavingAmount: 10000,
             categoryId: nil,
             notes: nil,
             startDate: Date(),
@@ -142,10 +142,14 @@ internal struct SavingsGoalWithdrawalTests {
             purpose: "医療費",
             transaction: nil,
         )
+        guard let futureDate = Calendar.current.date(byAdding: .day, value: 10, to: Date()) else {
+            Issue.record("Failed to create future date")
+            return
+        }
         let withdrawal2 = SwiftDataSavingsGoalWithdrawal(
             goal: goal,
             amount: 30000,
-            withdrawalDate: Calendar.current.date(byAdding: .day, value: 10, to: Date())!,
+            withdrawalDate: futureDate,
             purpose: "車修理",
             transaction: nil,
         )

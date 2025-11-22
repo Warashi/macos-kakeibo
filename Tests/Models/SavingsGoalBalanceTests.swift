@@ -9,7 +9,7 @@ internal struct SavingsGoalBalanceTests {
         SwiftDataSavingsGoal(
             name: "緊急費用",
             targetAmount: 100_000,
-            monthlySavingAmount: 10_000,
+            monthlySavingAmount: 10000,
             categoryId: nil,
             notes: nil,
             startDate: Date(),
@@ -212,7 +212,7 @@ internal struct SavingsGoalBalanceTests {
 
         // 12ヶ月積立（月10000円）
         for _ in 1 ... 12 {
-            balance.totalSavedAmount = balance.totalSavedAmount.safeAdd(10_000)
+            balance.totalSavedAmount = balance.totalSavedAmount.safeAdd(10000)
         }
         #expect(balance.balance == 120_000)
 
@@ -222,7 +222,7 @@ internal struct SavingsGoalBalanceTests {
 
         // さらに12ヶ月積立
         for _ in 1 ... 12 {
-            balance.totalSavedAmount = balance.totalSavedAmount.safeAdd(10_000)
+            balance.totalSavedAmount = balance.totalSavedAmount.safeAdd(10000)
         }
         #expect(balance.balance == 190_000)
 

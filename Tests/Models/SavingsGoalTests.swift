@@ -10,7 +10,7 @@ internal struct SavingsGoalTests {
         let goal = SwiftDataSavingsGoal(
             name: "緊急費用",
             targetAmount: 100_000,
-            monthlySavingAmount: 10_000,
+            monthlySavingAmount: 10000,
             categoryId: nil,
             notes: "万が一のため",
             startDate: Date(),
@@ -20,7 +20,7 @@ internal struct SavingsGoalTests {
 
         #expect(goal.name == "緊急費用")
         #expect(goal.targetAmount == 100_000)
-        #expect(goal.monthlySavingAmount == 10_000)
+        #expect(goal.monthlySavingAmount == 10000)
         #expect(goal.isActive)
         #expect(goal.hasTargetAmount)
         #expect(!goal.hasTargetDate)
@@ -33,7 +33,7 @@ internal struct SavingsGoalTests {
         let goal = SwiftDataSavingsGoal(
             name: "",
             targetAmount: nil,
-            monthlySavingAmount: 10_000,
+            monthlySavingAmount: 10000,
             categoryId: nil,
             notes: nil,
             startDate: Date(),
@@ -67,7 +67,7 @@ internal struct SavingsGoalTests {
         let goal = SwiftDataSavingsGoal(
             name: "旅行",
             targetAmount: -100_000,
-            monthlySavingAmount: 10_000,
+            monthlySavingAmount: 10000,
             categoryId: nil,
             notes: nil,
             startDate: Date(),
@@ -82,12 +82,15 @@ internal struct SavingsGoalTests {
     @Test("目標達成日が開始日より前の場合はバリデーションエラー")
     internal func invalidTargetDateValidation() {
         let startDate = Date()
-        let targetDate = Calendar.current.date(byAdding: .day, value: -1, to: startDate)!
+        guard let targetDate = Calendar.current.date(byAdding: .day, value: -1, to: startDate) else {
+            Issue.record("Failed to create target date")
+            return
+        }
 
         let goal = SwiftDataSavingsGoal(
             name: "旅行",
             targetAmount: 500_000,
-            monthlySavingAmount: 50_000,
+            monthlySavingAmount: 50000,
             categoryId: nil,
             notes: nil,
             startDate: startDate,
@@ -102,12 +105,15 @@ internal struct SavingsGoalTests {
     @Test("目標達成日が開始日と同じか未来の場合は有効")
     internal func validTargetDate() {
         let startDate = Date()
-        let targetDate = Calendar.current.date(byAdding: .month, value: 12, to: startDate)!
+        guard let targetDate = Calendar.current.date(byAdding: .month, value: 12, to: startDate) else {
+            Issue.record("Failed to create target date")
+            return
+        }
 
         let goal = SwiftDataSavingsGoal(
             name: "旅行",
             targetAmount: 500_000,
-            monthlySavingAmount: 50_000,
+            monthlySavingAmount: 50000,
             categoryId: nil,
             notes: "夏の旅行",
             startDate: startDate,
@@ -125,7 +131,7 @@ internal struct SavingsGoalTests {
         let goal = SwiftDataSavingsGoal(
             name: "積立",
             targetAmount: nil,
-            monthlySavingAmount: 20_000,
+            monthlySavingAmount: 20000,
             categoryId: nil,
             notes: nil,
             startDate: Date(),
@@ -146,7 +152,7 @@ internal struct SavingsGoalTests {
         let goal = SwiftDataSavingsGoal(
             name: "緊急費用",
             targetAmount: 100_000,
-            monthlySavingAmount: 10_000,
+            monthlySavingAmount: 10000,
             categoryId: nil,
             notes: "万が一のため",
             startDate: Date(),
@@ -164,7 +170,7 @@ internal struct SavingsGoalTests {
         let storedGoal = try #require(storedGoals.first)
         #expect(storedGoal.name == "緊急費用")
         #expect(storedGoal.targetAmount == 100_000)
-        #expect(storedGoal.monthlySavingAmount == 10_000)
+        #expect(storedGoal.monthlySavingAmount == 10000)
     }
 
     @Test("非アクティブな貯蓄目標を作成できる")
