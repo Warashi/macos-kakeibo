@@ -34,31 +34,19 @@ internal final class DashboardService {
         snapshot: DashboardSnapshot,
         year: Int,
         month: Int,
-        displayMode: DashboardStore.DisplayMode,
+        displayMode: DashboardStore.DisplayMode
     ) -> DashboardResult {
         let excludedCategoryIds = snapshot.config?.fullCoverageCategoryIDs(
-            includingChildrenFrom: snapshot.categories,
+            includingChildrenFrom: snapshot.categories
         ) ?? []
 
-        // 突合済みのTransactionIDを収集
-        let reconciledTransactionIds = Set(
-            snapshot.recurringPaymentOccurrences
-                .compactMap { $0.transactionId }
+        let reconciledTransactionIds = collectReconciledTransactionIds(
+            from: snapshot.recurringPaymentOccurrences
         )
-
-        // フィルタを作成（突合済みのTransactionを除外）
-        let filter = AggregationFilter(
-            includeOnlyCalculationTarget: true,
-            excludeTransfers: true,
-            financialInstitutionId: nil,
-            categoryId: nil,
-            excludedTransactionIds: reconciledTransactionIds
+        let filter = buildAggregationFilter(reconciledTransactionIds: reconciledTransactionIds)
+        let monthlyRecurringPaymentAllocation = calculateMonthlyRecurringPaymentAllocation(
+            from: snapshot.recurringPaymentDefinitions
         )
-
-        // 月次積立額を計算
-        let monthlyRecurringPaymentAllocation = snapshot.recurringPaymentDefinitions
-            .filter { $0.savingStrategy != .disabled }
-            .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
 
         let monthlySummary = aggregator.aggregateMonthly(
             transactions: snapshot.monthlyTransactions,
@@ -87,39 +75,41 @@ internal final class DashboardService {
                 year: year,
                 month: month,
                 filter: .default,
-                excludedCategoryIds: excludedCategoryIds,
-            ),
+                excludedCategoryIds: excludedCategoryIds
+            )
         )
 
         let (annualBudgetUsage, monthlyAllocation) = calculateAnnualBudgetAllocation(
             snapshot: snapshot,
             year: year,
-            month: month,
+            month: month
         )
 
         let categoryHighlights = calculateCategoryHighlights(
             monthlySummary: monthlySummary,
             annualSummary: annualSummary,
-            displayMode: displayMode,
+            displayMode: displayMode
         )
 
         let (progressCalculation, categoryEntries) = calculateAnnualBudgetProgress(
             snapshot: snapshot,
             year: year,
-            excludedCategoryIds: excludedCategoryIds,
+            excludedCategoryIds: excludedCategoryIds
         )
 
         let savingsSummary = calculateSavingsSummary(
             goals: snapshot.savingsGoals,
-            balances: snapshot.savingsGoalBalances,
+            balances: snapshot.savingsGoalBalances
         )
 
         let recurringPaymentSummary = calculateRecurringPaymentSummary(
-            definitions: snapshot.recurringPaymentDefinitions,
-            occurrences: snapshot.recurringPaymentOccurrences,
-            balances: snapshot.recurringPaymentBalances,
-            year: year,
-            month: month,
+            params: RecurringPaymentSummaryParams(
+                definitions: snapshot.recurringPaymentDefinitions,
+                occurrences: snapshot.recurringPaymentOccurrences,
+                balances: snapshot.recurringPaymentBalances,
+                year: year,
+                month: month
+            )
         )
 
         return DashboardResult(
@@ -132,11 +122,47 @@ internal final class DashboardService {
             annualBudgetProgressCalculation: progressCalculation,
             annualBudgetCategoryEntries: categoryEntries,
             savingsSummary: savingsSummary,
-            recurringPaymentSummary: recurringPaymentSummary,
+            recurringPaymentSummary: recurringPaymentSummary
         )
     }
 
     // MARK: - Private Helpers
+
+    /// 突合済みトランザクションIDを収集
+    /// - Parameter occurrences: 定期支払い発生一覧
+    /// - Returns: 突合済みトランザクションIDのセット
+    private func collectReconciledTransactionIds(
+        from occurrences: [RecurringPaymentOccurrence]
+    ) -> Set<UUID> {
+        Set(occurrences.compactMap { $0.transactionId })
+    }
+
+    /// 集計用フィルタを構築
+    /// - Parameters:
+    ///   - reconciledTransactionIds: 突合済みトランザクションID
+    /// - Returns: 集計フィルタ
+    private func buildAggregationFilter(
+        reconciledTransactionIds: Set<UUID>
+    ) -> AggregationFilter {
+        AggregationFilter(
+            includeOnlyCalculationTarget: true,
+            excludeTransfers: true,
+            financialInstitutionId: nil,
+            categoryId: nil,
+            excludedTransactionIds: reconciledTransactionIds
+        )
+    }
+
+    /// 月次積立額を計算
+    /// - Parameter definitions: 定期支払い定義一覧
+    /// - Returns: 月次積立額の合計
+    private func calculateMonthlyRecurringPaymentAllocation(
+        from definitions: [RecurringPaymentDefinition]
+    ) -> Decimal {
+        definitions
+            .filter { $0.savingStrategy != .disabled }
+            .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
+    }
 
     private func calculateAnnualBudgetAllocation(
         snapshot: DashboardSnapshot,
@@ -241,13 +267,23 @@ internal final class DashboardService {
         )
     }
 
+    /// 定期支払いサマリの計算パラメータ
+    private struct RecurringPaymentSummaryParams {
+        internal let definitions: [RecurringPaymentDefinition]
+        internal let occurrences: [RecurringPaymentOccurrence]
+        internal let balances: [RecurringPaymentSavingBalance]
+        internal let year: Int
+        internal let month: Int
+    }
+
     private func calculateRecurringPaymentSummary(
-        definitions: [RecurringPaymentDefinition],
-        occurrences: [RecurringPaymentOccurrence],
-        balances: [RecurringPaymentSavingBalance],
-        year: Int,
-        month: Int,
+        params: RecurringPaymentSummaryParams
     ) -> RecurringPaymentSummary {
+        let year = params.year
+        let month = params.month
+        let definitions = params.definitions
+        let occurrences = params.occurrences
+        let balances = params.balances
         // 当月の開始日・終了日を計算
         guard let monthStart = Date.from(year: year, month: month),
               let monthEnd = Date.from(year: year, month: month == 12 ? 1 : month + 1) else {
