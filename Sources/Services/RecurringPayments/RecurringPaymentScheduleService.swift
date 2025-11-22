@@ -276,6 +276,14 @@ internal struct RecurringPaymentScheduleService {
         ) ?? definition.firstOccurrenceDate
     }
 
+    /// 同期処理の結果
+    private struct SyncProcessingResult {
+        internal let created: [SwiftDataRecurringPaymentOccurrence]
+        internal let updated: [SwiftDataRecurringPaymentOccurrence]
+        internal let matched: [SwiftDataRecurringPaymentOccurrence]
+        internal let remaining: [SwiftDataRecurringPaymentOccurrence]
+    }
+
     /// 未完了の次回支払い予定日を計算
     /// - Parameters:
     ///   - definition: 定期支払い定義
@@ -283,7 +291,7 @@ internal struct RecurringPaymentScheduleService {
     /// - Returns: 次回支払い予定日
     private func computeNextUpcomingDate(
         for definition: SwiftDataRecurringPaymentDefinition,
-        targets: [ScheduleTarget],
+        targets: [ScheduleTarget]
     ) -> Date? {
         let nextUpcomingDate = definition.occurrences
             .filter { $0.status != .completed && $0.status != .cancelled }
@@ -299,18 +307,13 @@ internal struct RecurringPaymentScheduleService {
     ///   - definition: 定期支払い定義
     ///   - referenceDate: 判定基準日
     ///   - effectiveNextDate: 次回支払い予定日
-    /// - Returns: (作成されたOccurrence, 更新されたOccurrence, マッチしたOccurrence)
+    /// - Returns: 同期処理の結果
     private func processSyncTargets(
         targets: [ScheduleTarget],
         definition: SwiftDataRecurringPaymentDefinition,
         referenceDate: Date,
-        effectiveNextDate: Date?,
-    ) -> (
-        created: [SwiftDataRecurringPaymentOccurrence],
-        updated: [SwiftDataRecurringPaymentOccurrence],
-        matched: [SwiftDataRecurringPaymentOccurrence],
-        remaining: [SwiftDataRecurringPaymentOccurrence]
-    ) {
+        effectiveNextDate: Date?
+    ) -> SyncProcessingResult {
         var editableOccurrences = definition.occurrences.filter { !$0.isSchedulingLocked }
         var created: [SwiftDataRecurringPaymentOccurrence] = []
         var updated: [SwiftDataRecurringPaymentOccurrence] = []
@@ -350,7 +353,12 @@ internal struct RecurringPaymentScheduleService {
             }
         }
 
-        return (created, updated, matched, editableOccurrences)
+        return SyncProcessingResult(
+            created: created,
+            updated: updated,
+            matched: matched,
+            remaining: editableOccurrences
+        )
     }
 
     @discardableResult

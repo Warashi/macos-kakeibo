@@ -48,23 +48,12 @@ internal final class DashboardService {
             from: snapshot.recurringPaymentDefinitions
         )
 
-        let monthlySummary = aggregator.aggregateMonthly(
-            transactions: snapshot.monthlyTransactions,
-            categories: snapshot.categories,
+        let (monthlySummary, annualSummary) = calculateSummaries(
+            snapshot: snapshot,
             year: year,
             month: month,
             filter: filter,
-            savingsGoals: snapshot.savingsGoals,
-            recurringPaymentAllocation: monthlyRecurringPaymentAllocation
-        )
-
-        let annualSummary = aggregator.aggregateAnnually(
-            transactions: snapshot.annualTransactions,
-            categories: snapshot.categories,
-            year: year,
-            filter: filter,
-            savingsGoals: snapshot.savingsGoals,
-            recurringPaymentDefinitions: snapshot.recurringPaymentDefinitions
+            monthlyRecurringPaymentAllocation: monthlyRecurringPaymentAllocation
         )
 
         let monthlyBudgetCalculation = budgetCalculator.calculateMonthlyBudget(
@@ -127,6 +116,43 @@ internal final class DashboardService {
     }
 
     // MARK: - Private Helpers
+
+    /// 月次・年次サマリを計算
+    /// - Parameters:
+    ///   - snapshot: ダッシュボードスナップショット
+    ///   - year: 対象年
+    ///   - month: 対象月
+    ///   - filter: 集計フィルタ
+    ///   - monthlyRecurringPaymentAllocation: 月次積立額
+    /// - Returns: (月次サマリ, 年次サマリ)
+    private func calculateSummaries(
+        snapshot: DashboardSnapshot,
+        year: Int,
+        month: Int,
+        filter: AggregationFilter,
+        monthlyRecurringPaymentAllocation: Decimal
+    ) -> (MonthlySummary, AnnualSummary) {
+        let monthlySummary = aggregator.aggregateMonthly(
+            transactions: snapshot.monthlyTransactions,
+            categories: snapshot.categories,
+            year: year,
+            month: month,
+            filter: filter,
+            savingsGoals: snapshot.savingsGoals,
+            recurringPaymentAllocation: monthlyRecurringPaymentAllocation
+        )
+
+        let annualSummary = aggregator.aggregateAnnually(
+            transactions: snapshot.annualTransactions,
+            categories: snapshot.categories,
+            year: year,
+            filter: filter,
+            savingsGoals: snapshot.savingsGoals,
+            recurringPaymentDefinitions: snapshot.recurringPaymentDefinitions
+        )
+
+        return (monthlySummary, annualSummary)
+    }
 
     /// 突合済みトランザクションIDを収集
     /// - Parameter occurrences: 定期支払い発生一覧
