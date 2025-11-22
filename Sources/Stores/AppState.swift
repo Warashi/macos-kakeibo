@@ -6,6 +6,7 @@ internal final class AppState {
         case dashboard
         case transactions
         case budgets
+        case savingsGoals
         case imports
         case settings
 
@@ -19,6 +20,8 @@ internal final class AppState {
                 "取引"
             case .budgets:
                 "予算"
+            case .savingsGoals:
+                "貯蓄目標"
             case .imports:
                 "インポート"
             case .settings:
@@ -34,6 +37,8 @@ internal final class AppState {
                 "list.bullet.rectangle"
             case .budgets:
                 "creditcard"
+            case .savingsGoals:
+                "banknote.fill"
             case .imports:
                 "tray.and.arrow.down"
             case .settings:
@@ -49,6 +54,8 @@ internal final class AppState {
                 "収支の一覧を閲覧・管理する画面です。"
             case .budgets:
                 "予算の設定や進捗を管理します。"
+            case .savingsGoals:
+                "貯蓄目標を管理します。"
             case .imports:
                 "CSVなどからデータを取り込みます。"
             case .settings:
