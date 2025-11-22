@@ -74,6 +74,9 @@ internal final class DashboardStore {
     /// 貯蓄サマリ
     internal var savingsSummary: SavingsSummary
 
+    /// 定期支払いサマリ
+    internal var recurringPaymentSummary: RecurringPaymentSummary
+
     // MARK: - Initialization
 
     /// イニシャライザ
@@ -129,6 +132,13 @@ internal final class DashboardStore {
         self.savingsSummary = SavingsSummary(
             totalMonthlySavings: 0,
             goalSummaries: [],
+        )
+        self.recurringPaymentSummary = RecurringPaymentSummary(
+            totalMonthlyAmount: 0,
+            currentMonthExpected: 0,
+            currentMonthActual: 0,
+            currentMonthRemaining: 0,
+            definitions: [],
         )
 
         // すべての stored property の初期化が完了したので、年のフォールバックチェックが可能
@@ -186,6 +196,7 @@ internal final class DashboardStore {
         annualBudgetProgressCalculation = result.annualBudgetProgressCalculation
         annualBudgetCategoryEntries = result.annualBudgetCategoryEntries
         savingsSummary = result.savingsSummary
+        recurringPaymentSummary = result.recurringPaymentSummary
     }
 
     // MARK: - Actions

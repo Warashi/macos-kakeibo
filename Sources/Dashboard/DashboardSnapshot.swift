@@ -9,4 +9,7 @@ internal struct DashboardSnapshot: Sendable {
     internal let config: AnnualBudgetConfig?
     internal let savingsGoals: [SavingsGoal]
     internal let savingsGoalBalances: [SavingsGoalBalance]
+    internal let recurringPaymentDefinitions: [RecurringPaymentDefinition]
+    internal let recurringPaymentOccurrences: [RecurringPaymentOccurrence]
+    internal let recurringPaymentBalances: [RecurringPaymentSavingBalance]
 }

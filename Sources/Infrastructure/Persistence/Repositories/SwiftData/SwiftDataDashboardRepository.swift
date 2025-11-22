@@ -29,6 +29,19 @@ internal actor SwiftDataDashboardRepository: DashboardRepository {
         let swiftDataBalances = try context.fetch(balanceDescriptor)
         let savingsGoalBalances = swiftDataBalances.map { SavingsGoalBalance(from: $0) }
 
+        // 定期支払いのデータを取得
+        let definitionsDescriptor = RecurringPaymentQueries.definitions()
+        let swiftDataDefinitions = try context.fetch(definitionsDescriptor)
+        let recurringPaymentDefinitions = swiftDataDefinitions.map { RecurringPaymentDefinition(from: $0) }
+
+        let occurrencesDescriptor = RecurringPaymentQueries.occurrences()
+        let swiftDataOccurrences = try context.fetch(occurrencesDescriptor)
+        let recurringPaymentOccurrences = swiftDataOccurrences.map { RecurringPaymentOccurrence(from: $0) }
+
+        let balancesDescriptor = RecurringPaymentQueries.balances()
+        let swiftDataRecurringBalances = try context.fetch(balancesDescriptor)
+        let recurringPaymentBalances = swiftDataRecurringBalances.map { RecurringPaymentSavingBalance(from: $0) }
+
         return DashboardSnapshot(
             monthlyTransactions: monthlyTransactions,
             annualTransactions: annualTransactions,
@@ -37,6 +50,9 @@ internal actor SwiftDataDashboardRepository: DashboardRepository {
             config: config,
             savingsGoals: savingsGoals,
             savingsGoalBalances: savingsGoalBalances,
+            recurringPaymentDefinitions: recurringPaymentDefinitions,
+            recurringPaymentOccurrences: recurringPaymentOccurrences,
+            recurringPaymentBalances: recurringPaymentBalances,
         )
     }
 
