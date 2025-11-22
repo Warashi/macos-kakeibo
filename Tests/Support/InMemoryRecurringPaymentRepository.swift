@@ -90,7 +90,6 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
             amount: input.amount,
             recurrenceIntervalMonths: input.recurrenceIntervalMonths,
             firstOccurrenceDate: input.firstOccurrenceDate,
-            leadTimeMonths: input.leadTimeMonths,
             category: category,
             savingStrategy: input.savingStrategy,
             customMonthlySavingAmount: input.customMonthlySavingAmount,
@@ -125,7 +124,6 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         definition.amount = input.amount
         definition.recurrenceIntervalMonths = input.recurrenceIntervalMonths
         definition.firstOccurrenceDate = input.firstOccurrenceDate
-        definition.leadTimeMonths = input.leadTimeMonths
         definition.category = category
         definition.savingStrategy = input.savingStrategy
         definition.customMonthlySavingAmount = input.customMonthlySavingAmount

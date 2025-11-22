@@ -169,7 +169,6 @@ internal struct RecurringPaymentReconciliationStoreTests {
             amount: 100_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: referenceDate,
-            leadTimeMonths: 1,
         )
         context.insert(definition)
 

@@ -19,7 +19,6 @@ internal struct RecurringPaymentStoreCreateTests {
             amount: 50000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: firstOccurrence,
-            leadTimeMonths: 2,
             categoryId: nil,
             savingStrategy: .evenlyDistributed,
             customMonthlySavingAmount: nil,
@@ -36,7 +35,6 @@ internal struct RecurringPaymentStoreCreateTests {
         #expect(definition.name == "自動車税")
         #expect(definition.amount == 50000)
         #expect(definition.recurrenceIntervalMonths == 12)
-        #expect(definition.leadTimeMonths == 2)
         #expect(definition.savingStrategy == .evenlyDistributed)
 
         // Occurrenceも自動生成される

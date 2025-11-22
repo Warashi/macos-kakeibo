@@ -10,7 +10,6 @@ internal final class SwiftDataRecurringPaymentDefinition {
     internal var recurrenceIntervalMonths: Int
     internal var firstOccurrenceDate: Date
     internal var endDate: Date?
-    internal var leadTimeMonths: Int
     internal var category: SwiftDataCategory?
     internal var savingStrategy: RecurringPaymentSavingStrategy
     internal var customMonthlySavingAmount: Decimal?
@@ -31,7 +30,6 @@ internal final class SwiftDataRecurringPaymentDefinition {
         recurrenceIntervalMonths: Int,
         firstOccurrenceDate: Date,
         endDate: Date? = nil,
-        leadTimeMonths: Int = 0,
         category: SwiftDataCategory? = nil,
         savingStrategy: RecurringPaymentSavingStrategy = .evenlyDistributed,
         customMonthlySavingAmount: Decimal? = nil,
@@ -45,7 +43,6 @@ internal final class SwiftDataRecurringPaymentDefinition {
         self.recurrenceIntervalMonths = recurrenceIntervalMonths
         self.firstOccurrenceDate = firstOccurrenceDate
         self.endDate = endDate
-        self.leadTimeMonths = leadTimeMonths
         self.category = category
         self.savingStrategy = savingStrategy
         self.customMonthlySavingAmount = customMonthlySavingAmount
@@ -129,7 +126,6 @@ internal extension SwiftDataRecurringPaymentDefinition {
         errors.append(contentsOf: validateName())
         errors.append(contentsOf: validateAmount())
         errors.append(contentsOf: validateRecurrenceInterval())
-        errors.append(contentsOf: validateLeadTime())
         errors.append(contentsOf: validateSavingStrategyConfiguration())
         errors.append(contentsOf: validateEndDate())
         return errors
@@ -155,13 +151,6 @@ internal extension SwiftDataRecurringPaymentDefinition {
     private func validateRecurrenceInterval() -> [String] {
         guard recurrenceIntervalMonths > 0 else {
             return ["周期（月数）は1以上を指定してください"]
-        }
-        return []
-    }
-
-    private func validateLeadTime() -> [String] {
-        guard leadTimeMonths >= 0 else {
-            return ["リードタイム（月数）は0以上を指定してください"]
         }
         return []
     }

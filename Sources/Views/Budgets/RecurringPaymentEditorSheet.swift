@@ -71,30 +71,6 @@ internal struct RecurringPaymentEditorSheet: View {
                         .labelsHidden()
                     }
 
-                    LabeledField(title: "リードタイム（月数）") {
-                        HStack(spacing: 8) {
-                            Stepper(value: $formState.leadTimeMonths, in: 1 ... 999) {
-                                HStack {
-                                    Text("\(formState.leadTimeMonths)")
-                                        .frame(minWidth: 30, alignment: .trailing)
-                                    Text("か月前から積立開始")
-                                }
-                            }
-
-                            Button(
-                                action: {
-                                    formState.leadTimeMonths = formState.recurrenceIntervalMonths
-                                },
-                                label: {
-                                    Image(systemName: "arrow.counterclockwise")
-                                        .foregroundStyle(.secondary)
-                                },
-                            )
-                            .buttonStyle(.plain)
-                            .help("支払い周期と一致させる")
-                        }
-                    }
-
                     LabeledField(title: "積立戦略") {
                         Picker("積立戦略", selection: $formState.savingStrategy) {
                             Text("積立なし").tag(RecurringPaymentSavingStrategy.disabled)

@@ -100,7 +100,6 @@ internal extension RecurringPaymentDefinition {
             recurrenceIntervalMonths: record.recurrenceIntervalMonths,
             firstOccurrenceDate: record.firstOccurrenceDate,
             endDate: record.endDate,
-            leadTimeMonths: record.leadTimeMonths,
             categoryId: record.category?.id,
             savingStrategy: record.savingStrategy,
             customMonthlySavingAmount: record.customMonthlySavingAmount,

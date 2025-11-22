@@ -99,7 +99,7 @@ internal struct RecurringPaymentStoreUpdateTests {
         )
 
         try withOccurrence(id: occurrenceId, in: container) { occurrence in
-            #expect(occurrence.status == .planned)
+            #expect(occurrence.status == .saving)
             #expect(occurrence.actualDate == nil)
             #expect(occurrence.actualAmount == nil)
         }

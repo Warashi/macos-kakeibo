@@ -28,7 +28,6 @@ internal struct RecurringPaymentStoreDefUpdateTests {
             amount: 55000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: firstOccurrence,
-            leadTimeMonths: 3,
             categoryId: nil,
             savingStrategy: .customMonthly,
             customMonthlySavingAmount: 5000,
@@ -47,7 +46,6 @@ internal struct RecurringPaymentStoreDefUpdateTests {
         #expect(refreshed.name == "自動車税（更新）")
         #expect(refreshed.notes == "メモを追加")
         #expect(refreshed.amount == 55000)
-        #expect(refreshed.leadTimeMonths == 3)
         #expect(refreshed.savingStrategy == .customMonthly)
         #expect(refreshed.customMonthlySavingAmount == 5000)
     }
@@ -74,7 +72,6 @@ internal struct RecurringPaymentStoreDefUpdateTests {
                 amount: -1000,
                 recurrenceIntervalMonths: 12,
                 firstOccurrenceDate: firstOccurrence,
-                leadTimeMonths: 1,
                 categoryId: nil,
                 savingStrategy: .evenlyDistributed,
                 customMonthlySavingAmount: nil,

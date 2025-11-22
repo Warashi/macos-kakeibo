@@ -264,7 +264,6 @@ internal struct RecurringPaymentFormState {
     internal var recurrenceYears: Int = 0
     internal var recurrenceMonths: Int = 1
     internal var firstOccurrenceDate: Date = Date()
-    internal var leadTimeMonths: Int = 0
     internal var selectedMajorCategoryId: UUID?
     internal var selectedMinorCategoryId: UUID?
     internal var savingStrategy: RecurringPaymentSavingStrategy = .evenlyDistributed
@@ -283,7 +282,6 @@ internal struct RecurringPaymentFormState {
         recurrenceYears = definition.recurrenceIntervalMonths / 12
         recurrenceMonths = definition.recurrenceIntervalMonths % 12
         firstOccurrenceDate = definition.firstOccurrenceDate
-        leadTimeMonths = definition.leadTimeMonths
         updateCategorySelection(for: definition.categoryId, categories: categories)
         savingStrategy = definition.savingStrategy
         customMonthlySavingAmountText = definition.customMonthlySavingAmount?.plainString ?? ""
@@ -298,7 +296,6 @@ internal struct RecurringPaymentFormState {
         recurrenceYears = 0
         recurrenceMonths = 1
         firstOccurrenceDate = Date()
-        leadTimeMonths = max(1, recurrenceIntervalMonths)
         selectedMajorCategoryId = nil
         selectedMinorCategoryId = nil
         savingStrategy = .evenlyDistributed
@@ -347,7 +344,6 @@ internal struct RecurringPaymentFormState {
         guard !nameText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
         guard let amount = decimalAmount, amount > 0 else { return false }
         guard recurrenceIntervalMonths > 0 else { return false }
-        guard leadTimeMonths > 0 else { return false }
 
         if savingStrategy == .customMonthly {
             guard let customAmount = customMonthlySavingAmount, customAmount > 0 else { return false }

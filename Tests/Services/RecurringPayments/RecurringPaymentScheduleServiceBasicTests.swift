@@ -65,26 +65,6 @@ internal struct ScheduleServiceBasicTests {
         #expect(firstTarget.scheduledDate.month == 3)
     }
 
-    @Test("リードタイム内でステータスがsavingに切り替わる")
-    internal func defaultStatus_switchesWithinLeadTime() throws {
-        let scheduledDate = try #require(Date.from(year: 2025, month: 4, day: 20))
-        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
-
-        let savingStatus = service.defaultStatus(
-            for: scheduledDate,
-            referenceDate: referenceDate,
-            leadTimeMonths: 3,
-        )
-        #expect(savingStatus == .saving)
-
-        let plannedStatus = service.defaultStatus(
-            for: scheduledDate,
-            referenceDate: referenceDate,
-            leadTimeMonths: 1,
-        )
-        #expect(plannedStatus == .planned)
-    }
-
     @Test("極端に古い開始日でもmaxIterationsで保護される")
     internal func scheduleTargets_protectedByMaxIterations() throws {
         // 50年前から開始（maxIterations 600 × 1ヶ月 = 50年で到達できる範囲）

@@ -102,7 +102,18 @@ internal struct RecurringPaymentScheduleService {
         var updated: [SwiftDataRecurringPaymentOccurrence] = []
         var matched: [SwiftDataRecurringPaymentOccurrence] = []
 
+        // 未完了の最も早い予定日を特定（直近の次の支払い）
+        let nextUpcomingDate = definition.occurrences
+            .filter { $0.status != .completed && $0.status != .cancelled }
+            .map(\.scheduledDate)
+            .min()
+
+        // nextUpcomingDate がない場合は、targets の最初が次の予定
+        let effectiveNextDate = nextUpcomingDate ?? targets.first?.scheduledDate
+
         for target in targets {
+            let isNextUpcoming = effectiveNextDate.map { isSameDay(target.scheduledDate, $0) } ?? false
+
             if let existingIndex = editableOccurrences.firstIndex(
                 where: { isSameDay($0.scheduledDate, target.scheduledDate) },
             ) {
@@ -111,7 +122,7 @@ internal struct RecurringPaymentScheduleService {
                     target: target,
                     to: occurrence,
                     referenceDate: referenceDate,
-                    leadTimeMonths: definition.leadTimeMonths,
+                    isNextUpcoming: isNextUpcoming,
                 )
                 if changed {
                     updated.append(occurrence)
@@ -125,7 +136,7 @@ internal struct RecurringPaymentScheduleService {
                     status: defaultStatus(
                         for: target.scheduledDate,
                         referenceDate: referenceDate,
-                        leadTimeMonths: definition.leadTimeMonths,
+                        isNextUpcoming: isNextUpcoming,
                     ),
                 )
                 occurrence.updatedAt = referenceDate
@@ -239,32 +250,18 @@ internal struct RecurringPaymentScheduleService {
         return targets
     }
 
-    /// リードタイムと参照日に応じたデフォルトステータス
+    /// 次の予定かどうかに応じたデフォルトステータス
     /// - Parameters:
     ///   - scheduledDate: 予定日
-    ///   - referenceDate: 判定基準日
-    ///   - leadTimeMonths: リードタイム（月数）
+    ///   - referenceDate: 判定基準日（未使用だが互換性のため保持）
+    ///   - isNextUpcoming: 直近の次の支払いかどうか
     /// - Returns: 予定/積立ステータス
     internal func defaultStatus(
         for scheduledDate: Date,
         referenceDate: Date,
-        leadTimeMonths: Int,
+        isNextUpcoming: Bool,
     ) -> RecurringPaymentStatus {
-        let normalizedReference = referenceDate.startOfMonth
-        let normalizedScheduled = scheduledDate.startOfMonth
-
-        if normalizedScheduled <= normalizedReference {
-            return .saving
-        }
-
-        let clampedLeadTime = max(0, leadTimeMonths)
-        let monthsUntil = calendar.dateComponents(
-            [.month],
-            from: normalizedReference,
-            to: normalizedScheduled,
-        ).month ?? 0
-
-        return monthsUntil <= clampedLeadTime ? .saving : .planned
+        isNextUpcoming ? .saving : .planned
     }
 
     /// 次の発生日を計算する
@@ -323,7 +320,7 @@ internal struct RecurringPaymentScheduleService {
         target: ScheduleTarget,
         to occurrence: SwiftDataRecurringPaymentOccurrence,
         referenceDate: Date,
-        leadTimeMonths: Int,
+        isNextUpcoming: Bool,
     ) -> Bool {
         var didMutate = false
 
@@ -340,7 +337,7 @@ internal struct RecurringPaymentScheduleService {
         let statusChanged = updateStatusIfNeeded(
             for: occurrence,
             referenceDate: referenceDate,
-            leadTimeMonths: leadTimeMonths,
+            isNextUpcoming: isNextUpcoming,
         )
         if statusChanged {
             didMutate = true
@@ -353,7 +350,7 @@ internal struct RecurringPaymentScheduleService {
     private func updateStatusIfNeeded(
         for occurrence: SwiftDataRecurringPaymentOccurrence,
         referenceDate: Date,
-        leadTimeMonths: Int,
+        isNextUpcoming: Bool,
     ) -> Bool {
         guard !occurrence.isSchedulingLocked else {
             return false
@@ -362,7 +359,7 @@ internal struct RecurringPaymentScheduleService {
         let status = defaultStatus(
             for: occurrence.scheduledDate,
             referenceDate: referenceDate,
-            leadTimeMonths: leadTimeMonths,
+            isNextUpcoming: isNextUpcoming,
         )
 
         if occurrence.status != status {

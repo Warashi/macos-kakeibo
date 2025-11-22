@@ -16,7 +16,6 @@ internal struct RecurringPaymentDefinitionTests {
             amount: 120_000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: startDate,
-            leadTimeMonths: 3,
             category: category,
             savingStrategy: .evenlyDistributed,
         )
@@ -25,7 +24,6 @@ internal struct RecurringPaymentDefinitionTests {
         #expect(definition.amount == 120_000)
         #expect(definition.recurrenceIntervalMonths == 12)
         #expect(definition.firstOccurrenceDate == startDate)
-        #expect(definition.leadTimeMonths == 3)
         #expect(definition.category === category)
         #expect(definition.savingStrategy == .evenlyDistributed)
         #expect(definition.monthlySavingAmount == 10000)
@@ -68,7 +66,6 @@ internal struct RecurringPaymentDefinitionTests {
             amount: 0,
             recurrenceIntervalMonths: 0,
             firstOccurrenceDate: Date(),
-            leadTimeMonths: -1,
             savingStrategy: .customMonthly,
             customMonthlySavingAmount: -1000,
         )
@@ -77,7 +74,6 @@ internal struct RecurringPaymentDefinitionTests {
         #expect(errors.contains { $0.contains("名称") })
         #expect(errors.contains { $0.contains("金額") })
         #expect(errors.contains { $0.contains("周期") })
-        #expect(errors.contains { $0.contains("リードタイム") })
         #expect(errors.contains { $0.contains("カスタム積立金額は1以上") })
         #expect(!definition.isValid)
     }

@@ -56,7 +56,6 @@ internal struct BudgetStoreRecurringPaymentRefreshTests {
             amount: amount,
             recurrenceIntervalMonths: recurrenceMonths,
             firstOccurrenceDate: Date.from(year: 2026, month: 5, day: 1) ?? Date(),
-            leadTimeMonths: 1,
         )
     }
 }

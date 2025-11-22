@@ -75,7 +75,6 @@ internal struct RecurringPaymentScheduleServiceSyncTests {
             amount: 50000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: firstDate,
-            leadTimeMonths: 3,
         )
 
         let existingOccurrence = SwiftDataRecurringPaymentOccurrence(

@@ -62,7 +62,6 @@ internal struct QueryBuilderTests {
             amount: 10000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
-            leadTimeMonths: 1,
         )
         earlier.createdAt = Date(timeIntervalSince1970: 1000)
 
@@ -71,7 +70,6 @@ internal struct QueryBuilderTests {
             amount: 20000,
             recurrenceIntervalMonths: 12,
             firstOccurrenceDate: Date(),
-            leadTimeMonths: 1,
         )
         latest.createdAt = Date(timeIntervalSince1970: 2000)
 

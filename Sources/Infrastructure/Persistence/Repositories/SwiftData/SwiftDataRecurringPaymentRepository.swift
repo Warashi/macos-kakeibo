@@ -108,7 +108,6 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
             recurrenceIntervalMonths: input.recurrenceIntervalMonths,
             firstOccurrenceDate: input.firstOccurrenceDate,
             endDate: input.endDate,
-            leadTimeMonths: input.leadTimeMonths,
             category: category,
             savingStrategy: input.savingStrategy,
             customMonthlySavingAmount: input.customMonthlySavingAmount,
@@ -145,7 +144,6 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         definition.recurrenceIntervalMonths = input.recurrenceIntervalMonths
         definition.firstOccurrenceDate = input.firstOccurrenceDate
         definition.endDate = input.endDate
-        definition.leadTimeMonths = input.leadTimeMonths
         definition.category = category
         definition.savingStrategy = input.savingStrategy
         definition.customMonthlySavingAmount = input.customMonthlySavingAmount
@@ -408,7 +406,6 @@ private extension SwiftDataRecurringPaymentRepository {
             recurrenceIntervalMonths: input.recurrenceIntervalMonths,
             firstOccurrenceDate: input.firstOccurrenceDate,
             endDate: input.endDate,
-            leadTimeMonths: input.leadTimeMonths,
             category: category,
             savingStrategy: input.savingStrategy,
             customMonthlySavingAmount: input.customMonthlySavingAmount,

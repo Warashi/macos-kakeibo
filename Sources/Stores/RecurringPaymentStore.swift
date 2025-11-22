@@ -9,7 +9,6 @@ internal struct RecurringPaymentDefinitionInput: Sendable {
     internal let recurrenceIntervalMonths: Int
     internal let firstOccurrenceDate: Date
     internal let endDate: Date?
-    internal let leadTimeMonths: Int
     internal let categoryId: UUID?
     internal let savingStrategy: RecurringPaymentSavingStrategy
     internal let customMonthlySavingAmount: Decimal?
@@ -23,7 +22,6 @@ internal struct RecurringPaymentDefinitionInput: Sendable {
         recurrenceIntervalMonths: Int,
         firstOccurrenceDate: Date,
         endDate: Date? = nil,
-        leadTimeMonths: Int = 1,
         categoryId: UUID? = nil,
         savingStrategy: RecurringPaymentSavingStrategy = .evenlyDistributed,
         customMonthlySavingAmount: Decimal? = nil,
@@ -36,7 +34,6 @@ internal struct RecurringPaymentDefinitionInput: Sendable {
         self.recurrenceIntervalMonths = recurrenceIntervalMonths
         self.firstOccurrenceDate = firstOccurrenceDate
         self.endDate = endDate
-        self.leadTimeMonths = leadTimeMonths
         self.categoryId = categoryId
         self.savingStrategy = savingStrategy
         self.customMonthlySavingAmount = customMonthlySavingAmount
