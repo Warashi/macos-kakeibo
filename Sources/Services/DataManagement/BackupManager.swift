@@ -399,7 +399,6 @@ internal actor BackupManager {
                 recurrenceIntervalMonths: dto.recurrenceIntervalMonths,
                 firstOccurrenceDate: dto.firstOccurrenceDate,
                 endDate: dto.endDate,
-                leadTimeMonths: dto.leadTimeMonths,
                 category: dto.categoryId.flatMap { categories[$0] },
                 savingStrategy: dto.savingStrategy,
                 customMonthlySavingAmount: dto.customMonthlySavingAmount,
@@ -626,7 +625,6 @@ internal struct BackupRecurringPaymentDefinitionDTO: Codable {
     internal let recurrenceIntervalMonths: Int
     internal let firstOccurrenceDate: Date
     internal let endDate: Date?
-    internal let leadTimeMonths: Int
     internal let categoryId: UUID?
     internal let savingStrategy: RecurringPaymentSavingStrategy
     internal let customMonthlySavingAmount: Decimal?
@@ -643,7 +641,6 @@ internal struct BackupRecurringPaymentDefinitionDTO: Codable {
         self.recurrenceIntervalMonths = definition.recurrenceIntervalMonths
         self.firstOccurrenceDate = definition.firstOccurrenceDate
         self.endDate = definition.endDate
-        self.leadTimeMonths = definition.leadTimeMonths
         self.categoryId = definition.category?.id
         self.savingStrategy = definition.savingStrategy
         self.customMonthlySavingAmount = definition.customMonthlySavingAmount
