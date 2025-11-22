@@ -63,7 +63,7 @@ internal final class DashboardService {
                 snapshot: snapshot,
                 year: year,
                 month: month,
-                excludedCategoryIds: excludedCategoryIds,
+                excludedCategoryIds: Array(excludedCategoryIds),
                 monthlySummary: monthlySummary,
                 annualSummary: annualSummary,
                 displayMode: displayMode,
@@ -111,8 +111,8 @@ internal final class DashboardService {
         internal let annualBudgetUsage: AnnualBudgetUsage?
         internal let monthlyAllocation: MonthlyAllocation?
         internal let categoryHighlights: [CategorySummary]
-        internal let progressCalculation: AnnualBudgetProgressCalculation?
-        internal let categoryEntries: [AnnualBudgetCategoryEntry]
+        internal let progressCalculation: BudgetCalculation?
+        internal let categoryEntries: [AnnualBudgetEntry]
         internal let savingsSummary: SavingsSummary
         internal let recurringPaymentSummary: RecurringPaymentSummary
     }
@@ -137,7 +137,7 @@ internal final class DashboardService {
                 year: year,
                 month: month,
                 filter: .default,
-                excludedCategoryIds: excludedCategoryIds,
+                excludedCategoryIds: Set(excludedCategoryIds),
             ),
         )
 
@@ -156,7 +156,7 @@ internal final class DashboardService {
         let (progressCalculation, categoryEntries) = calculateAnnualBudgetProgress(
             snapshot: snapshot,
             year: year,
-            excludedCategoryIds: excludedCategoryIds,
+            excludedCategoryIds: Set(excludedCategoryIds),
         )
 
         let savingsSummary = calculateSavingsSummary(
@@ -369,7 +369,7 @@ internal final class DashboardService {
         let month = params.month
         let definitions = params.definitions
         let occurrences = params.occurrences
-        let balances = params.balances
+        _ = params.balances
         // 当月の開始日・終了日を計算
         guard let monthStart = Date.from(year: year, month: month),
               let monthEnd = Date.from(year: year, month: month == 12 ? 1 : month + 1) else {
