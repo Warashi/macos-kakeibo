@@ -130,7 +130,7 @@ internal final class RecurringPaymentListStore {
                 repository: repository,
                 definitionIds: Array(definitions.keys),
             )
-            let categories = Self.fetchCategoryNames(from: definitions)
+            let categories = await Self.fetchCategoryNames(repository: repository, from: definitions)
             let filter = RecurringPaymentListFilter(
                 dateRange: state.dateRange,
                 searchText: SearchText(state.searchText),
@@ -186,15 +186,13 @@ internal final class RecurringPaymentListStore {
         return Dictionary(uniqueKeysWithValues: balances.map { ($0.definitionId, $0) })
     }
 
-    private nonisolated static func fetchCategoryNames(from definitions: [UUID: RecurringPaymentDefinition])
-    -> [UUID: String] {
-        var categoryNames: [UUID: String] = [:]
-        for definition in definitions.values {
-            if let categoryId = definition.categoryId {
-                categoryNames[categoryId] = definition.name
-            }
-        }
-        return categoryNames
+    private nonisolated static func fetchCategoryNames(
+        repository: RecurringPaymentRepository,
+        from definitions: [UUID: RecurringPaymentDefinition],
+    ) async -> [UUID: String] {
+        let categoryIds = Set(definitions.values.compactMap(\.categoryId))
+        guard !categoryIds.isEmpty else { return [:] }
+        return await (try? repository.categoryNames(ids: categoryIds)) ?? [:]
     }
 
     private func updateCategoryOptionsIfNeeded(

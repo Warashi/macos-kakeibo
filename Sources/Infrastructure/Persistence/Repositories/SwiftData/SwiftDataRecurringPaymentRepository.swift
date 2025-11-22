@@ -83,6 +83,19 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         return try context.fetch(descriptor).map { RecurringPaymentSavingBalance(from: $0) }
     }
 
+    internal func categoryNames(ids: Set<UUID>) async throws -> [UUID: String] {
+        guard !ids.isEmpty else { return [:] }
+
+        let context = currentContext
+        let predicate = #Predicate<SwiftDataCategory> { category in
+            ids.contains(category.id)
+        }
+        let descriptor = FetchDescriptor<SwiftDataCategory>(predicate: predicate)
+
+        let categories = try context.fetch(descriptor)
+        return Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0.name) })
+    }
+
     @discardableResult
     internal func createDefinition(_ input: RecurringPaymentDefinitionInput) async throws -> UUID {
         let context = currentContext

@@ -70,6 +70,16 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         return results.map { RecurringPaymentSavingBalance(from: $0) }
     }
 
+    internal func categoryNames(ids: Set<UUID>) async throws -> [UUID: String] {
+        var result: [UUID: String] = [:]
+        for categoryId in ids {
+            if let category = categoryLookup[categoryId] {
+                result[categoryId] = category.name
+            }
+        }
+        return result
+    }
+
     @discardableResult
     internal func createDefinition(_ input: RecurringPaymentDefinitionInput) async throws -> UUID {
         let category = try await resolvedSwiftDataCategory(id: input.categoryId)

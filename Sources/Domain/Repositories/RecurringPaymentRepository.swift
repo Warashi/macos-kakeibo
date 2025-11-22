@@ -65,6 +65,7 @@ internal protocol RecurringPaymentRepository: Sendable {
     func definitions(filter: RecurringPaymentDefinitionFilter?) async throws -> [RecurringPaymentDefinition]
     func occurrences(query: RecurringPaymentOccurrenceQuery?) async throws -> [RecurringPaymentOccurrence]
     func balances(query: RecurringPaymentBalanceQuery?) async throws -> [RecurringPaymentSavingBalance]
+    func categoryNames(ids: Set<UUID>) async throws -> [UUID: String]
 
     @discardableResult
     func createDefinition(_ input: RecurringPaymentDefinitionInput) async throws -> UUID
