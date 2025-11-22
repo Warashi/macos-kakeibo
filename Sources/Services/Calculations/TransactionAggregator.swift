@@ -53,7 +53,10 @@ internal struct MonthlySummary: Sendable {
     /// 支出合計
     internal let totalExpense: Decimal
 
-    /// 差引（収入 - 支出）
+    /// 貯蓄合計
+    internal let totalSavings: Decimal
+
+    /// 差引（収入 - 支出 - 貯蓄）
     internal let net: Decimal
 
     /// 取引件数
@@ -74,7 +77,10 @@ internal struct AnnualSummary: Sendable {
     /// 支出合計
     internal let totalExpense: Decimal
 
-    /// 差引（収入 - 支出）
+    /// 貯蓄合計
+    internal let totalSavings: Decimal
+
+    /// 差引（収入 - 支出 - 貯蓄）
     internal let net: Decimal
 
     /// 取引件数
@@ -141,6 +147,7 @@ internal struct TransactionAggregator: Sendable {
     ///   - year: 対象年
     ///   - month: 対象月
     ///   - filter: フィルタオプション
+    ///   - savingsGoals: 貯蓄目標リスト
     /// - Returns: 月次集計結果
     internal func aggregateMonthly(
         transactions: [Transaction],
@@ -148,6 +155,7 @@ internal struct TransactionAggregator: Sendable {
         year: Int,
         month: Int,
         filter: AggregationFilter = .default,
+        savingsGoals: [SavingsGoal] = []
     ) -> MonthlySummary {
         // 対象月の取引をフィルタ
         let filteredTransactions = transactions.filter { transaction in
@@ -172,14 +180,20 @@ internal struct TransactionAggregator: Sendable {
             .filter(\.isExpense)
             .reduce(Decimal.zero) { $0 + abs($1.amount) }
 
+        // 貯蓄合計を計算
+        let totalSavings = savingsGoals
+            .filter { $0.isActive }
+            .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
+
         return MonthlySummary(
             year: year,
             month: month,
             totalIncome: totalIncome,
             totalExpense: totalExpense,
-            net: totalIncome - totalExpense,
+            totalSavings: totalSavings,
+            net: totalIncome - totalExpense - totalSavings,
             transactionCount: filteredTransactions.count,
-            categorySummaries: categorySummaries,
+            categorySummaries: categorySummaries
         )
     }
 
@@ -189,12 +203,14 @@ internal struct TransactionAggregator: Sendable {
     ///   - categories: カテゴリリスト
     ///   - year: 対象年
     ///   - filter: フィルタオプション
+    ///   - savingsGoals: 貯蓄目標リスト
     /// - Returns: 年次集計結果
     internal func aggregateAnnually(
         transactions: [Transaction],
         categories: [Category],
         year: Int,
         filter: AggregationFilter = .default,
+        savingsGoals: [SavingsGoal] = []
     ) -> AnnualSummary {
         // 対象年の取引をフィルタ
         let filteredTransactions = transactions.filter { transaction in
@@ -217,6 +233,7 @@ internal struct TransactionAggregator: Sendable {
                 year: year,
                 month: month,
                 filter: filter,
+                savingsGoals: savingsGoals
             )
         }
 
@@ -229,14 +246,21 @@ internal struct TransactionAggregator: Sendable {
             .filter(\.isExpense)
             .reduce(Decimal.zero) { $0 + abs($1.amount) }
 
+        // 貯蓄合計を計算（12ヶ月分）
+        let monthlySavingsAmount = savingsGoals
+            .filter { $0.isActive }
+            .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
+        let totalSavings = monthlySavingsAmount * 12
+
         return AnnualSummary(
             year: year,
             totalIncome: totalIncome,
             totalExpense: totalExpense,
-            net: totalIncome - totalExpense,
+            totalSavings: totalSavings,
+            net: totalIncome - totalExpense - totalSavings,
             transactionCount: filteredTransactions.count,
             categorySummaries: categorySummaries,
-            monthlySummaries: monthlySummaries,
+            monthlySummaries: monthlySummaries
         )
     }
 

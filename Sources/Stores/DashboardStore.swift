@@ -97,18 +97,20 @@ internal final class DashboardStore {
             month: initialMonth,
             totalIncome: 0,
             totalExpense: 0,
+            totalSavings: 0,
             net: 0,
             transactionCount: 0,
-            categorySummaries: [],
+            categorySummaries: []
         )
         self.annualSummary = AnnualSummary(
             year: initialYear,
             totalIncome: 0,
             totalExpense: 0,
+            totalSavings: 0,
             net: 0,
             transactionCount: 0,
             categorySummaries: [],
-            monthlySummaries: [],
+            monthlySummaries: []
         )
         self.monthlyBudgetCalculation = MonthlyBudgetCalculation(
             year: initialYear,
