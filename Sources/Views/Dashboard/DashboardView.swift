@@ -123,6 +123,8 @@ internal struct DashboardView: View {
         VStack(spacing: 20) {
             SavingsSummaryCard(savingsSummary: store.savingsSummary)
 
+            RecurringPaymentSummaryCard(recurringPaymentSummary: store.recurringPaymentSummary)
+
             BudgetDistributionCard(
                 displayMode: store.displayMode,
                 monthlyCategoryCalculations: store.monthlyBudgetCalculation.categoryCalculations,
