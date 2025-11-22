@@ -14,6 +14,9 @@ internal extension ModelContainer {
             SwiftDataRecurringPaymentOccurrence.self,
             SwiftDataRecurringPaymentSavingBalance.self,
             SwiftDataCustomHoliday.self,
+            SwiftDataSavingsGoal.self,
+            SwiftDataSavingsGoalBalance.self,
+            SwiftDataSavingsGoalWithdrawal.self,
         ])
 
         let modelConfiguration = ModelConfiguration(
@@ -39,6 +42,9 @@ internal extension ModelContainer {
             SwiftDataRecurringPaymentOccurrence.self,
             SwiftDataRecurringPaymentSavingBalance.self,
             SwiftDataCustomHoliday.self,
+            SwiftDataSavingsGoal.self,
+            SwiftDataSavingsGoalBalance.self,
+            SwiftDataSavingsGoalWithdrawal.self,
         ])
 
         let modelConfiguration = ModelConfiguration(

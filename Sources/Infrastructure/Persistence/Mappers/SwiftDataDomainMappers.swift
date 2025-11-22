@@ -142,3 +142,51 @@ internal extension RecurringPaymentSavingBalance {
         )
     }
 }
+
+internal extension SavingsGoal {
+    init(from record: SwiftDataSavingsGoal) {
+        self.init(
+            id: record.id,
+            name: record.name,
+            targetAmount: record.targetAmount,
+            monthlySavingAmount: record.monthlySavingAmount,
+            categoryId: record.categoryId,
+            notes: record.notes,
+            startDate: record.startDate,
+            targetDate: record.targetDate,
+            isActive: record.isActive,
+            createdAt: record.createdAt,
+            updatedAt: record.updatedAt,
+        )
+    }
+}
+
+internal extension SavingsGoalBalance {
+    init(from record: SwiftDataSavingsGoalBalance) {
+        self.init(
+            id: record.id,
+            goalId: record.goal.id,
+            totalSavedAmount: record.totalSavedAmount,
+            totalWithdrawnAmount: record.totalWithdrawnAmount,
+            lastUpdatedYear: record.lastUpdatedYear,
+            lastUpdatedMonth: record.lastUpdatedMonth,
+            createdAt: record.createdAt,
+            updatedAt: record.updatedAt,
+        )
+    }
+}
+
+internal extension SavingsGoalWithdrawal {
+    init(from record: SwiftDataSavingsGoalWithdrawal) {
+        self.init(
+            id: record.id,
+            goalId: record.goalId,
+            amount: record.amount,
+            withdrawalDate: record.withdrawalDate,
+            purpose: record.purpose,
+            transactionId: record.transaction?.id,
+            createdAt: record.createdAt,
+            updatedAt: record.updatedAt,
+        )
+    }
+}
