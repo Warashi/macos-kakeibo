@@ -8,7 +8,7 @@ import Testing
 @MainActor
 internal struct SavingsGoalStoreTests {
     @Test("貯蓄目標を作成できる")
-    func 貯蓄目標を作成できる() async throws {
+    internal func canCreateSavingsGoal() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let store = SavingsGoalStore(modelContext: context)
@@ -37,7 +37,7 @@ internal struct SavingsGoalStoreTests {
     }
 
     @Test("貯蓄目標を更新できる")
-    func 貯蓄目標を更新できる() async throws {
+    internal func canUpdateSavingsGoal() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -81,7 +81,7 @@ internal struct SavingsGoalStoreTests {
     }
 
     @Test("貯蓄目標を削除できる")
-    func 貯蓄目標を削除できる() async throws {
+    internal func canDeleteSavingsGoal() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -112,7 +112,7 @@ internal struct SavingsGoalStoreTests {
     }
 
     @Test("貯蓄目標の有効/無効を切り替えられる")
-    func 貯蓄目標の有効無効を切り替えられる() async throws {
+    internal func canToggleSavingsGoalActive() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
 
@@ -143,7 +143,7 @@ internal struct SavingsGoalStoreTests {
     }
 
     @Test("バリデーションエラーが正しく動作する")
-    func バリデーションエラーが正しく動作する() async throws {
+    internal func validationErrorsWork() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let store = SavingsGoalStore(modelContext: context)
@@ -172,13 +172,16 @@ internal struct SavingsGoalStoreTests {
     }
 
     @Test("目標金額と目標達成日のバリデーション")
-    func 目標金額と目標達成日のバリデーション() async throws {
+    internal func targetAmountAndDateValidation() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let store = SavingsGoalStore(modelContext: context)
 
         let startDate = Date()
-        let targetDate = Calendar.current.date(byAdding: .day, value: -1, to: startDate)!
+        guard let targetDate = Calendar.current.date(byAdding: .day, value: -1, to: startDate) else {
+            Issue.record("日付計算が失敗しました")
+            return
+        }
 
         store.formInput = SavingsGoalFormInput(
             name: "テスト",
