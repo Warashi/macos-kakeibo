@@ -11,7 +11,7 @@ internal struct SavingsGoalBalanceSavingsTests {
         SwiftDataSavingsGoal(
             name: "緊急費用",
             targetAmount: 100_000,
-            monthlySavingAmount: 10_000,
+            monthlySavingAmount: 10000,
             categoryId: nil,
             notes: nil,
             startDate: Date.from(year: 2025, month: 1) ?? Date(),
@@ -39,7 +39,7 @@ internal struct SavingsGoalBalanceSavingsTests {
         )
 
         // Then
-        #expect(balance.totalSavedAmount == 10_000)
+        #expect(balance.totalSavedAmount == 10000)
         #expect(balance.totalWithdrawnAmount == 0)
         #expect(balance.lastUpdatedYear == 2025)
         #expect(balance.lastUpdatedMonth == 1)
@@ -53,7 +53,7 @@ internal struct SavingsGoalBalanceSavingsTests {
         let goal = sampleGoal()
         let existingBalance = SwiftDataSavingsGoalBalance(
             goal: goal,
-            totalSavedAmount: 10_000,
+            totalSavedAmount: 10000,
             totalWithdrawnAmount: 0,
             lastUpdatedYear: 2025,
             lastUpdatedMonth: 1,
@@ -72,7 +72,7 @@ internal struct SavingsGoalBalanceSavingsTests {
         )
 
         // Then
-        #expect(balance.totalSavedAmount == 20_000) // 10000 + 10000
+        #expect(balance.totalSavedAmount == 20000) // 10000 + 10000
         #expect(balance.lastUpdatedYear == 2025)
         #expect(balance.lastUpdatedMonth == 2)
     }
@@ -85,7 +85,7 @@ internal struct SavingsGoalBalanceSavingsTests {
         let goal = sampleGoal()
         let existingBalance = SwiftDataSavingsGoalBalance(
             goal: goal,
-            totalSavedAmount: 10_000,
+            totalSavedAmount: 10000,
             totalWithdrawnAmount: 0,
             lastUpdatedYear: 2025,
             lastUpdatedMonth: 1,
@@ -104,7 +104,7 @@ internal struct SavingsGoalBalanceSavingsTests {
         )
 
         // Then
-        #expect(balance.totalSavedAmount == 10_000) // 変わらない
+        #expect(balance.totalSavedAmount == 10000) // 変わらない
         #expect(balance.lastUpdatedYear == 2025)
         #expect(balance.lastUpdatedMonth == 1)
     }
@@ -118,7 +118,7 @@ internal struct SavingsGoalBalanceWithdrawalTests {
         SwiftDataSavingsGoal(
             name: "旅行積立",
             targetAmount: 500_000,
-            monthlySavingAmount: 50_000,
+            monthlySavingAmount: 50000,
             categoryId: nil,
             notes: nil,
             startDate: Date.from(year: 2025, month: 1) ?? Date(),
@@ -145,7 +145,7 @@ internal struct SavingsGoalBalanceWithdrawalTests {
 
         let withdrawal = SwiftDataSavingsGoalWithdrawal(
             goal: goal,
-            amount: 30_000,
+            amount: 30000,
             withdrawalDate: Date(),
             purpose: "旅行費用",
             transaction: nil,
@@ -159,8 +159,8 @@ internal struct SavingsGoalBalanceWithdrawalTests {
         )
 
         // Then
-        #expect(balance.totalWithdrawnAmount == 30_000)
-        #expect(remainingBalance == 70_000) // 100000 - 30000
+        #expect(balance.totalWithdrawnAmount == 30000)
+        #expect(remainingBalance == 70000) // 100000 - 30000
     }
 
     @Test("引出処理：複数回の引出")
@@ -181,14 +181,14 @@ internal struct SavingsGoalBalanceWithdrawalTests {
 
         let withdrawal1 = SwiftDataSavingsGoalWithdrawal(
             goal: goal,
-            amount: 50_000,
+            amount: 50000,
             withdrawalDate: Date(),
             purpose: "1回目",
             transaction: nil,
         )
         let withdrawal2 = SwiftDataSavingsGoalWithdrawal(
             goal: goal,
-            amount: 30_000,
+            amount: 30000,
             withdrawalDate: Date(),
             purpose: "2回目",
             transaction: nil,
@@ -207,8 +207,8 @@ internal struct SavingsGoalBalanceWithdrawalTests {
         )
 
         // Then
-        #expect(balance.totalWithdrawnAmount == 80_000) // 50000 + 30000
-        #expect(balance2 == 70_000) // 150000 - 80000
+        #expect(balance.totalWithdrawnAmount == 80000) // 50000 + 30000
+        #expect(balance2 == 70000) // 150000 - 80000
     }
 }
 
@@ -314,14 +314,14 @@ internal struct SavingsGoalBalanceRecalculationTests {
 
         let withdrawal1 = SwiftDataSavingsGoalWithdrawal(
             goal: goal,
-            amount: 50_000,
+            amount: 50000,
             withdrawalDate: Date(),
             purpose: "引出1",
             transaction: nil,
         )
         let withdrawal2 = SwiftDataSavingsGoalWithdrawal(
             goal: goal,
-            amount: 30_000,
+            amount: 30000,
             withdrawalDate: Date(),
             purpose: "引出2",
             transaction: nil,
@@ -346,7 +346,7 @@ internal struct SavingsGoalBalanceRecalculationTests {
 
         // Then
         #expect(balance.totalSavedAmount == 600_000) // 100000 * 6
-        #expect(balance.totalWithdrawnAmount == 80_000) // 50000 + 30000
+        #expect(balance.totalWithdrawnAmount == 80000) // 50000 + 30000
         #expect(balance.balance == 520_000) // 600000 - 80000
     }
 
@@ -391,7 +391,7 @@ internal struct SavingsGoalBalanceCacheTests {
         SwiftDataSavingsGoal(
             name: "キャッシュテスト",
             targetAmount: nil,
-            monthlySavingAmount: 10_000,
+            monthlySavingAmount: 10000,
             categoryId: nil,
             notes: nil,
             startDate: Date.from(year: 2025, month: 1) ?? Date(),
@@ -552,7 +552,7 @@ internal struct SavingsGoalBalanceCacheTests {
 
         let withdrawal = SwiftDataSavingsGoalWithdrawal(
             goal: goal,
-            amount: 10_000,
+            amount: 10000,
             withdrawalDate: Date(),
             purpose: nil,
             transaction: nil,

@@ -9,12 +9,12 @@ internal actor SwiftDataDashboardRepository: DashboardRepository {
         let monthlyTransactions = try await fetchTransactions(
             context: context,
             year: year,
-            month: month
+            month: month,
         )
         let annualTransactions = try await fetchTransactions(
             context: context,
             year: year,
-            month: nil
+            month: nil,
         )
         let budgets = try context.fetch(BudgetQueries.budgets(overlapping: year)).map { Budget(from: $0) }
         let categories = try context.fetch(CategoryQueries.sortedForDisplay()).map { Category(from: $0) }
@@ -36,7 +36,7 @@ internal actor SwiftDataDashboardRepository: DashboardRepository {
             categories: categories,
             config: config,
             savingsGoals: savingsGoals,
-            savingsGoalBalances: savingsGoalBalances
+            savingsGoalBalances: savingsGoalBalances,
         )
     }
 

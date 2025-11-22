@@ -188,9 +188,9 @@ internal struct TransactionAggregatorTests {
         // Then
         #expect(result.year == year)
         #expect(result.month == month)
-        #expect(result.totalSavings == 60_000) // 10000 + 50000
+        #expect(result.totalSavings == 60000) // 10000 + 50000
         // net = totalIncome - totalExpense - totalSavings
-        #expect(result.net == result.totalIncome - result.totalExpense - 60_000)
+        #expect(result.net == result.totalIncome - result.totalExpense - 60000)
     }
 
     @Test("非アクティブな貯蓄目標は集計に含まれない")
@@ -225,7 +225,7 @@ internal struct TransactionAggregatorTests {
         )
 
         // Then
-        #expect(result.totalSavings == 10_000) // アクティブな目標のみ
+        #expect(result.totalSavings == 10000) // アクティブな目標のみ
     }
 
     @Test("貯蓄目標がない場合は総貯蓄額が0")
@@ -272,7 +272,7 @@ internal struct TransactionAggregatorTests {
         #expect(result.monthlySummaries.count == 12)
         // 各月の貯蓄額を確認
         for monthlySummary in result.monthlySummaries {
-            #expect(monthlySummary.totalSavings == 60_000)
+            #expect(monthlySummary.totalSavings == 60000)
         }
     }
 
@@ -322,7 +322,7 @@ internal struct TransactionAggregatorTests {
                 id: UUID(),
                 name: "緊急費用",
                 targetAmount: nil,
-                monthlySavingAmount: 10_000,
+                monthlySavingAmount: 10000,
                 categoryId: nil,
                 notes: nil,
                 startDate: Date(),
@@ -335,7 +335,7 @@ internal struct TransactionAggregatorTests {
                 id: UUID(),
                 name: "旅行積立",
                 targetAmount: 500_000,
-                monthlySavingAmount: 50_000,
+                monthlySavingAmount: 50000,
                 categoryId: nil,
                 notes: nil,
                 startDate: Date(),

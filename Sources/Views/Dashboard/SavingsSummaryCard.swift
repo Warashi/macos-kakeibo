@@ -23,8 +23,9 @@ internal struct SavingsSummaryCard: View {
 
                 if savingsSummary.goalSummaries.isEmpty {
                     EmptyStatePlaceholder(
-                        message: "貯蓄目標が設定されていません",
                         systemImage: "banknote",
+                        title: "貯蓄目標なし",
+                        message: "貯蓄目標が設定されていません",
                     )
                     .padding()
                 } else {

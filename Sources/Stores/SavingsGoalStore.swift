@@ -143,8 +143,9 @@ internal final class SavingsGoalStore {
 
     /// 引出を記録
     internal func recordWithdrawal(params: WithdrawalParameters) throws {
+        let goalId = params.goalId
         let goalDescriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == params.goalId },
+            predicate: #Predicate { $0.id == goalId },
         )
 
         guard let goal = try modelContext.fetch(goalDescriptor).first else {
@@ -156,7 +157,7 @@ internal final class SavingsGoalStore {
             amount: params.amount,
             withdrawalDate: params.withdrawalDate,
             purpose: params.purpose,
-            transactionId: params.transactionId,
+            transaction: nil,
         )
 
         modelContext.insert(withdrawal)

@@ -103,7 +103,7 @@ internal final class DashboardStore {
             totalSavings: 0,
             net: 0,
             transactionCount: 0,
-            categorySummaries: []
+            categorySummaries: [],
         )
         self.annualSummary = AnnualSummary(
             year: initialYear,
@@ -113,7 +113,7 @@ internal final class DashboardStore {
             net: 0,
             transactionCount: 0,
             categorySummaries: [],
-            monthlySummaries: []
+            monthlySummaries: [],
         )
         self.monthlyBudgetCalculation = MonthlyBudgetCalculation(
             year: initialYear,
@@ -128,7 +128,7 @@ internal final class DashboardStore {
         self.annualBudgetCategoryEntries = []
         self.savingsSummary = SavingsSummary(
             totalMonthlySavings: 0,
-            goalSummaries: []
+            goalSummaries: [],
         )
 
         // すべての stored property の初期化が完了したので、年のフォールバックチェックが可能

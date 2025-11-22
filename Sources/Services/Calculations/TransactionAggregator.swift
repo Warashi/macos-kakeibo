@@ -155,7 +155,7 @@ internal struct TransactionAggregator: Sendable {
         year: Int,
         month: Int,
         filter: AggregationFilter = .default,
-        savingsGoals: [SavingsGoal] = []
+        savingsGoals: [SavingsGoal] = [],
     ) -> MonthlySummary {
         // 対象月の取引をフィルタ
         let filteredTransactions = transactions.filter { transaction in
@@ -182,7 +182,7 @@ internal struct TransactionAggregator: Sendable {
 
         // 貯蓄合計を計算
         let totalSavings = savingsGoals
-            .filter { $0.isActive }
+            .filter(\.isActive)
             .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
 
         return MonthlySummary(
@@ -193,7 +193,7 @@ internal struct TransactionAggregator: Sendable {
             totalSavings: totalSavings,
             net: totalIncome - totalExpense - totalSavings,
             transactionCount: filteredTransactions.count,
-            categorySummaries: categorySummaries
+            categorySummaries: categorySummaries,
         )
     }
 
@@ -210,7 +210,7 @@ internal struct TransactionAggregator: Sendable {
         categories: [Category],
         year: Int,
         filter: AggregationFilter = .default,
-        savingsGoals: [SavingsGoal] = []
+        savingsGoals: [SavingsGoal] = [],
     ) -> AnnualSummary {
         // 対象年の取引をフィルタ
         let filteredTransactions = transactions.filter { transaction in
@@ -233,7 +233,7 @@ internal struct TransactionAggregator: Sendable {
                 year: year,
                 month: month,
                 filter: filter,
-                savingsGoals: savingsGoals
+                savingsGoals: savingsGoals,
             )
         }
 
@@ -248,7 +248,7 @@ internal struct TransactionAggregator: Sendable {
 
         // 貯蓄合計を計算（12ヶ月分）
         let monthlySavingsAmount = savingsGoals
-            .filter { $0.isActive }
+            .filter(\.isActive)
             .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
         let totalSavings = monthlySavingsAmount * 12
 
@@ -260,7 +260,7 @@ internal struct TransactionAggregator: Sendable {
             net: totalIncome - totalExpense - totalSavings,
             transactionCount: filteredTransactions.count,
             categorySummaries: categorySummaries,
-            monthlySummaries: monthlySummaries
+            monthlySummaries: monthlySummaries,
         )
     }
 

@@ -19,7 +19,6 @@ internal struct SavingsGoalFormView: View {
                         value: $store.formInput.monthlySavingAmount,
                         format: .number,
                     )
-                    .keyboardType(.decimalPad)
                 }
 
                 Section("目標設定") {
@@ -41,7 +40,6 @@ internal struct SavingsGoalFormView: View {
                             ),
                             format: .number,
                         )
-                        .keyboardType(.decimalPad)
                     }
 
                     Toggle("目標達成日を設定", isOn: $hasTargetDate)

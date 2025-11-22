@@ -53,7 +53,7 @@ internal actor SwiftDataBudgetRepository: BudgetRepository {
             recurringPaymentBalances: balances,
             recurringPaymentOccurrences: occurrences,
             savingsGoals: savingsGoalModels,
-            savingsGoalBalances: savingsGoalBalanceModels
+            savingsGoalBalances: savingsGoalBalanceModels,
         )
     }
 

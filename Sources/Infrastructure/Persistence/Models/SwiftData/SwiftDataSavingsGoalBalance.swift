@@ -97,3 +97,11 @@ internal extension SwiftDataSavingsGoalBalance {
         validate().isEmpty
     }
 }
+
+// MARK: - Domain Conversion
+
+internal extension SwiftDataSavingsGoalBalance {
+    func toDomain() -> SavingsGoalBalance {
+        SavingsGoalBalance(from: self)
+    }
+}

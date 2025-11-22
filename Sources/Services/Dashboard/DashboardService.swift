@@ -46,7 +46,7 @@ internal final class DashboardService {
             year: year,
             month: month,
             filter: .default,
-            savingsGoals: snapshot.savingsGoals
+            savingsGoals: snapshot.savingsGoals,
         )
 
         let annualSummary = aggregator.aggregateAnnually(
@@ -54,7 +54,7 @@ internal final class DashboardService {
             categories: snapshot.categories,
             year: year,
             filter: .default,
-            savingsGoals: snapshot.savingsGoals
+            savingsGoals: snapshot.savingsGoals,
         )
 
         let monthlyBudgetCalculation = budgetCalculator.calculateMonthlyBudget(
@@ -84,12 +84,12 @@ internal final class DashboardService {
         let (progressCalculation, categoryEntries) = calculateAnnualBudgetProgress(
             snapshot: snapshot,
             year: year,
-            excludedCategoryIds: excludedCategoryIds
+            excludedCategoryIds: excludedCategoryIds,
         )
 
         let savingsSummary = calculateSavingsSummary(
             goals: snapshot.savingsGoals,
-            balances: snapshot.savingsGoalBalances
+            balances: snapshot.savingsGoalBalances,
         )
 
         return DashboardResult(
@@ -101,7 +101,7 @@ internal final class DashboardService {
             categoryHighlights: categoryHighlights,
             annualBudgetProgressCalculation: progressCalculation,
             annualBudgetCategoryEntries: categoryEntries,
-            savingsSummary: savingsSummary
+            savingsSummary: savingsSummary,
         )
     }
 
@@ -153,7 +153,7 @@ internal final class DashboardService {
     private func calculateAnnualBudgetProgress(
         snapshot: DashboardSnapshot,
         year: Int,
-        excludedCategoryIds: Set<UUID>
+        excludedCategoryIds: Set<UUID>,
     ) -> (BudgetCalculation?, [AnnualBudgetEntry]) {
         let progressResult = annualBudgetProgressCalculator.calculate(
             budgets: snapshot.budgets,
@@ -161,7 +161,7 @@ internal final class DashboardService {
             categories: snapshot.categories,
             year: year,
             filter: .default,
-            excludedCategoryIds: excludedCategoryIds
+            excludedCategoryIds: excludedCategoryIds,
         )
 
         if progressResult.overallEntry == nil, progressResult.categoryEntries.isEmpty {
@@ -173,19 +173,23 @@ internal final class DashboardService {
 
     private func calculateSavingsSummary(
         goals: [SavingsGoal],
-        balances: [SavingsGoalBalance]
+        balances: [SavingsGoalBalance],
     ) -> SavingsSummary {
         let balanceMap = Dictionary(uniqueKeysWithValues: balances.map { ($0.goalId, $0) })
 
         let totalMonthlySavings = goals
-            .filter { $0.isActive }
+            .filter(\.isActive)
             .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
 
         let goalSummaries = goals.map { goal in
             let balance = balanceMap[goal.id]
             let currentBalance = balance?.balance ?? 0
             let progress: Double = if let targetAmount = goal.targetAmount, targetAmount > 0 {
-                min(1.0, NSDecimalNumber(decimal: currentBalance).doubleValue / NSDecimalNumber(decimal: targetAmount).doubleValue)
+                min(
+                    1.0,
+                    NSDecimalNumber(decimal: currentBalance).doubleValue / NSDecimalNumber(decimal: targetAmount)
+                        .doubleValue,
+                )
             } else {
                 0.0
             }
@@ -196,13 +200,13 @@ internal final class DashboardService {
                 monthlySavingAmount: goal.monthlySavingAmount,
                 currentBalance: currentBalance,
                 targetAmount: goal.targetAmount,
-                progress: progress
+                progress: progress,
             )
         }
 
         return SavingsSummary(
             totalMonthlySavings: totalMonthlySavings,
-            goalSummaries: goalSummaries
+            goalSummaries: goalSummaries,
         )
     }
 }
