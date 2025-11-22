@@ -23,7 +23,7 @@ internal struct RecurringPaymentDefinitionInput: Sendable {
         recurrenceIntervalMonths: Int,
         firstOccurrenceDate: Date,
         endDate: Date? = nil,
-        leadTimeMonths: Int = 0,
+        leadTimeMonths: Int = 1,
         categoryId: UUID? = nil,
         savingStrategy: RecurringPaymentSavingStrategy = .evenlyDistributed,
         customMonthlySavingAmount: Decimal? = nil,

@@ -72,12 +72,26 @@ internal struct RecurringPaymentEditorSheet: View {
                     }
 
                     LabeledField(title: "リードタイム（月数）") {
-                        Stepper(value: $formState.leadTimeMonths, in: 0 ... 999) {
-                            HStack {
-                                Text("\(formState.leadTimeMonths)")
-                                    .frame(minWidth: 30, alignment: .trailing)
-                                Text("か月前から積立開始")
+                        HStack(spacing: 8) {
+                            Stepper(value: $formState.leadTimeMonths, in: 1 ... 999) {
+                                HStack {
+                                    Text("\(formState.leadTimeMonths)")
+                                        .frame(minWidth: 30, alignment: .trailing)
+                                    Text("か月前から積立開始")
+                                }
                             }
+
+                            Button(
+                                action: {
+                                    formState.leadTimeMonths = formState.recurrenceIntervalMonths
+                                },
+                                label: {
+                                    Image(systemName: "arrow.counterclockwise")
+                                        .foregroundStyle(.secondary)
+                                },
+                            )
+                            .buttonStyle(.plain)
+                            .help("支払い周期と一致させる")
                         }
                     }
 

@@ -74,7 +74,7 @@ internal struct RecurringPaymentStoreDefUpdateTests {
                 amount: -1000,
                 recurrenceIntervalMonths: 12,
                 firstOccurrenceDate: firstOccurrence,
-                leadTimeMonths: 0,
+                leadTimeMonths: 1,
                 categoryId: nil,
                 savingStrategy: .evenlyDistributed,
                 customMonthlySavingAmount: nil,

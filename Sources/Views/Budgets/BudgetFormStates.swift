@@ -298,7 +298,7 @@ internal struct RecurringPaymentFormState {
         recurrenceYears = 0
         recurrenceMonths = 1
         firstOccurrenceDate = Date()
-        leadTimeMonths = recurrenceIntervalMonths
+        leadTimeMonths = max(1, recurrenceIntervalMonths)
         selectedMajorCategoryId = nil
         selectedMinorCategoryId = nil
         savingStrategy = .evenlyDistributed
@@ -347,7 +347,7 @@ internal struct RecurringPaymentFormState {
         guard !nameText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
         guard let amount = decimalAmount, amount > 0 else { return false }
         guard recurrenceIntervalMonths > 0 else { return false }
-        guard leadTimeMonths >= 0 else { return false }
+        guard leadTimeMonths > 0 else { return false }
 
         if savingStrategy == .customMonthly {
             guard let customAmount = customMonthlySavingAmount, customAmount > 0 else { return false }

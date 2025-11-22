@@ -80,7 +80,7 @@ internal struct ScheduleServiceBasicTests {
         let plannedStatus = service.defaultStatus(
             for: scheduledDate,
             referenceDate: referenceDate,
-            leadTimeMonths: 0,
+            leadTimeMonths: 1,
         )
         #expect(plannedStatus == .planned)
     }
