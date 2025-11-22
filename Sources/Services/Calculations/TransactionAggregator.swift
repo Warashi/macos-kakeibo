@@ -56,7 +56,10 @@ internal struct MonthlySummary: Sendable {
     /// 貯蓄合計
     internal let totalSavings: Decimal
 
-    /// 差引（収入 - 支出 - 貯蓄）
+    /// 定期支払い積立合計
+    internal let recurringPaymentAllocation: Decimal
+
+    /// 差引（収入 - 支出 - 貯蓄 - 定期支払い積立）
     internal let net: Decimal
 
     /// 取引件数
@@ -80,7 +83,10 @@ internal struct AnnualSummary: Sendable {
     /// 貯蓄合計
     internal let totalSavings: Decimal
 
-    /// 差引（収入 - 支出 - 貯蓄）
+    /// 定期支払い積立合計
+    internal let recurringPaymentAllocation: Decimal
+
+    /// 差引（収入 - 支出 - 貯蓄 - 定期支払い積立）
     internal let net: Decimal
 
     /// 取引件数
@@ -148,6 +154,7 @@ internal struct TransactionAggregator: Sendable {
     ///   - month: 対象月
     ///   - filter: フィルタオプション
     ///   - savingsGoals: 貯蓄目標リスト
+    ///   - recurringPaymentAllocation: 定期支払い積立額
     /// - Returns: 月次集計結果
     internal func aggregateMonthly(
         transactions: [Transaction],
@@ -156,6 +163,7 @@ internal struct TransactionAggregator: Sendable {
         month: Int,
         filter: AggregationFilter = .default,
         savingsGoals: [SavingsGoal] = [],
+        recurringPaymentAllocation: Decimal = 0,
     ) -> MonthlySummary {
         // 対象月の取引をフィルタ
         let filteredTransactions = transactions.filter { transaction in
@@ -191,7 +199,8 @@ internal struct TransactionAggregator: Sendable {
             totalIncome: totalIncome,
             totalExpense: totalExpense,
             totalSavings: totalSavings,
-            net: totalIncome - totalExpense - totalSavings,
+            recurringPaymentAllocation: recurringPaymentAllocation,
+            net: totalIncome - totalExpense - totalSavings - recurringPaymentAllocation,
             transactionCount: filteredTransactions.count,
             categorySummaries: categorySummaries,
         )
@@ -204,6 +213,7 @@ internal struct TransactionAggregator: Sendable {
     ///   - year: 対象年
     ///   - filter: フィルタオプション
     ///   - savingsGoals: 貯蓄目標リスト
+    ///   - recurringPaymentDefinitions: 定期支払い定義リスト
     /// - Returns: 年次集計結果
     internal func aggregateAnnually(
         transactions: [Transaction],
@@ -211,6 +221,7 @@ internal struct TransactionAggregator: Sendable {
         year: Int,
         filter: AggregationFilter = .default,
         savingsGoals: [SavingsGoal] = [],
+        recurringPaymentDefinitions: [RecurringPaymentDefinition] = [],
     ) -> AnnualSummary {
         // 対象年の取引をフィルタ
         let filteredTransactions = transactions.filter { transaction in
@@ -225,6 +236,11 @@ internal struct TransactionAggregator: Sendable {
         // カテゴリ別に集計
         let categorySummaries = aggregateByCategory(transactions: filteredTransactions, categories: categories)
 
+        // 月次積立額を計算
+        let monthlyRecurringPaymentAllocation = recurringPaymentDefinitions
+            .filter { $0.savingStrategy != .disabled }
+            .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
+
         // 月別に集計
         let monthlySummaries = (1 ... 12).map { month in
             aggregateMonthly(
@@ -234,6 +250,7 @@ internal struct TransactionAggregator: Sendable {
                 month: month,
                 filter: filter,
                 savingsGoals: savingsGoals,
+                recurringPaymentAllocation: monthlyRecurringPaymentAllocation,
             )
         }
 
@@ -252,12 +269,16 @@ internal struct TransactionAggregator: Sendable {
             .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
         let totalSavings = monthlySavingsAmount * 12
 
+        // 定期支払い積立合計を計算（12ヶ月分）
+        let totalRecurringPaymentAllocation = monthlyRecurringPaymentAllocation * 12
+
         return AnnualSummary(
             year: year,
             totalIncome: totalIncome,
             totalExpense: totalExpense,
             totalSavings: totalSavings,
-            net: totalIncome - totalExpense - totalSavings,
+            recurringPaymentAllocation: totalRecurringPaymentAllocation,
+            net: totalIncome - totalExpense - totalSavings - totalRecurringPaymentAllocation,
             transactionCount: filteredTransactions.count,
             categorySummaries: categorySummaries,
             monthlySummaries: monthlySummaries,

@@ -40,21 +40,43 @@ internal final class DashboardService {
             includingChildrenFrom: snapshot.categories,
         ) ?? []
 
+        // 突合済みのTransactionIDを収集
+        let reconciledTransactionIds = Set(
+            snapshot.recurringPaymentOccurrences
+                .compactMap { $0.transactionId }
+        )
+
+        // フィルタを作成（突合済みのTransactionを除外）
+        let filter = AggregationFilter(
+            includeOnlyCalculationTarget: true,
+            excludeTransfers: true,
+            financialInstitutionId: nil,
+            categoryId: nil,
+            excludedTransactionIds: reconciledTransactionIds
+        )
+
+        // 月次積立額を計算
+        let monthlyRecurringPaymentAllocation = snapshot.recurringPaymentDefinitions
+            .filter { $0.savingStrategy != .disabled }
+            .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
+
         let monthlySummary = aggregator.aggregateMonthly(
             transactions: snapshot.monthlyTransactions,
             categories: snapshot.categories,
             year: year,
             month: month,
-            filter: .default,
+            filter: filter,
             savingsGoals: snapshot.savingsGoals,
+            recurringPaymentAllocation: monthlyRecurringPaymentAllocation
         )
 
         let annualSummary = aggregator.aggregateAnnually(
             transactions: snapshot.annualTransactions,
             categories: snapshot.categories,
             year: year,
-            filter: .default,
+            filter: filter,
             savingsGoals: snapshot.savingsGoals,
+            recurringPaymentDefinitions: snapshot.recurringPaymentDefinitions
         )
 
         let monthlyBudgetCalculation = budgetCalculator.calculateMonthlyBudget(
