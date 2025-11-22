@@ -93,7 +93,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         let descriptor = FetchDescriptor<SwiftDataCategory>(predicate: predicate)
 
         let categories = try context.fetch(descriptor)
-        return Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0.name) })
+        return Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0.fullName) })
     }
 
     @discardableResult

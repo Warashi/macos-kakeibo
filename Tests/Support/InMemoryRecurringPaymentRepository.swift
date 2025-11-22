@@ -74,7 +74,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         var result: [UUID: String] = [:]
         for categoryId in ids {
             if let category = categoryLookup[categoryId] {
-                result[categoryId] = category.name
+                result[categoryId] = category.fullName
             }
         }
         return result
