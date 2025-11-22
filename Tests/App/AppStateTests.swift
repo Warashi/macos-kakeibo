@@ -22,6 +22,7 @@ internal struct AppStateTests {
             .dashboard,
             .transactions,
             .budgets,
+            .savingsGoals,
             .imports,
             .settings,
         ]
@@ -34,6 +35,7 @@ internal struct AppStateTests {
             .dashboard: "家計簿の全体状況を確認できます。",
             .transactions: "収支の一覧を閲覧・管理する画面です。",
             .budgets: "予算の設定や進捗を管理します。",
+            .savingsGoals: "貯蓄目標を管理します。",
             .imports: "CSVなどからデータを取り込みます。",
             .settings: "アプリの各種設定を調整します。",
         ]
