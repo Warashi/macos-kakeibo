@@ -29,11 +29,20 @@ internal actor SwiftDataBudgetRepository: BudgetRepository {
         let occurrences = try await recurringPaymentRepository.occurrences(query: nil)
         let config = try context.fetch(BudgetQueries.annualConfig(for: year)).first
 
+        // 貯蓄目標と残高を取得
+        let savingsGoalDescriptor = FetchDescriptor<SwiftDataSavingsGoal>()
+        let swiftDataSavingsGoals = try context.fetch(savingsGoalDescriptor)
+
+        let balanceDescriptor = FetchDescriptor<SwiftDataSavingsGoalBalance>()
+        let swiftDataBalances = try context.fetch(balanceDescriptor)
+
         // SwiftDataモデルをドメインモデルに変換
         let budgetModels = budgets.map { Budget(from: $0) }
         let transactionModels = transactions.map { Transaction(from: $0) }
         let categoryModels = categories.map { Category(from: $0) }
         let configModel = config.map { AnnualBudgetConfig(from: $0) }
+        let savingsGoalModels = swiftDataSavingsGoals.map { SavingsGoal(from: $0) }
+        let savingsGoalBalanceModels = swiftDataBalances.map { SavingsGoalBalance(from: $0) }
 
         return BudgetSnapshot(
             budgets: budgetModels,
@@ -43,6 +52,8 @@ internal actor SwiftDataBudgetRepository: BudgetRepository {
             recurringPaymentDefinitions: definitions,
             recurringPaymentBalances: balances,
             recurringPaymentOccurrences: occurrences,
+            savingsGoals: savingsGoalModels,
+            savingsGoalBalances: savingsGoalBalanceModels
         )
     }
 

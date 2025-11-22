@@ -8,4 +8,6 @@ internal struct BudgetSnapshot: Sendable {
     internal let recurringPaymentDefinitions: [RecurringPaymentDefinition]
     internal let recurringPaymentBalances: [RecurringPaymentSavingBalance]
     internal let recurringPaymentOccurrences: [RecurringPaymentOccurrence]
+    internal let savingsGoals: [SavingsGoal]
+    internal let savingsGoalBalances: [SavingsGoalBalance]
 }
