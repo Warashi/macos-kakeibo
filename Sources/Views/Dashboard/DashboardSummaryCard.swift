@@ -7,6 +7,7 @@ internal struct DashboardSummaryCard: View {
     internal let annualSummary: AnnualSummary
     internal let monthlyBudgetCalculation: MonthlyBudgetCalculation
     internal let annualBudgetProgress: BudgetCalculation?
+    internal let recurringPaymentSummary: RecurringPaymentSummary
 
     private var title: String {
         displayMode == .monthly ? "今月の総括" : "今年の総括"
@@ -59,6 +60,11 @@ internal struct DashboardSummaryCard: View {
             SummaryMetric(
                 title: "貯蓄",
                 amount: displayMode == .monthly ? monthlySummary.totalSavings : annualSummary.totalSavings,
+                color: .info,
+            ),
+            SummaryMetric(
+                title: "積立",
+                amount: recurringPaymentSummary.totalMonthlyAmount,
                 color: .info,
             ),
             SummaryMetric(

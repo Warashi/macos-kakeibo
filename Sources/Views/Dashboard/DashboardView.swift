@@ -22,6 +22,7 @@ internal struct DashboardView: View {
                             annualSummary: store.annualSummary,
                             monthlyBudgetCalculation: store.monthlyBudgetCalculation,
                             annualBudgetProgress: store.annualBudgetProgressCalculation,
+                            recurringPaymentSummary: store.recurringPaymentSummary,
                         )
 
                         ViewThatFits {
