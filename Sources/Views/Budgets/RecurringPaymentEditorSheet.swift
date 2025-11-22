@@ -72,7 +72,7 @@ internal struct RecurringPaymentEditorSheet: View {
                     }
 
                     LabeledField(title: "リードタイム（月数）") {
-                        Stepper(value: $formState.leadTimeMonths, in: 0 ... 24) {
+                        Stepper(value: $formState.leadTimeMonths, in: 0 ... 999) {
                             HStack {
                                 Text("\(formState.leadTimeMonths)")
                                     .frame(minWidth: 30, alignment: .trailing)

@@ -298,7 +298,7 @@ internal struct RecurringPaymentFormState {
         recurrenceYears = 0
         recurrenceMonths = 1
         firstOccurrenceDate = Date()
-        leadTimeMonths = 0
+        leadTimeMonths = recurrenceIntervalMonths
         selectedMajorCategoryId = nil
         selectedMinorCategoryId = nil
         savingStrategy = .evenlyDistributed
