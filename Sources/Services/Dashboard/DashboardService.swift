@@ -49,11 +49,13 @@ internal final class DashboardService {
         )
 
         let (monthlySummary, annualSummary) = calculateSummaries(
-            snapshot: snapshot,
-            year: year,
-            month: month,
-            filter: filter,
-            monthlyRecurringPaymentAllocation: monthlyRecurringPaymentAllocation
+            params: SummaryCalculationParams(
+                snapshot: snapshot,
+                year: year,
+                month: month,
+                filter: filter,
+                monthlyRecurringPaymentAllocation: monthlyRecurringPaymentAllocation
+            )
         )
 
         let monthlyBudgetCalculation = budgetCalculator.calculateMonthlyBudget(
@@ -117,38 +119,38 @@ internal final class DashboardService {
 
     // MARK: - Private Helpers
 
+    /// サマリ計算パラメータ
+    private struct SummaryCalculationParams {
+        internal let snapshot: DashboardSnapshot
+        internal let year: Int
+        internal let month: Int
+        internal let filter: AggregationFilter
+        internal let monthlyRecurringPaymentAllocation: Decimal
+    }
+
     /// 月次・年次サマリを計算
-    /// - Parameters:
-    ///   - snapshot: ダッシュボードスナップショット
-    ///   - year: 対象年
-    ///   - month: 対象月
-    ///   - filter: 集計フィルタ
-    ///   - monthlyRecurringPaymentAllocation: 月次積立額
+    /// - Parameter params: サマリ計算パラメータ
     /// - Returns: (月次サマリ, 年次サマリ)
     private func calculateSummaries(
-        snapshot: DashboardSnapshot,
-        year: Int,
-        month: Int,
-        filter: AggregationFilter,
-        monthlyRecurringPaymentAllocation: Decimal
+        params: SummaryCalculationParams
     ) -> (MonthlySummary, AnnualSummary) {
         let monthlySummary = aggregator.aggregateMonthly(
-            transactions: snapshot.monthlyTransactions,
-            categories: snapshot.categories,
-            year: year,
-            month: month,
-            filter: filter,
-            savingsGoals: snapshot.savingsGoals,
-            recurringPaymentAllocation: monthlyRecurringPaymentAllocation
+            transactions: params.snapshot.monthlyTransactions,
+            categories: params.snapshot.categories,
+            year: params.year,
+            month: params.month,
+            filter: params.filter,
+            savingsGoals: params.snapshot.savingsGoals,
+            recurringPaymentAllocation: params.monthlyRecurringPaymentAllocation
         )
 
         let annualSummary = aggregator.aggregateAnnually(
-            transactions: snapshot.annualTransactions,
-            categories: snapshot.categories,
-            year: year,
-            filter: filter,
-            savingsGoals: snapshot.savingsGoals,
-            recurringPaymentDefinitions: snapshot.recurringPaymentDefinitions
+            transactions: params.snapshot.annualTransactions,
+            categories: params.snapshot.categories,
+            year: params.year,
+            filter: params.filter,
+            savingsGoals: params.snapshot.savingsGoals,
+            recurringPaymentDefinitions: params.snapshot.recurringPaymentDefinitions
         )
 
         return (monthlySummary, annualSummary)
