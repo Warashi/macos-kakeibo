@@ -68,8 +68,9 @@ internal struct SavingsGoalStoreTests {
 
         try store.updateGoal(goal.id)
 
+        let goalId = goal.id
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == goal.id },
+            predicate: #Predicate { $0.id == goalId },
         )
         let updatedGoal = try context.fetch(descriptor).first
 
@@ -101,8 +102,9 @@ internal struct SavingsGoalStoreTests {
 
         try store.deleteGoal(goal.id)
 
+        let goalId = goal.id
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == goal.id },
+            predicate: #Predicate { $0.id == goalId },
         )
         let deletedGoal = try context.fetch(descriptor).first
 
