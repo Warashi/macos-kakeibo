@@ -279,6 +279,13 @@ private struct ReconciliationFormView: View {
                     store.resetFormToExpectedValues()
                 }
 
+                Button {
+                    Task { await store.skipSelectedOccurrence() }
+                } label: {
+                    Label("スキップ", systemImage: "arrow.right.circle")
+                }
+                .disabled(store.isSaving)
+
                 Button("リンク解除", role: .destructive) {
                     Task { await store.unlinkSelectedOccurrence() }
                 }
