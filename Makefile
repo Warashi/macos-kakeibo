@@ -15,6 +15,7 @@ build: generate
 		-configuration Debug \
 		-destination 'platform=macOS,arch=arm64' \
 		-derivedDataPath $(DERIVED_DATA) \
+		-quiet \
 		build
 
 release: generate
@@ -23,6 +24,7 @@ release: generate
 		-configuration Release \
 		-destination 'platform=macOS,arch=arm64' \
 		-derivedDataPath $(DERIVED_DATA) \
+		-quiet \
 		build
 
 run: build
@@ -46,6 +48,7 @@ test: generate
 		-destination 'platform=macOS,arch=arm64' \
 		-derivedDataPath $(DERIVED_DATA) \
 		-enableCodeCoverage YES \
+		-quiet \
 		CODE_SIGNING_ALLOWED=NO test
 
 clean:
