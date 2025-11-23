@@ -271,14 +271,16 @@ internal struct RecurringPaymentScheduleService {
             return definition.firstOccurrenceDate
         }
 
-        // 既存のOccurrenceの最小scheduledDateを取得
-        let earliestExisting = definition.occurrences
+        // 完了済み（ロック済み）Occurrenceの最小scheduledDateを取得
+        let earliestLockedDate = definition.occurrences
+            .filter(\.isSchedulingLocked)
             .map(\.scheduledDate)
             .min()
 
-        // firstOccurrenceDateが既存の最小scheduledDateより前の場合、
-        // firstOccurrenceDateから生成することで、開始日を過去に変更した際の穴を自動的に埋める
-        if let earliestExisting, definition.firstOccurrenceDate < earliestExisting {
+        // firstOccurrenceDateが完了済みOccurrenceの最小scheduledDateより前の場合、
+        // 開始日が過去に変更されたと判定し、firstOccurrenceDateから生成し直す
+        // これにより、開始日変更後の穴が自動的に埋められる
+        if let earliestLockedDate, definition.firstOccurrenceDate < earliestLockedDate {
             return definition.firstOccurrenceDate
         }
 
