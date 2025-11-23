@@ -21,7 +21,8 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         currentDateProvider: @escaping @Sendable () -> Date = { Date() },
     ) {
         let japaneseProvider = JapaneseHolidayProvider(calendar: calendar)
-        let customProvider = CustomHolidayProvider(modelContainer: modelContainer, calendar: calendar)
+        let customRepository = SwiftDataCustomHolidayRepository(modelContainer: modelContainer, calendar: calendar)
+        let customProvider = CustomHolidayProvider(repository: customRepository)
         let compositeProvider = CompositeHolidayProvider(providers: [japaneseProvider, customProvider])
         scheduleService = RecurringPaymentScheduleService(
             calendar: calendar,

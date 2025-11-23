@@ -1,46 +1,34 @@
 import Foundation
-import SwiftData
 
 /// ユーザー定義祝日を提供するプロバイダー
 internal struct CustomHolidayProvider: HolidayProvider {
-    private let modelContainer: ModelContainer
-    private let calendar: Calendar
+    private let repository: CustomHolidayRepository
 
-    internal init(modelContainer: ModelContainer, calendar: Calendar = Calendar(identifier: .gregorian)) {
-        self.modelContainer = modelContainer
-        self.calendar = calendar
+    internal init(repository: CustomHolidayRepository) {
+        self.repository = repository
     }
 
     internal func holidays(for year: Int) -> Set<Date> {
-        let modelContext = ModelContext(modelContainer)
-        let descriptor: ModelFetchRequest<SwiftDataCustomHoliday> = ModelFetchFactory.make()
-
-        guard let customHolidays = try? modelContext.fetch(descriptor) else {
-            return []
-        }
-
-        var holidays = Set<Date>()
-
-        for holiday in customHolidays {
-            if holiday.isRecurring {
-                // 繰り返しの場合、指定年の日付を生成
-                let components = calendar.dateComponents([.month, .day], from: holiday.date)
-                if let date = calendar.date(from: DateComponents(
-                    year: year,
-                    month: components.month,
-                    day: components.day,
-                )) {
-                    holidays.insert(calendar.startOfDay(for: date))
-                }
-            } else {
-                // 繰り返しでない場合、年が一致する場合のみ追加
-                let holidayYear = calendar.component(.year, from: holiday.date)
-                if holidayYear == year {
-                    holidays.insert(calendar.startOfDay(for: holiday.date))
-                }
+        // HolidayProvider は同期APIだが、Repository は非同期
+        // 注: この実装は一時的なもので、将来的にHolidayProviderを非同期に変更すべき
+        // 同期的に待機する
+        return withUnsafeCurrentTask { task in
+            guard task == nil else {
+                // すでにTask内にいる場合は、デッドロックを避けるために空を返す
+                return []
             }
-        }
 
-        return holidays
+            let semaphore = DispatchSemaphore(value: 0)
+            var result: Set<Date> = []
+
+            Task {
+                let holidays = try? await repository.holidays(for: year)
+                result = holidays ?? []
+                semaphore.signal()
+            }
+
+            semaphore.wait()
+            return result
+        }
     }
 }
