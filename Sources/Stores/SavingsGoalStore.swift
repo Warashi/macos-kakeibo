@@ -10,8 +10,12 @@ import SwiftData
 internal final class SavingsGoalStore {
     // MARK: - Dependencies
 
-    private let modelContext: ModelContext
+    private let repository: SavingsGoalRepository
     private let balanceService: SavingsGoalBalanceService
+    private let modelContext: ModelContext
+
+    @ObservationIgnored
+    private var goalsHandle: ObservationHandle?
 
     // MARK: - State
 
@@ -30,122 +34,95 @@ internal final class SavingsGoalStore {
     // MARK: - Initialization
 
     internal init(
-        modelContext: ModelContext,
+        repository: SavingsGoalRepository,
         balanceService: SavingsGoalBalanceService = SavingsGoalBalanceService(),
+        modelContext: ModelContext
     ) {
-        self.modelContext = modelContext
+        self.repository = repository
         self.balanceService = balanceService
+        self.modelContext = modelContext
+    }
+
+    deinit {
+        goalsHandle?.cancel()
     }
 
     // MARK: - Actions
 
-    /// 貯蓄目標一覧を読み込み
-    internal func loadGoals() {
-        let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            sortBy: [SortDescriptor(\.createdAt, order: .reverse)],
-        )
-
+    /// 貯蓄目標の監視を開始
+    internal func observeGoals() async {
+        goalsHandle?.cancel()
         do {
-            let swiftDataGoals = try modelContext.fetch(descriptor)
-            goals = swiftDataGoals.map { $0.toDomain() }
+            let handle = try await repository.observeGoals { [weak self] goals in
+                Task { @MainActor in
+                    self?.goals = goals
+                }
+            }
+            goalsHandle = handle
         } catch {
             goals = []
         }
     }
 
     /// 新規貯蓄目標を作成
-    internal func createGoal() throws {
+    internal func createGoal() async throws {
         let validationErrors = formInput.validate()
         guard validationErrors.isEmpty else {
             throw SavingsGoalStoreError.validationFailed(validationErrors)
         }
 
-        let newGoal = SwiftDataSavingsGoal(
+        let input = SavingsGoalInput(
             name: formInput.name,
             targetAmount: formInput.targetAmount,
             monthlySavingAmount: formInput.monthlySavingAmount,
             categoryId: formInput.categoryId,
             notes: formInput.notes,
             startDate: formInput.startDate,
-            targetDate: formInput.targetDate,
-            isActive: true,
+            targetDate: formInput.targetDate
         )
 
-        modelContext.insert(newGoal)
-        try modelContext.save()
-
-        loadGoals()
+        _ = try await repository.createGoal(input)
         resetForm()
     }
 
     /// 貯蓄目標を更新
-    internal func updateGoal(_ goalId: UUID) throws {
-        let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == goalId },
-        )
-
-        guard let goal = try modelContext.fetch(descriptor).first else {
-            throw SavingsGoalStoreError.goalNotFound
-        }
-
+    internal func updateGoal(_ goalId: UUID) async throws {
         let validationErrors = formInput.validate()
         guard validationErrors.isEmpty else {
             throw SavingsGoalStoreError.validationFailed(validationErrors)
         }
 
-        goal.name = formInput.name
-        goal.targetAmount = formInput.targetAmount
-        goal.monthlySavingAmount = formInput.monthlySavingAmount
-        goal.categoryId = formInput.categoryId
-        goal.notes = formInput.notes
-        goal.startDate = formInput.startDate
-        goal.targetDate = formInput.targetDate
-        goal.updatedAt = Date()
+        let input = SavingsGoalInput(
+            name: formInput.name,
+            targetAmount: formInput.targetAmount,
+            monthlySavingAmount: formInput.monthlySavingAmount,
+            categoryId: formInput.categoryId,
+            notes: formInput.notes,
+            startDate: formInput.startDate,
+            targetDate: formInput.targetDate
+        )
 
-        try modelContext.save()
-
-        loadGoals()
+        let updateInput = SavingsGoalUpdateInput(id: goalId, input: input)
+        _ = try await repository.updateGoal(updateInput)
         resetForm()
     }
 
     /// 貯蓄目標を削除
-    internal func deleteGoal(_ goalId: UUID) throws {
-        let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == goalId },
-        )
-
-        guard let goal = try modelContext.fetch(descriptor).first else {
-            throw SavingsGoalStoreError.goalNotFound
-        }
-
-        modelContext.delete(goal)
-        try modelContext.save()
-
-        loadGoals()
+    internal func deleteGoal(_ goalId: UUID) async throws {
+        try await repository.deleteGoal(goalId)
     }
 
     /// 貯蓄目標の有効/無効を切り替え
-    internal func toggleGoalActive(_ goalId: UUID) throws {
-        let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == goalId },
-        )
-
-        guard let goal = try modelContext.fetch(descriptor).first else {
-            throw SavingsGoalStoreError.goalNotFound
-        }
-
-        goal.isActive.toggle()
-        goal.updatedAt = Date()
-        try modelContext.save()
-
-        loadGoals()
+    internal func toggleGoalActive(_ goalId: UUID) async throws {
+        try await repository.toggleGoalActive(goalId)
     }
 
     /// 引出を記録
+    /// Note: WithdrawalはまだRepository化されていないため、一時的にModelContextを使用
     internal func recordWithdrawal(params: WithdrawalParameters) throws {
         let goalId = params.goalId
         let goalDescriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == goalId },
+            predicate: #Predicate { $0.id == goalId }
         )
 
         guard let goal = try modelContext.fetch(goalDescriptor).first else {
@@ -157,7 +134,7 @@ internal final class SavingsGoalStore {
             amount: params.amount,
             withdrawalDate: params.withdrawalDate,
             purpose: params.purpose,
-            transaction: nil,
+            transaction: nil
         )
 
         modelContext.insert(withdrawal)
@@ -168,7 +145,6 @@ internal final class SavingsGoalStore {
         }
 
         try modelContext.save()
-        loadGoals()
     }
 
     // MARK: - Form Management
@@ -187,7 +163,7 @@ internal final class SavingsGoalStore {
             categoryId: goal.categoryId,
             notes: goal.notes,
             startDate: goal.startDate,
-            targetDate: goal.targetDate,
+            targetDate: goal.targetDate
         )
         selectedGoal = goal
         isShowingForm = true

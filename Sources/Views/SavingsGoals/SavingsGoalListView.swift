@@ -8,7 +8,8 @@ internal struct SavingsGoalListView: View {
     @State private var goalPendingDeletion: UUID?
 
     internal init(modelContext: ModelContext) {
-        _store = State(initialValue: SavingsGoalStore(modelContext: modelContext))
+        let repository = SwiftDataSavingsGoalRepository(modelContainer: modelContext.container)
+        _store = State(initialValue: SavingsGoalStore(repository: repository, modelContext: modelContext))
     }
 
     internal var body: some View {
@@ -118,7 +119,9 @@ internal struct SavingsGoalListView: View {
                                         .help("編集")
 
                                         Button {
-                                            try? store.toggleGoalActive(goal.id)
+                                            Task {
+                                                try? await store.toggleGoalActive(goal.id)
+                                            }
                                         } label: {
                                             Image(systemName: goal.isActive ? "pause.circle" : "play.circle")
                                         }
@@ -156,18 +159,20 @@ internal struct SavingsGoalListView: View {
             titleVisibility: .visible,
         ) {
             Button("削除", role: .destructive) {
-                deletePendingGoal()
+                Task {
+                    await deletePendingGoal()
+                }
             }
             Button("キャンセル", role: .cancel) {}
         }
-        .onAppear {
-            store.loadGoals()
+        .task {
+            await store.observeGoals()
         }
     }
 
-    private func deletePendingGoal() {
+    private func deletePendingGoal() async {
         guard let goalId = goalPendingDeletion else { return }
-        try? store.deleteGoal(goalId)
+        try? await store.deleteGoal(goalId)
         goalPendingDeletion = nil
     }
 }

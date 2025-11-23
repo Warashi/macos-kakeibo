@@ -22,8 +22,9 @@ internal actor SwiftDataSavingsGoalRepository: SavingsGoalRepository {
     }
 
     internal func updateGoal(_ input: SavingsGoalUpdateInput) async throws -> SavingsGoal {
+        let goalId = input.id
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == input.id }
+            predicate: #Predicate { $0.id == goalId }
         )
 
         guard let goal = try context.fetch(descriptor).first else {

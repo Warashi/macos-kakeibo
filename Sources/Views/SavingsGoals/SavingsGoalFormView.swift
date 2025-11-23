@@ -87,7 +87,9 @@ internal struct SavingsGoalFormView: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
-                        saveGoal()
+                        Task {
+                            await saveGoal()
+                        }
                     }
                 }
             }
@@ -113,12 +115,12 @@ internal struct SavingsGoalFormView: View {
         hasTargetDate = store.formInput.targetDate != nil
     }
 
-    private func saveGoal() {
+    private func saveGoal() async {
         do {
             if let selectedGoal = store.selectedGoal {
-                try store.updateGoal(selectedGoal.id)
+                try await store.updateGoal(selectedGoal.id)
             } else {
-                try store.createGoal()
+                try await store.createGoal()
             }
             dismiss()
         } catch let error as SavingsGoalStoreError {

@@ -11,7 +11,8 @@ internal struct SavingsGoalStoreTests {
     internal func canCreateSavingsGoal() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let store = SavingsGoalStore(modelContext: context)
+        let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
+        let store = SavingsGoalStore(repository: repository, modelContext: context)
 
         store.formInput = SavingsGoalFormInput(
             name: "緊急費用",
@@ -20,10 +21,10 @@ internal struct SavingsGoalStoreTests {
             categoryId: nil,
             notes: "万が一のため",
             startDate: Date(),
-            targetDate: nil,
+            targetDate: nil
         )
 
-        try store.createGoal()
+        try await store.createGoal()
 
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>()
         let goals = try context.fetch(descriptor)
@@ -49,12 +50,13 @@ internal struct SavingsGoalStoreTests {
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true,
+            isActive: true
         )
         context.insert(goal)
         try context.save()
 
-        let store = SavingsGoalStore(modelContext: context)
+        let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
+        let store = SavingsGoalStore(repository: repository, modelContext: context)
 
         store.formInput = SavingsGoalFormInput(
             name: "海外旅行費用",
@@ -63,14 +65,14 @@ internal struct SavingsGoalStoreTests {
             categoryId: nil,
             notes: "ヨーロッパ旅行",
             startDate: Date(),
-            targetDate: nil,
+            targetDate: nil
         )
 
-        try store.updateGoal(goal.id)
+        try await store.updateGoal(goal.id)
 
         let goalId = goal.id
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == goalId },
+            predicate: #Predicate { $0.id == goalId }
         )
         let updatedGoal = try context.fetch(descriptor).first
 
@@ -93,18 +95,19 @@ internal struct SavingsGoalStoreTests {
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true,
+            isActive: true
         )
         context.insert(goal)
         try context.save()
 
-        let store = SavingsGoalStore(modelContext: context)
+        let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
+        let store = SavingsGoalStore(repository: repository, modelContext: context)
 
-        try store.deleteGoal(goal.id)
+        try await store.deleteGoal(goal.id)
 
         let goalId = goal.id
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == goalId },
+            predicate: #Predicate { $0.id == goalId }
         )
         let deletedGoal = try context.fetch(descriptor).first
 
@@ -124,29 +127,37 @@ internal struct SavingsGoalStoreTests {
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true,
+            isActive: true
         )
         context.insert(goal)
         try context.save()
 
-        let store = SavingsGoalStore(modelContext: context)
+        let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
+        let store = SavingsGoalStore(repository: repository, modelContext: context)
 
-        #expect(goal.isActive == true)
+        // 初期状態を確認
+        let initialGoals = try await repository.fetchAllGoals()
+        #expect(initialGoals.first?.isActive == true)
 
-        try store.toggleGoalActive(goal.id)
+        try await store.toggleGoalActive(goal.id)
 
-        #expect(goal.isActive == false)
+        // トグル後の状態を確認
+        let toggledGoals = try await repository.fetchAllGoals()
+        #expect(toggledGoals.first?.isActive == false)
 
-        try store.toggleGoalActive(goal.id)
+        try await store.toggleGoalActive(goal.id)
 
-        #expect(goal.isActive == true)
+        // 再トグル後の状態を確認
+        let retriggeredGoals = try await repository.fetchAllGoals()
+        #expect(retriggeredGoals.first?.isActive == true)
     }
 
     @Test("バリデーションエラーが正しく動作する")
     internal func validationErrorsWork() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let store = SavingsGoalStore(modelContext: context)
+        let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
+        let store = SavingsGoalStore(repository: repository, modelContext: context)
 
         store.formInput = SavingsGoalFormInput(
             name: "",
@@ -155,11 +166,11 @@ internal struct SavingsGoalStoreTests {
             categoryId: nil,
             notes: nil,
             startDate: Date(),
-            targetDate: nil,
+            targetDate: nil
         )
 
         do {
-            try store.createGoal()
+            try await store.createGoal()
             Issue.record("バリデーションエラーが発生すべき")
         } catch let error as SavingsGoalStoreError {
             guard case let .validationFailed(errors) = error else {
@@ -175,7 +186,8 @@ internal struct SavingsGoalStoreTests {
     internal func targetAmountAndDateValidation() async throws {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
-        let store = SavingsGoalStore(modelContext: context)
+        let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
+        let store = SavingsGoalStore(repository: repository, modelContext: context)
 
         let startDate = Date()
         guard let targetDate = Calendar.current.date(byAdding: .day, value: -1, to: startDate) else {
@@ -190,11 +202,11 @@ internal struct SavingsGoalStoreTests {
             categoryId: nil,
             notes: nil,
             startDate: startDate,
-            targetDate: targetDate,
+            targetDate: targetDate
         )
 
         do {
-            try store.createGoal()
+            try await store.createGoal()
             Issue.record("バリデーションエラーが発生すべき")
         } catch let error as SavingsGoalStoreError {
             guard case let .validationFailed(errors) = error else {
