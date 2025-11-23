@@ -11,6 +11,7 @@ internal enum RecurringPaymentStatus: String, Codable, Sendable {
     case saving // 積立中
     case completed // 実績反映済み
     case cancelled // 中止
+    case skipped // スキップ（支払い発生せず）
 }
 
 internal enum DateAdjustmentPolicy: String, Codable, Sendable {
