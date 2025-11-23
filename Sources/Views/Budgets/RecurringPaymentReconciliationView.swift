@@ -331,8 +331,8 @@ private struct ReconciliationCustomSearchView: View {
                         HStack {
                             Stepper(
                                 value: $store.customSearchWindowDays,
-                                in: 1...365,
-                                step: 7
+                                in: 1 ... 365,
+                                step: 7,
                             ) {
                                 Text("±\(store.customSearchWindowDays)日")
                                     .frame(width: 80, alignment: .leading)

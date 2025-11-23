@@ -172,7 +172,7 @@ internal struct ReconciliationPresenterTests {
         let lowAmountTransaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 6, day: 8) ?? Date(),
             title: "保険料",
-            amount: -80_000,
+            amount: -80000,
         )
 
         let highAmountTransaction = SwiftDataTransaction(
@@ -224,7 +224,7 @@ internal struct ReconciliationPresenterTests {
         let lowAmountTransaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 6, day: 8) ?? Date(),
             title: "保険料",
-            amount: -80_000,
+            amount: -80000,
         )
 
         let highAmountTransaction = SwiftDataTransaction(
@@ -276,13 +276,13 @@ internal struct ReconciliationPresenterTests {
         let tooLowTransaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 6, day: 5) ?? Date(),
             title: "保険料",
-            amount: -70_000,
+            amount: -70000,
         )
 
         let justRightTransaction = SwiftDataTransaction(
             date: Date.from(year: 2025, month: 6, day: 8) ?? Date(),
             title: "保険料",
-            amount: -95_000,
+            amount: -95000,
         )
 
         let tooHighTransaction = SwiftDataTransaction(
@@ -303,7 +303,7 @@ internal struct ReconciliationPresenterTests {
             windowDays: 30,
             limit: 5,
             currentDate: Date.from(year: 2025, month: 12, day: 31) ?? Date(),
-            customAmountRange: (min: Decimal(80_000), max: Decimal(110_000)),
+            customAmountRange: (min: Decimal(80000), max: Decimal(110_000)),
         )
 
         let candidates = presenter.transactionCandidates(
