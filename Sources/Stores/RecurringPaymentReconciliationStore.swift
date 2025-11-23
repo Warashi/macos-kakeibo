@@ -207,6 +207,8 @@ internal extension RecurringPaymentReconciliationStore {
             return
         }
 
+        let isSkipped = selectedRow?.status == .skipped
+
         isSaving = true
         errorMessage = nil
         statusMessage = nil
@@ -227,23 +229,21 @@ internal extension RecurringPaymentReconciliationStore {
                     horizonMonths: horizonMonths,
                 )
             }.value
-            statusMessage = "取引リンクを解除しました。"
+            statusMessage = isSkipped ? "スキップをリセットしました。" : "取引リンクを解除しました。"
             await refresh()
             selectedOccurrenceId = occurrenceId
         } catch {
-            errorMessage = "リンク解除に失敗しました: \(error.localizedDescription)"
+            let action = isSkipped ? "リセット" : "リンク解除"
+            errorMessage = "\(action)に失敗しました: \(error.localizedDescription)"
         }
     }
 
     func skipSelectedOccurrence() async {
-        print("🔍 skipSelectedOccurrence called")
         guard let occurrenceId = selectedOccurrenceId else {
-            print("❌ No occurrence selected")
             errorMessage = "スキップ対象の定期支払いを選択してください。"
             return
         }
 
-        print("✅ Occurrence selected: \(occurrenceId)")
         isSaving = true
         errorMessage = nil
         statusMessage = nil
@@ -252,14 +252,12 @@ internal extension RecurringPaymentReconciliationStore {
         do {
             let service = occurrencesService
             let horizonMonths = horizonMonths
-            print("⏳ Calling skipOccurrence...")
             try await Task.detached(priority: .userInitiated) {
                 _ = try await service.skipOccurrence(
                     occurrenceId: occurrenceId,
                     horizonMonths: horizonMonths,
                 )
             }.value
-            print("✅ Skip succeeded")
             statusMessage = "定期支払いをスキップしました。"
             await refresh()
             selectedOccurrenceId = occurrenceId
@@ -270,10 +268,8 @@ internal extension RecurringPaymentReconciliationStore {
             default:
                 "スキップに失敗しました: \(storeError)"
             }
-            print("❌ Skip failed (domain error): \(message)")
             errorMessage = message
         } catch {
-            print("❌ Skip failed: \(error)")
             errorMessage = "スキップに失敗しました: \(error.localizedDescription)"
         }
     }

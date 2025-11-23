@@ -286,10 +286,21 @@ private struct ReconciliationFormView: View {
                 }
                 .disabled(store.isSaving)
 
-                Button("リンク解除", role: .destructive) {
+                Button {
                     Task { await store.unlinkSelectedOccurrence() }
+                } label: {
+                    if store.selectedRow?.status == .skipped {
+                        Text("リセット")
+                    } else {
+                        Text("リンク解除")
+                    }
                 }
-                .disabled(store.selectedRow?.transactionTitle == nil)
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+                .disabled(
+                    store.selectedRow?.transactionTitle == nil
+                        && store.selectedRow?.status != .skipped
+                )
             }
         }
     }
