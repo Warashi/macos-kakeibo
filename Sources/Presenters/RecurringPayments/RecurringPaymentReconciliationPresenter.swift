@@ -121,6 +121,7 @@ internal struct RecurringPaymentReconciliationPresenter: Sendable {
         internal let windowDays: Int
         internal let limit: Int
         internal let currentDate: Date
+        internal let customAmountRange: (min: Decimal?, max: Decimal?)?
     }
 
     internal struct TransactionCandidateScore: Hashable {
@@ -314,6 +315,17 @@ internal struct RecurringPaymentReconciliationPresenter: Sendable {
             if let startWindow, let endWindow,
                !transaction.date.isInRange(from: startWindow, to: endWindow) {
                 continue
+            }
+
+            // Apply custom amount range filter if provided
+            if let amountRange = context.customAmountRange {
+                let transactionAmount = transaction.absoluteAmount
+                if let minAmount = amountRange.min, transactionAmount < minAmount {
+                    continue
+                }
+                if let maxAmount = amountRange.max, transactionAmount > maxAmount {
+                    continue
+                }
             }
 
             let score = scorer.score(occurrence: occurrence, definition: definition, transaction: transaction)

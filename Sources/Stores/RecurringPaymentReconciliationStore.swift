@@ -80,6 +80,13 @@ internal final class RecurringPaymentReconciliationStore {
     internal var selectedTransactionId: UUID?
     internal private(set) var candidateTransactions: [TransactionCandidate] = []
 
+    // MARK: - Custom Search Parameters
+
+    internal var useCustomSearch: Bool = false
+    internal var customSearchAmountMinText: String = ""
+    internal var customSearchAmountMaxText: String = ""
+    internal var customSearchWindowDays: Int = 60
+
     // MARK: - Caches
 
     private var occurrenceLookup: [UUID: RecurringPaymentOccurrence] = [:]
@@ -238,6 +245,20 @@ internal extension RecurringPaymentReconciliationStore {
     func clearError() {
         errorMessage = nil
     }
+
+    func executeCustomSearch() {
+        guard let occurrence = selectedOccurrence else { return }
+        recomputeCandidates(for: occurrence)
+    }
+
+    func resetCustomSearch() {
+        useCustomSearch = false
+        customSearchAmountMinText = ""
+        customSearchAmountMaxText = ""
+        customSearchWindowDays = candidateSearchWindowDays
+        guard let occurrence = selectedOccurrence else { return }
+        recomputeCandidates(for: occurrence)
+    }
 }
 
 // MARK: - Private Helpers
@@ -360,18 +381,30 @@ private extension RecurringPaymentReconciliationStore {
             return
         }
 
+        let windowDays = useCustomSearch ? customSearchWindowDays : candidateSearchWindowDays
+        let amountRange = useCustomSearch ? computeCustomAmountRange() : nil
+
         let context = RecurringPaymentReconciliationPresenter.TransactionCandidateSearchContext(
             transactions: transactions,
             linkedTransactionLookup: linkedTransactionLookup,
-            windowDays: candidateSearchWindowDays,
+            windowDays: windowDays,
             limit: candidateLimit,
             currentDate: currentDateProvider(),
+            customAmountRange: amountRange,
         )
         candidateTransactions = presenter.transactionCandidates(
             for: occurrence,
             definition: definition,
             context: context,
         )
+    }
+
+    private func computeCustomAmountRange() -> (min: Decimal?, max: Decimal?)? {
+        guard useCustomSearch else { return nil }
+        let minAmount = decimalAmount(from: customSearchAmountMinText)
+        let maxAmount = decimalAmount(from: customSearchAmountMaxText)
+        guard minAmount != nil || maxAmount != nil else { return nil }
+        return (min: minAmount, max: maxAmount)
     }
 
     private func decimalAmount(from text: String) -> Decimal? {

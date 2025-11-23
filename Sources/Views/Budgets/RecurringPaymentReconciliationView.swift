@@ -169,6 +169,8 @@ private struct ReconciliationDetailPanelView: View {
                     Divider()
                     ReconciliationFormView(store: store)
                     Divider()
+                    ReconciliationCustomSearchView(store: store)
+                    Divider()
                     ReconciliationCandidateListView(store: store)
                 }
                 .padding(.trailing, 8)
@@ -281,6 +283,77 @@ private struct ReconciliationFormView: View {
                     Task { await store.unlinkSelectedOccurrence() }
                 }
                 .disabled(store.selectedRow?.transactionTitle == nil)
+            }
+        }
+    }
+}
+
+// MARK: - Custom Search View
+
+private struct ReconciliationCustomSearchView: View {
+    @Bindable internal var store: RecurringPaymentReconciliationStore
+
+    internal var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("候補検索条件")
+                    .font(.headline)
+                Toggle("カスタム検索を使用", isOn: $store.useCustomSearch)
+                    .toggleStyle(.switch)
+            }
+
+            if store.useCustomSearch {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("金額範囲（最小）")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("例: 100000", text: $store.customSearchAmountMinText)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(maxWidth: 180)
+                        }
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("金額範囲（最大）")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("例: 200000", text: $store.customSearchAmountMaxText)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(maxWidth: 180)
+                        }
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("検索期間（±日数）")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        HStack {
+                            Stepper(
+                                value: $store.customSearchWindowDays,
+                                in: 1...365,
+                                step: 7
+                            ) {
+                                Text("±\(store.customSearchWindowDays)日")
+                                    .frame(width: 80, alignment: .leading)
+                            }
+                        }
+                    }
+
+                    HStack(spacing: 12) {
+                        Button {
+                            store.executeCustomSearch()
+                        } label: {
+                            Label("検索実行", systemImage: "magnifyingglass")
+                        }
+                        .buttonStyle(.borderedProminent)
+
+                        Button("リセット") {
+                            store.resetCustomSearch()
+                        }
+                    }
+                }
+                .padding(.leading, 16)
             }
         }
     }
