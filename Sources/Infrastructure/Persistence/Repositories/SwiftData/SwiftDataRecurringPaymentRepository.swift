@@ -128,7 +128,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
     internal func updateDefinition(
         definitionId: UUID,
         input: RecurringPaymentDefinitionInput,
-    ) async throws {
+    ) async throws -> Bool {
         let context = currentContext
         let definition = try await findDefinition(id: definitionId, context: context)
         let category = try await resolvedCategory(id: input.categoryId, context: context)
@@ -137,6 +137,10 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         guard errors.isEmpty else {
             throw RecurringPaymentDomainError.validationFailed(errors)
         }
+
+        // 開始日が過去に変更されたかどうかを検出
+        let oldFirstOccurrenceDate = definition.firstOccurrenceDate
+        let needsBackfill = input.firstOccurrenceDate < oldFirstOccurrenceDate
 
         definition.name = input.name
         definition.notes = input.notes
@@ -152,6 +156,8 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         definition.updatedAt = currentDateProvider()
 
         try context.save()
+
+        return needsBackfill
     }
 
     internal func deleteDefinition(definitionId: UUID) async throws {
@@ -177,6 +183,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date? = nil,
+        backfillFromFirstDate: Bool = false,
     ) async throws -> RecurringPaymentSynchronizationSummary {
         let context = currentContext
         let definition = try await findDefinition(id: definitionId, context: context)
@@ -193,6 +200,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
             for: definition,
             referenceDate: now,
             horizonMonths: horizonMonths,
+            backfillFromFirstDate: backfillFromFirstDate,
         )
 
         guard !plan.occurrences.isEmpty else {
@@ -260,6 +268,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
             definitionId: occurrence.definitionId,
             horizonMonths: horizonMonths,
             referenceDate: now,
+            backfillFromFirstDate: false,
         )
     }
 
@@ -306,6 +315,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
             definitionId: occurrence.definitionId,
             horizonMonths: horizonMonths,
             referenceDate: now,
+            backfillFromFirstDate: false,
         )
     }
 

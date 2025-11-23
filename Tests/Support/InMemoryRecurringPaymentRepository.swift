@@ -112,12 +112,16 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
     internal func updateDefinition(
         definitionId: UUID,
         input: RecurringPaymentDefinitionInput,
-    ) async throws {
+    ) async throws -> Bool {
         guard let definition = definitionsStorage[definitionId] else {
             throw RecurringPaymentDomainError.definitionNotFound
         }
 
         let category = try await resolvedSwiftDataCategory(id: input.categoryId)
+
+        // 開始日が過去に変更されたかどうかを検出
+        let oldFirstOccurrenceDate = definition.firstOccurrenceDate
+        let needsBackfill = input.firstOccurrenceDate < oldFirstOccurrenceDate
 
         definition.name = input.name
         definition.notes = input.notes
@@ -140,6 +144,8 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         if let category {
             categoryLookup[category.id] = category
         }
+
+        return needsBackfill
     }
 
     internal func deleteDefinition(definitionId: UUID) async throws {
@@ -152,6 +158,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
+        backfillFromFirstDate: Bool,
     ) async throws -> RecurringPaymentSynchronizationSummary {
         guard let definition = definitionsStorage[definitionId] else {
             throw RecurringPaymentDomainError.definitionNotFound
@@ -169,6 +176,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
             for: definition,
             referenceDate: now,
             horizonMonths: horizonMonths,
+            backfillFromFirstDate: backfillFromFirstDate,
         )
 
         guard !plan.occurrences.isEmpty else {
@@ -218,6 +226,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
             definitionId: occurrence.definitionId,
             horizonMonths: horizonMonths,
             referenceDate: currentDateProvider(),
+            backfillFromFirstDate: false,
         )
     }
 
@@ -255,6 +264,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
             definitionId: occurrence.definitionId,
             horizonMonths: horizonMonths,
             referenceDate: now,
+            backfillFromFirstDate: false,
         )
     }
 

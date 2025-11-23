@@ -22,6 +22,7 @@ internal struct RecurringPaymentStackBuilderTests {
             definitionId: definitionId,
             horizonMonths: 1,
             referenceDate: now,
+            backfillFromFirstDate: false,
         )
         try await repository.saveChanges()
 
@@ -50,6 +51,7 @@ internal struct RecurringPaymentStackBuilderTests {
             definitionId: definitionId,
             horizonMonths: 1,
             referenceDate: now,
+            backfillFromFirstDate: false,
         )
         try await repository.saveChanges()
 
@@ -122,6 +124,7 @@ internal struct RecurringPaymentStackBuilderTests {
             definitionId: definitionId,
             horizonMonths: 1,
             referenceDate: now,
+            backfillFromFirstDate: false,
         )
         try await repository.saveChanges()
 
@@ -151,6 +154,7 @@ internal struct RecurringPaymentStackBuilderTests {
             definitionId: definitionId,
             horizonMonths: 1,
             referenceDate: now,
+            backfillFromFirstDate: false,
         )
         try await repository.saveChanges()
 

@@ -100,11 +100,13 @@ internal final class RecurringPaymentStore {
         definitionId: UUID,
         horizonMonths: Int = RecurringPaymentScheduleService.defaultHorizonMonths,
         referenceDate: Date? = nil,
+        backfillFromFirstDate: Bool = false,
     ) async throws {
         let summary = try await repository.synchronize(
             definitionId: definitionId,
             horizonMonths: horizonMonths,
             referenceDate: referenceDate,
+            backfillFromFirstDate: backfillFromFirstDate,
         )
 
         lastSyncedAt = summary.syncedAt
@@ -158,6 +160,7 @@ extension RecurringPaymentStore {
             definitionId: definitionId,
             horizonMonths: horizonMonths,
             referenceDate: currentDateProvider(),
+            backfillFromFirstDate: false,
         )
         lastSyncedAt = summary.syncedAt
     }
@@ -168,11 +171,12 @@ extension RecurringPaymentStore {
         input: RecurringPaymentDefinitionInput,
         horizonMonths: Int = RecurringPaymentScheduleService.defaultHorizonMonths,
     ) async throws {
-        try await repository.updateDefinition(definitionId: definitionId, input: input)
+        let needsBackfill = try await repository.updateDefinition(definitionId: definitionId, input: input)
         let summary = try await repository.synchronize(
             definitionId: definitionId,
             horizonMonths: horizonMonths,
             referenceDate: currentDateProvider(),
+            backfillFromFirstDate: needsBackfill,
         )
         lastSyncedAt = summary.syncedAt
     }

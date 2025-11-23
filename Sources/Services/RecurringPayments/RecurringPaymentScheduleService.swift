@@ -70,13 +70,15 @@ internal struct RecurringPaymentScheduleService {
     ///   - definition: 対象の定期支払い定義
     ///   - referenceDate: 判定基準日
     ///   - horizonMonths: 生成対象期間
+    ///   - backfillFromFirstDate: trueの場合、完了済みOccurrenceより前にも開始日から遡ってOccurrenceを生成する
     /// - Returns: 同期結果
     internal func synchronizationPlan(
         for definition: SwiftDataRecurringPaymentDefinition,
         referenceDate: Date,
         horizonMonths: Int,
+        backfillFromFirstDate: Bool = false,
     ) -> SynchronizationResult {
-        let seedDate = nextSeedDate(for: definition)
+        let seedDate = backfillFromFirstDate ? definition.firstOccurrenceDate : nextSeedDate(for: definition)
         let targets = scheduleTargets(
             for: definition,
             seedDate: seedDate,

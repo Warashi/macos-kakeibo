@@ -39,6 +39,7 @@ internal struct RecurringPaymentOccurrencesServiceImpl: RecurringPaymentOccurren
             definitionId: definitionId,
             horizonMonths: horizonMonths,
             referenceDate: referenceDate,
+            backfillFromFirstDate: false,
         )
     }
 

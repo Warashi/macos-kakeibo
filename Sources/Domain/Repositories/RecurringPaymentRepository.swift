@@ -69,7 +69,11 @@ internal protocol RecurringPaymentRepository: Sendable {
 
     @discardableResult
     func createDefinition(_ input: RecurringPaymentDefinitionInput) async throws -> UUID
-    func updateDefinition(definitionId: UUID, input: RecurringPaymentDefinitionInput) async throws
+
+    /// 定期支払い定義を更新
+    /// - Returns: 開始日が過去に変更された場合true
+    func updateDefinition(definitionId: UUID, input: RecurringPaymentDefinitionInput) async throws -> Bool
+
     func deleteDefinition(definitionId: UUID) async throws
 
     @discardableResult
@@ -77,6 +81,7 @@ internal protocol RecurringPaymentRepository: Sendable {
         definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
+        backfillFromFirstDate: Bool,
     ) async throws -> RecurringPaymentSynchronizationSummary
 
     @discardableResult

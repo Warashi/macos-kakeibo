@@ -117,6 +117,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
             definitionId: definition.id,
             horizonMonths: 12,
             referenceDate: referenceDate,
+            backfillFromFirstDate: false,
         )
 
         #expect(summary.createdCount >= 2)
@@ -151,6 +152,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
             definitionId: definition.id,
             horizonMonths: 12,
             referenceDate: today,
+            backfillFromFirstDate: false,
         )
 
         let definitionId = definition.id
