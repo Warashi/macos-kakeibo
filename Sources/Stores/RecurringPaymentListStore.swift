@@ -26,6 +26,7 @@ internal final class RecurringPaymentListStore {
     // MARK: - Dependencies
 
     private let repository: RecurringPaymentRepository
+    private let budgetRepository: BudgetRepository
     private let presenter: RecurringPaymentListPresenter
     private let currentDateProvider: () -> Date
 
@@ -55,10 +56,12 @@ internal final class RecurringPaymentListStore {
 
     internal init(
         repository: RecurringPaymentRepository,
+        budgetRepository: BudgetRepository,
         presenter: RecurringPaymentListPresenter = RecurringPaymentListPresenter(),
         currentDateProvider: @escaping () -> Date = { Date() },
     ) {
         self.repository = repository
+        self.budgetRepository = budgetRepository
         self.presenter = presenter
         self.currentDateProvider = currentDateProvider
 
@@ -89,8 +92,17 @@ internal final class RecurringPaymentListStore {
 
     /// キャッシュを更新
     internal func refreshEntries() async {
+        await loadCategories()
         let entries = await self.entries()
         cachedEntries = entries
+    }
+
+    /// カテゴリを読み込み
+    internal func loadCategories() async {
+        guard let categories = try? await budgetRepository.fetchAllCategories() else {
+            return
+        }
+        categoryFilter.updateCategories(categories)
     }
 
     // MARK: - Actions

@@ -18,7 +18,7 @@ internal struct RecurringPaymentListViewTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
-        let store = RecurringPaymentListStore(repository: repository)
+        let store = RecurringPaymentListStore(repository: repository, budgetRepository: SwiftDataBudgetRepository(modelContainer: container))
 
         let view = RecurringPaymentListContentView(store: store)
         let _: any View = view
@@ -29,7 +29,7 @@ internal struct RecurringPaymentListViewTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
-        let store = RecurringPaymentListStore(repository: repository)
+        let store = RecurringPaymentListStore(repository: repository, budgetRepository: SwiftDataBudgetRepository(modelContainer: container))
 
         let entries = await store.entries()
         #expect(entries.isEmpty)
@@ -61,7 +61,7 @@ internal struct RecurringPaymentListViewTests {
 
         // ストアを作成
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
-        let store = RecurringPaymentListStore(repository: repository)
+        let store = RecurringPaymentListStore(repository: repository, budgetRepository: SwiftDataBudgetRepository(modelContainer: container))
         store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
         store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
 
@@ -214,7 +214,7 @@ internal struct RecurringPaymentListViewTests {
         try context.save()
 
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
-        let store = RecurringPaymentListStore(repository: repository)
+        let store = RecurringPaymentListStore(repository: repository, budgetRepository: SwiftDataBudgetRepository(modelContainer: container))
         store.dateRange.startDate = Date.from(year: 2026, month: 1) ?? Date()
         store.dateRange.endDate = Date.from(year: 2026, month: 12) ?? Date()
 

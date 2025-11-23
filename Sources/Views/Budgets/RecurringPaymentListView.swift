@@ -37,7 +37,6 @@ internal struct RecurringPaymentListView: View {
 /// 定期支払い一覧コンテンツビュー
 internal struct RecurringPaymentListContentView: View {
     @Bindable internal var store: RecurringPaymentListStore
-    @Query private var allCategoryEntities: [SwiftDataCategory]
     @State private var csvDocument: DataFileDocument?
     @State private var isExportingCSV: Bool = false
     @State private var exportError: String?
@@ -85,12 +84,6 @@ internal struct RecurringPaymentListContentView: View {
                 Text(exportError ?? "")
             },
         )
-        .onAppear {
-            store.categoryFilter.updateCategories(domainCategories)
-        }
-        .onChange(of: allCategoryEntities) { _, _ in
-            store.categoryFilter.updateCategories(domainCategories)
-        }
         .onChange(of: store.dateRange) { [store] _, _ in
             Task { await store.refreshEntries() }
         }
@@ -140,12 +133,6 @@ internal struct RecurringPaymentListContentView: View {
         case let .failure(error):
             exportError = "ファイル保存に失敗しました: \(error.localizedDescription)"
         }
-    }
-}
-
-private extension RecurringPaymentListContentView {
-    var domainCategories: [Category] {
-        allCategoryEntities.map { Category(from: $0) }
     }
 }
 

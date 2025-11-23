@@ -106,7 +106,8 @@ internal struct RecurringPaymentListStoreSortTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
-        let store = RecurringPaymentListStore(repository: repository)
+        let budgetRepository = SwiftDataBudgetRepository(modelContainer: container)
+        let store = RecurringPaymentListStore(repository: repository, budgetRepository: budgetRepository)
         return (store, context)
     }
 }

@@ -13,7 +13,8 @@ internal struct RecurringPaymentListStoreInitTests {
         let context = ModelContext(container)
 
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
-        let store = RecurringPaymentListStore(repository: repository)
+        let budgetRepository = SwiftDataBudgetRepository(modelContainer: container)
+        let store = RecurringPaymentListStore(repository: repository, budgetRepository: budgetRepository)
         let now = Date()
 
         let expectedStart = Calendar.current.startOfMonth(for: now)

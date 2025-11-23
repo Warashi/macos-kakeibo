@@ -4,6 +4,7 @@ import SwiftData
 /// 定期支払い一覧ストア用の依存関係
 internal struct RecurringPaymentListDependencies {
     internal let repository: RecurringPaymentRepository
+    internal let budgetRepository: BudgetRepository
 }
 
 /// 定期支払い突合ストア用の依存関係
@@ -28,14 +29,21 @@ internal enum RecurringPaymentStackBuilder {
     internal static func makeListDependencies(modelContainer: ModelContainer) async
     -> RecurringPaymentListDependencies {
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: modelContainer)
-        return RecurringPaymentListDependencies(repository: repository)
+        let budgetRepository = SwiftDataBudgetRepository(modelContainer: modelContainer)
+        return RecurringPaymentListDependencies(
+            repository: repository,
+            budgetRepository: budgetRepository
+        )
     }
 
     /// 定期支払い一覧ストアを構築
     internal static func makeListStore(modelContainer: ModelContainer) async -> RecurringPaymentListStore {
         let dependencies = await makeListDependencies(modelContainer: modelContainer)
         return await MainActor.run {
-            RecurringPaymentListStore(repository: dependencies.repository)
+            RecurringPaymentListStore(
+                repository: dependencies.repository,
+                budgetRepository: dependencies.budgetRepository
+            )
         }
     }
 
@@ -91,7 +99,10 @@ internal enum RecurringPaymentStackBuilder {
     internal static func makeListStore(modelActor: RecurringPaymentModelActor) async -> RecurringPaymentListStore {
         let dependencies = await makeListDependencies(modelActor: modelActor)
         return await MainActor.run {
-            RecurringPaymentListStore(repository: dependencies.repository)
+            RecurringPaymentListStore(
+                repository: dependencies.repository,
+                budgetRepository: dependencies.budgetRepository
+            )
         }
     }
 
