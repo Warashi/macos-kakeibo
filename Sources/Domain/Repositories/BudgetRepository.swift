@@ -3,6 +3,7 @@ import Foundation
 internal protocol BudgetRepository: Sendable {
     func fetchSnapshot(for year: Int) async throws -> BudgetSnapshot
     func category(id: UUID) async throws -> Category?
+    func fetchAllCategories() async throws -> [Category]
     func findCategoryByName(_ name: String, parentId: UUID?) async throws -> Category?
     func createCategory(name: String, parentId: UUID?) async throws -> UUID
     func countCategories() async throws -> Int

@@ -32,6 +32,10 @@ internal final class InMemoryBudgetRepository: BudgetRepository {
         categories[id]
     }
 
+    internal func fetchAllCategories() async throws -> [Kakeibo.Category] {
+        Array(categories.values).sorted { $0.displayOrder < $1.displayOrder }
+    }
+
     internal func findCategoryByName(_ name: String, parentId: UUID?) async throws -> Kakeibo.Category? {
         categories.values.first { $0.name == name && $0.parentId == parentId }
     }

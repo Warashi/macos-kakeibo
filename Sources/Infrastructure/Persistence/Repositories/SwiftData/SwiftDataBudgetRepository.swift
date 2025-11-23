@@ -61,6 +61,11 @@ internal actor SwiftDataBudgetRepository: BudgetRepository {
         try context.fetch(CategoryQueries.byId(id)).first.map { Category(from: $0) }
     }
 
+    internal func fetchAllCategories() async throws -> [Category] {
+        let categories = try context.fetch(CategoryQueries.sortedForDisplay())
+        return categories.map { Category(from: $0) }
+    }
+
     internal func findCategoryByName(_ name: String, parentId: UUID?) async throws -> Category? {
         let descriptor: ModelFetchRequest<SwiftDataCategory> = if let parentId {
             CategoryQueries.firstMatching(

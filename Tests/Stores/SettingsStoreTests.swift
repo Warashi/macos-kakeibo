@@ -417,6 +417,10 @@ private final class MockBudgetRepository: BudgetRepository {
         unsupported(#function)
     }
 
+    internal func fetchAllCategories() async throws -> [Kakeibo.Category] {
+        unsupported(#function)
+    }
+
     internal func findCategoryByName(_ name: String, parentId: UUID?) async throws -> Kakeibo.Category? {
         unsupported(#function)
     }
