@@ -87,6 +87,7 @@ internal struct ReconciliationPresenterTests {
             windowDays: 30,
             limit: 5,
             currentDate: Date.from(year: 2025, month: 12, day: 31) ?? Date(),
+            customAmountRange: nil,
         )
 
         let candidates = presenter.transactionCandidates(
@@ -139,6 +140,7 @@ internal struct ReconciliationPresenterTests {
             windowDays: 30,
             limit: 5,
             currentDate: Date.from(year: 2025, month: 6, day: 15) ?? Date(),
+            customAmountRange: nil,
         )
 
         let candidates = presenter.transactionCandidates(
@@ -149,5 +151,168 @@ internal struct ReconciliationPresenterTests {
 
         #expect(candidates.count == 1)
         #expect(candidates.first?.transaction.id == pastTransaction.id)
+    }
+
+    @Test("transactionCandidates filters by custom amount range minimum")
+    internal func transactionCandidates_filtersAmountRangeMin() throws {
+        let presenter = RecurringPaymentReconciliationPresenter()
+        let definition = SwiftDataRecurringPaymentDefinition(
+            name: "保険料",
+            amount: 100_000,
+            recurrenceIntervalMonths: 12,
+            firstOccurrenceDate: Date(),
+        )
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
+            definition: definition,
+            scheduledDate: Date.from(year: 2025, month: 6, day: 10) ?? Date(),
+            expectedAmount: 100_000,
+            status: .planned,
+        )
+
+        let lowAmountTransaction = SwiftDataTransaction(
+            date: Date.from(year: 2025, month: 6, day: 8) ?? Date(),
+            title: "保険料",
+            amount: -80_000,
+        )
+
+        let highAmountTransaction = SwiftDataTransaction(
+            date: Date.from(year: 2025, month: 6, day: 12) ?? Date(),
+            title: "保険料",
+            amount: -120_000,
+        )
+
+        let definitionModel = RecurringPaymentDefinition(from: definition)
+        let occurrenceModel = RecurringPaymentOccurrence(from: occurrence)
+        let lowTransaction = Transaction(from: lowAmountTransaction)
+        let highTransaction = Transaction(from: highAmountTransaction)
+
+        let context = RecurringPaymentReconciliationPresenter.TransactionCandidateSearchContext(
+            transactions: [lowTransaction, highTransaction],
+            linkedTransactionLookup: [:],
+            windowDays: 30,
+            limit: 5,
+            currentDate: Date.from(year: 2025, month: 12, day: 31) ?? Date(),
+            customAmountRange: (min: Decimal(100_000), max: nil),
+        )
+
+        let candidates = presenter.transactionCandidates(
+            for: occurrenceModel,
+            definition: definitionModel,
+            context: context,
+        )
+
+        #expect(candidates.count == 1)
+        #expect(candidates.first?.transaction.id == highTransaction.id)
+    }
+
+    @Test("transactionCandidates filters by custom amount range maximum")
+    internal func transactionCandidates_filtersAmountRangeMax() throws {
+        let presenter = RecurringPaymentReconciliationPresenter()
+        let definition = SwiftDataRecurringPaymentDefinition(
+            name: "保険料",
+            amount: 100_000,
+            recurrenceIntervalMonths: 12,
+            firstOccurrenceDate: Date(),
+        )
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
+            definition: definition,
+            scheduledDate: Date.from(year: 2025, month: 6, day: 10) ?? Date(),
+            expectedAmount: 100_000,
+            status: .planned,
+        )
+
+        let lowAmountTransaction = SwiftDataTransaction(
+            date: Date.from(year: 2025, month: 6, day: 8) ?? Date(),
+            title: "保険料",
+            amount: -80_000,
+        )
+
+        let highAmountTransaction = SwiftDataTransaction(
+            date: Date.from(year: 2025, month: 6, day: 12) ?? Date(),
+            title: "保険料",
+            amount: -120_000,
+        )
+
+        let definitionModel = RecurringPaymentDefinition(from: definition)
+        let occurrenceModel = RecurringPaymentOccurrence(from: occurrence)
+        let lowTransaction = Transaction(from: lowAmountTransaction)
+        let highTransaction = Transaction(from: highAmountTransaction)
+
+        let context = RecurringPaymentReconciliationPresenter.TransactionCandidateSearchContext(
+            transactions: [lowTransaction, highTransaction],
+            linkedTransactionLookup: [:],
+            windowDays: 30,
+            limit: 5,
+            currentDate: Date.from(year: 2025, month: 12, day: 31) ?? Date(),
+            customAmountRange: (min: nil, max: Decimal(100_000)),
+        )
+
+        let candidates = presenter.transactionCandidates(
+            for: occurrenceModel,
+            definition: definitionModel,
+            context: context,
+        )
+
+        #expect(candidates.count == 1)
+        #expect(candidates.first?.transaction.id == lowTransaction.id)
+    }
+
+    @Test("transactionCandidates filters by custom amount range both min and max")
+    internal func transactionCandidates_filtersAmountRangeBoth() throws {
+        let presenter = RecurringPaymentReconciliationPresenter()
+        let definition = SwiftDataRecurringPaymentDefinition(
+            name: "保険料",
+            amount: 100_000,
+            recurrenceIntervalMonths: 12,
+            firstOccurrenceDate: Date(),
+        )
+        let occurrence = SwiftDataRecurringPaymentOccurrence(
+            definition: definition,
+            scheduledDate: Date.from(year: 2025, month: 6, day: 10) ?? Date(),
+            expectedAmount: 100_000,
+            status: .planned,
+        )
+
+        let tooLowTransaction = SwiftDataTransaction(
+            date: Date.from(year: 2025, month: 6, day: 5) ?? Date(),
+            title: "保険料",
+            amount: -70_000,
+        )
+
+        let justRightTransaction = SwiftDataTransaction(
+            date: Date.from(year: 2025, month: 6, day: 8) ?? Date(),
+            title: "保険料",
+            amount: -95_000,
+        )
+
+        let tooHighTransaction = SwiftDataTransaction(
+            date: Date.from(year: 2025, month: 6, day: 12) ?? Date(),
+            title: "保険料",
+            amount: -130_000,
+        )
+
+        let definitionModel = RecurringPaymentDefinition(from: definition)
+        let occurrenceModel = RecurringPaymentOccurrence(from: occurrence)
+        let tooLow = Transaction(from: tooLowTransaction)
+        let justRight = Transaction(from: justRightTransaction)
+        let tooHigh = Transaction(from: tooHighTransaction)
+
+        let context = RecurringPaymentReconciliationPresenter.TransactionCandidateSearchContext(
+            transactions: [tooLow, justRight, tooHigh],
+            linkedTransactionLookup: [:],
+            windowDays: 30,
+            limit: 5,
+            currentDate: Date.from(year: 2025, month: 12, day: 31) ?? Date(),
+            customAmountRange: (min: Decimal(80_000), max: Decimal(110_000)),
+        )
+
+        let candidates = presenter.transactionCandidates(
+            for: occurrenceModel,
+            definition: definitionModel,
+            context: context,
+        )
+
+        #expect(candidates.count == 1)
+        #expect(candidates.first?.transaction.id == justRight.id)
     }
 }
