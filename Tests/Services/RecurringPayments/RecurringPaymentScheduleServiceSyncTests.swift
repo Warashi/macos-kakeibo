@@ -304,4 +304,84 @@ internal struct RecurringPaymentScheduleServiceSyncTests {
         let futureOccurrences = plan.created.filter { $0.scheduledDate >= newFirstDate }
         #expect(futureOccurrences.isEmpty == false)
     }
+
+    @Test("開始日を過去に変更後、最も古いOccurrenceを突合しても、途中のOccurrenceが自動的に生成される")
+    internal func synchronizationPlan_autoBackfillsGapsAfterCompletingOldestOccurrence() throws {
+        let originalFirstDate = try #require(Date.from(year: 2025, month: 4, day: 1))
+        let newFirstDate = try #require(Date.from(year: 2025, month: 1, day: 1))
+        let referenceDate = try #require(Date.from(year: 2025, month: 12, day: 1))
+
+        let definition = SwiftDataRecurringPaymentDefinition(
+            name: "月額サブスクリプション",
+            amount: 1000,
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: newFirstDate,
+        )
+
+        // 初期状態: 4月と5月のOccurrenceが完了済み
+        let completedApril = SwiftDataRecurringPaymentOccurrence(
+            definition: definition,
+            scheduledDate: originalFirstDate,
+            expectedAmount: 1000,
+            status: .completed,
+            actualDate: originalFirstDate,
+            actualAmount: 1000,
+        )
+        let mayDate = try #require(Date.from(year: 2025, month: 5, day: 1))
+        let completedMay = SwiftDataRecurringPaymentOccurrence(
+            definition: definition,
+            scheduledDate: mayDate,
+            expectedAmount: 1000,
+            status: .completed,
+            actualDate: mayDate,
+            actualAmount: 1000,
+        )
+        definition.occurrences = [completedApril, completedMay]
+
+        // 1回目の同期: backfillFromFirstDate = true で1月〜3月のOccurrenceを生成
+        let firstSyncPlan = service.synchronizationPlan(
+            for: definition,
+            referenceDate: referenceDate,
+            horizonMonths: 12,
+            backfillFromFirstDate: true,
+        )
+
+        // 1月〜3月のOccurrenceが生成されることを確認
+        let backfilledOccurrences = firstSyncPlan.created.filter { occurrence in
+            occurrence.scheduledDate < originalFirstDate
+        }
+        #expect(backfilledOccurrences.count == 3)
+
+        // 定義のOccurrenceリストを更新（実際のリポジトリではこれが自動的に行われる）
+        definition.occurrences = firstSyncPlan.occurrences
+
+        // 1月のOccurrenceを完了済みにする（最も古いOccurrenceを突合）
+        let januaryOccurrence = try #require(
+            definition.occurrences.first { $0.scheduledDate.month == 1 },
+        )
+        januaryOccurrence.status = .completed
+        januaryOccurrence.actualDate = januaryOccurrence.scheduledDate
+        januaryOccurrence.actualAmount = 1000
+
+        // 2回目の同期: backfillFromFirstDate = false で通常の同期
+        // 改善後のnextSeedDateロジックにより、firstOccurrenceDateから自動的に生成される
+        let secondSyncPlan = service.synchronizationPlan(
+            for: definition,
+            referenceDate: referenceDate,
+            horizonMonths: 12,
+            backfillFromFirstDate: false,
+        )
+
+        // 2月と3月のOccurrenceが保持されている（または再生成されている）ことを確認
+        let februaryOccurrence = secondSyncPlan.occurrences.first { $0.scheduledDate.month == 2 }
+        let marchOccurrence = secondSyncPlan.occurrences.first { $0.scheduledDate.month == 3 }
+        #expect(februaryOccurrence != nil, "2月のOccurrenceが存在する")
+        #expect(marchOccurrence != nil, "3月のOccurrenceが存在する")
+
+        // 完了済みOccurrenceがロックされていることを確認
+        #expect(secondSyncPlan.locked.count == 3) // 1月、4月、5月
+        #expect(secondSyncPlan.locked.contains(where: { $0.id == januaryOccurrence.id }))
+        #expect(secondSyncPlan.locked.contains(where: { $0.id == completedApril.id }))
+        #expect(secondSyncPlan.locked.contains(where: { $0.id == completedMay.id }))
+    }
 }

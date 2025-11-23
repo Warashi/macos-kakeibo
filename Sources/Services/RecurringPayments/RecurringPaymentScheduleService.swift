@@ -271,6 +271,18 @@ internal struct RecurringPaymentScheduleService {
             return definition.firstOccurrenceDate
         }
 
+        // 既存のOccurrenceの最小scheduledDateを取得
+        let earliestExisting = definition.occurrences
+            .map(\.scheduledDate)
+            .min()
+
+        // firstOccurrenceDateが既存の最小scheduledDateより前の場合、
+        // firstOccurrenceDateから生成することで、開始日を過去に変更した際の穴を自動的に埋める
+        if let earliestExisting, definition.firstOccurrenceDate < earliestExisting {
+            return definition.firstOccurrenceDate
+        }
+
+        // それ以外は最新完了の次回から
         return calendar.date(
             byAdding: .month,
             value: definition.recurrenceIntervalMonths,
