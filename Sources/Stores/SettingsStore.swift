@@ -84,7 +84,9 @@ internal final class SettingsStore {
         budgetRepository: BudgetRepository,
     ) async {
         self.modelContainer = modelContainer
-        self.backupManager = backupManager ?? BackupManager(modelContainer: modelContainer)
+        self.backupManager = backupManager ?? BackupManager(
+            backupRepository: SwiftDataBackupRepository(modelContainer: modelContainer)
+        )
         self.csvExporter = csvExporter
         self.userDefaults = userDefaults
         self.transactionRepository = transactionRepository

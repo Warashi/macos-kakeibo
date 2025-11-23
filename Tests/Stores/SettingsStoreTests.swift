@@ -188,7 +188,9 @@ internal struct SettingsStoreTests {
         let sourceContainer = try ModelContainer.createInMemoryContainer()
         let sourceContext = ModelContext(sourceContainer)
         try seedTransaction(in: sourceContext)
-        let backupManager = BackupManager(modelContainer: sourceContainer)
+        let backupManager = BackupManager(
+            backupRepository: SwiftDataBackupRepository(modelContainer: sourceContainer)
+        )
         let payload = try await backupManager.buildPayload()
         let archive = try await backupManager.createBackup(payload: payload)
 

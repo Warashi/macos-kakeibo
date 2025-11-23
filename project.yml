@@ -40,6 +40,7 @@ targets:
           - ValueObjects/**
           - Repositories/**
           - Inputs/**
+          - DTOs/**
       - path: Sources/Infrastructure
       - path: Config/AppIcon.icon
     entitlements:
