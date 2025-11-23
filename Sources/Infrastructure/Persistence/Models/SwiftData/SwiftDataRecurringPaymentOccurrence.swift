@@ -55,11 +55,11 @@ internal extension SwiftDataRecurringPaymentOccurrence {
     }
 
     var isSchedulingLocked: Bool {
-        status == .completed || status == .cancelled
+        status == .completed || status == .cancelled || status == .skipped
     }
 
     var isOverdue: Bool {
-        !isCompleted && scheduledDate < Date()
+        status != .completed && status != .skipped && scheduledDate < Date()
     }
 
     var remainingAmount: Decimal {
