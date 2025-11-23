@@ -1,7 +1,7 @@
 import Foundation
 
 /// 取引リストの表示種別フィルタ
-internal enum TransactionFilterKind: String, CaseIterable, Identifiable, Hashable {
+internal enum TransactionFilterKind: String, CaseIterable, Identifiable, Hashable, Sendable {
     case all = "すべて"
     case income = "収入"
     case expense = "支出"
@@ -11,7 +11,7 @@ internal enum TransactionFilterKind: String, CaseIterable, Identifiable, Hashabl
 }
 
 /// 取引フォームで使用する入出金種別
-internal enum TransactionKind: String, CaseIterable, Identifiable {
+internal enum TransactionKind: String, CaseIterable, Identifiable, Sendable {
     case income = "収入"
     case expense = "支出"
 
@@ -20,7 +20,7 @@ internal enum TransactionKind: String, CaseIterable, Identifiable {
 }
 
 /// 並び替えオプション
-internal enum TransactionSortOption: String, CaseIterable, Identifiable {
+internal enum TransactionSortOption: String, CaseIterable, Identifiable, Sendable {
     case dateDescending = "日付（新しい順）"
     case dateAscending = "日付（古い順）"
     case amountDescending = "金額（大きい順）"

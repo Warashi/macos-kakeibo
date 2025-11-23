@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct TransactionQuery {
+internal struct TransactionQuery: Sendable {
     internal let month: Date
     internal let filterKind: TransactionFilterKind
     internal let includeOnlyCalculationTarget: Bool

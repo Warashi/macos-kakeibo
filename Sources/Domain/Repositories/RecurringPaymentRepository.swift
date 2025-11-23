@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct RecurringPaymentDefinitionFilter {
+internal struct RecurringPaymentDefinitionFilter: Sendable {
     internal let ids: Set<UUID>?
     internal let searchText: String?
     internal let categoryIds: Set<UUID>?
@@ -20,7 +20,7 @@ internal struct RecurringPaymentDefinitionFilter {
     }
 }
 
-internal struct RecurringPaymentOccurrenceRange {
+internal struct RecurringPaymentOccurrenceRange: Sendable {
     internal let startDate: Date
     internal let endDate: Date
 
@@ -30,7 +30,7 @@ internal struct RecurringPaymentOccurrenceRange {
     }
 }
 
-internal struct RecurringPaymentOccurrenceQuery {
+internal struct RecurringPaymentOccurrenceQuery: Sendable {
     internal let range: RecurringPaymentOccurrenceRange?
     internal let statusFilter: Set<RecurringPaymentStatus>?
     internal let definitionIds: Set<UUID>?
@@ -46,7 +46,7 @@ internal struct RecurringPaymentOccurrenceQuery {
     }
 }
 
-internal struct RecurringPaymentBalanceQuery {
+internal struct RecurringPaymentBalanceQuery: Sendable {
     internal let definitionIds: Set<UUID>?
 
     internal init(definitionIds: Set<UUID>? = nil) {
@@ -54,7 +54,7 @@ internal struct RecurringPaymentBalanceQuery {
     }
 }
 
-internal struct RecurringPaymentSynchronizationSummary {
+internal struct RecurringPaymentSynchronizationSummary: Sendable {
     internal let syncedAt: Date
     internal let createdCount: Int
     internal let updatedCount: Int
