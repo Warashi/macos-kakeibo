@@ -367,6 +367,8 @@ private extension RecurringPaymentStatus {
             "完了"
         case .cancelled:
             "中止"
+        case .skipped:
+            "スキップ"
         }
     }
 
@@ -380,6 +382,8 @@ private extension RecurringPaymentStatus {
             .green
         case .cancelled:
             .red
+        case .skipped:
+            .orange
         }
     }
 }
