@@ -39,6 +39,7 @@ targets:
           - Models/**
           - ValueObjects/**
           - Repositories/**
+          - Inputs/**
       - path: Sources/Infrastructure
       - path: Config/AppIcon.icon
     entitlements:
