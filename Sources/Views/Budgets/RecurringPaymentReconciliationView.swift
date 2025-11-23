@@ -160,24 +160,26 @@ private struct ReconciliationDetailPanelView: View {
     @Bindable internal var store: RecurringPaymentReconciliationStore
 
     internal var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if let selected = store.selectedRow {
-                ReconciliationDetailHeaderView(row: selected)
-                Divider()
-                ReconciliationPlannedInfoView(row: selected)
-                Divider()
-                ReconciliationFormView(store: store)
-                Divider()
-                ReconciliationCandidateListView(store: store)
-                Spacer()
-            } else {
-                ContentUnavailableView {
-                    Label("定期支払いを選択してください", systemImage: "hand.point.up.left")
-                } description: {
-                    Text("左の一覧から突合したい項目を選びます。")
+        if let selected = store.selectedRow {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    ReconciliationDetailHeaderView(row: selected)
+                    Divider()
+                    ReconciliationPlannedInfoView(row: selected)
+                    Divider()
+                    ReconciliationFormView(store: store)
+                    Divider()
+                    ReconciliationCandidateListView(store: store)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.trailing, 8)
             }
+        } else {
+            ContentUnavailableView {
+                Label("定期支払いを選択してください", systemImage: "hand.point.up.left")
+            } description: {
+                Text("左の一覧から突合したい項目を選びます。")
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 }
