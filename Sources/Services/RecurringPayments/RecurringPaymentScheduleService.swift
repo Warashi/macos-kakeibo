@@ -88,7 +88,13 @@ internal struct RecurringPaymentScheduleService {
 
         let locked = definition.occurrences.filter(\.isSchedulingLocked)
 
-        guard !targets.isEmpty else {
+        // ロック済みOccurrenceと同じ日付のtargetを除外して、重複を防ぐ
+        let lockedDates = Set(locked.map(\.scheduledDate))
+        let filteredTargets = targets.filter { target in
+            !lockedDates.contains(where: { isSameDay(target.scheduledDate, $0) })
+        }
+
+        guard !filteredTargets.isEmpty else {
             return SynchronizationResult(
                 created: [],
                 updated: [],
@@ -99,10 +105,10 @@ internal struct RecurringPaymentScheduleService {
             )
         }
 
-        let effectiveNextDate = computeNextUpcomingDate(for: definition, targets: targets)
+        let effectiveNextDate = computeNextUpcomingDate(for: definition, targets: filteredTargets)
 
         let result = processSyncTargets(
-            targets: targets,
+            targets: filteredTargets,
             definition: definition,
             referenceDate: referenceDate,
             effectiveNextDate: effectiveNextDate,
@@ -262,34 +268,10 @@ internal struct RecurringPaymentScheduleService {
     }
 
     private func nextSeedDate(for definition: SwiftDataRecurringPaymentDefinition) -> Date {
-        let latestCompleted = definition.occurrences
-            .filter { $0.status == .completed }
-            .map(\.scheduledDate)
-            .max()
-
-        guard let latestCompleted else {
-            return definition.firstOccurrenceDate
-        }
-
-        // 完了済み（ロック済み）Occurrenceの最小scheduledDateを取得
-        let earliestLockedDate = definition.occurrences
-            .filter(\.isSchedulingLocked)
-            .map(\.scheduledDate)
-            .min()
-
-        // firstOccurrenceDateが完了済みOccurrenceの最小scheduledDateより前の場合、
-        // 開始日が過去に変更されたと判定し、firstOccurrenceDateから生成し直す
-        // これにより、開始日変更後の穴が自動的に埋められる
-        if let earliestLockedDate, definition.firstOccurrenceDate < earliestLockedDate {
-            return definition.firstOccurrenceDate
-        }
-
-        // それ以外は最新完了の次回から
-        return calendar.date(
-            byAdding: .month,
-            value: definition.recurrenceIntervalMonths,
-            to: latestCompleted,
-        ) ?? definition.firstOccurrenceDate
+        // 常にfirstOccurrenceDate以降のすべてのOccurrenceを生成するため、
+        // 開始日を返す。これにより、完了済みOccurrenceの間に穴があっても
+        // 自動的に埋められる。
+        return definition.firstOccurrenceDate
     }
 
     /// 同期処理の結果
