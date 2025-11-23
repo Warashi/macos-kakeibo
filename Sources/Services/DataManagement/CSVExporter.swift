@@ -216,6 +216,8 @@ internal struct CSVExporter: Sendable {
             "完了"
         case .cancelled:
             "中止"
+        case .skipped:
+            "スキップ"
         }
     }
 }
