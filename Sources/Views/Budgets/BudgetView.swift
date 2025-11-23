@@ -427,6 +427,7 @@ private extension BudgetView {
             amount: amount,
             recurrenceIntervalMonths: recurringPaymentFormState.recurrenceIntervalMonths,
             firstOccurrenceDate: recurringPaymentFormState.firstOccurrenceDate,
+            endDate: recurringPaymentFormState.hasEndDate ? recurringPaymentFormState.endDate : nil,
             categoryId: recurringPaymentFormState.selectedCategoryId,
             savingStrategy: recurringPaymentFormState.savingStrategy,
             customMonthlySavingAmount: recurringPaymentFormState.customMonthlySavingAmount,

@@ -264,6 +264,8 @@ internal struct RecurringPaymentFormState {
     internal var recurrenceYears: Int = 0
     internal var recurrenceMonths: Int = 1
     internal var firstOccurrenceDate: Date = Date()
+    internal var hasEndDate: Bool = false
+    internal var endDate: Date = Date()
     internal var selectedMajorCategoryId: UUID?
     internal var selectedMinorCategoryId: UUID?
     internal var savingStrategy: RecurringPaymentSavingStrategy = .evenlyDistributed
@@ -282,6 +284,13 @@ internal struct RecurringPaymentFormState {
         recurrenceYears = definition.recurrenceIntervalMonths / 12
         recurrenceMonths = definition.recurrenceIntervalMonths % 12
         firstOccurrenceDate = definition.firstOccurrenceDate
+        if let endDate = definition.endDate {
+            hasEndDate = true
+            self.endDate = endDate
+        } else {
+            hasEndDate = false
+            self.endDate = Date()
+        }
         updateCategorySelection(for: definition.categoryId, categories: categories)
         savingStrategy = definition.savingStrategy
         customMonthlySavingAmountText = definition.customMonthlySavingAmount?.plainString ?? ""
@@ -296,6 +305,8 @@ internal struct RecurringPaymentFormState {
         recurrenceYears = 0
         recurrenceMonths = 1
         firstOccurrenceDate = Date()
+        hasEndDate = false
+        endDate = Date()
         selectedMajorCategoryId = nil
         selectedMinorCategoryId = nil
         savingStrategy = .evenlyDistributed

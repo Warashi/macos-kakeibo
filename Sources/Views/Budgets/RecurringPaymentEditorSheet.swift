@@ -71,6 +71,26 @@ internal struct RecurringPaymentEditorSheet: View {
                         .labelsHidden()
                     }
 
+                    LabeledField(title: "終了日") {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Toggle("終了日を設定", isOn: $formState.hasEndDate)
+
+                            if formState.hasEndDate {
+                                DatePicker(
+                                    "",
+                                    selection: $formState.endDate,
+                                    displayedComponents: [.date],
+                                )
+                                .datePickerStyle(.field)
+                                .labelsHidden()
+
+                                Text("終了日以降のOccurrenceは生成されません")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+
                     LabeledField(title: "積立戦略") {
                         Picker("積立戦略", selection: $formState.savingStrategy) {
                             Text("積立なし").tag(RecurringPaymentSavingStrategy.disabled)
