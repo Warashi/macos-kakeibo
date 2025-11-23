@@ -268,6 +268,34 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         )
     }
 
+    @discardableResult
+    internal func skipOccurrence(
+        occurrenceId: UUID,
+        horizonMonths: Int,
+    ) async throws -> RecurringPaymentSynchronizationSummary {
+        guard let occurrence = findOccurrence(id: occurrenceId) else {
+            throw RecurringPaymentDomainError.occurrenceNotFound
+        }
+
+        occurrence.status = .skipped
+        occurrence.actualDate = nil
+        occurrence.actualAmount = nil
+        occurrence.transaction = nil
+        occurrence.updatedAt = currentDateProvider()
+
+        let errors = occurrence.validate()
+        guard errors.isEmpty else {
+            throw RecurringPaymentDomainError.validationFailed(errors)
+        }
+
+        return try await synchronize(
+            definitionId: occurrence.definitionId,
+            horizonMonths: horizonMonths,
+            referenceDate: currentDateProvider(),
+            backfillFromFirstDate: false,
+        )
+    }
+
     internal func saveChanges() async throws {
         // No-op for in-memory implementation
     }

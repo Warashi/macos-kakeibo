@@ -319,6 +319,45 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         )
     }
 
+    @discardableResult
+    internal func skipOccurrence(
+        occurrenceId: UUID,
+        horizonMonths: Int,
+    ) async throws -> RecurringPaymentSynchronizationSummary {
+        let context = currentContext
+        let occurrence = try await findOccurrence(id: occurrenceId, context: context)
+        let now = currentDateProvider()
+        let updateValues = OccurrenceUpdateValues(
+            status: .skipped,
+            actualDate: nil,
+            actualAmount: nil,
+            transaction: nil,
+        )
+
+        let errors = validateOccurrenceUpdate(
+            occurrence: occurrence,
+            values: updateValues,
+        )
+        guard errors.isEmpty else {
+            throw RecurringPaymentDomainError.validationFailed(errors)
+        }
+
+        occurrence.status = updateValues.status
+        occurrence.actualDate = updateValues.actualDate
+        occurrence.actualAmount = updateValues.actualAmount
+        occurrence.transaction = updateValues.transaction
+        occurrence.updatedAt = now
+
+        try context.save()
+
+        return try await synchronize(
+            definitionId: occurrence.definitionId,
+            horizonMonths: horizonMonths,
+            referenceDate: now,
+            backfillFromFirstDate: false,
+        )
+    }
+
     internal func saveChanges() async throws {
         // Each repository method persists immediately; no shared context to save.
     }

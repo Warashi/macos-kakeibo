@@ -98,5 +98,11 @@ internal protocol RecurringPaymentRepository: Sendable {
         horizonMonths: Int,
     ) async throws -> RecurringPaymentSynchronizationSummary?
 
+    @discardableResult
+    func skipOccurrence(
+        occurrenceId: UUID,
+        horizonMonths: Int,
+    ) async throws -> RecurringPaymentSynchronizationSummary
+
     func saveChanges() async throws
 }
