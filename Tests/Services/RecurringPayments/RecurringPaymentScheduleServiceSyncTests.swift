@@ -196,4 +196,112 @@ internal struct RecurringPaymentScheduleServiceSyncTests {
         #expect(backfilledOccurrence?.scheduledDate.year == 2024)
         #expect(backfilledOccurrence?.scheduledDate.month == 6)
     }
+
+    @Test("開始日を未来に変更した場合、新しい開始日より前のOccurrenceは削除される")
+    internal func synchronizationPlan_removesOccurrencesBeforeNewStartDate() throws {
+        let oldFirstDate = try #require(Date.from(year: 2025, month: 1, day: 1))
+        let newFirstDate = try #require(Date.from(year: 2025, month: 6, day: 1))
+        let referenceDate = try #require(Date.from(year: 2025, month: 1, day: 1))
+
+        let definition = SwiftDataRecurringPaymentDefinition(
+            name: "月額サブスクリプション",
+            amount: 1000,
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: newFirstDate, // 未来に変更後の開始日
+        )
+
+        // 1月〜5月のOccurrenceが既に存在（古い開始日で生成されたもの）
+        let januaryOccurrence = SwiftDataRecurringPaymentOccurrence(
+            definition: definition,
+            scheduledDate: oldFirstDate,
+            expectedAmount: 1000,
+            status: .planned,
+        )
+        let februaryDate = try #require(Date.from(year: 2025, month: 2, day: 1))
+        let februaryOccurrence = SwiftDataRecurringPaymentOccurrence(
+            definition: definition,
+            scheduledDate: februaryDate,
+            expectedAmount: 1000,
+            status: .planned,
+        )
+        definition.occurrences = [januaryOccurrence, februaryOccurrence]
+
+        let plan = service.synchronizationPlan(
+            for: definition,
+            referenceDate: referenceDate,
+            horizonMonths: 12,
+            backfillFromFirstDate: false,
+        )
+
+        // 新しい開始日より前のOccurrenceは削除される
+        #expect(plan.removed.count == 2)
+        #expect(plan.removed.contains(where: { $0.id == januaryOccurrence.id }))
+        #expect(plan.removed.contains(where: { $0.id == februaryOccurrence.id }))
+
+        // 6月以降のOccurrenceが生成される
+        let juneOccurrence = plan.occurrences.first { $0.scheduledDate.month == 6 }
+        #expect(juneOccurrence != nil)
+        #expect(juneOccurrence?.scheduledDate.year == 2025)
+    }
+
+    @Test("開始日を未来に変更しても、完了済みOccurrenceは保護される")
+    internal func synchronizationPlan_preservesCompletedOccurrencesWhenMovingStartDateForward() throws {
+        let oldFirstDate = try #require(Date.from(year: 2025, month: 1, day: 1))
+        let newFirstDate = try #require(Date.from(year: 2025, month: 6, day: 1))
+        let referenceDate = try #require(Date.from(year: 2025, month: 3, day: 1))
+
+        let definition = SwiftDataRecurringPaymentDefinition(
+            name: "月額サブスクリプション",
+            amount: 1000,
+            recurrenceIntervalMonths: 1,
+            firstOccurrenceDate: newFirstDate, // 未来に変更後の開始日
+        )
+
+        // 1月と2月のOccurrenceは完了済み
+        let januaryOccurrence = SwiftDataRecurringPaymentOccurrence(
+            definition: definition,
+            scheduledDate: oldFirstDate,
+            expectedAmount: 1000,
+            status: .completed,
+            actualDate: oldFirstDate,
+            actualAmount: 1000,
+        )
+        let februaryDate = try #require(Date.from(year: 2025, month: 2, day: 1))
+        let februaryOccurrence = SwiftDataRecurringPaymentOccurrence(
+            definition: definition,
+            scheduledDate: februaryDate,
+            expectedAmount: 1000,
+            status: .completed,
+            actualDate: februaryDate,
+            actualAmount: 1000,
+        )
+        // 3月は未完了
+        let marchDate = try #require(Date.from(year: 2025, month: 3, day: 1))
+        let marchOccurrence = SwiftDataRecurringPaymentOccurrence(
+            definition: definition,
+            scheduledDate: marchDate,
+            expectedAmount: 1000,
+            status: .planned,
+        )
+        definition.occurrences = [januaryOccurrence, februaryOccurrence, marchOccurrence]
+
+        let plan = service.synchronizationPlan(
+            for: definition,
+            referenceDate: referenceDate,
+            horizonMonths: 12,
+            backfillFromFirstDate: false,
+        )
+
+        // 完了済みOccurrenceはロックされて保護される
+        #expect(plan.locked.count == 2)
+        #expect(plan.locked.contains(where: { $0.id == januaryOccurrence.id }))
+        #expect(plan.locked.contains(where: { $0.id == februaryOccurrence.id }))
+
+        // 未完了の3月のOccurrenceは削除される
+        #expect(plan.removed.contains(where: { $0.id == marchOccurrence.id }))
+
+        // 6月以降のOccurrenceが生成される
+        let futureOccurrences = plan.created.filter { $0.scheduledDate >= newFirstDate }
+        #expect(futureOccurrences.isEmpty == false)
+    }
 }
