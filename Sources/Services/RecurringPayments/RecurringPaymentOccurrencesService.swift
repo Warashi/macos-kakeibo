@@ -21,6 +21,12 @@ internal protocol RecurringPaymentOccurrencesService: Sendable {
         input: OccurrenceUpdateInput,
         horizonMonths: Int,
     ) async throws -> RecurringPaymentSynchronizationSummary?
+
+    @discardableResult
+    func skipOccurrence(
+        occurrenceId: UUID,
+        horizonMonths: Int,
+    ) async throws -> RecurringPaymentSynchronizationSummary
 }
 
 internal struct RecurringPaymentOccurrencesServiceImpl: RecurringPaymentOccurrencesService {
@@ -63,6 +69,16 @@ internal struct RecurringPaymentOccurrencesServiceImpl: RecurringPaymentOccurren
         try await repository.updateOccurrence(
             occurrenceId: occurrenceId,
             input: input,
+            horizonMonths: horizonMonths,
+        )
+    }
+
+    internal func skipOccurrence(
+        occurrenceId: UUID,
+        horizonMonths: Int,
+    ) async throws -> RecurringPaymentSynchronizationSummary {
+        try await repository.skipOccurrence(
+            occurrenceId: occurrenceId,
             horizonMonths: horizonMonths,
         )
     }

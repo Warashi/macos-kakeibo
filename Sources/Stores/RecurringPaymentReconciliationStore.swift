@@ -235,6 +235,34 @@ internal extension RecurringPaymentReconciliationStore {
         }
     }
 
+    func skipSelectedOccurrence() async {
+        guard let occurrenceId = selectedOccurrenceId else {
+            errorMessage = "スキップ対象の定期支払いを選択してください。"
+            return
+        }
+
+        isSaving = true
+        errorMessage = nil
+        statusMessage = nil
+        defer { isSaving = false }
+
+        do {
+            let service = occurrencesService
+            let horizonMonths = horizonMonths
+            try await Task.detached(priority: .userInitiated) {
+                _ = try await service.skipOccurrence(
+                    occurrenceId: occurrenceId,
+                    horizonMonths: horizonMonths,
+                )
+            }.value
+            statusMessage = "定期支払いをスキップしました。"
+            await refresh()
+            selectedOccurrenceId = occurrenceId
+        } catch {
+            errorMessage = "スキップに失敗しました: \(error.localizedDescription)"
+        }
+    }
+
     func resetFormToExpectedValues() {
         guard let occurrence = selectedOccurrence else { return }
         actualAmountText = occurrence.expectedAmount.plainString
