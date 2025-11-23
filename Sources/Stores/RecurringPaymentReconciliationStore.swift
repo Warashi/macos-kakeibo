@@ -32,7 +32,7 @@ internal final class RecurringPaymentReconciliationStore {
             case .upcoming:
                 row.isUpcoming
             case .completed:
-                row.isCompleted
+                row.isCompleted || row.status == .skipped
             case .all:
                 true
             }
