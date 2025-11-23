@@ -20,11 +20,17 @@ internal actor SpyRecurringPaymentOccurrencesService: RecurringPaymentOccurrence
         internal let horizonMonths: Int
     }
 
+    internal struct SkipCall {
+        internal let occurrenceId: UUID
+        internal let horizonMonths: Int
+    }
+
     private let wrapped: RecurringPaymentOccurrencesService
 
     internal private(set) var synchronizeCalls: [SynchronizeCall] = []
     internal private(set) var markCompletionCalls: [MarkCompletionCall] = []
     internal private(set) var updateCalls: [UpdateCall] = []
+    internal private(set) var skipCalls: [SkipCall] = []
 
     internal init(wrapping service: RecurringPaymentOccurrencesService) {
         self.wrapped = service
@@ -86,6 +92,23 @@ internal actor SpyRecurringPaymentOccurrencesService: RecurringPaymentOccurrence
         return try await wrapped.updateOccurrence(
             occurrenceId: occurrenceId,
             input: input,
+            horizonMonths: horizonMonths,
+        )
+    }
+
+    @discardableResult
+    internal func skipOccurrence(
+        occurrenceId: UUID,
+        horizonMonths: Int,
+    ) async throws -> RecurringPaymentSynchronizationSummary {
+        skipCalls.append(
+            SkipCall(
+                occurrenceId: occurrenceId,
+                horizonMonths: horizonMonths,
+            ),
+        )
+        return try await wrapped.skipOccurrence(
+            occurrenceId: occurrenceId,
             horizonMonths: horizonMonths,
         )
     }
