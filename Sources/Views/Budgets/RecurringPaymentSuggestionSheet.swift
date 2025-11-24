@@ -236,7 +236,10 @@ private struct SuggestionCardView: View {
                         Image(systemName: "exclamationmark.triangle")
                             .font(.caption)
                             .foregroundStyle(.orange)
-                        Text("金額に変動あり: \(range.lowerBound.formatted(.currency(code: "JPY"))) 〜 \(range.upperBound.formatted(.currency(code: "JPY")))")
+                        Text(
+                            "金額に変動あり: \(range.lowerBound.formatted(.currency(code: "JPY"))) 〜 "
+                                + "\(range.upperBound.formatted(.currency(code: "JPY")))"
+                        )
                             .font(.caption)
                             .foregroundStyle(.orange)
                     }
@@ -314,13 +317,26 @@ private struct PreviewRecurringPaymentRepository: RecurringPaymentRepository {
     func createDefinition(_ input: RecurringPaymentDefinitionInput) async throws -> UUID { UUID() }
     func updateDefinition(definitionId: UUID, input: RecurringPaymentDefinitionInput) async throws -> Bool { false }
     func deleteDefinition(definitionId: UUID) async throws {}
-    func synchronize(definitionId: UUID, horizonMonths: Int, referenceDate: Date?, backfillFromFirstDate: Bool) async throws -> RecurringPaymentSynchronizationSummary {
+    func synchronize(
+        definitionId: UUID,
+        horizonMonths: Int,
+        referenceDate: Date?,
+        backfillFromFirstDate: Bool
+    ) async throws -> RecurringPaymentSynchronizationSummary {
         RecurringPaymentSynchronizationSummary(syncedAt: Date(), createdCount: 0, updatedCount: 0, removedCount: 0)
     }
-    func markOccurrenceCompleted(occurrenceId: UUID, input: OccurrenceCompletionInput, horizonMonths: Int) async throws -> RecurringPaymentSynchronizationSummary {
+    func markOccurrenceCompleted(
+        occurrenceId: UUID,
+        input: OccurrenceCompletionInput,
+        horizonMonths: Int
+    ) async throws -> RecurringPaymentSynchronizationSummary {
         RecurringPaymentSynchronizationSummary(syncedAt: Date(), createdCount: 0, updatedCount: 0, removedCount: 0)
     }
-    func updateOccurrence(occurrenceId: UUID, input: OccurrenceUpdateInput, horizonMonths: Int) async throws -> RecurringPaymentSynchronizationSummary? { nil }
+    func updateOccurrence(
+        occurrenceId: UUID,
+        input: OccurrenceUpdateInput,
+        horizonMonths: Int
+    ) async throws -> RecurringPaymentSynchronizationSummary? { nil }
     func skipOccurrence(occurrenceId: UUID, horizonMonths: Int) async throws -> RecurringPaymentSynchronizationSummary {
         RecurringPaymentSynchronizationSummary(syncedAt: Date(), createdCount: 0, updatedCount: 0, removedCount: 0)
     }
