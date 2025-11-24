@@ -69,6 +69,7 @@ internal final class DashboardService {
                 monthlySummary: monthlySummary,
                 annualSummary: annualSummary,
                 displayMode: displayMode,
+                filter: filter,
             ),
         )
 
@@ -105,6 +106,7 @@ internal final class DashboardService {
         internal let monthlySummary: MonthlySummary
         internal let annualSummary: AnnualSummary
         internal let displayMode: DashboardStore.DisplayMode
+        internal let filter: AggregationFilter
     }
 
     /// 予算・進捗計算結果
@@ -130,6 +132,7 @@ internal final class DashboardService {
         let monthlySummary = params.monthlySummary
         let annualSummary = params.annualSummary
         let displayMode = params.displayMode
+        let filter = params.filter
 
         let monthlyBudgetCalculation = budgetCalculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
@@ -138,7 +141,7 @@ internal final class DashboardService {
                 categories: snapshot.categories,
                 year: year,
                 month: month,
-                filter: .default,
+                filter: filter,
                 excludedCategoryIds: Set(excludedCategoryIds),
             ),
         )
@@ -147,6 +150,7 @@ internal final class DashboardService {
             snapshot: snapshot,
             year: year,
             month: month,
+            filter: filter,
         )
 
         let categoryHighlights = calculateCategoryHighlights(
@@ -159,6 +163,7 @@ internal final class DashboardService {
             snapshot: snapshot,
             year: year,
             excludedCategoryIds: Set(excludedCategoryIds),
+            filter: filter,
         )
 
         let savingsSummary = calculateSavingsSummary(
@@ -256,6 +261,7 @@ internal final class DashboardService {
         snapshot: DashboardSnapshot,
         year: Int,
         month: Int,
+        filter: AggregationFilter,
     ) -> (AnnualBudgetUsage?, MonthlyAllocation?) {
         guard let config = snapshot.config else {
             return (nil, nil)
@@ -265,7 +271,7 @@ internal final class DashboardService {
             transactions: snapshot.annualTransactions,
             budgets: snapshot.budgets,
             annualBudgetConfig: config,
-            filter: .default,
+            filter: filter,
         )
 
         let usage = annualBudgetAllocator.calculateAnnualBudgetUsage(
@@ -299,13 +305,14 @@ internal final class DashboardService {
         snapshot: DashboardSnapshot,
         year: Int,
         excludedCategoryIds: Set<UUID>,
+        filter: AggregationFilter,
     ) -> (BudgetCalculation?, [AnnualBudgetEntry]) {
         let progressResult = annualBudgetProgressCalculator.calculate(
             budgets: snapshot.budgets,
             transactions: snapshot.annualTransactions,
             categories: snapshot.categories,
             year: year,
-            filter: .default,
+            filter: filter,
             excludedCategoryIds: excludedCategoryIds,
         )
 
