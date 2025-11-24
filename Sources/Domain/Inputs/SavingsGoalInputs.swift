@@ -17,7 +17,7 @@ internal struct SavingsGoalInput: Sendable {
         categoryId: UUID? = nil,
         notes: String? = nil,
         startDate: Date,
-        targetDate: Date? = nil
+        targetDate: Date? = nil,
     ) {
         self.name = name
         self.targetAmount = targetAmount
@@ -33,11 +33,6 @@ internal struct SavingsGoalInput: Sendable {
 internal struct SavingsGoalUpdateInput: Sendable {
     internal let id: UUID
     internal let input: SavingsGoalInput
-
-    internal init(id: UUID, input: SavingsGoalInput) {
-        self.id = id
-        self.input = input
-    }
 }
 
 /// 貯蓄目標引出の入力パラメータ
@@ -53,7 +48,7 @@ internal struct SavingsGoalWithdrawalInput: Sendable {
         amount: Decimal,
         withdrawalDate: Date,
         purpose: String? = nil,
-        transactionId: UUID? = nil
+        transactionId: UUID? = nil,
     ) {
         self.goalId = goalId
         self.amount = amount
