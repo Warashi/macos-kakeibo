@@ -159,7 +159,7 @@ internal extension Date {
         month: Int,
         startDay: Int,
         adjustment: BusinessDayAdjustment,
-        businessDayService: BusinessDayService,
+        businessDayService: BusinessDayService
     ) -> CustomMonthRange? {
         // 開始日は1-28の範囲に制限
         let clampedStartDay = max(1, min(28, startDay))
@@ -250,4 +250,3 @@ internal extension Date {
         return nextStart
     }
 }
-
