@@ -133,6 +133,7 @@ internal final class DashboardStore {
         self.annualBudgetCategoryEntries = []
         self.savingsSummary = SavingsSummary(
             totalMonthlySavings: 0,
+            yearToDateMonthlySavings: 0,
             goalSummaries: [],
         )
         self.recurringPaymentSummary = RecurringPaymentSummary(

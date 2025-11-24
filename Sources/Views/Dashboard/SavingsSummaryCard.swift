@@ -8,13 +8,13 @@ internal struct SavingsSummaryCard: View {
         Card(title: "貯蓄目標") {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("月次合計")
+                    Text("年間合計")
                         .font(.caption)
                         .foregroundColor(.secondary)
 
                     Spacer()
 
-                    Text(formatCurrency(savingsSummary.totalMonthlySavings))
+                    Text(formatCurrency(savingsSummary.yearToDateMonthlySavings))
                         .font(.headline)
                         .foregroundColor(.info)
                 }

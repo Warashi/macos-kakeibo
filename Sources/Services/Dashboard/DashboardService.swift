@@ -169,6 +169,8 @@ internal final class DashboardService {
         let savingsSummary = calculateSavingsSummary(
             goals: snapshot.savingsGoals,
             balances: snapshot.savingsGoalBalances,
+            year: year,
+            month: month,
         )
 
         let recurringPaymentSummary = calculateRecurringPaymentSummary(
@@ -326,12 +328,17 @@ internal final class DashboardService {
     private func calculateSavingsSummary(
         goals: [SavingsGoal],
         balances: [SavingsGoalBalance],
+        year: Int,
+        month: Int,
     ) -> SavingsSummary {
         let balanceMap = Dictionary(uniqueKeysWithValues: balances.map { ($0.goalId, $0) })
 
         let totalMonthlySavings = goals
             .filter(\.isActive)
             .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
+
+        // 年始から現在月までの合計を計算
+        let yearToDateMonthlySavings = totalMonthlySavings * Decimal(month)
 
         let goalSummaries = goals.map { goal in
             let balance = balanceMap[goal.id]
@@ -358,6 +365,7 @@ internal final class DashboardService {
 
         return SavingsSummary(
             totalMonthlySavings: totalMonthlySavings,
+            yearToDateMonthlySavings: yearToDateMonthlySavings,
             goalSummaries: goalSummaries,
         )
     }
@@ -471,6 +479,7 @@ internal struct DashboardResult {
 /// 貯蓄サマリ
 internal struct SavingsSummary: Sendable {
     internal let totalMonthlySavings: Decimal
+    internal let yearToDateMonthlySavings: Decimal
     internal let goalSummaries: [SavingsGoalSummary]
 }
 
