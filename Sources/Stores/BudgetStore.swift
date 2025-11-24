@@ -267,10 +267,12 @@ internal extension BudgetStore {
             annualOverallBudgetEntry: annualUseCase.annualOverallEntry(
                 snapshot: snapshot,
                 year: year,
+                month: month,
             ),
             annualCategoryBudgetEntries: annualUseCase.annualCategoryEntries(
                 snapshot: snapshot,
                 year: year,
+                month: month,
             ),
             monthlyRecurringPaymentSavingsTotal: recurringPaymentUseCase.monthlySavingsTotal(
                 snapshot: snapshot,

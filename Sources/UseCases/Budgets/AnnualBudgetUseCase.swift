@@ -10,11 +10,13 @@ internal protocol AnnualBudgetUseCaseProtocol: Sendable {
     func annualOverallEntry(
         snapshot: BudgetSnapshot,
         year: Int,
+        month: Int?,
     ) -> AnnualBudgetEntry?
 
     func annualCategoryEntries(
         snapshot: BudgetSnapshot,
         year: Int,
+        month: Int?,
     ) -> [AnnualBudgetEntry]
 }
 
@@ -53,20 +55,22 @@ internal final class DefaultAnnualBudgetUseCase: AnnualBudgetUseCaseProtocol {
     internal func annualOverallEntry(
         snapshot: BudgetSnapshot,
         year: Int,
+        month: Int?,
     ) -> AnnualBudgetEntry? {
-        annualProgressResult(snapshot: snapshot, year: year).overallEntry
+        annualProgressResult(snapshot: snapshot, year: year, month: month).overallEntry
     }
 
     internal func annualCategoryEntries(
         snapshot: BudgetSnapshot,
         year: Int,
+        month: Int?,
     ) -> [AnnualBudgetEntry] {
-        annualProgressResult(snapshot: snapshot, year: year).categoryEntries
+        annualProgressResult(snapshot: snapshot, year: year, month: month).categoryEntries
     }
 }
 
 private extension DefaultAnnualBudgetUseCase {
-    func annualProgressResult(snapshot: BudgetSnapshot, year: Int) -> AnnualBudgetProgressResult {
+    func annualProgressResult(snapshot: BudgetSnapshot, year: Int, month: Int?) -> AnnualBudgetProgressResult {
         let filter = makeFilter(from: snapshot)
         return progressCalculator.calculate(
             budgets: snapshot.budgets,
@@ -77,6 +81,7 @@ private extension DefaultAnnualBudgetUseCase {
             excludedCategoryIds: snapshot.annualBudgetConfig?.fullCoverageCategoryIDs(
                 includingChildrenFrom: snapshot.categories,
             ) ?? [],
+            upToMonth: month,
         )
     }
 
