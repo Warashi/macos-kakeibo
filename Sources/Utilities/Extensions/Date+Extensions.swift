@@ -135,3 +135,112 @@ public extension Date {
         self >= start && self <= end
     }
 }
+
+// MARK: - カスタム月範囲
+
+/// カスタム月範囲の計算
+internal extension Date {
+    /// カスタム月範囲の結果
+    struct CustomMonthRange: Sendable {
+        internal let start: Date
+        internal let end: Date
+    }
+
+    /// カスタム月範囲を計算
+    /// - Parameters:
+    ///   - year: 年
+    ///   - month: 月
+    ///   - startDay: 開始日（1-28）
+    ///   - adjustment: 休日調整方法
+    ///   - businessDayService: 営業日判定サービス
+    /// - Returns: 月範囲（開始日と終了日）
+    static func customMonthRange(
+        year: Int,
+        month: Int,
+        startDay: Int,
+        adjustment: BusinessDayAdjustment,
+        businessDayService: BusinessDayService,
+    ) -> CustomMonthRange? {
+        // 開始日は1-28の範囲に制限
+        let clampedStartDay = max(1, min(28, startDay))
+
+        // 指定月の開始日を計算
+        guard var monthStart = Date.from(year: year, month: month, day: clampedStartDay) else {
+            return nil
+        }
+
+        // 休日調整を適用
+        monthStart = applyBusinessDayAdjustment(
+            to: monthStart,
+            adjustment: adjustment,
+            businessDayService: businessDayService,
+        )
+
+        // 次の月の開始日を計算（終了日は次の開始日の前日）
+        guard let nextMonthStart = calculateNextMonthStart(
+            from: monthStart,
+            startDay: clampedStartDay,
+            adjustment: adjustment,
+            businessDayService: businessDayService,
+        ) else {
+            return nil
+        }
+
+        return CustomMonthRange(start: monthStart, end: nextMonthStart)
+    }
+
+    /// 休日調整を適用
+    private static func applyBusinessDayAdjustment(
+        to date: Date,
+        adjustment: BusinessDayAdjustment,
+        businessDayService: BusinessDayService,
+    ) -> Date {
+        switch adjustment {
+        case .none:
+            date
+        case .previous:
+            if businessDayService.isBusinessDay(date) {
+                date
+            } else {
+                businessDayService.previousBusinessDay(from: date) ?? date
+            }
+        case .next:
+            if businessDayService.isBusinessDay(date) {
+                date
+            } else {
+                businessDayService.nextBusinessDay(from: date) ?? date
+            }
+        }
+    }
+
+    /// 次の月の開始日を計算
+    private static func calculateNextMonthStart(
+        from currentStart: Date,
+        startDay: Int,
+        adjustment: BusinessDayAdjustment,
+        businessDayService: BusinessDayService,
+    ) -> Date? {
+        // 現在の開始日から1ヶ月後の年月を取得
+        guard let oneMonthLater = Calendar.current.date(byAdding: .month, value: 1, to: currentStart) else {
+            return nil
+        }
+
+        let nextYear = oneMonthLater.year
+        let nextMonth = oneMonthLater.month
+
+        // 次の月の同じ日を計算
+        guard var nextStart = Date.from(year: nextYear, month: nextMonth, day: startDay) else {
+            return nil
+        }
+
+        // 休日調整を適用
+        nextStart = applyBusinessDayAdjustment(
+            to: nextStart,
+            adjustment: adjustment,
+            businessDayService: businessDayService,
+        )
+
+        return nextStart
+    }
+}
+
