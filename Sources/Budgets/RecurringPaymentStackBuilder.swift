@@ -157,14 +157,14 @@ internal enum RecurringPaymentStackBuilder {
 
         let suggestionUseCase = RecurringPaymentSuggestionUseCase(
             transactionRepository: transactionRepository,
-            recurringPaymentRepository: recurringPaymentRepository
+            recurringPaymentRepository: recurringPaymentRepository,
         )
 
         let recurringPaymentStore = await makeStore(modelContainer: modelContainer)
 
         return RecurringPaymentSuggestionDependencies(
             suggestionUseCase: suggestionUseCase,
-            recurringPaymentStore: recurringPaymentStore
+            recurringPaymentStore: recurringPaymentStore,
         )
     }
 
@@ -174,7 +174,7 @@ internal enum RecurringPaymentStackBuilder {
         return await MainActor.run {
             RecurringPaymentSuggestionStore(
                 suggestionUseCase: dependencies.suggestionUseCase,
-                recurringPaymentStore: dependencies.recurringPaymentStore
+                recurringPaymentStore: dependencies.recurringPaymentStore,
             )
         }
     }

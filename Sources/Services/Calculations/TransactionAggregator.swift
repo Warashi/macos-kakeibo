@@ -188,7 +188,7 @@ internal struct TransactionAggregator: Sendable {
                     recurringPaymentAllocation: 0,
                     net: 0,
                     transactionCount: 0,
-                    categorySummaries: []
+                    categorySummaries: [],
                 )
             }
             let nextMonth = month == 12 ? 1 : month + 1
@@ -200,7 +200,7 @@ internal struct TransactionAggregator: Sendable {
         // 対象月の取引をフィルタ（カスタム月範囲で判定）
         let filteredTransactions = transactions.filter { transaction in
             // 日付範囲でフィルタ
-            guard transaction.date >= startDate && transaction.date < endDate else {
+            guard transaction.date >= startDate, transaction.date < endDate else {
                 return false
             }
 

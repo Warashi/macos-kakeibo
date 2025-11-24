@@ -7,7 +7,7 @@ internal struct RecurringPaymentDetectionService: Sendable {
 
     internal init(
         criteria: RecurringPaymentDetectionCriteria = .default,
-        calendar: Calendar = .current
+        calendar: Calendar = .current,
     ) {
         self.criteria = criteria
         self.calendar = calendar
@@ -16,7 +16,7 @@ internal struct RecurringPaymentDetectionService: Sendable {
     /// 取引リストから定期支払いの提案を生成
     internal func detectSuggestions(
         from transactions: [Transaction],
-        existingDefinitions: [RecurringPaymentDefinition]
+        existingDefinitions: [RecurringPaymentDefinition],
     ) -> [RecurringPaymentSuggestion] {
         // 1. 取引をグループ化
         let groups = groupTransactions(transactions)
@@ -94,20 +94,20 @@ internal struct RecurringPaymentDetectionService: Sendable {
         let chars2 = Array(string2)
         var dist = Array(repeating: Array(repeating: 0, count: chars2.count + 1), count: chars1.count + 1)
 
-        for row in 0...chars1.count {
+        for row in 0 ... chars1.count {
             dist[row][0] = row
         }
-        for col in 0...chars2.count {
+        for col in 0 ... chars2.count {
             dist[0][col] = col
         }
 
-        for row in 1...chars1.count {
-            for col in 1...chars2.count {
+        for row in 1 ... chars1.count {
+            for col in 1 ... chars2.count {
                 let cost = chars1[row - 1] == chars2[col - 1] ? 0 : 1
                 dist[row][col] = min(
                     dist[row - 1][col] + 1,
                     dist[row][col - 1] + 1,
-                    dist[row - 1][col - 1] + cost
+                    dist[row - 1][col - 1] + cost,
                 )
             }
         }
@@ -143,7 +143,7 @@ internal struct RecurringPaymentDetectionService: Sendable {
         let confidence = calculateConfidence(
             occurrenceCount: sorted.count,
             isAmountStable: isStable,
-            recurrenceMonths: recurrenceMonths
+            recurrenceMonths: recurrenceMonths,
         )
 
         return RecurringPaymentSuggestion(
@@ -157,7 +157,7 @@ internal struct RecurringPaymentDetectionService: Sendable {
             relatedTransactions: sorted,
             isAmountStable: isStable,
             amountRange: range,
-            confidenceScore: confidence
+            confidenceScore: confidence,
         )
     }
 
@@ -180,7 +180,7 @@ internal struct RecurringPaymentDetectionService: Sendable {
         guard transactions.count >= 2 else { return false }
 
         var matchCount = 0
-        for index in 1..<transactions.count {
+        for index in 1 ..< transactions.count {
             let prev = transactions[index - 1].date
             let curr = transactions[index].date
 
@@ -229,7 +229,7 @@ internal struct RecurringPaymentDetectionService: Sendable {
 
         let avg = amounts.reduce(Decimal.zero, +) / Decimal(amounts.count)
 
-        let range = min...max
+        let range = min ... max
 
         // 変動係数を計算（簡易版：範囲の変動率）
         let avgDouble = NSDecimalNumber(decimal: avg).doubleValue
@@ -272,7 +272,7 @@ internal struct RecurringPaymentDetectionService: Sendable {
     private func calculateConfidence(
         occurrenceCount: Int,
         isAmountStable: Bool,
-        recurrenceMonths: Int
+        recurrenceMonths: Int,
     ) -> Double {
         var score = 0.0
 
@@ -297,7 +297,7 @@ internal struct RecurringPaymentDetectionService: Sendable {
     /// 既存の定期支払いと重複するものを除外
     private func filterDuplicates(
         _ suggestions: [RecurringPaymentSuggestion],
-        existingDefinitions: [RecurringPaymentDefinition]
+        existingDefinitions: [RecurringPaymentDefinition],
     ) -> [RecurringPaymentSuggestion] {
         suggestions.filter { suggestion in
             !existingDefinitions.contains { definition in

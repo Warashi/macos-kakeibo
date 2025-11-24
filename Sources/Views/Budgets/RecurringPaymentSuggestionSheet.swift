@@ -100,7 +100,7 @@ internal struct RecurringPaymentSuggestionSheet: View {
                     HStack(spacing: 8) {
                         Image(
                             systemName: store.selectedCount == store.suggestions.count
-                                ? "checkmark.square.fill" : "square"
+                                ? "checkmark.square.fill" : "square",
                         )
                         Text("全選択")
                             .font(.caption)
@@ -140,7 +140,7 @@ internal struct RecurringPaymentSuggestionSheet: View {
                             },
                             onIgnore: {
                                 store.ignoreSuggestion(suggestion.id)
-                            }
+                            },
                         )
 
                         if suggestion.id != store.suggestions.last?.id {
@@ -241,10 +241,10 @@ private struct SuggestionCardView: View {
                             .foregroundStyle(.orange)
                         Text(
                             "金額に変動あり: \(range.lowerBound.formatted(.currency(code: "JPY"))) 〜 "
-                                + "\(range.upperBound.formatted(.currency(code: "JPY")))"
+                                + "\(range.upperBound.formatted(.currency(code: "JPY")))",
                         )
-                            .font(.caption)
-                            .foregroundStyle(.orange)
+                        .font(.caption)
+                        .foregroundStyle(.orange)
                     }
                 }
 
@@ -288,15 +288,15 @@ private struct SuggestionCardView: View {
             suggestedMatchKeywords: ["Netflix"],
             relatedTransactions: [],
             isAmountStable: true,
-            amountRange: 1490...1490,
-            confidenceScore: 0.85
+            amountRange: 1490 ... 1490,
+            confidenceScore: 0.85,
         )
 
         return RecurringPaymentSuggestionStore(
             suggestionUseCase: PreviewRecurringPaymentSuggestionUseCase(suggestions: [suggestion]),
             recurringPaymentStore: RecurringPaymentStore(
-                repository: PreviewRecurringPaymentRepository()
-            )
+                repository: PreviewRecurringPaymentRepository(),
+            ),
         )
     }()
 
@@ -324,25 +324,28 @@ private struct PreviewRecurringPaymentRepository: RecurringPaymentRepository {
         definitionId: UUID,
         horizonMonths: Int,
         referenceDate: Date?,
-        backfillFromFirstDate: Bool
+        backfillFromFirstDate: Bool,
     ) async throws -> RecurringPaymentSynchronizationSummary {
         RecurringPaymentSynchronizationSummary(syncedAt: Date(), createdCount: 0, updatedCount: 0, removedCount: 0)
     }
+
     func markOccurrenceCompleted(
         occurrenceId: UUID,
         input: OccurrenceCompletionInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) async throws -> RecurringPaymentSynchronizationSummary {
         RecurringPaymentSynchronizationSummary(syncedAt: Date(), createdCount: 0, updatedCount: 0, removedCount: 0)
     }
+
     func updateOccurrence(
         occurrenceId: UUID,
         input: OccurrenceUpdateInput,
-        horizonMonths: Int
+        horizonMonths: Int,
     ) async throws -> RecurringPaymentSynchronizationSummary? { nil }
     func skipOccurrence(occurrenceId: UUID, horizonMonths: Int) async throws -> RecurringPaymentSynchronizationSummary {
         RecurringPaymentSynchronizationSummary(syncedAt: Date(), createdCount: 0, updatedCount: 0, removedCount: 0)
     }
+
     func saveChanges() async throws {}
 }
 #endif

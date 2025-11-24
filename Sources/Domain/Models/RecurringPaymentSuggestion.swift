@@ -47,29 +47,27 @@ internal struct RecurringPaymentSuggestion: Identifiable, Sendable {
 
     /// パターンの説明（UI表示用）
     internal var patternDescription: String {
-        let interval: String
-        if suggestedRecurrenceMonths == 1 {
-            interval = "毎月"
+        let interval: String = if suggestedRecurrenceMonths == 1 {
+            "毎月"
         } else if suggestedRecurrenceMonths == 12 {
-            interval = "毎年"
+            "毎年"
         } else {
-            interval = "\(suggestedRecurrenceMonths)か月ごと"
+            "\(suggestedRecurrenceMonths)か月ごと"
         }
 
-        let dayInfo: String
-        switch suggestedDayPattern {
-        case .fixed(let day):
-            dayInfo = "\(day)日付近"
+        let dayInfo: String = switch suggestedDayPattern {
+        case let .fixed(day):
+            "\(day)日付近"
         case .endOfMonth:
-            dayInfo = "月末"
-        case .endOfMonthMinus(let days):
-            dayInfo = "月末\(days)日前"
+            "月末"
+        case let .endOfMonthMinus(days):
+            "月末\(days)日前"
         case .firstBusinessDay:
-            dayInfo = "最初の営業日"
+            "最初の営業日"
         case .lastBusinessDay:
-            dayInfo = "最終営業日"
+            "最終営業日"
         default:
-            dayInfo = ""
+            ""
         }
 
         return "\(interval) \(dayInfo)"
@@ -90,7 +88,7 @@ internal struct RecurringPaymentSuggestion: Identifiable, Sendable {
         relatedTransactions: [Transaction],
         isAmountStable: Bool,
         amountRange: ClosedRange<Decimal>?,
-        confidenceScore: Double
+        confidenceScore: Double,
     ) {
         self.id = id
         self.suggestedName = suggestedName
@@ -125,6 +123,6 @@ internal struct RecurringPaymentDetectionCriteria: Sendable {
         lookbackYears: 3,
         minimumOccurrences: 2,
         dateToleranceDays: 3,
-        amountVariationTolerance: 0.2
+        amountVariationTolerance: 0.2,
     )
 }

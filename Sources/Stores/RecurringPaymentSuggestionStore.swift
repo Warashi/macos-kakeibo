@@ -30,7 +30,7 @@ internal final class RecurringPaymentSuggestionStore {
 
     internal init(
         suggestionUseCase: RecurringPaymentSuggestionProtocol,
-        recurringPaymentStore: RecurringPaymentStore
+        recurringPaymentStore: RecurringPaymentStore,
     ) {
         self.suggestionUseCase = suggestionUseCase
         self.recurringPaymentStore = recurringPaymentStore
@@ -146,7 +146,7 @@ internal final class RecurringPaymentSuggestionStore {
             customMonthlySavingAmount: nil,
             dateAdjustmentPolicy: .none,
             recurrenceDayPattern: suggestion.suggestedDayPattern,
-            matchKeywords: suggestion.suggestedMatchKeywords
+            matchKeywords: suggestion.suggestedMatchKeywords,
         )
     }
 }

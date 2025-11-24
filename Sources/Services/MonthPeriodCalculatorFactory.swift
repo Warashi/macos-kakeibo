@@ -16,7 +16,7 @@ internal enum MonthPeriodCalculatorFactory {
         return MonthPeriodCalculator(
             monthStartDay: monthStartDay,
             monthStartDayAdjustment: adjustment,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
     }
 }

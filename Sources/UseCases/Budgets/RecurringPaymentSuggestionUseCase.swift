@@ -4,7 +4,7 @@ import Foundation
 internal protocol RecurringPaymentSuggestionProtocol: Sendable {
     /// 取引データから定期支払いの提案を生成
     func generateSuggestions(
-        criteria: RecurringPaymentDetectionCriteria
+        criteria: RecurringPaymentDetectionCriteria,
     ) async throws -> [RecurringPaymentSuggestion]
 }
 
@@ -19,7 +19,7 @@ internal struct RecurringPaymentSuggestionUseCase: RecurringPaymentSuggestionPro
         transactionRepository: TransactionRepository,
         recurringPaymentRepository: RecurringPaymentRepository,
         detectionService: RecurringPaymentDetectionService = RecurringPaymentDetectionService(),
-        clock: @escaping @Sendable () -> Date = Date.init
+        clock: @escaping @Sendable () -> Date = Date.init,
     ) {
         self.transactionRepository = transactionRepository
         self.recurringPaymentRepository = recurringPaymentRepository
@@ -28,7 +28,7 @@ internal struct RecurringPaymentSuggestionUseCase: RecurringPaymentSuggestionPro
     }
 
     internal func generateSuggestions(
-        criteria: RecurringPaymentDetectionCriteria = .default
+        criteria: RecurringPaymentDetectionCriteria = .default,
     ) async throws -> [RecurringPaymentSuggestion] {
         // 1. 過去N年の取引を取得
         let transactions = try await fetchTransactionsInLookbackPeriod(years: criteria.lookbackYears)
@@ -39,7 +39,7 @@ internal struct RecurringPaymentSuggestionUseCase: RecurringPaymentSuggestionPro
         // 3. 検出サービスで提案を生成
         let suggestions = detectionService.detectSuggestions(
             from: transactions,
-            existingDefinitions: existingDefinitions
+            existingDefinitions: existingDefinitions,
         )
 
         return suggestions
