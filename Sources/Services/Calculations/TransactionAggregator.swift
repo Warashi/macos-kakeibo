@@ -146,6 +146,12 @@ internal struct AggregationFilter: Sendable {
 /// - 計算対象フィルタリング
 /// - 振替除外処理
 internal struct TransactionAggregator: Sendable {
+    private let monthPeriodCalculator: MonthPeriodCalculator
+
+    internal init(monthPeriodCalculator: MonthPeriodCalculator? = nil) {
+        self.monthPeriodCalculator = monthPeriodCalculator ?? MonthPeriodCalculatorFactory.make()
+    }
+
     /// 月次集計を実行
     /// - Parameters:
     ///   - transactions: 集計対象の取引リスト
@@ -165,11 +171,36 @@ internal struct TransactionAggregator: Sendable {
         savingsGoals: [SavingsGoal] = [],
         recurringPaymentAllocation: Decimal = 0,
     ) -> MonthlySummary {
-        // 対象月の取引をフィルタ
+        // カスタム月範囲を計算
+        let (startDate, endDate): (Date, Date)
+        if let period = monthPeriodCalculator.calculatePeriod(for: year, month: month) {
+            startDate = period.start
+            endDate = period.end
+        } else {
+            // フォールバック: 従来の月初〜月末
+            guard let fallbackStart = Date.from(year: year, month: month) else {
+                return MonthlySummary(
+                    year: year,
+                    month: month,
+                    totalIncome: 0,
+                    totalExpense: 0,
+                    totalSavings: 0,
+                    recurringPaymentAllocation: 0,
+                    net: 0,
+                    transactionCount: 0,
+                    categorySummaries: []
+                )
+            }
+            let nextMonth = month == 12 ? 1 : month + 1
+            let nextYear = month == 12 ? year + 1 : year
+            startDate = fallbackStart
+            endDate = Date.from(year: nextYear, month: nextMonth) ?? fallbackStart
+        }
+
+        // 対象月の取引をフィルタ（カスタム月範囲で判定）
         let filteredTransactions = transactions.filter { transaction in
-            // 年月でフィルタ
-            guard transaction.date.year == year,
-                  transaction.date.month == month else {
+            // 日付範囲でフィルタ
+            guard transaction.date >= startDate && transaction.date < endDate else {
                 return false
             }
 
