@@ -113,6 +113,9 @@ internal struct RecurringPaymentListContentView: View {
         .sheet(isPresented: $isSuggestionSheetPresented) {
             if let suggestionStore {
                 RecurringPaymentSuggestionSheet(store: suggestionStore)
+                    .task {
+                        await suggestionStore.generateSuggestions()
+                    }
                     .onDisappear {
                         Task { await store.refreshEntries() }
                     }
@@ -130,7 +133,6 @@ internal struct RecurringPaymentListContentView: View {
 
         Task {
             let newStore = await factory.makeRecurringPaymentSuggestionStore()
-            await newStore.generateSuggestions()
             await MainActor.run {
                 suggestionStore = newStore
                 isSuggestionSheetPresented = true
@@ -309,6 +311,9 @@ private struct RecurringPaymentEntriesTableView: View {
             .sheet(isPresented: $isSuggestionSheetPresented) {
                 if let suggestionStore {
                     RecurringPaymentSuggestionSheet(store: suggestionStore)
+                        .task {
+                            await suggestionStore.generateSuggestions()
+                        }
                         .onDisappear {
                             Task { await store.refreshEntries() }
                         }
@@ -406,7 +411,6 @@ private struct RecurringPaymentEntriesTableView: View {
 
         Task {
             let newStore = await factory.makeRecurringPaymentSuggestionStore()
-            await newStore.generateSuggestions()
             await MainActor.run {
                 suggestionStore = newStore
                 isSuggestionSheetPresented = true
