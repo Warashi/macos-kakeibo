@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import SwiftData
 
 /// 貯蓄目標管理ストア
 ///
@@ -11,16 +10,27 @@ internal final class SavingsGoalStore {
     // MARK: - Dependencies
 
     private let repository: SavingsGoalRepository
-    private let balanceService: SavingsGoalBalanceService
-    private let modelContext: ModelContext
+    private let balanceRepository: SavingsGoalBalanceRepository
+    private let withdrawalRepository: SavingsGoalWithdrawalRepository
 
     @ObservationIgnored
     private var goalsHandle: ObservationHandle?
 
+    @ObservationIgnored
+    private var balancesHandle: ObservationHandle?
+
     // MARK: - State
 
-    /// 貯蓄目標一覧
-    internal private(set) var goals: [SavingsGoal] = []
+    /// 貯蓄目標エントリ一覧
+    internal private(set) var entries: [SavingsGoalListEntry] = []
+
+    /// 貯蓄目標一覧（内部用）
+    @ObservationIgnored
+    private var goals: [SavingsGoal] = []
+
+    /// 残高一覧（内部用）
+    @ObservationIgnored
+    private var balances: [SavingsGoalBalance] = []
 
     /// 選択中の貯蓄目標
     internal var selectedGoal: SavingsGoal?
@@ -35,16 +45,17 @@ internal final class SavingsGoalStore {
 
     internal init(
         repository: SavingsGoalRepository,
-        balanceService: SavingsGoalBalanceService = SavingsGoalBalanceService(),
-        modelContext: ModelContext
+        balanceRepository: SavingsGoalBalanceRepository,
+        withdrawalRepository: SavingsGoalWithdrawalRepository
     ) {
         self.repository = repository
-        self.balanceService = balanceService
-        self.modelContext = modelContext
+        self.balanceRepository = balanceRepository
+        self.withdrawalRepository = withdrawalRepository
     }
 
     deinit {
         goalsHandle?.cancel()
+        balancesHandle?.cancel()
     }
 
     // MARK: - Actions
@@ -52,15 +63,41 @@ internal final class SavingsGoalStore {
     /// 貯蓄目標の監視を開始
     internal func observeGoals() async {
         goalsHandle?.cancel()
+        balancesHandle?.cancel()
+
         do {
-            let handle = try await repository.observeGoals { [weak self] goals in
+            // 貯蓄目標を監視
+            let goalsHandleResult = try await repository.observeGoals { [weak self] goals in
                 Task { @MainActor in
                     self?.goals = goals
+                    self?.updateEntries()
                 }
             }
-            goalsHandle = handle
+            goalsHandle = goalsHandleResult
+
+            // 残高を監視
+            let balancesHandleResult = try await balanceRepository.observeBalances { [weak self] balances in
+                Task { @MainActor in
+                    self?.balances = balances
+                    self?.updateEntries()
+                }
+            }
+            balancesHandle = balancesHandleResult
         } catch {
             goals = []
+            balances = []
+            entries = []
+        }
+    }
+
+    /// goalsとbalancesを結合してentriesを更新
+    private func updateEntries() {
+        // balancesをgoalId でマッピング
+        let balanceMap = Dictionary(uniqueKeysWithValues: balances.map { ($0.goalId, $0) })
+
+        // goalsとbalancesを結合してエントリを作成
+        entries = goals.map { goal in
+            SavingsGoalListEntry(goal: goal, balance: balanceMap[goal.id])
         }
     }
 
@@ -118,33 +155,15 @@ internal final class SavingsGoalStore {
     }
 
     /// 引出を記録
-    /// Note: WithdrawalはまだRepository化されていないため、一時的にModelContextを使用
-    internal func recordWithdrawal(params: WithdrawalParameters) throws {
-        let goalId = params.goalId
-        let goalDescriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == goalId }
-        )
-
-        guard let goal = try modelContext.fetch(goalDescriptor).first else {
-            throw SavingsGoalStoreError.goalNotFound
-        }
-
-        let withdrawal = SwiftDataSavingsGoalWithdrawal(
-            goal: goal,
+    internal func recordWithdrawal(params: WithdrawalParameters) async throws {
+        let input = SavingsGoalWithdrawalInput(
+            goalId: params.goalId,
             amount: params.amount,
             withdrawalDate: params.withdrawalDate,
             purpose: params.purpose,
-            transaction: nil
+            transactionId: params.transactionId
         )
-
-        modelContext.insert(withdrawal)
-
-        // 残高を更新
-        if let balance = goal.balance {
-            _ = balanceService.processWithdrawal(withdrawal: withdrawal, balance: balance)
-        }
-
-        try modelContext.save()
+        _ = try await withdrawalRepository.createWithdrawal(input)
     }
 
     // MARK: - Form Management

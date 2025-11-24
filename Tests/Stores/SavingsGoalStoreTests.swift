@@ -12,7 +12,13 @@ internal struct SavingsGoalStoreTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
-        let store = SavingsGoalStore(repository: repository, modelContext: context)
+        let balanceRepository = SwiftDataSavingsGoalBalanceRepository(modelContainer: container)
+        let withdrawalRepository = SwiftDataSavingsGoalWithdrawalRepository(modelContainer: container)
+        let store = SavingsGoalStore(
+            repository: repository,
+            balanceRepository: balanceRepository,
+            withdrawalRepository: withdrawalRepository
+        )
 
         store.formInput = SavingsGoalFormInput(
             name: "緊急費用",
@@ -56,7 +62,13 @@ internal struct SavingsGoalStoreTests {
         try context.save()
 
         let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
-        let store = SavingsGoalStore(repository: repository, modelContext: context)
+        let balanceRepository = SwiftDataSavingsGoalBalanceRepository(modelContainer: container)
+        let withdrawalRepository = SwiftDataSavingsGoalWithdrawalRepository(modelContainer: container)
+        let store = SavingsGoalStore(
+            repository: repository,
+            balanceRepository: balanceRepository,
+            withdrawalRepository: withdrawalRepository
+        )
 
         store.formInput = SavingsGoalFormInput(
             name: "海外旅行費用",
@@ -101,7 +113,13 @@ internal struct SavingsGoalStoreTests {
         try context.save()
 
         let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
-        let store = SavingsGoalStore(repository: repository, modelContext: context)
+        let balanceRepository = SwiftDataSavingsGoalBalanceRepository(modelContainer: container)
+        let withdrawalRepository = SwiftDataSavingsGoalWithdrawalRepository(modelContainer: container)
+        let store = SavingsGoalStore(
+            repository: repository,
+            balanceRepository: balanceRepository,
+            withdrawalRepository: withdrawalRepository
+        )
 
         try await store.deleteGoal(goal.id)
 
@@ -133,7 +151,13 @@ internal struct SavingsGoalStoreTests {
         try context.save()
 
         let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
-        let store = SavingsGoalStore(repository: repository, modelContext: context)
+        let balanceRepository = SwiftDataSavingsGoalBalanceRepository(modelContainer: container)
+        let withdrawalRepository = SwiftDataSavingsGoalWithdrawalRepository(modelContainer: container)
+        let store = SavingsGoalStore(
+            repository: repository,
+            balanceRepository: balanceRepository,
+            withdrawalRepository: withdrawalRepository
+        )
 
         // 初期状態を確認
         let initialGoals = try await repository.fetchAllGoals()
@@ -157,7 +181,13 @@ internal struct SavingsGoalStoreTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
-        let store = SavingsGoalStore(repository: repository, modelContext: context)
+        let balanceRepository = SwiftDataSavingsGoalBalanceRepository(modelContainer: container)
+        let withdrawalRepository = SwiftDataSavingsGoalWithdrawalRepository(modelContainer: container)
+        let store = SavingsGoalStore(
+            repository: repository,
+            balanceRepository: balanceRepository,
+            withdrawalRepository: withdrawalRepository
+        )
 
         store.formInput = SavingsGoalFormInput(
             name: "",
@@ -187,7 +217,13 @@ internal struct SavingsGoalStoreTests {
         let container = try ModelContainer.createInMemoryContainer()
         let context = ModelContext(container)
         let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
-        let store = SavingsGoalStore(repository: repository, modelContext: context)
+        let balanceRepository = SwiftDataSavingsGoalBalanceRepository(modelContainer: container)
+        let withdrawalRepository = SwiftDataSavingsGoalWithdrawalRepository(modelContainer: container)
+        let store = SavingsGoalStore(
+            repository: repository,
+            balanceRepository: balanceRepository,
+            withdrawalRepository: withdrawalRepository
+        )
 
         let startDate = Date()
         guard let targetDate = Calendar.current.date(byAdding: .day, value: -1, to: startDate) else {
