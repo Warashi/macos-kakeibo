@@ -4,10 +4,10 @@ import Testing
 @testable import Kakeibo
 
 @Suite("Date.customMonthRange Continuity Tests")
-struct DateCustomMonthRangeContinuityTests {
+internal struct DateCustomMonthRangeContinuityTests {
     private let businessDayService: BusinessDayService
 
-    init() {
+    internal init() {
         // 2025年1月1日（水）を元日として設定
         // 2025年2月25日（火）を休日として設定（テスト用）
         let calendar = Calendar(identifier: .gregorian)
@@ -22,7 +22,7 @@ struct DateCustomMonthRangeContinuityTests {
     }
 
     @Test("連続する月の期間に隙間がないことを確認 - 調整なし")
-    func testContinuityWithoutAdjustment() {
+    internal func testContinuityWithoutAdjustment() {
         let jan = Date.customMonthRange(
             year: 2025,
             month: 1,
@@ -60,7 +60,7 @@ struct DateCustomMonthRangeContinuityTests {
     }
 
     @Test("連続する月の期間に隙間がないことを確認 - 前営業日調整")
-    func testContinuityWithPreviousBusinessDayAdjustment() {
+    internal func testContinuityWithPreviousBusinessDayAdjustment() {
         let jan = Date.customMonthRange(
             year: 2025,
             month: 1,
@@ -106,7 +106,7 @@ struct DateCustomMonthRangeContinuityTests {
     }
 
     @Test("休日の25日開始で連続性を確認 - 前営業日調整")
-    func testContinuityWith25thStartOnHoliday() {
+    internal func testContinuityWith25thStartOnHoliday() {
         // 2月25日は休日として設定されている
         let jan = Date.customMonthRange(
             year: 2025,
@@ -159,7 +159,7 @@ struct DateCustomMonthRangeContinuityTests {
     }
 
     @Test("重複がないことを確認 - 取引が二重にカウントされない")
-    func testNoOverlap() {
+    internal func testNoOverlap() {
         let jan = Date.customMonthRange(
             year: 2025,
             month: 1,
@@ -200,7 +200,7 @@ struct DateCustomMonthRangeContinuityTests {
     }
 
     @Test("期間の長さが約1ヶ月であることを確認 - 25日開始")
-    func testPeriodLengthWith25thStart() {
+    internal func testPeriodLengthWith25thStart() {
         // 1月25日〜2月25日の期間
         let jan = Date.customMonthRange(
             year: 2025,
@@ -221,7 +221,7 @@ struct DateCustomMonthRangeContinuityTests {
     }
 
     @Test("年をまたぐ場合の連続性 - 12月から1月")
-    func testContinuityAcrossYearBoundary() {
+    internal func testContinuityAcrossYearBoundary() {
         let dec = Date.customMonthRange(
             year: 2024,
             month: 12,
