@@ -179,7 +179,7 @@ internal struct SavingsGoalStoreTests {
     @Test("バリデーションエラーが正しく動作する")
     internal func validationErrorsWork() async throws {
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
+        _ = ModelContext(container)
         let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
         let balanceRepository = SwiftDataSavingsGoalBalanceRepository(modelContainer: container)
         let withdrawalRepository = SwiftDataSavingsGoalWithdrawalRepository(modelContainer: container)
@@ -215,7 +215,7 @@ internal struct SavingsGoalStoreTests {
     @Test("目標金額と目標達成日のバリデーション")
     internal func targetAmountAndDateValidation() async throws {
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
+        _ = ModelContext(container)
         let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
         let balanceRepository = SwiftDataSavingsGoalBalanceRepository(modelContainer: container)
         let withdrawalRepository = SwiftDataSavingsGoalWithdrawalRepository(modelContainer: container)

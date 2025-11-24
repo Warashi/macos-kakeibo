@@ -1,7 +1,7 @@
 import Foundation
 @testable import Kakeibo
 
-internal final class InMemoryRecurringPaymentRepository: @preconcurrency RecurringPaymentRepository {
+internal final class InMemoryRecurringPaymentRepository: RecurringPaymentRepository, @unchecked Sendable {
     private var definitionsStorage: [UUID: SwiftDataRecurringPaymentDefinition]
     private var balancesStorage: [UUID: SwiftDataRecurringPaymentSavingBalance]
     private var categoryLookup: [UUID: Kakeibo.SwiftDataCategory]

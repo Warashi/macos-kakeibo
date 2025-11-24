@@ -30,6 +30,7 @@ internal struct ObservationTokenTests {
             }
         }
 
+        _ = token
         token = nil
 
         try? await Task.sleep(for: .milliseconds(50))

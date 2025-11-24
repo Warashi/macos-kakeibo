@@ -197,7 +197,7 @@ internal struct SavingsGoalBalanceWithdrawalTests {
         context.insert(withdrawal2)
 
         // When
-        let balance1 = service.processWithdrawal(
+        _ = service.processWithdrawal(
             withdrawal: withdrawal1,
             balance: balance,
         )

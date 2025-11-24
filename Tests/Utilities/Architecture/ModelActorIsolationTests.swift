@@ -41,7 +41,7 @@ private extension ModelActorIsolationTests {
     private func assertFiles(in directory: URL, doNotContain disallowedToken: String) throws {
         let swiftFiles = try Self.collectSwiftFiles(in: directory)
         for fileURL in swiftFiles {
-            let content = try String(contentsOf: fileURL)
+            let content = try String(contentsOf: fileURL, encoding: .utf8)
             #expect(
                 content.contains(disallowedToken) == false,
                 "\(fileURL.path) で \"\(disallowedToken)\" が使われています。",

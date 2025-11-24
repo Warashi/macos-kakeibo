@@ -257,7 +257,7 @@ internal struct RecurringPaymentReconciliationStoreTests {
             currentDateProvider: { referenceDate },
         )
         let baseService = RecurringPaymentOccurrencesServiceImpl(repository: repository)
-        let spyService = await SpyRecurringPaymentOccurrencesService(wrapping: baseService)
+        let spyService = SpyRecurringPaymentOccurrencesService(wrapping: baseService)
         let transactionRepository = SwiftDataTransactionRepository(modelContainer: container)
         let store = RecurringPaymentReconciliationStore(
             repository: repository,

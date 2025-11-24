@@ -1,7 +1,7 @@
 import Foundation
 @testable import Kakeibo
 
-internal final class InMemoryTransactionRepository: @preconcurrency TransactionRepository {
+internal final class InMemoryTransactionRepository: TransactionRepository, @unchecked Sendable {
     internal var transactions: [Transaction]
     internal var institutions: [FinancialInstitution]
     internal var categories: [Kakeibo.Category]

@@ -85,7 +85,9 @@ internal enum RecurringPaymentStackBuilder {
     /// 定期支払い CRUD ストアを構築
     internal static func makeStore(modelContainer: ModelContainer) async -> RecurringPaymentStore {
         let dependencies = await makeStoreDependencies(modelContainer: modelContainer)
-        return RecurringPaymentStore(repository: dependencies.repository)
+        return await MainActor.run {
+            RecurringPaymentStore(repository: dependencies.repository)
+        }
     }
 
     /// 定期支払い一覧ストアの依存を ModelActor から構築
@@ -136,6 +138,8 @@ internal enum RecurringPaymentStackBuilder {
     /// 定期支払い CRUD ストアを ModelActor ベースで構築
     internal static func makeStore(modelActor: RecurringPaymentModelActor) async -> RecurringPaymentStore {
         let dependencies = await makeStoreDependencies(modelActor: modelActor)
-        return RecurringPaymentStore(repository: dependencies.repository)
+        return await MainActor.run {
+            RecurringPaymentStore(repository: dependencies.repository)
+        }
     }
 }

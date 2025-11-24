@@ -202,7 +202,7 @@ internal struct SavingsGoalBalanceTests {
     @Test("積立と引出を繰り返すシナリオ")
     internal func savingsAndWithdrawalScenario() {
         let goal = sampleGoal()
-        var balance = SwiftDataSavingsGoalBalance(
+        let balance = SwiftDataSavingsGoalBalance(
             goal: goal,
             totalSavedAmount: 0,
             totalWithdrawnAmount: 0,

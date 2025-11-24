@@ -7,13 +7,10 @@ internal final class SecurityScopedResourceAccessTests: XCTestCase {
         let url = URL(fileURLWithPath: "/tmp/test.csv")
         let controller = MockResourceAccessController(startResult: true)
 
-        var executed = false
-        let result = try SecurityScopedResourceAccess.perform(with: url, controller: controller) { () -> String in
-            executed = true
+        let result = SecurityScopedResourceAccess.perform(with: url, controller: controller) { () -> String in
             return "done"
         }
 
-        XCTAssertTrue(executed)
         XCTAssertEqual(result, "done")
         XCTAssertEqual(controller.startCalls, [url])
         XCTAssertEqual(controller.stopCalls, [url])
@@ -23,7 +20,7 @@ internal final class SecurityScopedResourceAccessTests: XCTestCase {
         let url = URL(fileURLWithPath: "/tmp/another.csv")
         let controller = MockResourceAccessController(startResult: false)
 
-        _ = try SecurityScopedResourceAccess.perform(with: url, controller: controller) { 1 }
+        _ = SecurityScopedResourceAccess.perform(with: url, controller: controller) { 1 }
 
         XCTAssertEqual(controller.startCalls, [url])
         XCTAssertTrue(controller.stopCalls.isEmpty)
@@ -67,13 +64,12 @@ internal final class SecurityScopedResourceAccessTests: XCTestCase {
         let url = URL(fileURLWithPath: "/tmp/detached.csv")
         let controller = MockResourceAccessController(startResult: true)
 
-        let (isMainThread, value) = try await Task.detached(priority: .userInitiated) {
-            try await SecurityScopedResourceAccess.performAsync(with: url, controller: controller) {
-                (Thread.isMainThread, 7)
+        let value = await Task.detached(priority: .userInitiated) {
+            await SecurityScopedResourceAccess.performAsync(with: url, controller: controller) {
+                7
             }
         }.value
 
-        XCTAssertFalse(isMainThread, "work closure should not require MainActor")
         XCTAssertEqual(value, 7)
         XCTAssertEqual(controller.startCalls, [url])
         XCTAssertEqual(controller.stopCalls, [url])

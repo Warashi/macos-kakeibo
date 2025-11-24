@@ -15,7 +15,7 @@ internal struct RecurringPaymentReconciliationViewTests {
     @Test("Content view can be initialized with store")
     internal func contentViewInitialization() async throws {
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
+        _ = ModelContext(container)
         let recurringPaymentRepository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
         let transactionRepository = SwiftDataTransactionRepository(modelContainer: container)
         let occurrencesService = RecurringPaymentOccurrencesServiceImpl(repository: recurringPaymentRepository)

@@ -6,21 +6,21 @@ import Testing
 @Suite("Kakeibo Tests")
 internal struct KakeiboTests {
     @Test("ContentView can be initialized")
-    internal func contentViewInitialization() {
+    @MainActor internal func contentViewInitialization() {
         let view = ContentView()
         // ViewがSwiftUIのView protocolに準拠していることを確認
         let _: any View = view
     }
 
     @Test("RootView can be initialized with AppState")
-    internal func rootViewInitialization() {
+    @MainActor internal func rootViewInitialization() {
         let state = AppState()
         let view = RootView(appState: state)
         let _: any View = view
     }
 
     @Test("SidebarView can be initialized with AppState")
-    internal func sidebarViewInitialization() {
+    @MainActor internal func sidebarViewInitialization() {
         let state = AppState()
         let view = SidebarView(appState: state)
         let _: any View = view

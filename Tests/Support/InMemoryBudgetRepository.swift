@@ -1,7 +1,7 @@
 import Foundation
 @testable import Kakeibo
 
-internal final class InMemoryBudgetRepository: @preconcurrency BudgetRepository {
+internal final class InMemoryBudgetRepository: BudgetRepository, @unchecked Sendable {
     internal var categories: [UUID: Kakeibo.Category]
     internal var institutions: [UUID: FinancialInstitution]
     internal private(set) var saveCallCount: Int = 0

@@ -16,7 +16,7 @@ internal struct RecurringPaymentListViewTests {
     @Test("RecurringPaymentListContentViewにストアを渡して初期化できる")
     internal func recurringPaymentListContentViewInitialization() async throws {
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
+        _ = ModelContext(container)
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
         let store = RecurringPaymentListStore(
             repository: repository,
@@ -30,7 +30,7 @@ internal struct RecurringPaymentListViewTests {
     @Test("空のストアで entries が空であることを確認")
     internal func emptyStoreHasNoEntries() async throws {
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
+        _ = ModelContext(container)
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
         let store = RecurringPaymentListStore(
             repository: repository,

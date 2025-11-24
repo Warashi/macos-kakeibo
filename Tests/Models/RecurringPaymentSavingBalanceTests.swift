@@ -198,7 +198,7 @@ internal struct RecurringPaymentSavingBalanceTests {
     @Test("積立と支払いを繰り返すシナリオ")
     internal func savingsAndPaymentScenario() {
         let definition = sampleDefinition()
-        var balance = SwiftDataRecurringPaymentSavingBalance(
+        let balance = SwiftDataRecurringPaymentSavingBalance(
             definition: definition,
             totalSavedAmount: 0,
             totalPaidAmount: 0,
