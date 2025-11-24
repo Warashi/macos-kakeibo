@@ -221,11 +221,12 @@ internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
         try context.save()
 
         // 引出記録を削除
-        try await repository.deleteWithdrawal(withdrawal.id)
+        let withdrawalId = withdrawal.id
+        try await repository.deleteWithdrawal(withdrawalId)
 
         // 削除されたか確認
         let descriptor = FetchDescriptor<SwiftDataSavingsGoalWithdrawal>(
-            predicate: #Predicate { $0.id == withdrawal.id }
+            predicate: #Predicate { $0.id == withdrawalId }
         )
         let deleted = try context.fetch(descriptor).first
         #expect(deleted == nil)
