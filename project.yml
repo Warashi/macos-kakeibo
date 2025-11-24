@@ -94,6 +94,6 @@ targets:
     info:
       path: Tests/Info.plist
       properties:
-        CFBundleIdentifier: dev.warashi.Kakeibo.tests
+        CFBundleIdentifier: dev.warashi.KakeiboTests
         CFBundleName: KakeiboTests
         CFBundlePackageType: BNDL
