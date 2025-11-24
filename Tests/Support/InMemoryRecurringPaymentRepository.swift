@@ -1,7 +1,7 @@
 import Foundation
 @testable import Kakeibo
 
-internal final class InMemoryRecurringPaymentRepository: RecurringPaymentRepository {
+internal final class InMemoryRecurringPaymentRepository: @preconcurrency RecurringPaymentRepository {
     private var definitionsStorage: [UUID: SwiftDataRecurringPaymentDefinition]
     private var balancesStorage: [UUID: SwiftDataRecurringPaymentSavingBalance]
     private var categoryLookup: [UUID: Kakeibo.SwiftDataCategory]
@@ -15,6 +15,8 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         scheduleService: RecurringPaymentScheduleService = RecurringPaymentScheduleService(),
         currentDateProvider: @escaping () -> Date = { Date() },
     ) {
+        self.scheduleService = scheduleService
+        self.currentDateProvider = currentDateProvider
         self.definitionsStorage = Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
         self.balancesStorage = Dictionary(uniqueKeysWithValues: balances.map { ($0.definition.id, $0) })
         var lookup: [UUID: Kakeibo.SwiftDataCategory] = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
@@ -24,8 +26,6 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
             }
         }
         self.categoryLookup = lookup
-        self.scheduleService = scheduleService
-        self.currentDateProvider = currentDateProvider
     }
 
     internal func definitions(filter: RecurringPaymentDefinitionFilter?) async throws -> [RecurringPaymentDefinition] {

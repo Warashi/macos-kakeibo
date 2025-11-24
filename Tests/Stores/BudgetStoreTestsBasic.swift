@@ -53,9 +53,9 @@ internal struct BudgetStoreTestsBasic {
         try await store.addBudget(input)
 
         #expect(store.monthlyBudgets.count == 1)
-        await store.moveToNextMonth()
+        store.moveToNextMonth()
         #expect(store.monthlyBudgets.count == 1)
-        await store.moveToNextMonth()
+        store.moveToNextMonth()
         #expect(store.monthlyBudgets.count == 1)
     }
 
@@ -176,7 +176,7 @@ internal struct BudgetStoreTestsBasic {
         let expectedYear = Date().year
         let expectedMonth = Date().month
 
-        await store.moveToPresent()
+        store.moveToPresent()
 
         #expect(store.currentYear == expectedYear)
         #expect(store.currentMonth == expectedMonth)
@@ -190,7 +190,7 @@ internal struct BudgetStoreTestsBasic {
         store.currentMonth = 6
 
         let expectedYear = Date().year
-        await store.moveToPresent()
+        store.moveToPresent()
 
         #expect(store.currentYear == expectedYear)
         #expect(store.currentMonth == 6)
@@ -203,7 +203,7 @@ internal struct BudgetStoreTestsBasic {
         store.currentYear = 2000
         store.currentMonth = 6
 
-        await store.moveToPresent()
+        store.moveToPresent()
 
         #expect(store.currentYear == 2000)
         #expect(store.currentMonth == 6)

@@ -10,7 +10,7 @@ internal struct RecurringPaymentListStoreInitTests {
     @Test("初期化：デフォルト期間が当月〜6ヶ月後")
     internal func initialization_defaultPeriod() async throws {
         let container = try ModelContainer.createInMemoryContainer()
-        let context = ModelContext(container)
+        _ = ModelContext(container)
 
         let repository = await RecurringPaymentRepositoryFactory.make(modelContainer: container)
         let budgetRepository = SwiftDataBudgetRepository(modelContainer: container)

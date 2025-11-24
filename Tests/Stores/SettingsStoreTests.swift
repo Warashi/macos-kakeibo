@@ -326,7 +326,7 @@ private func makeBudgetRepository(
     return repository
 }
 
-private final class MockTransactionRepository: TransactionRepository {
+private final class MockTransactionRepository: @preconcurrency TransactionRepository {
     internal var transactionCount: Int = 0
     internal var snapshotTransactions: [Transaction] = []
     internal var snapshotCategories: [Kakeibo.Category] = []
@@ -398,7 +398,7 @@ private final class MockTransactionRepository: TransactionRepository {
     internal func saveChanges() async throws {}
 }
 
-private final class MockBudgetRepository: BudgetRepository {
+private final class MockBudgetRepository: @preconcurrency BudgetRepository {
     internal var budgetCount: Int = 0
     internal var annualBudgetConfigCount: Int = 0
     internal var categoryCount: Int = 0

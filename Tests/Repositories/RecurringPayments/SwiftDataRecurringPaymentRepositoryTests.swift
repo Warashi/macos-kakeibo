@@ -67,12 +67,12 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
             status: .planned,
         )
 
-        let completed = try SwiftDataRecurringPaymentOccurrence(
+        let completed = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
-            scheduledDate: #require(Date.from(year: 2024, month: 5, day: 31)),
+            scheduledDate: Date.from(year: 2024, month: 5, day: 31)!,
             expectedAmount: 42000,
             status: .completed,
-            actualDate: #require(Date.from(year: 2024, month: 5, day: 30)),
+            actualDate: Date.from(year: 2024, month: 5, day: 30)!,
             actualAmount: 42000,
         )
 
