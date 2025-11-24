@@ -160,7 +160,7 @@ internal extension Date {
         month: Int,
         startDay: Int,
         adjustment: BusinessDayAdjustment,
-        businessDayService: BusinessDayService
+        businessDayService: BusinessDayService,
     ) -> CustomMonthRange? {
         // 開始日は1-28の範囲に制限
         let clampedStartDay = max(1, min(28, startDay))
@@ -177,13 +177,15 @@ internal extension Date {
             businessDayService: businessDayService,
         )
 
-        // 次の月の開始日を計算（終了日は次の開始日の前日）
-        guard let nextMonthStart = calculateNextMonthStart(
-            from: monthStart,
-            startDay: clampedStartDay,
-            adjustment: adjustment,
-            businessDayService: businessDayService,
-        ) else {
+        // 次の月の開始日を計算（調整なし）
+        // 元の年月から計算することで、調整で月がずれた場合でも正しい次月を計算できる
+        let (nextYear, nextMonth) = if month == 12 {
+            (year + 1, 1)
+        } else {
+            (year, month + 1)
+        }
+
+        guard let nextMonthStart = Date.from(year: nextYear, month: nextMonth, day: clampedStartDay) else {
             return nil
         }
 
@@ -212,43 +214,6 @@ internal extension Date {
                 businessDayService.nextBusinessDay(from: date) ?? date
             }
         }
-    }
-
-    /// 次の月の開始日を計算
-    ///
-    /// 次の月の開始日を計算し、休日調整を適用します。
-    /// これにより、期間は「今月の開始日（調整済み）〜 次月の開始日（調整済み）」となります。
-    private static func calculateNextMonthStart(
-        from currentStart: Date,
-        startDay: Int,
-        adjustment: BusinessDayAdjustment,
-        businessDayService: BusinessDayService,
-    ) -> Date? {
-        // 調整前の基準日から1ヶ月後を計算
-        // currentStartは調整済みなので、調整前の日付から計算し直す
-        let baseYear = currentStart.year
-        let baseMonth = currentStart.month
-
-        // 次の月を計算
-        let (nextYear, nextMonth) = if baseMonth == 12 {
-            (baseYear + 1, 1)
-        } else {
-            (baseYear, baseMonth + 1)
-        }
-
-        // 次の月の同じ日を計算
-        guard var nextStart = Date.from(year: nextYear, month: nextMonth, day: startDay) else {
-            return nil
-        }
-
-        // 休日調整を適用
-        nextStart = applyBusinessDayAdjustment(
-            to: nextStart,
-            adjustment: adjustment,
-            businessDayService: businessDayService,
-        )
-
-        return nextStart
     }
     // swiftlint:enable function_parameter_count
 }
