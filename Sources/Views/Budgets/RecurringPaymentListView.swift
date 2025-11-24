@@ -281,17 +281,39 @@ private struct RecurringPaymentFilterToolbarView: View {
 // MARK: - Entries Table View
 
 private struct RecurringPaymentEntriesTableView: View {
+    @Environment(\.storeFactory) private var storeFactory: StoreFactory?
     @Bindable internal var store: RecurringPaymentListStore
+    @State private var suggestionStore: RecurringPaymentSuggestionStore?
+    @State private var isSuggestionSheetPresented = false
 
     internal var body: some View {
         if store.cachedEntries.isEmpty {
-            EmptyStatePlaceholder(
-                systemImage: "tray",
-                title: "定期支払いがありません",
-                message: "フィルタを変更するか、定期支払いを追加してください。",
-                minHeight: 320,
-            )
+            VStack(spacing: 24) {
+                EmptyStatePlaceholder(
+                    systemImage: "tray",
+                    title: "定期支払いがありません",
+                    message: "取引データから定期的な支払いを自動検出できます",
+                    minHeight: 280,
+                )
+
+                Button {
+                    openSuggestionSheet()
+                } label: {
+                    Label("提案を検出", systemImage: "wand.and.stars")
+                        .font(.headline)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+            }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .sheet(isPresented: $isSuggestionSheetPresented) {
+                if let suggestionStore {
+                    RecurringPaymentSuggestionSheet(store: suggestionStore)
+                        .onDisappear {
+                            Task { await store.refreshEntries() }
+                        }
+                }
+            }
         } else {
             Table(store.cachedEntries) {
                 TableColumn("名称") { entry in
@@ -371,6 +393,24 @@ private struct RecurringPaymentEntriesTableView: View {
                 }
             }
             .frame(minHeight: 400)
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func openSuggestionSheet() {
+        guard let factory = storeFactory else {
+            assertionFailure("StoreFactory is unavailable")
+            return
+        }
+
+        Task {
+            let newStore = await factory.makeRecurringPaymentSuggestionStore()
+            await newStore.generateSuggestions()
+            await MainActor.run {
+                suggestionStore = newStore
+                isSuggestionSheetPresented = true
+            }
         }
     }
 }
