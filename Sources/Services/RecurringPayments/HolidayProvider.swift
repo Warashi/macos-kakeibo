@@ -1,7 +1,7 @@
 import Foundation
 
 /// 祝日データを提供するプロトコル
-internal protocol HolidayProvider {
+internal protocol HolidayProvider: Sendable {
     /// 指定された年の祝日を取得
     /// - Parameter year: 対象年
     /// - Returns: 祝日のSet（日付は時刻を00:00:00に正規化）

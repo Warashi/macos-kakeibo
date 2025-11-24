@@ -4,20 +4,18 @@ import HolidayJp
 /// 日本の祝日を提供するプロバイダー（holiday-jp ライブラリ使用）
 internal struct JapaneseHolidayProvider: HolidayProvider {
     private let calendar: Calendar
-    private let dateFormatter: DateFormatter
 
     internal init(calendar: Calendar = Calendar(identifier: .gregorian)) {
         self.calendar = calendar
-
-        // ymd文字列（"YYYY-MM-DD"）をパースするためのフォーマッター
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        formatter.calendar = calendar
-        formatter.timeZone = TimeZone(identifier: "Asia/Tokyo")
-        self.dateFormatter = formatter
     }
 
     internal func holidays(for year: Int) -> Set<Date> {
+        // ymd文字列（"YYYY-MM-DD"）をパースするためのフォーマッター
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        dateFormatter.calendar = calendar
+        dateFormatter.timeZone = TimeZone(identifier: "Asia/Tokyo")
+
         // 対象年の1月1日から12月31日までの期間を作成
         guard let startDate = calendar.date(from: DateComponents(year: year, month: 1, day: 1)),
               let endDate = calendar.date(from: DateComponents(year: year, month: 12, day: 31)) else {

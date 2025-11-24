@@ -1,11 +1,11 @@
 import Foundation
 
 /// 営業日判定サービス
-internal struct BusinessDayService {
+internal struct BusinessDayService: Sendable {
     private let calendar: Calendar
 
     /// 祝日プロバイダー
-    private let holidayProvider: HolidayProvider?
+    private let holidayProvider: (any HolidayProvider)?
 
     /// 直接指定された祝日リスト（後方互換性のため残す）
     private var holidays: Set<Date>
