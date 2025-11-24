@@ -56,8 +56,21 @@ internal enum TransactionQueries {
 
 private extension TransactionQueries {
     static func predicate(for query: TransactionQuery) -> Predicate<SwiftDataTransaction> {
-        let start = query.month.startOfMonth
-        let end = Calendar.current.date(byAdding: .month, value: 1, to: start) ?? start
+        let monthPeriodCalculator = MonthPeriodCalculatorFactory.make()
+        let year = query.month.year
+        let month = query.month.month
+
+        let start: Date
+        let end: Date
+
+        if let period = monthPeriodCalculator.calculatePeriod(for: year, month: month) {
+            start = period.start
+            end = period.end
+        } else {
+            // フォールバック: 従来の月初〜月末
+            start = query.month.startOfMonth
+            end = Calendar.current.date(byAdding: .month, value: 1, to: start) ?? start
+        }
 
         return #Predicate<SwiftDataTransaction> { transaction in
             transaction.date >= start && transaction.date < end
