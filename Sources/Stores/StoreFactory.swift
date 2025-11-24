@@ -25,6 +25,9 @@ internal protocol StoreFactory: Sendable {
     /// RecurringPaymentListStoreを作成
     func makeRecurringPaymentListStore() async -> RecurringPaymentListStore
 
+    /// RecurringPaymentSuggestionStoreを作成
+    func makeRecurringPaymentSuggestionStore() async -> RecurringPaymentSuggestionStore
+
     /// SettingsStoreを作成
     func makeSettingsStore() async -> SettingsStore
 

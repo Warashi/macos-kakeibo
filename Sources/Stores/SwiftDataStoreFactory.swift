@@ -47,6 +47,10 @@ internal final class SwiftDataStoreFactory: StoreFactory, @unchecked Sendable {
         await RecurringPaymentStackBuilder.makeListStore(modelContainer: modelContainer)
     }
 
+    internal func makeRecurringPaymentSuggestionStore() async -> RecurringPaymentSuggestionStore {
+        await RecurringPaymentStackBuilder.makeSuggestionStore(modelContainer: modelContainer)
+    }
+
     internal func makeSettingsStore() async -> SettingsStore {
         await SettingsStackBuilder.makeSettingsStore(modelContainer: modelContainer)
     }

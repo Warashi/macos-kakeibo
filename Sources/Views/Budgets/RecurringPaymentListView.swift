@@ -35,10 +35,13 @@ internal struct RecurringPaymentListView: View {
 
 /// 定期支払い一覧コンテンツビュー
 internal struct RecurringPaymentListContentView: View {
+    @Environment(\.storeFactory) private var storeFactory: StoreFactory?
     @Bindable internal var store: RecurringPaymentListStore
     @State private var csvDocument: DataFileDocument?
     @State private var isExportingCSV: Bool = false
     @State private var exportError: String?
+    @State private var suggestionStore: RecurringPaymentSuggestionStore?
+    @State private var isSuggestionSheetPresented = false
 
     internal var body: some View {
         VStack(spacing: 16) {
@@ -49,6 +52,12 @@ internal struct RecurringPaymentListContentView: View {
         .navigationTitle("定期支払い一覧")
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
+                Button {
+                    openSuggestionSheet()
+                } label: {
+                    Label("提案を検出", systemImage: "wand.and.stars")
+                }
+
                 Button {
                     store.resetFilters()
                 } label: {
@@ -100,6 +109,32 @@ internal struct RecurringPaymentListContentView: View {
         }
         .onChange(of: store.sortOrder) { [store] _, _ in
             Task { await store.refreshEntries() }
+        }
+        .sheet(isPresented: $isSuggestionSheetPresented) {
+            if let suggestionStore {
+                RecurringPaymentSuggestionSheet(store: suggestionStore)
+                    .onDisappear {
+                        Task { await store.refreshEntries() }
+                    }
+            }
+        }
+    }
+
+    // MARK: - Suggestion Helpers
+
+    private func openSuggestionSheet() {
+        guard let factory = storeFactory else {
+            assertionFailure("StoreFactory is unavailable")
+            return
+        }
+
+        Task {
+            let newStore = await factory.makeRecurringPaymentSuggestionStore()
+            await newStore.generateSuggestions()
+            await MainActor.run {
+                suggestionStore = newStore
+                isSuggestionSheetPresented = true
+            }
         }
     }
 

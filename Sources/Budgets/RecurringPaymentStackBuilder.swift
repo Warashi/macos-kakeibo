@@ -19,6 +19,12 @@ internal struct RecurringPaymentStoreDependencies {
     internal let repository: RecurringPaymentRepository
 }
 
+/// 定期支払い提案ストア用の依存関係
+internal struct RecurringPaymentSuggestionDependencies {
+    internal let suggestionUseCase: RecurringPaymentSuggestionUseCaseProtocol
+    internal let recurringPaymentStore: RecurringPaymentStore
+}
+
 /// 定期支払いスタック構築用のビルダー
 ///
 /// Repository / Service の初期化を 1 か所へ集約し、
@@ -140,6 +146,36 @@ internal enum RecurringPaymentStackBuilder {
         let dependencies = await makeStoreDependencies(modelActor: modelActor)
         return await MainActor.run {
             RecurringPaymentStore(repository: dependencies.repository)
+        }
+    }
+
+    /// 定期支払い提案ストアの依存を構築
+    internal static func makeSuggestionDependencies(modelContainer: ModelContainer) async
+    -> RecurringPaymentSuggestionDependencies {
+        let recurringPaymentRepository = await RecurringPaymentRepositoryFactory.make(modelContainer: modelContainer)
+        let transactionRepository = SwiftDataTransactionRepository(modelContainer: modelContainer)
+
+        let suggestionUseCase = RecurringPaymentSuggestionUseCase(
+            transactionRepository: transactionRepository,
+            recurringPaymentRepository: recurringPaymentRepository
+        )
+
+        let recurringPaymentStore = await makeStore(modelContainer: modelContainer)
+
+        return RecurringPaymentSuggestionDependencies(
+            suggestionUseCase: suggestionUseCase,
+            recurringPaymentStore: recurringPaymentStore
+        )
+    }
+
+    /// 定期支払い提案ストアを構築
+    internal static func makeSuggestionStore(modelContainer: ModelContainer) async -> RecurringPaymentSuggestionStore {
+        let dependencies = await makeSuggestionDependencies(modelContainer: modelContainer)
+        return await MainActor.run {
+            RecurringPaymentSuggestionStore(
+                suggestionUseCase: dependencies.suggestionUseCase,
+                recurringPaymentStore: dependencies.recurringPaymentStore
+            )
         }
     }
 }
