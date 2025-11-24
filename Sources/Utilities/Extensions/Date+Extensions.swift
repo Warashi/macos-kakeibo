@@ -154,6 +154,7 @@ internal extension Date {
     ///   - adjustment: 休日調整方法
     ///   - businessDayService: 営業日判定サービス
     /// - Returns: 月範囲（開始日と終了日）
+    // swiftlint:disable:next function_parameter_count
     static func customMonthRange(
         year: Int,
         month: Int,
