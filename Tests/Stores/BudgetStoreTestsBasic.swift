@@ -182,18 +182,20 @@ internal struct BudgetStoreTestsBasic {
         #expect(store.currentMonth == expectedMonth)
     }
 
-    @Test("moveToPresent: 年次モードでは年のみ更新")
-    internal func moveToPresent_updatesOnlyYearForAnnual() async throws {
+    @Test("moveToPresent: 年次モードでも年月両方を更新")
+    internal func moveToPresent_updatesYearAndMonthForAnnual() async throws {
         let (store, _) = try await makeStore()
         store.displayMode = .annual
         store.currentYear = 2000
         store.currentMonth = 6
 
         let expectedYear = Date().year
+        let expectedMonth = Date().month
         store.moveToPresent()
 
         #expect(store.currentYear == expectedYear)
-        #expect(store.currentMonth == 6)
+        // 年次表示時も現在の月に移動（年初から今月までの集計期間を表示）
+        #expect(store.currentMonth == expectedMonth)
     }
 
     @Test("moveToPresent: 定期支払い一覧では変化しない")

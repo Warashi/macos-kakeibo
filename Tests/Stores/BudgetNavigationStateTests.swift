@@ -43,7 +43,8 @@ internal struct BudgetNavigationStateTests {
         let annualChanged = annualState.moveToPresent(displayMode: .annual)
         #expect(annualChanged)
         #expect(annualState.year == 2025)
-        #expect(annualState.month == 8)
+        // 年次表示時も現在の月に移動（年初から今月までの集計期間を表示）
+        #expect(annualState.month == 4)
 
         var specialState = BudgetNavigationState(
             year: 2010,
