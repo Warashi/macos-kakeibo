@@ -25,7 +25,7 @@ internal actor SwiftDataCustomHolidayRepository: CustomHolidayRepository {
                 if let date = calendar.date(from: DateComponents(
                     year: year,
                     month: components.month,
-                    day: components.day
+                    day: components.day,
                 )) {
                     holidays.insert(calendar.startOfDay(for: date))
                 }

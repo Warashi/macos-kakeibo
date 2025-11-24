@@ -33,7 +33,7 @@ internal protocol SavingsGoalRepository: Sendable {
     /// - Returns: 監視を停止するためのハンドル
     @discardableResult
     func observeGoals(
-        onChange: @escaping @Sendable ([SavingsGoal]) -> Void
+        onChange: @escaping @Sendable ([SavingsGoal]) -> Void,
     ) async throws -> ObservationHandle
 
     /// 変更を保存

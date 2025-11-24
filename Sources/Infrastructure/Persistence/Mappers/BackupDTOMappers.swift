@@ -16,7 +16,7 @@ extension BackupTransactionDTO {
             majorCategoryId: transaction.majorCategory?.id,
             minorCategoryId: transaction.minorCategory?.id,
             createdAt: transaction.createdAt,
-            updatedAt: transaction.updatedAt
+            updatedAt: transaction.updatedAt,
         )
     }
 }
@@ -30,7 +30,7 @@ extension BackupCategory {
             allowsAnnualBudget: category.allowsAnnualBudget,
             displayOrder: category.displayOrder,
             createdAt: category.createdAt,
-            updatedAt: category.updatedAt
+            updatedAt: category.updatedAt,
         )
     }
 }
@@ -46,7 +46,7 @@ extension BackupBudgetDTO {
             endYear: budget.endYear,
             endMonth: budget.endMonth,
             createdAt: budget.createdAt,
-            updatedAt: budget.updatedAt
+            updatedAt: budget.updatedAt,
         )
     }
 }
@@ -59,7 +59,7 @@ extension BackupAnnualBudgetConfig {
             totalAmount: config.totalAmount,
             policyRawValue: config.policy.rawValue,
             createdAt: config.createdAt,
-            updatedAt: config.updatedAt
+            updatedAt: config.updatedAt,
         )
     }
 }
@@ -71,7 +71,7 @@ extension BackupFinancialInstitutionDTO {
             name: institution.name,
             displayOrder: institution.displayOrder,
             createdAt: institution.createdAt,
-            updatedAt: institution.updatedAt
+            updatedAt: institution.updatedAt,
         )
     }
 }
@@ -85,7 +85,7 @@ extension BackupAnnualBudgetAllocationDTO {
             policyOverrideRawValue: allocation.policyOverrideRawValue,
             configId: allocation.config?.id,
             createdAt: allocation.createdAt,
-            updatedAt: allocation.updatedAt
+            updatedAt: allocation.updatedAt,
         )
     }
 }
@@ -106,7 +106,7 @@ extension BackupRecurringPaymentDefinitionDTO {
             dateAdjustmentPolicy: definition.dateAdjustmentPolicy,
             recurrenceDayPattern: definition.recurrenceDayPattern,
             createdAt: definition.createdAt,
-            updatedAt: definition.updatedAt
+            updatedAt: definition.updatedAt,
         )
     }
 }
@@ -123,7 +123,7 @@ extension BackupRecurringPaymentOccurrenceDTO {
             actualAmount: occurrence.actualAmount,
             transactionId: occurrence.transaction?.id,
             createdAt: occurrence.createdAt,
-            updatedAt: occurrence.updatedAt
+            updatedAt: occurrence.updatedAt,
         )
     }
 }
@@ -138,7 +138,7 @@ extension BackupRecurringPaymentSavingBalanceDTO {
             lastUpdatedYear: balance.lastUpdatedYear,
             lastUpdatedMonth: balance.lastUpdatedMonth,
             createdAt: balance.createdAt,
-            updatedAt: balance.updatedAt
+            updatedAt: balance.updatedAt,
         )
     }
 }
@@ -151,7 +151,7 @@ extension BackupCustomHolidayDTO {
             name: holiday.name,
             isRecurring: holiday.isRecurring,
             createdAt: holiday.createdAt,
-            updatedAt: holiday.updatedAt
+            updatedAt: holiday.updatedAt,
         )
     }
 }

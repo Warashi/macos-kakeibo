@@ -298,7 +298,7 @@ private struct ReconciliationFormView: View {
                 .tint(.red)
                 .disabled(
                     store.selectedRow?.transactionTitle == nil
-                        && store.selectedRow?.status != .skipped
+                        && store.selectedRow?.status != .skipped,
                 )
             }
         }

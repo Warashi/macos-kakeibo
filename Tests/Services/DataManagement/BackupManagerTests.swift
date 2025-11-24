@@ -13,7 +13,7 @@ internal struct BackupManagerTests {
         let context = ModelContext(container)
         try seedSampleData(in: context)
         let manager = BackupManager(
-            backupRepository: SwiftDataBackupRepository(modelContainer: container)
+            backupRepository: SwiftDataBackupRepository(modelContainer: container),
         )
 
         // When
@@ -34,7 +34,7 @@ internal struct BackupManagerTests {
         let sourceContext = ModelContext(sourceContainer)
         try seedSampleData(in: sourceContext)
         let backupManager = BackupManager(
-            backupRepository: SwiftDataBackupRepository(modelContainer: sourceContainer)
+            backupRepository: SwiftDataBackupRepository(modelContainer: sourceContainer),
         )
         let payload = try await backupManager.buildPayload()
         let archive = try await backupManager.createBackup(payload: payload)
@@ -42,7 +42,7 @@ internal struct BackupManagerTests {
         let restoreContainer = try ModelContainer.createInMemoryContainer()
         let restoreContext = ModelContext(restoreContainer)
         let restoreManager = BackupManager(
-            backupRepository: SwiftDataBackupRepository(modelContainer: restoreContainer)
+            backupRepository: SwiftDataBackupRepository(modelContainer: restoreContainer),
         )
 
         // When

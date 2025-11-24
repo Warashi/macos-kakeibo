@@ -46,7 +46,7 @@ internal final class SavingsGoalStore {
     internal init(
         repository: SavingsGoalRepository,
         balanceRepository: SavingsGoalBalanceRepository,
-        withdrawalRepository: SavingsGoalWithdrawalRepository
+        withdrawalRepository: SavingsGoalWithdrawalRepository,
     ) {
         self.repository = repository
         self.balanceRepository = balanceRepository
@@ -115,7 +115,7 @@ internal final class SavingsGoalStore {
             categoryId: formInput.categoryId,
             notes: formInput.notes,
             startDate: formInput.startDate,
-            targetDate: formInput.targetDate
+            targetDate: formInput.targetDate,
         )
 
         _ = try await repository.createGoal(input)
@@ -136,7 +136,7 @@ internal final class SavingsGoalStore {
             categoryId: formInput.categoryId,
             notes: formInput.notes,
             startDate: formInput.startDate,
-            targetDate: formInput.targetDate
+            targetDate: formInput.targetDate,
         )
 
         let updateInput = SavingsGoalUpdateInput(id: goalId, input: input)
@@ -161,7 +161,7 @@ internal final class SavingsGoalStore {
             amount: params.amount,
             withdrawalDate: params.withdrawalDate,
             purpose: params.purpose,
-            transactionId: params.transactionId
+            transactionId: params.transactionId,
         )
         _ = try await withdrawalRepository.createWithdrawal(input)
     }
@@ -182,7 +182,7 @@ internal final class SavingsGoalStore {
             categoryId: goal.categoryId,
             notes: goal.notes,
             startDate: goal.startDate,
-            targetDate: goal.targetDate
+            targetDate: goal.targetDate,
         )
         selectedGoal = goal
         isShowingForm = true

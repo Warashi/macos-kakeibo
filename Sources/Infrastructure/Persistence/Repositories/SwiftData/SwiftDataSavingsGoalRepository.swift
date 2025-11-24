@@ -14,7 +14,7 @@ internal actor SwiftDataSavingsGoalRepository: SavingsGoalRepository {
             notes: input.notes,
             startDate: input.startDate,
             targetDate: input.targetDate,
-            isActive: true
+            isActive: true,
         )
         context.insert(goal)
         try await saveChanges()
@@ -24,7 +24,7 @@ internal actor SwiftDataSavingsGoalRepository: SavingsGoalRepository {
     internal func updateGoal(_ input: SavingsGoalUpdateInput) async throws -> SavingsGoal {
         let goalId = input.id
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == goalId }
+            predicate: #Predicate { $0.id == goalId },
         )
 
         guard let goal = try context.fetch(descriptor).first else {
@@ -46,7 +46,7 @@ internal actor SwiftDataSavingsGoalRepository: SavingsGoalRepository {
 
     internal func deleteGoal(_ id: UUID) async throws {
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == id }
+            predicate: #Predicate { $0.id == id },
         )
 
         guard let goal = try context.fetch(descriptor).first else {
@@ -59,7 +59,7 @@ internal actor SwiftDataSavingsGoalRepository: SavingsGoalRepository {
 
     internal func fetchAllGoals() async throws -> [SavingsGoal] {
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)],
         )
         let goals = try context.fetch(descriptor)
         return goals.map { SavingsGoal(from: $0) }
@@ -67,14 +67,14 @@ internal actor SwiftDataSavingsGoalRepository: SavingsGoalRepository {
 
     internal func fetchGoal(id: UUID) async throws -> SavingsGoal? {
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == id }
+            predicate: #Predicate { $0.id == id },
         )
         return try context.fetch(descriptor).first.map { SavingsGoal(from: $0) }
     }
 
     internal func toggleGoalActive(_ id: UUID) async throws {
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == id }
+            predicate: #Predicate { $0.id == id },
         )
 
         guard let goal = try context.fetch(descriptor).first else {
@@ -88,17 +88,17 @@ internal actor SwiftDataSavingsGoalRepository: SavingsGoalRepository {
 
     @discardableResult
     internal func observeGoals(
-        onChange: @escaping @Sendable ([SavingsGoal]) -> Void
+        onChange: @escaping @Sendable ([SavingsGoal]) -> Void,
     ) async throws -> ObservationHandle {
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)],
         )
         return context.observe(
             descriptor: descriptor,
             transform: { goals in
                 goals.map { SavingsGoal(from: $0) }
             },
-            onChange: onChange
+            onChange: onChange,
         )
     }
 

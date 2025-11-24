@@ -32,7 +32,7 @@ internal enum RecurringPaymentStackBuilder {
         let budgetRepository = SwiftDataBudgetRepository(modelContainer: modelContainer)
         return RecurringPaymentListDependencies(
             repository: repository,
-            budgetRepository: budgetRepository
+            budgetRepository: budgetRepository,
         )
     }
 
@@ -42,7 +42,7 @@ internal enum RecurringPaymentStackBuilder {
         return await MainActor.run {
             RecurringPaymentListStore(
                 repository: dependencies.repository,
-                budgetRepository: dependencies.budgetRepository
+                budgetRepository: dependencies.budgetRepository,
             )
         }
     }
@@ -101,7 +101,7 @@ internal enum RecurringPaymentStackBuilder {
         return await MainActor.run {
             RecurringPaymentListStore(
                 repository: dependencies.repository,
-                budgetRepository: dependencies.budgetRepository
+                budgetRepository: dependencies.budgetRepository,
             )
         }
     }

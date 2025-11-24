@@ -26,11 +26,11 @@ internal struct SavingsGoalListView: View {
                             }
 
                             if store.entries.isEmpty {
-                            EmptyStatePlaceholder(
-                                systemImage: "banknote",
-                                title: "貯蓄目標が未登録です",
-                                message: "「貯蓄目標を追加」ボタンから新しい貯蓄目標を作成できます。",
-                            )
+                                EmptyStatePlaceholder(
+                                    systemImage: "banknote",
+                                    title: "貯蓄目標が未登録です",
+                                    message: "「貯蓄目標を追加」ボタンから新しい貯蓄目標を作成できます。",
+                                )
                             } else {
                                 Table(store.entries) {
                                     TableColumn("名称") { entry in
@@ -39,16 +39,16 @@ internal struct SavingsGoalListView: View {
                                                 .fontWeight(.regular)
 
                                             if !entry.goal.isActive {
-                                            Text("無効")
-                                                .font(.caption2)
-                                                .foregroundColor(.secondary)
-                                                .padding(.horizontal, 6)
-                                                .padding(.vertical, 2)
-                                                .background(Color.gray.opacity(0.2))
-                                                .cornerRadius(4)
+                                                Text("無効")
+                                                    .font(.caption2)
+                                                    .foregroundColor(.secondary)
+                                                    .padding(.horizontal, 6)
+                                                    .padding(.vertical, 2)
+                                                    .background(Color.gray.opacity(0.2))
+                                                    .cornerRadius(4)
+                                            }
                                         }
                                     }
-                                }
 
                                     TableColumn("月次積立額") { entry in
                                         Text(entry.goal.monthlySavingAmount.currencyFormatted)
@@ -129,9 +129,9 @@ internal struct SavingsGoalListView: View {
                                         }
                                         .frame(maxWidth: .infinity, alignment: .trailing)
                                     }
+                                }
+                                .frame(minHeight: 200)
                             }
-                            .frame(minHeight: 200)
-                        }
                         }
                     }
                     .padding()
@@ -139,7 +139,7 @@ internal struct SavingsGoalListView: View {
                 .navigationTitle("貯蓄目標")
                 .sheet(isPresented: Binding(
                     get: { store.isShowingForm },
-                    set: { store.isShowingForm = $0 }
+                    set: { store.isShowingForm = $0 },
                 )) {
                     SavingsGoalFormView(store: store)
                 }

@@ -31,7 +31,7 @@ internal final class SwiftDataStoreFactory: StoreFactory, @unchecked Sendable {
         return await SavingsGoalStore(
             repository: repository,
             balanceRepository: balanceRepository,
-            withdrawalRepository: withdrawalRepository
+            withdrawalRepository: withdrawalRepository,
         )
     }
 

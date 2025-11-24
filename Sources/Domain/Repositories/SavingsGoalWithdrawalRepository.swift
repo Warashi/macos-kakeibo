@@ -24,6 +24,6 @@ internal protocol SavingsGoalWithdrawalRepository: Sendable {
     /// - Returns: 監視を停止するためのハンドル
     @discardableResult
     func observeWithdrawals(
-        onChange: @escaping @Sendable ([SavingsGoalWithdrawal]) -> Void
+        onChange: @escaping @Sendable ([SavingsGoalWithdrawal]) -> Void,
     ) async throws -> ObservationHandle
 }

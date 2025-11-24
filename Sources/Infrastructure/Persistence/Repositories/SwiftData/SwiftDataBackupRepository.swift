@@ -34,7 +34,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
             recurringPaymentDefinitions: definitions.map(BackupRecurringPaymentDefinitionDTO.init),
             recurringPaymentOccurrences: occurrences.map(BackupRecurringPaymentOccurrenceDTO.init),
             recurringPaymentSavingBalances: balances.map(BackupRecurringPaymentSavingBalanceDTO.init),
-            customHolidays: holidays.map(BackupCustomHolidayDTO.init)
+            customHolidays: holidays.map(BackupCustomHolidayDTO.init),
         )
     }
 
@@ -57,30 +57,30 @@ internal actor SwiftDataBackupRepository: BackupRepository {
             data.annualBudgetAllocations,
             categories: categories,
             configs: configs,
-            context: modelContext
+            context: modelContext,
         )
         try insertBudgets(data.budgets, categories: categories, context: modelContext)
         let definitions = try insertRecurringPaymentDefinitions(
             data.recurringPaymentDefinitions,
             categories: categories,
-            context: modelContext
+            context: modelContext,
         )
         let transactions = try insertTransactions(
             data.transactions,
             categories: categories,
             institutions: institutions,
-            context: modelContext
+            context: modelContext,
         )
         try insertRecurringPaymentOccurrences(
             data.recurringPaymentOccurrences,
             definitions: definitions,
             transactions: transactions,
-            context: modelContext
+            context: modelContext,
         )
         try insertRecurringPaymentSavingBalances(
             data.recurringPaymentSavingBalances,
             definitions: definitions,
-            context: modelContext
+            context: modelContext,
         )
 
         try modelContext.save()
@@ -127,14 +127,14 @@ internal actor SwiftDataBackupRepository: BackupRepository {
     @discardableResult
     private func insertFinancialInstitutions(
         _ dtos: [BackupFinancialInstitutionDTO],
-        context: ModelContext
+        context: ModelContext,
     ) throws -> [UUID: SwiftDataFinancialInstitution] {
         var result: [UUID: SwiftDataFinancialInstitution] = [:]
         for dto in dtos {
             let institution = SwiftDataFinancialInstitution(
                 id: dto.id,
                 name: dto.name,
-                displayOrder: dto.displayOrder
+                displayOrder: dto.displayOrder,
             )
             institution.createdAt = dto.createdAt
             institution.updatedAt = dto.updatedAt
@@ -147,7 +147,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
     @discardableResult
     private func insertCategories(
         _ dtos: [BackupCategory],
-        context: ModelContext
+        context: ModelContext,
     ) throws -> [UUID: SwiftDataCategory] {
         var result: [UUID: SwiftDataCategory] = [:]
 
@@ -156,7 +156,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
                 id: dto.id,
                 name: dto.name,
                 allowsAnnualBudget: dto.allowsAnnualBudget,
-                displayOrder: dto.displayOrder
+                displayOrder: dto.displayOrder,
             )
             category.createdAt = dto.createdAt
             category.updatedAt = dto.updatedAt
@@ -179,7 +179,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
     private func insertBudgets(
         _ dtos: [BackupBudgetDTO],
         categories: [UUID: SwiftDataCategory],
-        context: ModelContext
+        context: ModelContext,
     ) throws {
         for dto in dtos {
             let budget = SwiftDataBudget(
@@ -189,7 +189,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
                 startYear: dto.startYear,
                 startMonth: dto.startMonth,
                 endYear: dto.endYear,
-                endMonth: dto.endMonth
+                endMonth: dto.endMonth,
             )
             budget.createdAt = dto.createdAt
             budget.updatedAt = dto.updatedAt
@@ -200,7 +200,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
     @discardableResult
     private func insertAnnualBudgetConfigs(
         _ dtos: [BackupAnnualBudgetConfig],
-        context: ModelContext
+        context: ModelContext,
     ) throws -> [UUID: SwiftDataAnnualBudgetConfig] {
         var result: [UUID: SwiftDataAnnualBudgetConfig] = [:]
         for dto in dtos {
@@ -208,7 +208,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
                 id: dto.id,
                 year: dto.year,
                 totalAmount: dto.totalAmount,
-                policy: dto.policy
+                policy: dto.policy,
             )
             config.createdAt = dto.createdAt
             config.updatedAt = dto.updatedAt
@@ -223,7 +223,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
         _ dtos: [BackupTransactionDTO],
         categories: [UUID: SwiftDataCategory],
         institutions: [UUID: SwiftDataFinancialInstitution],
-        context: ModelContext
+        context: ModelContext,
     ) throws -> [UUID: SwiftDataTransaction] {
         var result: [UUID: SwiftDataTransaction] = [:]
         for dto in dtos {
@@ -237,7 +237,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
                 isTransfer: dto.isTransfer,
                 financialInstitution: dto.financialInstitutionId.flatMap { institutions[$0] },
                 majorCategory: dto.majorCategoryId.flatMap { categories[$0] },
-                minorCategory: dto.minorCategoryId.flatMap { categories[$0] }
+                minorCategory: dto.minorCategoryId.flatMap { categories[$0] },
             )
             transaction.createdAt = dto.createdAt
             transaction.updatedAt = dto.updatedAt
@@ -249,14 +249,14 @@ internal actor SwiftDataBackupRepository: BackupRepository {
 
     private func insertCustomHolidays(
         _ dtos: [BackupCustomHolidayDTO],
-        context: ModelContext
+        context: ModelContext,
     ) throws {
         for dto in dtos {
             let holiday = SwiftDataCustomHoliday(
                 id: dto.id,
                 date: dto.date,
                 name: dto.name,
-                isRecurring: dto.isRecurring
+                isRecurring: dto.isRecurring,
             )
             holiday.createdAt = dto.createdAt
             holiday.updatedAt = dto.updatedAt
@@ -268,14 +268,14 @@ internal actor SwiftDataBackupRepository: BackupRepository {
         _ dtos: [BackupAnnualBudgetAllocationDTO],
         categories: [UUID: SwiftDataCategory],
         configs: [UUID: SwiftDataAnnualBudgetConfig],
-        context: ModelContext
+        context: ModelContext,
     ) throws {
         for dto in dtos {
             guard let category = categories[dto.categoryId] else { continue }
             let allocation = SwiftDataAnnualBudgetAllocation(
                 id: dto.id,
                 amount: dto.amount,
-                category: category
+                category: category,
             )
             if let policyOverrideRawValue = dto.policyOverrideRawValue {
                 allocation.policyOverrideRawValue = policyOverrideRawValue
@@ -293,7 +293,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
     private func insertRecurringPaymentDefinitions(
         _ dtos: [BackupRecurringPaymentDefinitionDTO],
         categories: [UUID: SwiftDataCategory],
-        context: ModelContext
+        context: ModelContext,
     ) throws -> [UUID: SwiftDataRecurringPaymentDefinition] {
         var result: [UUID: SwiftDataRecurringPaymentDefinition] = [:]
         for dto in dtos {
@@ -309,7 +309,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
                 savingStrategy: dto.savingStrategy,
                 customMonthlySavingAmount: dto.customMonthlySavingAmount,
                 dateAdjustmentPolicy: dto.dateAdjustmentPolicy,
-                recurrenceDayPattern: dto.recurrenceDayPattern
+                recurrenceDayPattern: dto.recurrenceDayPattern,
             )
             definition.createdAt = dto.createdAt
             definition.updatedAt = dto.updatedAt
@@ -323,7 +323,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
         _ dtos: [BackupRecurringPaymentOccurrenceDTO],
         definitions: [UUID: SwiftDataRecurringPaymentDefinition],
         transactions: [UUID: SwiftDataTransaction],
-        context: ModelContext
+        context: ModelContext,
     ) throws {
         for dto in dtos {
             guard let definition = definitions[dto.definitionId] else { continue }
@@ -335,7 +335,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
                 status: dto.status,
                 actualDate: dto.actualDate,
                 actualAmount: dto.actualAmount,
-                transaction: dto.transactionId.flatMap { transactions[$0] }
+                transaction: dto.transactionId.flatMap { transactions[$0] },
             )
             occurrence.createdAt = dto.createdAt
             occurrence.updatedAt = dto.updatedAt
@@ -346,7 +346,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
     private func insertRecurringPaymentSavingBalances(
         _ dtos: [BackupRecurringPaymentSavingBalanceDTO],
         definitions: [UUID: SwiftDataRecurringPaymentDefinition],
-        context: ModelContext
+        context: ModelContext,
     ) throws {
         for dto in dtos {
             guard let definition = definitions[dto.definitionId] else { continue }
@@ -356,7 +356,7 @@ internal actor SwiftDataBackupRepository: BackupRepository {
                 totalSavedAmount: dto.totalSavedAmount,
                 totalPaidAmount: dto.totalPaidAmount,
                 lastUpdatedYear: dto.lastUpdatedYear,
-                lastUpdatedMonth: dto.lastUpdatedMonth
+                lastUpdatedMonth: dto.lastUpdatedMonth,
             )
             balance.createdAt = dto.createdAt
             balance.updatedAt = dto.updatedAt

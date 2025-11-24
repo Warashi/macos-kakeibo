@@ -18,7 +18,7 @@ internal struct SavingsGoalListEntryTests {
             targetDate: nil,
             isActive: true,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
 
         let entry = SavingsGoalListEntry(goal: goal, balance: nil)
@@ -39,7 +39,7 @@ internal struct SavingsGoalListEntryTests {
             targetDate: nil,
             isActive: true,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
 
         let balance = SavingsGoalBalance(
@@ -50,7 +50,7 @@ internal struct SavingsGoalListEntryTests {
             lastUpdatedYear: 2025,
             lastUpdatedMonth: 11,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
 
         let entry = SavingsGoalListEntry(goal: goal, balance: balance)
@@ -71,7 +71,7 @@ internal struct SavingsGoalListEntryTests {
             targetDate: nil,
             isActive: true,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
 
         let balance = SavingsGoalBalance(
@@ -82,7 +82,7 @@ internal struct SavingsGoalListEntryTests {
             lastUpdatedYear: 2025,
             lastUpdatedMonth: 11,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
 
         let entry = SavingsGoalListEntry(goal: goal, balance: balance)
@@ -96,14 +96,14 @@ internal struct SavingsGoalListEntryTests {
             id: UUID(),
             name: "緊急資金",
             targetAmount: nil,
-            monthlySavingAmount: 50_000,
+            monthlySavingAmount: 50000,
             categoryId: nil,
             notes: nil,
             startDate: Date(),
             targetDate: nil,
             isActive: true,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
 
         let balance = SavingsGoalBalance(
@@ -114,7 +114,7 @@ internal struct SavingsGoalListEntryTests {
             lastUpdatedYear: 2025,
             lastUpdatedMonth: 11,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
 
         let entry = SavingsGoalListEntry(goal: goal, balance: balance)
@@ -135,7 +135,7 @@ internal struct SavingsGoalListEntryTests {
             targetDate: nil,
             isActive: true,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
 
         let entry = SavingsGoalListEntry(goal: goal, balance: nil)
@@ -149,14 +149,14 @@ internal struct SavingsGoalListEntryTests {
             id: UUID(),
             name: "テスト",
             targetAmount: 0,
-            monthlySavingAmount: 10_000,
+            monthlySavingAmount: 10000,
             categoryId: nil,
             notes: nil,
             startDate: Date(),
             targetDate: nil,
             isActive: true,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
 
         let balance = SavingsGoalBalance(
@@ -167,7 +167,7 @@ internal struct SavingsGoalListEntryTests {
             lastUpdatedYear: 2025,
             lastUpdatedMonth: 11,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
 
         let entry = SavingsGoalListEntry(goal: goal, balance: balance)
@@ -188,7 +188,7 @@ internal struct SavingsGoalListEntryTests {
             targetDate: nil,
             isActive: true,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
 
         let balance = SavingsGoalBalance(
@@ -199,7 +199,7 @@ internal struct SavingsGoalListEntryTests {
             lastUpdatedYear: 2025,
             lastUpdatedMonth: 11,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
 
         let entry = SavingsGoalListEntry(goal: goal, balance: balance)

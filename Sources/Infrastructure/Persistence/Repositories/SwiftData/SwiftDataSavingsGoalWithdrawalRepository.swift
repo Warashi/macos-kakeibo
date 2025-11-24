@@ -11,7 +11,7 @@ internal actor SwiftDataSavingsGoalWithdrawalRepository: SavingsGoalWithdrawalRe
 
         // 貯蓄目標を取得
         let goalDescriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == goalId }
+            predicate: #Predicate { $0.id == goalId },
         )
         guard let goal = try context.fetch(goalDescriptor).first else {
             throw RepositoryError.notFound
@@ -21,7 +21,7 @@ internal actor SwiftDataSavingsGoalWithdrawalRepository: SavingsGoalWithdrawalRe
         var transaction: SwiftDataTransaction?
         if let transactionId {
             let transactionDescriptor = FetchDescriptor<SwiftDataTransaction>(
-                predicate: #Predicate { $0.id == transactionId }
+                predicate: #Predicate { $0.id == transactionId },
             )
             transaction = try context.fetch(transactionDescriptor).first
         }
@@ -32,7 +32,7 @@ internal actor SwiftDataSavingsGoalWithdrawalRepository: SavingsGoalWithdrawalRe
             amount: input.amount,
             withdrawalDate: input.withdrawalDate,
             purpose: input.purpose,
-            transaction: transaction
+            transaction: transaction,
         )
         context.insert(withdrawal)
 
@@ -46,7 +46,7 @@ internal actor SwiftDataSavingsGoalWithdrawalRepository: SavingsGoalWithdrawalRe
     internal func fetchWithdrawals(forGoalId goalId: UUID) async throws -> [SavingsGoalWithdrawal] {
         let descriptor = FetchDescriptor<SwiftDataSavingsGoalWithdrawal>(
             predicate: #Predicate { $0.goalId == goalId },
-            sortBy: [SortDescriptor(\.withdrawalDate, order: .reverse)]
+            sortBy: [SortDescriptor(\.withdrawalDate, order: .reverse)],
         )
         let withdrawals = try context.fetch(descriptor)
         return withdrawals.map { SavingsGoalWithdrawal(from: $0) }
@@ -54,7 +54,7 @@ internal actor SwiftDataSavingsGoalWithdrawalRepository: SavingsGoalWithdrawalRe
 
     internal func fetchAllWithdrawals() async throws -> [SavingsGoalWithdrawal] {
         let descriptor = FetchDescriptor<SwiftDataSavingsGoalWithdrawal>(
-            sortBy: [SortDescriptor(\.withdrawalDate, order: .reverse)]
+            sortBy: [SortDescriptor(\.withdrawalDate, order: .reverse)],
         )
         let withdrawals = try context.fetch(descriptor)
         return withdrawals.map { SavingsGoalWithdrawal(from: $0) }
@@ -62,7 +62,7 @@ internal actor SwiftDataSavingsGoalWithdrawalRepository: SavingsGoalWithdrawalRe
 
     internal func deleteWithdrawal(_ id: UUID) async throws {
         let descriptor = FetchDescriptor<SwiftDataSavingsGoalWithdrawal>(
-            predicate: #Predicate { $0.id == id }
+            predicate: #Predicate { $0.id == id },
         )
 
         guard let withdrawal = try context.fetch(descriptor).first else {
@@ -82,17 +82,17 @@ internal actor SwiftDataSavingsGoalWithdrawalRepository: SavingsGoalWithdrawalRe
 
     @discardableResult
     internal func observeWithdrawals(
-        onChange: @escaping @Sendable ([SavingsGoalWithdrawal]) -> Void
+        onChange: @escaping @Sendable ([SavingsGoalWithdrawal]) -> Void,
     ) async throws -> ObservationHandle {
         let descriptor = FetchDescriptor<SwiftDataSavingsGoalWithdrawal>(
-            sortBy: [SortDescriptor(\.withdrawalDate, order: .reverse)]
+            sortBy: [SortDescriptor(\.withdrawalDate, order: .reverse)],
         )
         return context.observe(
             descriptor: descriptor,
             transform: { withdrawals in
                 withdrawals.map { SavingsGoalWithdrawal(from: $0) }
             },
-            onChange: onChange
+            onChange: onChange,
         )
     }
 
@@ -100,7 +100,7 @@ internal actor SwiftDataSavingsGoalWithdrawalRepository: SavingsGoalWithdrawalRe
 
     private func updateBalanceAfterWithdrawal(goalId: UUID, withdrawalAmount: Decimal) async throws {
         let balanceDescriptor = FetchDescriptor<SwiftDataSavingsGoalBalance>(
-            predicate: #Predicate { $0.goal.id == goalId }
+            predicate: #Predicate { $0.goal.id == goalId },
         )
 
         if let balance = try context.fetch(balanceDescriptor).first {
@@ -111,7 +111,7 @@ internal actor SwiftDataSavingsGoalWithdrawalRepository: SavingsGoalWithdrawalRe
 
     private func updateBalanceAfterWithdrawalDeletion(goalId: UUID, withdrawalAmount: Decimal) async throws {
         let balanceDescriptor = FetchDescriptor<SwiftDataSavingsGoalBalance>(
-            predicate: #Predicate { $0.goal.id == goalId }
+            predicate: #Predicate { $0.goal.id == goalId },
         )
 
         if let balance = try context.fetch(balanceDescriptor).first {

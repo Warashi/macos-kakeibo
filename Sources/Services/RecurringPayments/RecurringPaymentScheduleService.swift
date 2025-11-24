@@ -271,7 +271,7 @@ internal struct RecurringPaymentScheduleService {
         // 常にfirstOccurrenceDate以降のすべてのOccurrenceを生成するため、
         // 開始日を返す。これにより、完了済みOccurrenceの間に穴があっても
         // 自動的に埋められる。
-        return definition.firstOccurrenceDate
+        definition.firstOccurrenceDate
     }
 
     /// 同期処理の結果

@@ -17,7 +17,7 @@ internal struct SavingsGoalStoreTests {
         let store = SavingsGoalStore(
             repository: repository,
             balanceRepository: balanceRepository,
-            withdrawalRepository: withdrawalRepository
+            withdrawalRepository: withdrawalRepository,
         )
 
         store.formInput = SavingsGoalFormInput(
@@ -27,7 +27,7 @@ internal struct SavingsGoalStoreTests {
             categoryId: nil,
             notes: "万が一のため",
             startDate: Date(),
-            targetDate: nil
+            targetDate: nil,
         )
 
         try await store.createGoal()
@@ -56,7 +56,7 @@ internal struct SavingsGoalStoreTests {
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true
+            isActive: true,
         )
         context.insert(goal)
         try context.save()
@@ -67,7 +67,7 @@ internal struct SavingsGoalStoreTests {
         let store = SavingsGoalStore(
             repository: repository,
             balanceRepository: balanceRepository,
-            withdrawalRepository: withdrawalRepository
+            withdrawalRepository: withdrawalRepository,
         )
 
         store.formInput = SavingsGoalFormInput(
@@ -77,14 +77,14 @@ internal struct SavingsGoalStoreTests {
             categoryId: nil,
             notes: "ヨーロッパ旅行",
             startDate: Date(),
-            targetDate: nil
+            targetDate: nil,
         )
 
         try await store.updateGoal(goal.id)
 
         let goalId = goal.id
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == goalId }
+            predicate: #Predicate { $0.id == goalId },
         )
         let updatedGoal = try context.fetch(descriptor).first
 
@@ -107,7 +107,7 @@ internal struct SavingsGoalStoreTests {
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true
+            isActive: true,
         )
         context.insert(goal)
         try context.save()
@@ -118,14 +118,14 @@ internal struct SavingsGoalStoreTests {
         let store = SavingsGoalStore(
             repository: repository,
             balanceRepository: balanceRepository,
-            withdrawalRepository: withdrawalRepository
+            withdrawalRepository: withdrawalRepository,
         )
 
         try await store.deleteGoal(goal.id)
 
         let goalId = goal.id
         let descriptor = FetchDescriptor<SwiftDataSavingsGoal>(
-            predicate: #Predicate { $0.id == goalId }
+            predicate: #Predicate { $0.id == goalId },
         )
         let deletedGoal = try context.fetch(descriptor).first
 
@@ -145,7 +145,7 @@ internal struct SavingsGoalStoreTests {
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true
+            isActive: true,
         )
         context.insert(goal)
         try context.save()
@@ -156,7 +156,7 @@ internal struct SavingsGoalStoreTests {
         let store = SavingsGoalStore(
             repository: repository,
             balanceRepository: balanceRepository,
-            withdrawalRepository: withdrawalRepository
+            withdrawalRepository: withdrawalRepository,
         )
 
         // 初期状態を確認
@@ -186,7 +186,7 @@ internal struct SavingsGoalStoreTests {
         let store = SavingsGoalStore(
             repository: repository,
             balanceRepository: balanceRepository,
-            withdrawalRepository: withdrawalRepository
+            withdrawalRepository: withdrawalRepository,
         )
 
         store.formInput = SavingsGoalFormInput(
@@ -196,7 +196,7 @@ internal struct SavingsGoalStoreTests {
             categoryId: nil,
             notes: nil,
             startDate: Date(),
-            targetDate: nil
+            targetDate: nil,
         )
 
         do {
@@ -222,7 +222,7 @@ internal struct SavingsGoalStoreTests {
         let store = SavingsGoalStore(
             repository: repository,
             balanceRepository: balanceRepository,
-            withdrawalRepository: withdrawalRepository
+            withdrawalRepository: withdrawalRepository,
         )
 
         let startDate = Date()
@@ -238,7 +238,7 @@ internal struct SavingsGoalStoreTests {
             categoryId: nil,
             notes: nil,
             startDate: startDate,
-            targetDate: targetDate
+            targetDate: targetDate,
         )
 
         do {

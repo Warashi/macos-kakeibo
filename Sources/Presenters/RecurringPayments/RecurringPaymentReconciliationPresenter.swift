@@ -39,8 +39,8 @@ internal struct RecurringPaymentReconciliationPresenter: Sendable {
             self.actualAmount = occurrence.actualAmount
             self.isOverdue =
                 occurrence.scheduledDate < referenceDate
-                && occurrence.status != .completed
-                && occurrence.status != .skipped
+                    && occurrence.status != .completed
+                    && occurrence.status != .skipped
         }
 
         private static func makeRecurrenceDescription(recurrenceIntervalMonths: Int) -> String {

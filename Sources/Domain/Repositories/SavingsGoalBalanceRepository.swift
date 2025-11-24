@@ -15,6 +15,6 @@ internal protocol SavingsGoalBalanceRepository: Sendable {
     /// - Returns: 監視を停止するためのハンドル
     @discardableResult
     func observeBalances(
-        onChange: @escaping @Sendable ([SavingsGoalBalance]) -> Void
+        onChange: @escaping @Sendable ([SavingsGoalBalance]) -> Void,
     ) async throws -> ObservationHandle
 }

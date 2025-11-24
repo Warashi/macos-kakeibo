@@ -39,8 +39,8 @@ internal actor BackupManager {
                 recurringPaymentDefinitions: entities.recurringPaymentDefinitions.count,
                 recurringPaymentOccurrences: entities.recurringPaymentOccurrences.count,
                 recurringPaymentSavingBalances: entities.recurringPaymentSavingBalances.count,
-                customHolidays: entities.customHolidays.count
-            )
+                customHolidays: entities.customHolidays.count,
+            ),
         )
 
         return BackupPayload(
@@ -54,7 +54,7 @@ internal actor BackupManager {
             recurringPaymentDefinitions: entities.recurringPaymentDefinitions,
             recurringPaymentOccurrences: entities.recurringPaymentOccurrences,
             recurringPaymentSavingBalances: entities.recurringPaymentSavingBalances,
-            customHolidays: entities.customHolidays
+            customHolidays: entities.customHolidays,
         )
     }
 
@@ -84,14 +84,14 @@ internal actor BackupManager {
             recurringPaymentDefinitions: payload.recurringPaymentDefinitions,
             recurringPaymentOccurrences: payload.recurringPaymentOccurrences,
             recurringPaymentSavingBalances: payload.recurringPaymentSavingBalances,
-            customHolidays: payload.customHolidays
+            customHolidays: payload.customHolidays,
         )
 
         try await backupRepository.restoreEntities(entities)
 
         return BackupRestoreSummary(
             metadata: payload.metadata,
-            restoredCounts: payload.metadata.recordCounts
+            restoredCounts: payload.metadata.recordCounts,
         )
     }
 
