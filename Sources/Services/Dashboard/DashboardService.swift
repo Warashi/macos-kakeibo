@@ -391,6 +391,7 @@ internal final class DashboardService {
         guard let period = monthPeriodCalculator.calculatePeriod(for: year, month: month) else {
             return RecurringPaymentSummary(
                 totalMonthlyAmount: 0,
+                yearToDateMonthlyAmount: 0,
                 currentMonthExpected: 0,
                 currentMonthActual: 0,
                 currentMonthRemaining: 0,
@@ -416,6 +417,9 @@ internal final class DashboardService {
         let totalMonthlyAmount = definitions
             .filter { $0.savingStrategy != .disabled }
             .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
+
+        // 年始から現在月までの積立合計を計算
+        let yearToDateMonthlyAmount = totalMonthlyAmount * Decimal(month)
 
         // 当月予定・実績・未払いを計算
         var currentMonthExpected = Decimal.zero
@@ -452,6 +456,7 @@ internal final class DashboardService {
 
         return RecurringPaymentSummary(
             totalMonthlyAmount: totalMonthlyAmount,
+            yearToDateMonthlyAmount: yearToDateMonthlyAmount,
             currentMonthExpected: currentMonthExpected,
             currentMonthActual: currentMonthActual,
             currentMonthRemaining: currentMonthRemaining,
@@ -497,6 +502,8 @@ internal struct SavingsGoalSummary: Sendable {
 internal struct RecurringPaymentSummary: Sendable {
     /// 月額積立合計
     internal let totalMonthlyAmount: Decimal
+    /// 年始から現在月までの積立合計
+    internal let yearToDateMonthlyAmount: Decimal
     /// 当月予定支払額
     internal let currentMonthExpected: Decimal
     /// 当月実績支払額

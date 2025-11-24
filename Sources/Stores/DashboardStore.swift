@@ -138,6 +138,7 @@ internal final class DashboardStore {
         )
         self.recurringPaymentSummary = RecurringPaymentSummary(
             totalMonthlyAmount: 0,
+            yearToDateMonthlyAmount: 0,
             currentMonthExpected: 0,
             currentMonthActual: 0,
             currentMonthRemaining: 0,

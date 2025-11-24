@@ -8,13 +8,13 @@ internal struct RecurringPaymentSummaryCard: View {
         Card(title: "定期支払い") {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("月次積立")
+                    Text("年間合計")
                         .font(.caption)
                         .foregroundColor(.secondary)
 
                     Spacer()
 
-                    Text(formatCurrency(recurringPaymentSummary.totalMonthlyAmount))
+                    Text(formatCurrency(recurringPaymentSummary.yearToDateMonthlyAmount))
                         .font(.headline)
                         .foregroundColor(.info)
                 }
