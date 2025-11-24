@@ -1,5 +1,4 @@
 import Observation
-import SwiftData
 import SwiftUI
 
 internal struct RootView: View {
