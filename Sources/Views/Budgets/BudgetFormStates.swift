@@ -76,27 +76,6 @@ internal struct AnnualBudgetFormState {
     internal var policy: AnnualBudgetPolicy = .automatic
     internal var allocationRows: [AnnualBudgetAllocationRowState] = []
 
-    internal mutating func load(from config: SwiftDataAnnualBudgetConfig) {
-        totalAmountText = config.totalAmount.plainString
-        policy = config.policy
-        allocationRows = config.allocations.map { allocation in
-            var row = AnnualBudgetAllocationRowState(
-                id: allocation.id,
-                amountText: allocation.amount.plainString,
-                selectedPolicyOverride: allocation.policyOverride,
-            )
-            if allocation.category.isMajor {
-                row.selectedMajorCategoryId = allocation.category.id
-                row.selectedMinorCategoryId = nil
-            } else {
-                row.selectedMajorCategoryId = allocation.category.parent?.id
-                row.selectedMinorCategoryId = allocation.category.id
-            }
-            return row
-        }
-        ensureInitialRow()
-    }
-
     internal mutating func load(from config: AnnualBudgetConfig, categories: [Category]) {
         totalAmountText = config.totalAmount.plainString
         policy = config.policy
