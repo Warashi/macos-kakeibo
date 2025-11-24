@@ -67,6 +67,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
             status: .planned,
         )
 
+        // swiftlint:disable force_unwrapping
         let completed = SwiftDataRecurringPaymentOccurrence(
             definition: definition,
             scheduledDate: Date.from(year: 2024, month: 5, day: 31)!,
@@ -75,6 +76,7 @@ internal struct SwiftDataRecurringPaymentRepositoryTests {
             actualDate: Date.from(year: 2024, month: 5, day: 30)!,
             actualAmount: 42000,
         )
+        // swiftlint:enable force_unwrapping
 
         definition.occurrences = [upcoming, completed]
         context.insert(definition)
