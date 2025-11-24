@@ -17,13 +17,13 @@ internal final class RecurringPaymentSuggestionStore {
     internal var selectedSuggestionIds: Set<UUID> = []
 
     /// ローディング状態
-    internal private(set) var isLoading = true
+    internal private(set) var isLoading: Bool = true
 
     /// エラーメッセージ
     internal private(set) var errorMessage: String?
 
     /// 編集モード用の状態
-    internal var isEditorPresented = false
+    internal var isEditorPresented: Bool = false
     internal var editingSuggestion: RecurringPaymentSuggestion?
 
     // MARK: - Initialization
@@ -39,7 +39,7 @@ internal final class RecurringPaymentSuggestionStore {
     // MARK: - Public API
 
     /// 提案を生成
-    func generateSuggestions(criteria: RecurringPaymentDetectionCriteria = .default) async {
+    internal func generateSuggestions(criteria: RecurringPaymentDetectionCriteria = .default) async {
         isLoading = true
         errorMessage = nil
 
@@ -56,7 +56,7 @@ internal final class RecurringPaymentSuggestionStore {
     }
 
     /// 選択された提案を一括登録
-    func registerSelectedSuggestions() async -> Bool {
+    internal func registerSelectedSuggestions() async -> Bool {
         let selected = suggestions.filter { selectedSuggestionIds.contains($0.id) }
         guard !selected.isEmpty else { return false }
 
@@ -86,7 +86,7 @@ internal final class RecurringPaymentSuggestionStore {
     }
 
     /// 個別の提案を登録
-    func registerSuggestion(_ suggestion: RecurringPaymentSuggestion) async -> Bool {
+    internal func registerSuggestion(_ suggestion: RecurringPaymentSuggestion) async -> Bool {
         let input = createDefinitionInput(from: suggestion)
 
         do {
@@ -99,25 +99,25 @@ internal final class RecurringPaymentSuggestionStore {
     }
 
     /// 提案を編集モードで開く
-    func startEditing(suggestion: RecurringPaymentSuggestion) {
+    internal func startEditing(suggestion: RecurringPaymentSuggestion) {
         editingSuggestion = suggestion
         isEditorPresented = true
     }
 
     /// 編集をキャンセル
-    func cancelEditing() {
+    internal func cancelEditing() {
         editingSuggestion = nil
         isEditorPresented = false
     }
 
     /// 提案を無視（削除）
-    func ignoreSuggestion(_ suggestionId: UUID) {
+    internal func ignoreSuggestion(_ suggestionId: UUID) {
         suggestions.removeAll { $0.id == suggestionId }
         selectedSuggestionIds.remove(suggestionId)
     }
 
     /// 全選択/全解除
-    func toggleSelectAll() {
+    internal func toggleSelectAll() {
         if selectedSuggestionIds.count == suggestions.count {
             selectedSuggestionIds = []
         } else {
@@ -126,7 +126,7 @@ internal final class RecurringPaymentSuggestionStore {
     }
 
     /// 選択中の提案数
-    var selectedCount: Int {
+    internal var selectedCount: Int {
         selectedSuggestionIds.count
     }
 
