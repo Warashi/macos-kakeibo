@@ -70,17 +70,31 @@ private extension SwiftDataDashboardRepository {
         year: Int,
         month: Int?,
     ) async throws -> [Transaction] {
-        guard let startDate = Date.from(year: year, month: month ?? 1) else {
-            return []
-        }
+        let (startDate, endDate): (Date, Date)
 
-        let endDate: Date
         if let month {
-            let nextMonth = month == 12 ? 1 : month + 1
-            let nextYear = month == 12 ? year + 1 : year
-            endDate = Date.from(year: nextYear, month: nextMonth) ?? startDate
+            // 月指定の場合、MonthPeriodCalculatorを使用
+            let monthPeriodCalculator = MonthPeriodCalculatorFactory.make()
+            if let period = monthPeriodCalculator.calculatePeriod(for: year, month: month) {
+                startDate = period.start
+                endDate = period.end
+            } else {
+                // フォールバック: 従来の月初〜月末
+                guard let fallbackStart = Date.from(year: year, month: month) else {
+                    return []
+                }
+                let nextMonth = month == 12 ? 1 : month + 1
+                let nextYear = month == 12 ? year + 1 : year
+                startDate = fallbackStart
+                endDate = Date.from(year: nextYear, month: nextMonth) ?? fallbackStart
+            }
         } else {
-            endDate = Date.from(year: year + 1, month: 1) ?? startDate
+            // 年全体の場合、年初〜年末
+            guard let yearStart = Date.from(year: year, month: 1) else {
+                return []
+            }
+            startDate = yearStart
+            endDate = Date.from(year: year + 1, month: 1) ?? yearStart
         }
 
         let descriptor = TransactionQueries.between(
