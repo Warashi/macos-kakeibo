@@ -13,6 +13,7 @@ internal struct RecurringPaymentDefinitionInput: Sendable {
     internal let customMonthlySavingAmount: Decimal?
     internal let dateAdjustmentPolicy: DateAdjustmentPolicy
     internal let recurrenceDayPattern: DayOfMonthPattern?
+    internal let matchKeywords: [String]
 
     internal init(
         name: String,
@@ -26,6 +27,7 @@ internal struct RecurringPaymentDefinitionInput: Sendable {
         customMonthlySavingAmount: Decimal? = nil,
         dateAdjustmentPolicy: DateAdjustmentPolicy = .none,
         recurrenceDayPattern: DayOfMonthPattern? = nil,
+        matchKeywords: [String] = [],
     ) {
         self.name = name
         self.notes = notes
@@ -38,6 +40,7 @@ internal struct RecurringPaymentDefinitionInput: Sendable {
         self.customMonthlySavingAmount = customMonthlySavingAmount
         self.dateAdjustmentPolicy = dateAdjustmentPolicy
         self.recurrenceDayPattern = recurrenceDayPattern
+        self.matchKeywords = matchKeywords
     }
 }
 

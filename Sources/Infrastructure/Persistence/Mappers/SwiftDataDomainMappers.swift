@@ -105,6 +105,7 @@ internal extension RecurringPaymentDefinition {
             customMonthlySavingAmount: record.customMonthlySavingAmount,
             dateAdjustmentPolicy: record.dateAdjustmentPolicy,
             recurrenceDayPattern: record.recurrenceDayPattern,
+            matchKeywords: record.matchKeywords,
             createdAt: record.createdAt,
             updatedAt: record.updatedAt,
         )

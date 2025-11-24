@@ -205,12 +205,14 @@ internal struct RecurringPaymentReconciliationPresenter: Sendable {
             )
             let dateScore = 1 - normalizedDays
 
-            let normalizedDefinition = definition.name.lowercased()
             let normalizedTitle = transaction.title.lowercased()
-            let titleMatched = !normalizedDefinition.isEmpty && (
-                normalizedTitle.contains(normalizedDefinition)
-                    || normalizedDefinition.contains(normalizedTitle)
-            )
+            let titleMatched = definition.matchKeywords.contains { keyword in
+                let normalizedKeyword = keyword.lowercased()
+                return !normalizedKeyword.isEmpty && (
+                    normalizedTitle.contains(normalizedKeyword)
+                        || normalizedKeyword.contains(normalizedTitle)
+                )
+            }
             let titleScore = titleMatched ? 1.0 : 0.0
 
             let totalScore = max(

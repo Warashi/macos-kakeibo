@@ -251,9 +251,17 @@ internal struct RecurringPaymentFormState {
     internal var customMonthlySavingAmountText: String = ""
     internal var dateAdjustmentPolicy: DateAdjustmentPolicy = .none
     internal var recurrenceDayPattern: DayOfMonthPattern?
+    internal var matchKeywordsText: String = ""
 
     internal var selectedCategoryId: UUID? {
         selectedMinorCategoryId ?? selectedMajorCategoryId
+    }
+
+    internal var matchKeywords: [String] {
+        matchKeywordsText
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
     }
 
     internal mutating func load(from definition: RecurringPaymentDefinition, categories: [Category]) {
@@ -275,6 +283,7 @@ internal struct RecurringPaymentFormState {
         customMonthlySavingAmountText = definition.customMonthlySavingAmount?.plainString ?? ""
         dateAdjustmentPolicy = definition.dateAdjustmentPolicy
         recurrenceDayPattern = definition.recurrenceDayPattern
+        matchKeywordsText = definition.matchKeywords.joined(separator: ", ")
     }
 
     internal mutating func reset() {
@@ -292,6 +301,7 @@ internal struct RecurringPaymentFormState {
         customMonthlySavingAmountText = ""
         dateAdjustmentPolicy = .none
         recurrenceDayPattern = nil
+        matchKeywordsText = ""
     }
 
     private var normalizedAmountText: String {

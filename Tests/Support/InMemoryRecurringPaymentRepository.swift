@@ -95,6 +95,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
             customMonthlySavingAmount: input.customMonthlySavingAmount,
             dateAdjustmentPolicy: input.dateAdjustmentPolicy,
             recurrenceDayPattern: input.recurrenceDayPattern,
+            matchKeywords: input.matchKeywords,
         )
 
         let errors = definition.validate()
@@ -133,6 +134,7 @@ internal final class InMemoryRecurringPaymentRepository: RecurringPaymentReposit
         definition.customMonthlySavingAmount = input.customMonthlySavingAmount
         definition.dateAdjustmentPolicy = input.dateAdjustmentPolicy
         definition.recurrenceDayPattern = input.recurrenceDayPattern
+        definition.matchKeywords = input.matchKeywords
         definition.updatedAt = currentDateProvider()
 
         let errors = definition.validate()

@@ -15,6 +15,7 @@ internal final class SwiftDataRecurringPaymentDefinition {
     internal var customMonthlySavingAmount: Decimal?
     internal var dateAdjustmentPolicy: DateAdjustmentPolicy
     internal var recurrenceDayPattern: DayOfMonthPattern?
+    internal var matchKeywords: [String]
 
     @Relationship(deleteRule: .cascade, inverse: \SwiftDataRecurringPaymentOccurrence.definition)
     private var occurrencesStorage: [SwiftDataRecurringPaymentOccurrence]
@@ -35,6 +36,7 @@ internal final class SwiftDataRecurringPaymentDefinition {
         customMonthlySavingAmount: Decimal? = nil,
         dateAdjustmentPolicy: DateAdjustmentPolicy = .none,
         recurrenceDayPattern: DayOfMonthPattern? = nil,
+        matchKeywords: [String] = [],
     ) {
         self.id = id
         self.name = name
@@ -48,6 +50,7 @@ internal final class SwiftDataRecurringPaymentDefinition {
         self.customMonthlySavingAmount = customMonthlySavingAmount
         self.dateAdjustmentPolicy = dateAdjustmentPolicy
         self.recurrenceDayPattern = recurrenceDayPattern
+        self.matchKeywords = matchKeywords
         self.occurrencesStorage = []
 
         let now = Date()

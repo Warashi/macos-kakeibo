@@ -155,6 +155,7 @@ internal enum DomainFixtures {
         customMonthlySavingAmount: Decimal? = nil,
         dateAdjustmentPolicy: DateAdjustmentPolicy = .none,
         recurrenceDayPattern: DayOfMonthPattern? = nil,
+        matchKeywords: [String] = [],
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
     ) -> RecurringPaymentDefinition {
@@ -171,6 +172,7 @@ internal enum DomainFixtures {
             customMonthlySavingAmount: customMonthlySavingAmount,
             dateAdjustmentPolicy: dateAdjustmentPolicy,
             recurrenceDayPattern: recurrenceDayPattern,
+            matchKeywords: matchKeywords,
             createdAt: createdAt,
             updatedAt: updatedAt,
         )

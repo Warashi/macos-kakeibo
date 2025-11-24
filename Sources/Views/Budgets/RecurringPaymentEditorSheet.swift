@@ -119,6 +119,18 @@ internal struct RecurringPaymentEditorSheet: View {
                             )
                     }
 
+                    LabeledField(title: "マッチングキーワード") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            TextField("例: Netflix, ネットフリックス", text: $formState.matchKeywordsText)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(maxWidth: .infinity)
+
+                            Text("複数のキーワードをカンマ区切りで入力してください。取引との自動マッチングに使用されます。")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
                     LabeledField(title: "休日の日付調整") {
                         Picker("休日の日付調整", selection: $formState.dateAdjustmentPolicy) {
                             Text("調整なし").tag(DateAdjustmentPolicy.none)

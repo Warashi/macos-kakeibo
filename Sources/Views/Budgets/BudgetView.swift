@@ -432,6 +432,7 @@ private extension BudgetView {
             customMonthlySavingAmount: recurringPaymentFormState.customMonthlySavingAmount,
             dateAdjustmentPolicy: recurringPaymentFormState.dateAdjustmentPolicy,
             recurrenceDayPattern: recurringPaymentFormState.recurrenceDayPattern,
+            matchKeywords: recurringPaymentFormState.matchKeywords,
         )
     }
 

@@ -114,6 +114,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
             customMonthlySavingAmount: input.customMonthlySavingAmount,
             dateAdjustmentPolicy: input.dateAdjustmentPolicy,
             recurrenceDayPattern: input.recurrenceDayPattern,
+            matchKeywords: input.matchKeywords,
         )
 
         let errors = definition.validate()
@@ -154,6 +155,7 @@ internal actor SwiftDataRecurringPaymentRepository: RecurringPaymentRepository {
         definition.customMonthlySavingAmount = input.customMonthlySavingAmount
         definition.dateAdjustmentPolicy = input.dateAdjustmentPolicy
         definition.recurrenceDayPattern = input.recurrenceDayPattern
+        definition.matchKeywords = input.matchKeywords
         definition.updatedAt = currentDateProvider()
 
         try context.save()
@@ -461,6 +463,7 @@ private extension SwiftDataRecurringPaymentRepository {
             customMonthlySavingAmount: input.customMonthlySavingAmount,
             dateAdjustmentPolicy: input.dateAdjustmentPolicy,
             recurrenceDayPattern: input.recurrenceDayPattern,
+            matchKeywords: input.matchKeywords,
         )
         return candidate.validate()
     }

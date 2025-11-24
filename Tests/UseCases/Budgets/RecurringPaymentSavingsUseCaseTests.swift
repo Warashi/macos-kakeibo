@@ -19,6 +19,7 @@ internal struct RecurringPaymentSavingsUseCaseTests {
             customMonthlySavingAmount: 5000,
             dateAdjustmentPolicy: .none,
             recurrenceDayPattern: nil,
+            matchKeywords: [],
             createdAt: Date(),
             updatedAt: Date(),
         )
@@ -56,6 +57,7 @@ internal struct RecurringPaymentSavingsUseCaseTests {
             customMonthlySavingAmount: 10000,
             dateAdjustmentPolicy: .none,
             recurrenceDayPattern: nil,
+            matchKeywords: [],
             createdAt: Date(),
             updatedAt: Date(),
         )
