@@ -11,14 +11,16 @@ internal final class DashboardService {
     private let budgetCalculator: BudgetCalculator
     private let annualBudgetAllocator: AnnualBudgetAllocator
     private let annualBudgetProgressCalculator: AnnualBudgetProgressCalculator
+    private let monthPeriodCalculator: MonthPeriodCalculator
 
     // MARK: - Initialization
 
-    internal init() {
+    internal init(monthPeriodCalculator: MonthPeriodCalculator? = nil) {
         self.aggregator = TransactionAggregator()
         self.budgetCalculator = BudgetCalculator()
         self.annualBudgetAllocator = AnnualBudgetAllocator()
         self.annualBudgetProgressCalculator = AnnualBudgetProgressCalculator()
+        self.monthPeriodCalculator = monthPeriodCalculator ?? MonthPeriodCalculatorFactory.make()
     }
 
     // MARK: - Dashboard Calculation
@@ -371,8 +373,7 @@ internal final class DashboardService {
         let occurrences = params.occurrences
         _ = params.balances
         // 当月の開始日・終了日を計算
-        guard let monthStart = Date.from(year: year, month: month),
-              let monthEnd = Date.from(year: year, month: month == 12 ? 1 : month + 1) else {
+        guard let period = monthPeriodCalculator.calculatePeriod(for: year, month: month) else {
             return RecurringPaymentSummary(
                 totalMonthlyAmount: 0,
                 currentMonthExpected: 0,
@@ -381,6 +382,9 @@ internal final class DashboardService {
                 definitions: [],
             )
         }
+
+        let monthStart = period.start
+        let monthEnd = period.end
 
         // 当月のOccurrenceをフィルタリング
         let currentMonthOccurrences = occurrences.filter { occurrence in
