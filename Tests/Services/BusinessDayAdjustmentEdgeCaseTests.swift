@@ -6,13 +6,13 @@ import Testing
 @Suite("BusinessDayAdjustment Edge Case Tests")
 internal struct BusinessDayAdjustmentEdgeCaseTests {
     @Test("週末（土曜日）の場合 - 前営業日は金曜日")
-    internal func testWeekendSaturdayPrevious() {
+    internal func weekendSaturdayPrevious() {
         // 2025年1月4日は土曜日
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 4,
             monthStartDayAdjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         let period = calculator.calculatePeriod(for: 2025, month: 1)
@@ -29,13 +29,13 @@ internal struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("週末（土曜日）の場合 - 次営業日は月曜日")
-    internal func testWeekendSaturdayNext() {
+    internal func weekendSaturdayNext() {
         // 2025年1月4日は土曜日
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 4,
             monthStartDayAdjustment: .next,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         let period = calculator.calculatePeriod(for: 2025, month: 1)
@@ -52,13 +52,13 @@ internal struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("週末（日曜日）の場合 - 前営業日は金曜日")
-    internal func testWeekendSundayPrevious() {
+    internal func weekendSundayPrevious() {
         // 2025年1月5日は日曜日
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 5,
             monthStartDayAdjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         let period = calculator.calculatePeriod(for: 2025, month: 1)
@@ -75,13 +75,13 @@ internal struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("週末（日曜日）の場合 - 次営業日は月曜日")
-    internal func testWeekendSundayNext() {
+    internal func weekendSundayNext() {
         // 2025年1月5日は日曜日
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 5,
             monthStartDayAdjustment: .next,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         let period = calculator.calculatePeriod(for: 2025, month: 1)
@@ -98,7 +98,7 @@ internal struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("3連休（元日・土日）の場合 - 前営業日")
-    internal func testThreeDayWeekendPrevious() {
+    internal func threeDayWeekendPrevious() {
         // 2025年1月1日（水）は元日、4日（土）、5日（日）が連休
         let calendar = Calendar(identifier: .gregorian)
         var holidays = Set<Date>()
@@ -110,7 +110,7 @@ internal struct BusinessDayAdjustmentEdgeCaseTests {
         let calculator = MonthPeriodCalculator(
             monthStartDay: 4, // 土曜日
             monthStartDayAdjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         let period = calculator.calculatePeriod(for: 2025, month: 1)
@@ -125,7 +125,7 @@ internal struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("3連休（元日・土日）の場合 - 次営業日")
-    internal func testThreeDayWeekendNext() {
+    internal func threeDayWeekendNext() {
         // 2025年1月1日（水）は元日、4日（土）、5日（日）が連休
         let calendar = Calendar(identifier: .gregorian)
         var holidays = Set<Date>()
@@ -137,7 +137,7 @@ internal struct BusinessDayAdjustmentEdgeCaseTests {
         let calculator = MonthPeriodCalculator(
             monthStartDay: 4, // 土曜日
             monthStartDayAdjustment: .next,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         let period = calculator.calculatePeriod(for: 2025, month: 1)
@@ -152,12 +152,12 @@ internal struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("2月（短い月）の場合 - 28日開始でも正常に動作")
-    internal func testFebruaryShortMonth() {
+    internal func februaryShortMonth() {
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 28,
             monthStartDayAdjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         // 2025年2月は28日まで
@@ -180,12 +180,12 @@ internal struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("うるう年の2月 - 29日が存在する年")
-    internal func testLeapYearFebruary() {
+    internal func leapYearFebruary() {
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 28,
             monthStartDayAdjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         // 2024年はうるう年（2月29日まで）
@@ -202,13 +202,13 @@ internal struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("月末が週末の場合 - 前営業日調整")
-    internal func testMonthEndWeekendPrevious() {
+    internal func monthEndWeekendPrevious() {
         // 2025年3月29日は土曜日
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 29,
             monthStartDayAdjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         let period = calculator.calculatePeriod(for: 2025, month: 3)
@@ -224,7 +224,7 @@ internal struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("連続する祝日（ゴールデンウィーク風）のシミュレーション")
-    internal func testConsecutiveHolidays() {
+    internal func consecutiveHolidays() {
         // 5月1日〜5日を連続休日と仮定
         let calendar = Calendar(identifier: .gregorian)
         var holidays = Set<Date>()
@@ -238,7 +238,7 @@ internal struct BusinessDayAdjustmentEdgeCaseTests {
         let calculator = MonthPeriodCalculator(
             monthStartDay: 3, // 連休の真ん中
             monthStartDayAdjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         let period = calculator.calculatePeriod(for: 2025, month: 5)

@@ -22,20 +22,20 @@ internal struct DateCustomMonthRangeContinuityTests {
     }
 
     @Test("連続する月の期間に隙間がないことを確認 - 調整なし")
-    internal func testContinuityWithoutAdjustment() {
+    internal func continuityWithoutAdjustment() {
         let jan = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 25,
             adjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
         let feb = Date.customMonthRange(
             year: 2025,
             month: 2,
             startDay: 25,
             adjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(jan != nil)
@@ -60,20 +60,20 @@ internal struct DateCustomMonthRangeContinuityTests {
     }
 
     @Test("連続する月の期間に隙間がないことを確認 - 前営業日調整")
-    internal func testContinuityWithPreviousBusinessDayAdjustment() {
+    internal func continuityWithPreviousBusinessDayAdjustment() {
         let jan = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 1, // 元日（休日）→ 12/31に調整される
             adjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
         let feb = Date.customMonthRange(
             year: 2025,
             month: 2,
             startDay: 1,
             adjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(jan != nil)
@@ -106,28 +106,28 @@ internal struct DateCustomMonthRangeContinuityTests {
     }
 
     @Test("休日の25日開始で連続性を確認 - 前営業日調整")
-    internal func testContinuityWith25thStartOnHoliday() {
+    internal func continuityWith25thStartOnHoliday() {
         // 2月25日は休日として設定されている
         let jan = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 25,
             adjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
         let feb = Date.customMonthRange(
             year: 2025,
             month: 2,
             startDay: 25, // 休日→前営業日に調整される
             adjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
         let mar = Date.customMonthRange(
             year: 2025,
             month: 3,
             startDay: 25,
             adjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(jan != nil)
@@ -159,20 +159,20 @@ internal struct DateCustomMonthRangeContinuityTests {
     }
 
     @Test("重複がないことを確認 - 取引が二重にカウントされない")
-    internal func testNoOverlap() {
+    internal func noOverlap() {
         let jan = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 25,
             adjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
         let feb = Date.customMonthRange(
             year: 2025,
             month: 2,
             startDay: 25,
             adjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(jan != nil)
@@ -200,14 +200,14 @@ internal struct DateCustomMonthRangeContinuityTests {
     }
 
     @Test("期間の長さが約1ヶ月であることを確認 - 25日開始")
-    internal func testPeriodLengthWith25thStart() {
+    internal func periodLengthWith25thStart() {
         // 1月25日〜2月25日の期間
         let jan = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 25,
             adjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(jan != nil)
@@ -221,20 +221,20 @@ internal struct DateCustomMonthRangeContinuityTests {
     }
 
     @Test("年をまたぐ場合の連続性 - 12月から1月")
-    internal func testContinuityAcrossYearBoundary() {
+    internal func continuityAcrossYearBoundary() {
         let dec = Date.customMonthRange(
             year: 2024,
             month: 12,
             startDay: 25,
             adjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
         let jan = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 25,
             adjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(dec != nil)

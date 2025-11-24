@@ -18,13 +18,13 @@ internal struct DateCustomMonthRangeTests {
     }
 
     @Test("基本的な月範囲計算 - 開始日1日")
-    internal func testBasicMonthRange() {
+    internal func basicMonthRange() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 1,
             adjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(range != nil)
@@ -44,13 +44,13 @@ internal struct DateCustomMonthRangeTests {
     }
 
     @Test("カスタム開始日 - 25日開始")
-    internal func testCustomStartDay25() {
+    internal func customStartDay25() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 25,
             adjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(range != nil)
@@ -70,13 +70,13 @@ internal struct DateCustomMonthRangeTests {
     }
 
     @Test("月をまたぐ範囲 - 12月25日開始")
-    internal func testMonthWrapping() {
+    internal func monthWrapping() {
         let range = Date.customMonthRange(
             year: 2024,
             month: 12,
             startDay: 25,
             adjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(range != nil)
@@ -96,13 +96,13 @@ internal struct DateCustomMonthRangeTests {
     }
 
     @Test("境界値 - 最小値1日")
-    internal func testBoundaryMinimum() {
+    internal func boundaryMinimum() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 1,
             adjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(range != nil)
@@ -115,13 +115,13 @@ internal struct DateCustomMonthRangeTests {
     }
 
     @Test("境界値 - 最大値28日")
-    internal func testBoundaryMaximum() {
+    internal func boundaryMaximum() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 28,
             adjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(range != nil)
@@ -134,13 +134,13 @@ internal struct DateCustomMonthRangeTests {
     }
 
     @Test("境界値外 - 0日はクランプされて1日になる")
-    internal func testBoundaryClampingZero() {
+    internal func boundaryClampingZero() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 0,
             adjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(range != nil)
@@ -153,13 +153,13 @@ internal struct DateCustomMonthRangeTests {
     }
 
     @Test("境界値外 - 29日はクランプされて28日になる")
-    internal func testBoundaryClampingOverflow() {
+    internal func boundaryClampingOverflow() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 29,
             adjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(range != nil)
@@ -172,13 +172,13 @@ internal struct DateCustomMonthRangeTests {
     }
 
     @Test("休日調整なし - 開始日が元日（休日）でも調整されない")
-    internal func testNoAdjustmentOnHoliday() {
+    internal func noAdjustmentOnHoliday() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 1, // 2025年1月1日は元日
             adjustment: .none,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(range != nil)
@@ -192,14 +192,14 @@ internal struct DateCustomMonthRangeTests {
     }
 
     @Test("休日調整 - 前営業日に調整")
-    internal func testPreviousBusinessDayAdjustment() {
+    internal func previousBusinessDayAdjustment() {
         // 2025年1月1日は元日（休日）なので、前営業日に調整されるはず
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 1,
             adjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(range != nil)
@@ -215,14 +215,14 @@ internal struct DateCustomMonthRangeTests {
     }
 
     @Test("休日調整 - 次営業日に調整")
-    internal func testNextBusinessDayAdjustment() {
+    internal func nextBusinessDayAdjustment() {
         // 2025年1月1日は元日（休日）なので、次営業日に調整されるはず
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 1,
             adjustment: .next,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(range != nil)
@@ -238,14 +238,14 @@ internal struct DateCustomMonthRangeTests {
     }
 
     @Test("平日の場合は調整されない")
-    internal func testNoAdjustmentOnWeekday() {
+    internal func noAdjustmentOnWeekday() {
         // 2025年1月6日は月曜日（営業日）
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
             startDay: 6,
             adjustment: .previous,
-            businessDayService: businessDayService
+            businessDayService: businessDayService,
         )
 
         #expect(range != nil)
