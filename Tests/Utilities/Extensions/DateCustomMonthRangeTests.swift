@@ -4,10 +4,10 @@ import Testing
 @testable import Kakeibo
 
 @Suite("Date.customMonthRange Tests")
-struct DateCustomMonthRangeTests {
+internal struct DateCustomMonthRangeTests {
     private let businessDayService: BusinessDayService
 
-    init() {
+    internal init() {
         // テスト用の祝日を設定（2025年1月1日は元日）
         let calendar = Calendar(identifier: .gregorian)
         var holidays = Set<Date>()
@@ -18,7 +18,7 @@ struct DateCustomMonthRangeTests {
     }
 
     @Test("基本的な月範囲計算 - 開始日1日")
-    func testBasicMonthRange() {
+    internal func testBasicMonthRange() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
@@ -44,7 +44,7 @@ struct DateCustomMonthRangeTests {
     }
 
     @Test("カスタム開始日 - 25日開始")
-    func testCustomStartDay25() {
+    internal func testCustomStartDay25() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
@@ -70,7 +70,7 @@ struct DateCustomMonthRangeTests {
     }
 
     @Test("月をまたぐ範囲 - 12月25日開始")
-    func testMonthWrapping() {
+    internal func testMonthWrapping() {
         let range = Date.customMonthRange(
             year: 2024,
             month: 12,
@@ -96,7 +96,7 @@ struct DateCustomMonthRangeTests {
     }
 
     @Test("境界値 - 最小値1日")
-    func testBoundaryMinimum() {
+    internal func testBoundaryMinimum() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
@@ -115,7 +115,7 @@ struct DateCustomMonthRangeTests {
     }
 
     @Test("境界値 - 最大値28日")
-    func testBoundaryMaximum() {
+    internal func testBoundaryMaximum() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
@@ -134,7 +134,7 @@ struct DateCustomMonthRangeTests {
     }
 
     @Test("境界値外 - 0日はクランプされて1日になる")
-    func testBoundaryClampingZero() {
+    internal func testBoundaryClampingZero() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
@@ -153,7 +153,7 @@ struct DateCustomMonthRangeTests {
     }
 
     @Test("境界値外 - 29日はクランプされて28日になる")
-    func testBoundaryClampingOverflow() {
+    internal func testBoundaryClampingOverflow() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
@@ -172,7 +172,7 @@ struct DateCustomMonthRangeTests {
     }
 
     @Test("休日調整なし - 開始日が元日（休日）でも調整されない")
-    func testNoAdjustmentOnHoliday() {
+    internal func testNoAdjustmentOnHoliday() {
         let range = Date.customMonthRange(
             year: 2025,
             month: 1,
@@ -192,7 +192,7 @@ struct DateCustomMonthRangeTests {
     }
 
     @Test("休日調整 - 前営業日に調整")
-    func testPreviousBusinessDayAdjustment() {
+    internal func testPreviousBusinessDayAdjustment() {
         // 2025年1月1日は元日（休日）なので、前営業日に調整されるはず
         let range = Date.customMonthRange(
             year: 2025,
@@ -215,7 +215,7 @@ struct DateCustomMonthRangeTests {
     }
 
     @Test("休日調整 - 次営業日に調整")
-    func testNextBusinessDayAdjustment() {
+    internal func testNextBusinessDayAdjustment() {
         // 2025年1月1日は元日（休日）なので、次営業日に調整されるはず
         let range = Date.customMonthRange(
             year: 2025,
@@ -238,7 +238,7 @@ struct DateCustomMonthRangeTests {
     }
 
     @Test("平日の場合は調整されない")
-    func testNoAdjustmentOnWeekday() {
+    internal func testNoAdjustmentOnWeekday() {
         // 2025年1月6日は月曜日（営業日）
         let range = Date.customMonthRange(
             year: 2025,
