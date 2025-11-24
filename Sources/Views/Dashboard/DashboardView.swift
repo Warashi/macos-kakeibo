@@ -74,11 +74,8 @@ internal struct DashboardView: View {
             }
 
             Button("今日") {
-                if store.displayMode == .monthly {
-                    store.moveToCurrentMonth()
-                } else {
-                    store.moveToCurrentYear()
-                }
+                // 年次表示時も現在の年月に移動（年初から今月までの集計期間を表示）
+                store.moveToCurrentMonth()
             }
         }
         .padding()
