@@ -21,7 +21,6 @@ internal struct RootView: View {
 }
 
 private struct RootDetailView: View {
-    @Environment(\.modelContext) private var modelContext: ModelContext
     internal let screen: AppState.Screen
 
     internal var body: some View {
@@ -33,7 +32,7 @@ private struct RootDetailView: View {
         case .budgets:
             BudgetView()
         case .savingsGoals:
-            SavingsGoalListView(modelContext: modelContext)
+            SavingsGoalListView()
         case .imports:
             CSVImportView()
         case .settings:
