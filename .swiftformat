@@ -20,3 +20,4 @@
 --importgrouping alpha
 --fragment true
 --disable redundantInternal, redundantType, extensionAccessControl
+--exclude build
