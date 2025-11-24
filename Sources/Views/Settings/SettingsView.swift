@@ -39,6 +39,10 @@ private struct SettingsContentView: View {
                     includeOnlyCalculationTarget: $store.includeOnlyCalculationTarget,
                     excludeTransfers: $store.excludeTransfers,
                 )
+                PeriodSettingsPanel(
+                    monthStartDay: $store.monthStartDay,
+                    monthStartDayAdjustment: $store.monthStartDayAdjustment,
+                )
                 DisplaySettingsPanel(
                     showCategoryFullPath: $store.showCategoryFullPath,
                     useThousandSeparator: $store.useThousandSeparator,
