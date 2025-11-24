@@ -235,71 +235,65 @@ internal extension BudgetStore {
     private nonisolated static func makeCalculationResult(
         context: BudgetCalculationContext,
     ) -> BudgetCalculationResult {
-        let snapshot = context.snapshot
-        let year = context.year
-        let month = context.month
-        let monthlyUseCase = context.monthlyUseCase
-        let annualUseCase = context.annualUseCase
-        let recurringPaymentUseCase = context.recurringPaymentUseCase
-        return BudgetCalculationResult(
-            year: year,
-            month: month,
-            monthlyBudgets: monthlyUseCase.monthlyBudgets(
-                snapshot: snapshot,
-                year: year,
-                month: month,
+        BudgetCalculationResult(
+            year: context.year,
+            month: context.month,
+            monthlyBudgets: context.monthlyUseCase.monthlyBudgets(
+                snapshot: context.snapshot,
+                year: context.year,
+                month: context.month,
             ),
-            selectableCategories: snapshot.categories,
-            monthlyBudgetCalculation: monthlyUseCase.monthlyCalculation(
-                snapshot: snapshot,
-                year: year,
-                month: month,
+            selectableCategories: context.snapshot.categories,
+            monthlyBudgetCalculation: context.monthlyUseCase.monthlyCalculation(
+                snapshot: context.snapshot,
+                year: context.year,
+                month: context.month,
             ),
-            categoryBudgetEntries: monthlyUseCase.categoryEntries(
-                snapshot: snapshot,
-                year: year,
-                month: month,
+            categoryBudgetEntries: context.monthlyUseCase.categoryEntries(
+                snapshot: context.snapshot,
+                year: context.year,
+                month: context.month,
             ),
-            overallBudgetEntry: monthlyUseCase.overallEntry(
-                snapshot: snapshot,
-                year: year,
-                month: month,
+            overallBudgetEntry: context.monthlyUseCase.overallEntry(
+                snapshot: context.snapshot,
+                year: context.year,
+                month: context.month,
             ),
-            annualBudgetConfig: snapshot.annualBudgetConfig,
-            annualBudgetUsage: annualUseCase.annualBudgetUsage(
-                snapshot: snapshot,
-                year: year,
-                month: month,
+            annualBudgetConfig: context.snapshot.annualBudgetConfig,
+            annualBudgetUsage: context.annualUseCase.annualBudgetUsage(
+                snapshot: context.snapshot,
+                year: context.year,
+                month: context.month,
             ),
-            annualOverallBudgetEntry: annualUseCase.annualOverallEntry(
-                snapshot: snapshot,
-                year: year,
-                month: month,
+            annualOverallBudgetEntry: context.annualUseCase.annualOverallEntry(
+                snapshot: context.snapshot,
+                year: context.year,
+                month: context.month,
             ),
-            annualCategoryBudgetEntries: annualUseCase.annualCategoryEntries(
-                snapshot: snapshot,
-                year: year,
-                month: month,
+            annualCategoryBudgetEntries: context.annualUseCase.annualCategoryEntries(
+                snapshot: context.snapshot,
+                year: context.year,
+                month: context.month,
             ),
-            monthlyRecurringPaymentSavingsTotal: recurringPaymentUseCase.monthlySavingsTotal(
-                snapshot: snapshot,
-                year: year,
-                month: month,
+            monthlyRecurringPaymentSavingsTotal: context.recurringPaymentUseCase.monthlySavingsTotal(
+                snapshot: context.snapshot,
+                year: context.year,
+                month: context.month,
             ),
-            categoryRecurringPaymentSavings: recurringPaymentUseCase.categorySavings(
-                snapshot: snapshot,
-                year: year,
-                month: month,
+            categoryRecurringPaymentSavings: context.recurringPaymentUseCase.categorySavings(
+                snapshot: context.snapshot,
+                year: context.year,
+                month: context.month,
             ),
-            recurringPaymentSavingsCalculations: recurringPaymentUseCase.calculations(
-                snapshot: snapshot,
-                year: year,
-                month: month,
+            recurringPaymentSavingsCalculations: context.recurringPaymentUseCase.calculations(
+                snapshot: context.snapshot,
+                year: context.year,
+                month: context.month,
             ),
-            recurringPaymentSavingsEntries: recurringPaymentUseCase.entries(
-                snapshot: snapshot,
-                year: year,
-                month: month,
+            recurringPaymentSavingsEntries: context.recurringPaymentUseCase.entries(
+                snapshot: context.snapshot,
+                year: context.year,
+                month: context.month,
             ),
         )
     }
