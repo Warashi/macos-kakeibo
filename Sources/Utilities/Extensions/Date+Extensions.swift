@@ -214,19 +214,26 @@ internal extension Date {
     }
 
     /// 次の月の開始日を計算
+    ///
+    /// 次の月の開始日を計算し、休日調整を適用します。
+    /// これにより、期間は「今月の開始日（調整済み）〜 次月の開始日（調整済み）」となります。
     private static func calculateNextMonthStart(
         from currentStart: Date,
         startDay: Int,
         adjustment: BusinessDayAdjustment,
         businessDayService: BusinessDayService,
     ) -> Date? {
-        // 現在の開始日から1ヶ月後の年月を取得
-        guard let oneMonthLater = Calendar.current.date(byAdding: .month, value: 1, to: currentStart) else {
-            return nil
-        }
+        // 調整前の基準日から1ヶ月後を計算
+        // currentStartは調整済みなので、調整前の日付から計算し直す
+        let baseYear = currentStart.year
+        let baseMonth = currentStart.month
 
-        let nextYear = oneMonthLater.year
-        let nextMonth = oneMonthLater.month
+        // 次の月を計算
+        let (nextYear, nextMonth) = if baseMonth == 12 {
+            (baseYear + 1, 1)
+        } else {
+            (baseYear, baseMonth + 1)
+        }
 
         // 次の月の同じ日を計算
         guard var nextStart = Date.from(year: nextYear, month: nextMonth, day: startDay) else {
