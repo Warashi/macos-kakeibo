@@ -177,7 +177,7 @@ internal extension Date {
             businessDayService: businessDayService,
         )
 
-        // 次の月の開始日を計算（調整なし）
+        // 次の月の開始日を計算（調整あり）
         // 元の年月から計算することで、調整で月がずれた場合でも正しい次月を計算できる
         let (nextYear, nextMonth) = if month == 12 {
             (year + 1, 1)
@@ -185,9 +185,16 @@ internal extension Date {
             (year, month + 1)
         }
 
-        guard let nextMonthStart = Date.from(year: nextYear, month: nextMonth, day: clampedStartDay) else {
+        guard var nextMonthStart = Date.from(year: nextYear, month: nextMonth, day: clampedStartDay) else {
             return nil
         }
+
+        // 次の月の開始日にも休日調整を適用（連続性を保つため）
+        nextMonthStart = applyBusinessDayAdjustment(
+            to: nextMonthStart,
+            adjustment: adjustment,
+            businessDayService: businessDayService,
+        )
 
         return CustomMonthRange(start: monthStart, end: nextMonthStart)
     }

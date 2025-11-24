@@ -94,15 +94,15 @@ internal struct DateCustomMonthRangeContinuityTests {
         #expect(janStart.month == 12)
         #expect(janStart.day == 31)
 
-        // 1月の終了日は2025/2/1（調整なし）
+        // 1月の終了日は2025/1/31（2/1が土曜日のため前営業日に調整）
         #expect(janEnd.year == 2025)
-        #expect(janEnd.month == 2)
-        #expect(janEnd.day == 1)
+        #expect(janEnd.month == 1)
+        #expect(janEnd.day == 31)
 
-        // 2月の開始日は2025/2/1（調整なし、終了日と一致）
+        // 2月の開始日は2025/1/31（2/1が土曜日のため前営業日に調整、終了日と一致）
         #expect(febStart.year == 2025)
-        #expect(febStart.month == 2)
-        #expect(febStart.day == 1)
+        #expect(febStart.month == 1)
+        #expect(febStart.day == 31)
     }
 
     @Test("休日の25日開始で連続性を確認 - 前営業日調整")
@@ -142,20 +142,20 @@ internal struct DateCustomMonthRangeContinuityTests {
 
         let calendar = Calendar.current
 
-        // 1月: 1/25（平日） 〜 2/25（終了日は調整なし）
+        // 1月: 1/24（1/25が土曜日のため前営業日に調整） 〜 2/24（2/25が休日のため前営業日に調整）
         let janStart = calendar.dateComponents([.year, .month, .day], from: jan.start)
         let janEnd = calendar.dateComponents([.year, .month, .day], from: jan.end)
-        #expect(janStart.day == 25) // 1/25は平日なので調整されない
+        #expect(janStart.day == 24) // 1/25は土曜日なので前営業日に調整
         #expect(janEnd.month == 2)
-        #expect(janEnd.day == 25) // 終了日は調整されない
+        #expect(janEnd.day == 24) // 2/25は休日なので前営業日に調整
 
-        // 2月: 2/25（調整なし） 〜 3/25（終了日は調整なし）
+        // 2月: 2/24（2/25が休日のため前営業日に調整） 〜 3/25（3/25は火曜日なので調整なし）
         let febStart = calendar.dateComponents([.year, .month, .day], from: feb.start)
         let febEnd = calendar.dateComponents([.year, .month, .day], from: feb.end)
         #expect(febStart.month == 2)
-        #expect(febStart.day == 25) // 開始日は調整されない（終了日として使われるため）
+        #expect(febStart.day == 24) // 2/25は休日なので前営業日に調整
         #expect(febEnd.month == 3)
-        #expect(febEnd.day == 25) // 終了日は調整されない
+        #expect(febEnd.day == 25) // 3/25は火曜日なので調整されない
     }
 
     @Test("重複がないことを確認 - 取引が二重にカウントされない")
