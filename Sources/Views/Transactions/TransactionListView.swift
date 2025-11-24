@@ -1,8 +1,7 @@
-import SwiftData
 import SwiftUI
 
 internal struct TransactionListView: View {
-    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
+    @Environment(\.storeFactory) private var storeFactory: StoreFactory?
     @State private var store: TransactionStore?
 
     internal var body: some View {
@@ -19,12 +18,12 @@ internal struct TransactionListView: View {
 
     private func prepareStore() {
         guard store == nil else { return }
-        guard let container = modelContainer else {
-            assertionFailure("ModelContainer is unavailable")
+        guard let factory = storeFactory else {
+            assertionFailure("StoreFactory is unavailable")
             return
         }
         Task {
-            let transactionStore = await TransactionStackBuilder.makeStore(modelContainer: container)
+            let transactionStore = await factory.makeTransactionStore()
             await MainActor.run {
                 store = transactionStore
             }

@@ -1,9 +1,8 @@
-import SwiftData
 import SwiftUI
 
 /// 貯蓄目標一覧ビュー
 internal struct SavingsGoalListView: View {
-    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
+    @Environment(\.storeFactory) private var storeFactory: StoreFactory?
     @State private var store: SavingsGoalStore?
     @State private var goalPendingDeletion: UUID?
 
@@ -174,20 +173,12 @@ internal struct SavingsGoalListView: View {
     private func prepareStore() async {
         guard store == nil else { return }
         guard await MainActor.run(body: { store == nil }) else { return }
-        guard let container = await MainActor.run(body: { modelContainer }) else {
-            assertionFailure("ModelContainer is unavailable")
+        guard let factory = await MainActor.run(body: { storeFactory }) else {
+            assertionFailure("StoreFactory is unavailable")
             return
         }
 
-        let repository = SwiftDataSavingsGoalRepository(modelContainer: container)
-        let balanceRepository = SwiftDataSavingsGoalBalanceRepository(modelContainer: container)
-        let withdrawalRepository = SwiftDataSavingsGoalWithdrawalRepository(modelContainer: container)
-
-        let savingsGoalStore = SavingsGoalStore(
-            repository: repository,
-            balanceRepository: balanceRepository,
-            withdrawalRepository: withdrawalRepository
-        )
+        let savingsGoalStore = await factory.makeSavingsGoalStore()
 
         await MainActor.run {
             guard store == nil else { return }

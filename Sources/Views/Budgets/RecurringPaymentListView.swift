@@ -1,9 +1,8 @@
-import SwiftData
 import SwiftUI
 
 /// 定期支払い一覧ビュー
 internal struct RecurringPaymentListView: View {
-    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
+    @Environment(\.storeFactory) private var storeFactory: StoreFactory?
     @State private var store: RecurringPaymentListStore?
 
     internal var body: some View {
@@ -20,12 +19,12 @@ internal struct RecurringPaymentListView: View {
 
     private func prepareStore() {
         guard store == nil else { return }
-        guard let container = modelContainer else {
-            assertionFailure("ModelContainer is unavailable")
+        guard let factory = storeFactory else {
+            assertionFailure("StoreFactory is unavailable")
             return
         }
         Task {
-            let listStore = await RecurringPaymentStackBuilder.makeListStore(modelContainer: container)
+            let listStore = await factory.makeRecurringPaymentListStore()
             await listStore.refreshEntries()
             await MainActor.run {
                 store = listStore

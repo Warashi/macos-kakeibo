@@ -1,9 +1,8 @@
-import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
 
 internal struct CSVImportView: View {
-    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
+    @Environment(\.storeFactory) private var storeFactory: StoreFactory?
     @State private var store: ImportStore?
 
     internal var body: some View {
@@ -26,12 +25,12 @@ private extension CSVImportView {
     @MainActor
     func prepareStore() async {
         guard store == nil else { return }
-        guard let modelContainer else {
-            assertionFailure("ModelContainer is unavailable")
+        guard let factory = storeFactory else {
+            assertionFailure("StoreFactory is unavailable")
             return
         }
 
-        store = await SettingsStackBuilder.makeImportStore(modelContainer: modelContainer)
+        store = await factory.makeImportStore()
     }
 }
 

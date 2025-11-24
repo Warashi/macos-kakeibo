@@ -1,9 +1,8 @@
-import SwiftData
 import SwiftUI
 
 /// 設定画面のメインビュー
 internal struct SettingsView: View {
-    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
+    @Environment(\.storeFactory) private var storeFactory: StoreFactory?
     @State private var store: SettingsStore?
 
     internal var body: some View {
@@ -17,11 +16,11 @@ internal struct SettingsView: View {
         }
         .task {
             guard store == nil else { return }
-            guard let modelContainer else {
-                assertionFailure("ModelContainer is unavailable")
+            guard let factory = storeFactory else {
+                assertionFailure("StoreFactory is unavailable")
                 return
             }
-            let settingsStore = await SettingsStackBuilder.makeSettingsStore(modelContainer: modelContainer)
+            let settingsStore = await factory.makeSettingsStore()
             await MainActor.run {
                 store = settingsStore
             }

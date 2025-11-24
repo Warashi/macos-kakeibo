@@ -1,4 +1,3 @@
-import SwiftData
 import SwiftUI
 
 /// ダッシュボードビュー
@@ -6,7 +5,7 @@ import SwiftUI
 /// アプリケーションのメインダッシュボード画面。
 /// 月次/年次の総括、年次特別枠の状況、カテゴリ別ハイライトを表示します。
 internal struct DashboardView: View {
-    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
+    @Environment(\.storeFactory) private var storeFactory: StoreFactory?
     @State private var store: DashboardStore?
 
     internal var body: some View {
@@ -157,11 +156,11 @@ private extension DashboardView {
         guard store == nil else { return }
         Task {
             guard await MainActor.run(body: { store == nil }) else { return }
-            guard let container = await MainActor.run(body: { modelContainer }) else {
-                assertionFailure("ModelContainer is unavailable")
+            guard let factory = await MainActor.run(body: { storeFactory }) else {
+                assertionFailure("StoreFactory is unavailable")
                 return
             }
-            let dashboardStore = await DashboardStackBuilder.makeStore(modelContainer: container)
+            let dashboardStore = await factory.makeDashboardStore()
             await MainActor.run {
                 guard store == nil else { return }
                 store = dashboardStore

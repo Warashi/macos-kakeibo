@@ -1,11 +1,10 @@
-import SwiftData
 import SwiftUI
 
 /// 予算管理ビュー
 ///
 /// 月次予算と年次特別枠を編集・確認するための画面。
 internal struct BudgetView: View {
-    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
+    @Environment(\.storeFactory) private var storeFactory: StoreFactory?
     @State private var store: BudgetStore?
 
     @State private var isPresentingBudgetEditor: Bool = false
@@ -194,11 +193,11 @@ private extension BudgetView {
         guard store == nil else { return }
         Task {
             guard await MainActor.run(body: { store == nil }) else { return }
-            guard let container = await MainActor.run(body: { modelContainer }) else {
-                assertionFailure("ModelContainer is unavailable")
+            guard let factory = await MainActor.run(body: { storeFactory }) else {
+                assertionFailure("StoreFactory is unavailable")
                 return
             }
-            let budgetStore = await BudgetStackBuilder.makeStore(modelContainer: container)
+            let budgetStore = await factory.makeBudgetStore()
             await MainActor.run {
                 guard store == nil else { return }
                 store = budgetStore
@@ -449,11 +448,11 @@ private extension BudgetView {
         using context: RecurringPaymentSaveContext,
         budgetStore: BudgetStore,
     ) async {
-        guard let container = await MainActor.run(body: { modelContainer }) else {
-            assertionFailure("ModelContainer is unavailable")
+        guard let factory = await MainActor.run(body: { storeFactory }) else {
+            assertionFailure("StoreFactory is unavailable")
             return
         }
-        let recurringPaymentStore = await RecurringPaymentStackBuilder.makeStore(modelContainer: container)
+        let recurringPaymentStore = await factory.makeRecurringPaymentStore()
 
         do {
             switch context.mode {
@@ -513,11 +512,11 @@ private extension BudgetView {
         guard let budgetStore = store else { return }
         let definitionId = definition.id
         Task {
-            guard let container = await MainActor.run(body: { modelContainer }) else {
-                assertionFailure("ModelContainer is unavailable")
+            guard let factory = await MainActor.run(body: { storeFactory }) else {
+                assertionFailure("StoreFactory is unavailable")
                 return
             }
-            let recurringPaymentStore = await RecurringPaymentStackBuilder.makeStore(modelContainer: container)
+            let recurringPaymentStore = await factory.makeRecurringPaymentStore()
             do {
                 try await recurringPaymentStore.deleteDefinition(definitionId: definitionId)
                 await budgetStore.refresh()

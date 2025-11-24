@@ -1,8 +1,7 @@
-import SwiftData
 import SwiftUI
 
 internal struct RecurringPaymentReconciliationView: View {
-    @Environment(\.appModelContainer) private var modelContainer: ModelContainer?
+    @Environment(\.storeFactory) private var storeFactory: StoreFactory?
     @State private var store: RecurringPaymentReconciliationStore?
 
     internal var body: some View {
@@ -24,12 +23,12 @@ internal struct RecurringPaymentReconciliationView: View {
     @MainActor
     private func prepareStore() async {
         guard store == nil else { return }
-        guard let container = modelContainer else {
-            assertionFailure("ModelContainer is unavailable")
+        guard let factory = storeFactory else {
+            assertionFailure("StoreFactory is unavailable")
             return
         }
 
-        let reconciliationStore = await RecurringPaymentStackBuilder.makeReconciliationStore(modelContainer: container)
+        let reconciliationStore = await factory.makeRecurringPaymentReconciliationStore()
         store = reconciliationStore
         await reconciliationStore.refresh()
     }
