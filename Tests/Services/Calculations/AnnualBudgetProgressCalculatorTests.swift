@@ -9,11 +9,8 @@ internal struct AnnualBudgetProgressCalculatorTests {
 
     @Test("大項目のみの予算：中項目を持つ取引の実績も含まれる")
     internal func majorCategoryBudget_includesMinorCategoryTransactions() throws {
-        // Given: 大項目「食費」と中項目「食費 / 外食」を作成
         let majorCategory = DomainFixtures.category(name: "食費", displayOrder: 1)
         let minorCategory = DomainFixtures.category(name: "外食", displayOrder: 1, parent: majorCategory)
-
-        // 大項目「食費」に対して年次予算を設定（12ヶ月 × 50,000円 = 600,000円）
         let budget = DomainFixtures.budget(
             amount: 50000,
             category: majorCategory,
@@ -22,17 +19,13 @@ internal struct AnnualBudgetProgressCalculatorTests {
             endYear: 2025,
             endMonth: 12,
         )
-
-        // 取引データを作成
         let transactions: [Transaction] = [
-            // 大項目のみの取引: 10,000円
             DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "食材購入",
                 amount: -10000,
                 majorCategory: majorCategory,
             ),
-            // 中項目も設定された取引: 5,000円
             DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "ランチ",
@@ -40,7 +33,6 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 majorCategory: majorCategory,
                 minorCategory: minorCategory,
             ),
-            // 中項目も設定された取引: 8,000円
             DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 2, day: 10) ?? Date(),
                 title: "ディナー",
@@ -49,8 +41,6 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 minorCategory: minorCategory,
             ),
         ]
-
-        // When: 年次予算進捗を計算
         let categories = [majorCategory, minorCategory]
         let result = calculator.calculate(
             budgets: [budget],
@@ -58,42 +48,24 @@ internal struct AnnualBudgetProgressCalculatorTests {
             categories: categories,
             year: 2025,
         )
-
-        // Then: 大項目「食費」の実績が全取引の合計になっていることを確認
         let foodEntry = result.categoryEntries.first { entry in
             if case let .category(id) = entry.id {
                 return id == majorCategory.id
             }
             return false
         }
-
-        #expect(foodEntry != nil, "大項目「食費」のエントリが存在する")
-
+        #expect(foodEntry != nil)
         if let foodEntry {
-            // 実績合計: 10,000 + 5,000 + 8,000 = 23,000円
-            let expectedActual: Decimal = 23000
-            #expect(
-                foodEntry.calculation.actualAmount == expectedActual,
-                "実績が全取引の合計（\(expectedActual)円）になっている。実際: \(foodEntry.calculation.actualAmount)円",
-            )
-
-            // 予算額: 50,000 × 12 = 600,000円
-            let expectedBudget: Decimal = 600_000
-            #expect(
-                foodEntry.calculation.budgetAmount == expectedBudget,
-                "予算額が正しい（\(expectedBudget)円）",
-            )
+            #expect(foodEntry.calculation.actualAmount == 23000)
+            #expect(foodEntry.calculation.budgetAmount == 600_000)
         }
     }
 
     @Test("中項目のみの予算：その中項目の取引のみが含まれる")
     internal func minorCategoryBudget_includesOnlyMinorCategoryTransactions() throws {
-        // Given: 大項目「食費」と中項目「食費 / 外食」を作成
         let majorCategory = DomainFixtures.category(name: "食費", displayOrder: 1)
         let minorCategory1 = DomainFixtures.category(name: "外食", displayOrder: 1, parent: majorCategory)
         let minorCategory2 = DomainFixtures.category(name: "食材", displayOrder: 2, parent: majorCategory)
-
-        // 中項目「外食」に対して年次予算を設定
         let budget = DomainFixtures.budget(
             amount: 30000,
             category: minorCategory1,
@@ -102,10 +74,7 @@ internal struct AnnualBudgetProgressCalculatorTests {
             endYear: 2025,
             endMonth: 12,
         )
-
-        // 取引データを作成
         let transactions: [Transaction] = [
-            // 外食の取引: 5,000円
             DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 20) ?? Date(),
                 title: "ランチ",
@@ -113,7 +82,6 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 majorCategory: majorCategory,
                 minorCategory: minorCategory1,
             ),
-            // 食材の取引: 10,000円（これは含まれない）
             DomainFixtures.transaction(
                 date: Date.from(year: 2025, month: 1, day: 15) ?? Date(),
                 title: "スーパー",
@@ -122,77 +90,44 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 minorCategory: minorCategory2,
             ),
         ]
-
-        // When: 年次予算進捗を計算
-        let categories = [
-            majorCategory,
-            minorCategory1,
-            minorCategory2,
-        ]
+        let categories = [majorCategory, minorCategory1, minorCategory2]
         let result = calculator.calculate(
             budgets: [budget],
             transactions: transactions,
             categories: categories,
             year: 2025,
         )
-
-        // Then: 中項目「外食」の実績が外食取引のみになっていることを確認
         let diningOutEntry = result.categoryEntries.first { entry in
             if case let .category(id) = entry.id {
                 return id == minorCategory1.id
             }
             return false
         }
-
-        #expect(diningOutEntry != nil, "中項目「外食」のエントリが存在する")
-
+        #expect(diningOutEntry != nil)
         if let diningOutEntry {
-            // 実績合計: 5,000円のみ（食材の10,000円は含まれない）
-            let expectedActual: Decimal = 5000
-            #expect(
-                diningOutEntry.calculation.actualAmount == expectedActual,
-                "実績が外食取引のみの合計（\(expectedActual)円）になっている",
-            )
+            #expect(diningOutEntry.calculation.actualAmount == 5000)
         }
     }
 
     @Test("複数カテゴリの予算：それぞれ正しく実績が計算される")
     internal func multipleCategoryBudgets_calculatesCorrectly() throws {
-        // Given: 複数のカテゴリと取引を作成
         let testData = createMultipleCategoryTestData()
-
-        // When: 年次予算進捗を計算
-        let categories = [
-            testData.foodCategory,
-            testData.diningOutCategory,
-            testData.transportCategory,
-        ]
+        let categories = [testData.foodCategory, testData.diningOutCategory, testData.transportCategory]
         let result = calculator.calculate(
             budgets: testData.budgets,
             transactions: testData.transactions,
             categories: categories,
             year: 2025,
         )
-
-        // Then: 各カテゴリの実績が正しいことを確認
         let foodEntry = findCategoryEntry(in: result.categoryEntries, categoryId: testData.foodCategory.id)
         let transportEntry = findCategoryEntry(in: result.categoryEntries, categoryId: testData.transportCategory.id)
-
-        #expect(foodEntry != nil, "「食費」のエントリが存在する")
-        #expect(transportEntry != nil, "「交通費」のエントリが存在する")
-
+        #expect(foodEntry != nil)
+        #expect(transportEntry != nil)
         if let foodEntry {
-            #expect(
-                foodEntry.calculation.actualAmount == 15000,
-                "食費の実績が正しい（15,000円）",
-            )
+            #expect(foodEntry.calculation.actualAmount == 15000)
         }
-
         if let transportEntry {
-            #expect(
-                transportEntry.calculation.actualAmount == 3000,
-                "交通費の実績が正しい（3,000円）",
-            )
+            #expect(transportEntry.calculation.actualAmount == 3000)
         }
     }
 
