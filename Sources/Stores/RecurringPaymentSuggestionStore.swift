@@ -17,7 +17,7 @@ internal final class RecurringPaymentSuggestionStore {
     internal var selectedSuggestionIds: Set<UUID> = []
 
     /// ローディング状態
-    internal private(set) var isLoading = false
+    internal private(set) var isLoading = true
 
     /// エラーメッセージ
     internal private(set) var errorMessage: String?

@@ -30,7 +30,7 @@ internal struct RecurringPaymentSuggestionSheet: View {
             // フッター
             footerView
         }
-        .frame(width: 700, height: 600)
+        .frame(minWidth: 700, maxWidth: 700, minHeight: 600, maxHeight: 600)
         .sheet(isPresented: $store.isEditorPresented) {
             if store.editingSuggestion != nil {
                 // 編集シートを表示（RecurringPaymentEditorSheetを再利用）
