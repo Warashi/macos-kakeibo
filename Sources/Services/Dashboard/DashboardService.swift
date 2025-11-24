@@ -125,61 +125,52 @@ internal final class DashboardService {
     /// - Parameter params: 予算計算パラメータ
     /// - Returns: 予算・進捗計算結果
     private func calculateBudgetsAndProgress(params: BudgetCalculationParams) -> BudgetAndProgressResult {
-        let snapshot = params.snapshot
-        let year = params.year
-        let month = params.month
-        let excludedCategoryIds = params.excludedCategoryIds
-        let monthlySummary = params.monthlySummary
-        let annualSummary = params.annualSummary
-        let displayMode = params.displayMode
-        let filter = params.filter
-
         let monthlyBudgetCalculation = budgetCalculator.calculateMonthlyBudget(
             input: BudgetCalculator.MonthlyBudgetInput(
-                transactions: snapshot.monthlyTransactions,
-                budgets: snapshot.budgets,
-                categories: snapshot.categories,
-                year: year,
-                month: month,
-                filter: filter,
-                excludedCategoryIds: Set(excludedCategoryIds),
+                transactions: params.snapshot.monthlyTransactions,
+                budgets: params.snapshot.budgets,
+                categories: params.snapshot.categories,
+                year: params.year,
+                month: params.month,
+                filter: params.filter,
+                excludedCategoryIds: Set(params.excludedCategoryIds),
             ),
         )
 
         let (annualBudgetUsage, monthlyAllocation) = calculateAnnualBudgetAllocation(
-            snapshot: snapshot,
-            year: year,
-            month: month,
-            filter: filter,
+            snapshot: params.snapshot,
+            year: params.year,
+            month: params.month,
+            filter: params.filter,
         )
 
         let categoryHighlights = calculateCategoryHighlights(
-            monthlySummary: monthlySummary,
-            annualSummary: annualSummary,
-            displayMode: displayMode,
+            monthlySummary: params.monthlySummary,
+            annualSummary: params.annualSummary,
+            displayMode: params.displayMode,
         )
 
         let (progressCalculation, categoryEntries) = calculateAnnualBudgetProgress(
-            snapshot: snapshot,
-            year: year,
-            excludedCategoryIds: Set(excludedCategoryIds),
-            filter: filter,
+            snapshot: params.snapshot,
+            year: params.year,
+            excludedCategoryIds: Set(params.excludedCategoryIds),
+            filter: params.filter,
         )
 
         let savingsSummary = calculateSavingsSummary(
-            goals: snapshot.savingsGoals,
-            balances: snapshot.savingsGoalBalances,
-            year: year,
-            month: month,
+            goals: params.snapshot.savingsGoals,
+            balances: params.snapshot.savingsGoalBalances,
+            year: params.year,
+            month: params.month,
         )
 
         let recurringPaymentSummary = calculateRecurringPaymentSummary(
             params: RecurringPaymentSummaryParams(
-                definitions: snapshot.recurringPaymentDefinitions,
-                occurrences: snapshot.recurringPaymentOccurrences,
-                balances: snapshot.recurringPaymentBalances,
-                year: year,
-                month: month,
+                definitions: params.snapshot.recurringPaymentDefinitions,
+                occurrences: params.snapshot.recurringPaymentOccurrences,
+                balances: params.snapshot.recurringPaymentBalances,
+                year: params.year,
+                month: params.month,
             ),
         )
 
@@ -382,13 +373,8 @@ internal final class DashboardService {
     private func calculateRecurringPaymentSummary(
         params: RecurringPaymentSummaryParams,
     ) -> RecurringPaymentSummary {
-        let year = params.year
-        let month = params.month
-        let definitions = params.definitions
-        let occurrences = params.occurrences
-        _ = params.balances
         // 当月の開始日・終了日を計算
-        guard let period = monthPeriodCalculator.calculatePeriod(for: year, month: month) else {
+        guard let period = monthPeriodCalculator.calculatePeriod(for: params.year, month: params.month) else {
             return RecurringPaymentSummary(
                 totalMonthlyAmount: 0,
                 yearToDateMonthlyAmount: 0,
@@ -399,12 +385,9 @@ internal final class DashboardService {
             )
         }
 
-        let monthStart = period.start
-        let monthEnd = period.end
-
         // 当月のOccurrenceをフィルタリング
-        let currentMonthOccurrences = occurrences.filter { occurrence in
-            occurrence.scheduledDate >= monthStart && occurrence.scheduledDate < monthEnd
+        let currentMonthOccurrences = params.occurrences.filter { occurrence in
+            occurrence.scheduledDate >= period.start && occurrence.scheduledDate < period.end
         }
 
         // DefinitionIDでグループ化
@@ -414,18 +397,18 @@ internal final class DashboardService {
         )
 
         // 月額積立合計を計算
-        let totalMonthlyAmount = definitions
+        let totalMonthlyAmount = params.definitions
             .filter { $0.savingStrategy != .disabled }
             .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
 
         // 年始から現在月までの積立合計を計算
-        let yearToDateMonthlyAmount = totalMonthlyAmount * Decimal(month)
+        let yearToDateMonthlyAmount = totalMonthlyAmount * Decimal(params.month)
 
         // 当月予定・実績・未払いを計算
         var currentMonthExpected = Decimal.zero
         var currentMonthActual = Decimal.zero
 
-        let definitionSummaries = definitions.map { definition in
+        let definitionSummaries = params.definitions.map { definition in
             let monthOccurrences = occurrencesByDefinition[definition.id] ?? []
             let currentMonthOccurrence: OccurrenceSummary? = if let occurrence = monthOccurrences.first {
                 OccurrenceSummary(
