@@ -5,7 +5,7 @@ import Testing
 @testable import Kakeibo
 
 @Suite("SwiftDataSavingsGoalBalanceRepository")
-internal struct SwiftDataSavingsGoalBalanceRepositoryTests {
+internal struct SavingsGoalBalanceRepositoryTests {
     @Test("fetchBalance: 指定されたgoalIdの残高を取得できる")
     internal func fetchBalanceByGoalId() async throws {
         let container = try ModelContainer.createInMemoryContainer()
@@ -15,12 +15,12 @@ internal struct SwiftDataSavingsGoalBalanceRepositoryTests {
         let goal1 = SwiftDataSavingsGoal(
             name: "海外旅行",
             targetAmount: 500_000,
-            monthlySavingAmount: 50_000,
+            monthlySavingAmount: 50000,
             categoryId: nil,
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true
+            isActive: true,
         )
 
         let goal2 = SwiftDataSavingsGoal(
@@ -31,7 +31,7 @@ internal struct SwiftDataSavingsGoalBalanceRepositoryTests {
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true
+            isActive: true,
         )
 
         context.insert(goal1)
@@ -42,15 +42,15 @@ internal struct SwiftDataSavingsGoalBalanceRepositoryTests {
             totalSavedAmount: 150_000,
             totalWithdrawnAmount: 0,
             lastUpdatedYear: 2025,
-            lastUpdatedMonth: 11
+            lastUpdatedMonth: 11,
         )
 
         let balance2 = SwiftDataSavingsGoalBalance(
             goal: goal2,
             totalSavedAmount: 300_000,
-            totalWithdrawnAmount: 50_000,
+            totalWithdrawnAmount: 50000,
             lastUpdatedYear: 2025,
-            lastUpdatedMonth: 11
+            lastUpdatedMonth: 11,
         )
 
         context.insert(balance1)
@@ -83,12 +83,12 @@ internal struct SwiftDataSavingsGoalBalanceRepositoryTests {
         let goal1 = SwiftDataSavingsGoal(
             name: "海外旅行",
             targetAmount: 500_000,
-            monthlySavingAmount: 50_000,
+            monthlySavingAmount: 50000,
             categoryId: nil,
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true
+            isActive: true,
         )
 
         let goal2 = SwiftDataSavingsGoal(
@@ -99,7 +99,7 @@ internal struct SwiftDataSavingsGoalBalanceRepositoryTests {
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true
+            isActive: true,
         )
 
         context.insert(goal1)
@@ -110,15 +110,15 @@ internal struct SwiftDataSavingsGoalBalanceRepositoryTests {
             totalSavedAmount: 150_000,
             totalWithdrawnAmount: 0,
             lastUpdatedYear: 2025,
-            lastUpdatedMonth: 11
+            lastUpdatedMonth: 11,
         )
 
         let balance2 = SwiftDataSavingsGoalBalance(
             goal: goal2,
             totalSavedAmount: 300_000,
-            totalWithdrawnAmount: 50_000,
+            totalWithdrawnAmount: 50000,
             lastUpdatedYear: 2025,
-            lastUpdatedMonth: 11
+            lastUpdatedMonth: 11,
         )
 
         context.insert(balance1)
@@ -132,5 +132,4 @@ internal struct SwiftDataSavingsGoalBalanceRepositoryTests {
         #expect(goalIds.contains(goal1.id))
         #expect(goalIds.contains(goal2.id))
     }
-
 }

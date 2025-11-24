@@ -5,7 +5,7 @@ import Testing
 @testable import Kakeibo
 
 @Suite("SwiftDataSavingsGoalWithdrawalRepository")
-internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
+internal struct SavingsGoalWithdrawalRepositoryTests {
     @Test("createWithdrawal: 引出記録を作成できる")
     internal func createWithdrawal() async throws {
         let container = try ModelContainer.createInMemoryContainer()
@@ -16,12 +16,12 @@ internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
         let goal = SwiftDataSavingsGoal(
             name: "海外旅行",
             targetAmount: 500_000,
-            monthlySavingAmount: 50_000,
+            monthlySavingAmount: 50000,
             categoryId: nil,
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true
+            isActive: true,
         )
         context.insert(goal)
 
@@ -31,7 +31,7 @@ internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
             totalSavedAmount: 200_000,
             totalWithdrawnAmount: 0,
             lastUpdatedYear: 2025,
-            lastUpdatedMonth: 11
+            lastUpdatedMonth: 11,
         )
         context.insert(balance)
         try context.save()
@@ -39,23 +39,23 @@ internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
         // 引出記録を作成
         let input = SavingsGoalWithdrawalInput(
             goalId: goal.id,
-            amount: 50_000,
+            amount: 50000,
             withdrawalDate: Date(),
-            purpose: "航空券購入"
+            purpose: "航空券購入",
         )
 
         let withdrawal = try await repository.createWithdrawal(input)
         #expect(withdrawal.goalId == goal.id)
-        #expect(withdrawal.amount == 50_000)
+        #expect(withdrawal.amount == 50000)
         #expect(withdrawal.purpose == "航空券購入")
 
         // 残高が更新されているか確認
         let goalId = goal.id
         let balanceDescriptor = FetchDescriptor<SwiftDataSavingsGoalBalance>(
-            predicate: #Predicate { $0.goal.id == goalId }
+            predicate: #Predicate { $0.goal.id == goalId },
         )
         let updatedBalance = try context.fetch(balanceDescriptor).first
-        #expect(updatedBalance?.totalWithdrawnAmount == 50_000)
+        #expect(updatedBalance?.totalWithdrawnAmount == 50000)
     }
 
     @Test("createWithdrawal: 存在しないgoalIdの場合エラー")
@@ -65,9 +65,9 @@ internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
 
         let input = SavingsGoalWithdrawalInput(
             goalId: UUID(),
-            amount: 50_000,
+            amount: 50000,
             withdrawalDate: Date(),
-            purpose: "test"
+            purpose: "test",
         )
 
         await #expect(throws: RepositoryError.notFound) {
@@ -85,12 +85,12 @@ internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
         let goal1 = SwiftDataSavingsGoal(
             name: "海外旅行",
             targetAmount: 500_000,
-            monthlySavingAmount: 50_000,
+            monthlySavingAmount: 50000,
             categoryId: nil,
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true
+            isActive: true,
         )
 
         let goal2 = SwiftDataSavingsGoal(
@@ -101,7 +101,7 @@ internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true
+            isActive: true,
         )
 
         context.insert(goal1)
@@ -110,23 +110,23 @@ internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
         // 引出記録を作成
         let withdrawal1 = SwiftDataSavingsGoalWithdrawal(
             goal: goal1,
-            amount: 50_000,
+            amount: 50000,
             withdrawalDate: Date(),
-            purpose: "航空券"
+            purpose: "航空券",
         )
 
         let withdrawal2 = SwiftDataSavingsGoalWithdrawal(
             goal: goal1,
-            amount: 30_000,
+            amount: 30000,
             withdrawalDate: Date(),
-            purpose: "ホテル"
+            purpose: "ホテル",
         )
 
         let withdrawal3 = SwiftDataSavingsGoalWithdrawal(
             goal: goal2,
             amount: 100_000,
             withdrawalDate: Date(),
-            purpose: "頭金"
+            purpose: "頭金",
         )
 
         context.insert(withdrawal1)
@@ -149,28 +149,28 @@ internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
         let goal = SwiftDataSavingsGoal(
             name: "海外旅行",
             targetAmount: 500_000,
-            monthlySavingAmount: 50_000,
+            monthlySavingAmount: 50000,
             categoryId: nil,
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true
+            isActive: true,
         )
         context.insert(goal)
 
         // 引出記録を作成
         let withdrawal1 = SwiftDataSavingsGoalWithdrawal(
             goal: goal,
-            amount: 50_000,
+            amount: 50000,
             withdrawalDate: Date(),
-            purpose: "航空券"
+            purpose: "航空券",
         )
 
         let withdrawal2 = SwiftDataSavingsGoalWithdrawal(
             goal: goal,
-            amount: 30_000,
+            amount: 30000,
             withdrawalDate: Date(),
-            purpose: "ホテル"
+            purpose: "ホテル",
         )
 
         context.insert(withdrawal1)
@@ -191,12 +191,12 @@ internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
         let goal = SwiftDataSavingsGoal(
             name: "海外旅行",
             targetAmount: 500_000,
-            monthlySavingAmount: 50_000,
+            monthlySavingAmount: 50000,
             categoryId: nil,
             notes: nil,
             startDate: Date(),
             targetDate: nil,
-            isActive: true
+            isActive: true,
         )
         context.insert(goal)
 
@@ -204,18 +204,18 @@ internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
         let balance = SwiftDataSavingsGoalBalance(
             goal: goal,
             totalSavedAmount: 200_000,
-            totalWithdrawnAmount: 50_000,
+            totalWithdrawnAmount: 50000,
             lastUpdatedYear: 2025,
-            lastUpdatedMonth: 11
+            lastUpdatedMonth: 11,
         )
         context.insert(balance)
 
         // 引出記録を作成
         let withdrawal = SwiftDataSavingsGoalWithdrawal(
             goal: goal,
-            amount: 50_000,
+            amount: 50000,
             withdrawalDate: Date(),
-            purpose: "航空券"
+            purpose: "航空券",
         )
         context.insert(withdrawal)
         try context.save()
@@ -226,7 +226,7 @@ internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
 
         // 削除されたか確認
         let descriptor = FetchDescriptor<SwiftDataSavingsGoalWithdrawal>(
-            predicate: #Predicate { $0.id == withdrawalId }
+            predicate: #Predicate { $0.id == withdrawalId },
         )
         let deleted = try context.fetch(descriptor).first
         #expect(deleted == nil)
@@ -234,7 +234,7 @@ internal struct SwiftDataSavingsGoalWithdrawalRepositoryTests {
         // 残高が更新されているか確認
         let goalId = goal.id
         let balanceDescriptor = FetchDescriptor<SwiftDataSavingsGoalBalance>(
-            predicate: #Predicate { $0.goal.id == goalId }
+            predicate: #Predicate { $0.goal.id == goalId },
         )
         let updatedBalance = try context.fetch(balanceDescriptor).first
         #expect(updatedBalance?.totalWithdrawnAmount == 0)
