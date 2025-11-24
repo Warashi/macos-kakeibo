@@ -27,7 +27,8 @@ internal struct CustomHolidayProviderTests {
 
         try context.save()
 
-        let provider = CustomHolidayProvider(modelContainer: container, calendar: calendar)
+        let repository = SwiftDataCustomHolidayRepository(modelContainer: container)
+        let provider = CustomHolidayProvider(repository: repository)
         let holidays = provider.holidays(for: 2025)
 
         let expectedDate = calendar.startOfDay(for: makeDate(year: 2025, month: 6, day: 15))
@@ -50,7 +51,8 @@ internal struct CustomHolidayProviderTests {
 
         try context.save()
 
-        let provider = CustomHolidayProvider(modelContainer: container, calendar: calendar)
+        let repository = SwiftDataCustomHolidayRepository(modelContainer: container)
+        let provider = CustomHolidayProvider(repository: repository)
 
         // 2025年でも8月10日が祝日になる
         let holidays2025 = provider.holidays(for: 2025)
@@ -78,7 +80,8 @@ internal struct CustomHolidayProviderTests {
 
         try context.save()
 
-        let provider = CustomHolidayProvider(modelContainer: container, calendar: calendar)
+        let repository = SwiftDataCustomHolidayRepository(modelContainer: container)
+        let provider = CustomHolidayProvider(repository: repository)
 
         // 2025年には祝日が存在
         let holidays2025 = provider.holidays(for: 2025)
@@ -118,7 +121,8 @@ internal struct CustomHolidayProviderTests {
 
         try context.save()
 
-        let provider = CustomHolidayProvider(modelContainer: container, calendar: calendar)
+        let repository = SwiftDataCustomHolidayRepository(modelContainer: container)
+        let provider = CustomHolidayProvider(repository: repository)
         let holidays = provider.holidays(for: 2025)
 
         #expect(holidays.count == 3)
@@ -128,7 +132,8 @@ internal struct CustomHolidayProviderTests {
     internal func returnsEmptySetWhenNoCustomHolidays() throws {
         let container = try ModelContainer.createInMemoryContainer()
 
-        let provider = CustomHolidayProvider(modelContainer: container, calendar: calendar)
+        let repository = SwiftDataCustomHolidayRepository(modelContainer: container)
+        let provider = CustomHolidayProvider(repository: repository)
         let holidays = provider.holidays(for: 2025)
 
         #expect(holidays.isEmpty)
@@ -155,7 +160,8 @@ internal struct CustomHolidayProviderTests {
 
         try context.save()
 
-        let provider = CustomHolidayProvider(modelContainer: container, calendar: calendar)
+        let repository = SwiftDataCustomHolidayRepository(modelContainer: container)
+        let provider = CustomHolidayProvider(repository: repository)
 
         // 6月1日〜6月30日の期間で取得
         let startDate = makeDate(year: 2025, month: 6, day: 1)

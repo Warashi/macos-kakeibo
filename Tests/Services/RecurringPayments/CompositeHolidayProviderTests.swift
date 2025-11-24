@@ -28,7 +28,8 @@ internal struct CompositeHolidayProviderTests {
 
         // 日本の祝日プロバイダーとカスタム祝日プロバイダーを統合
         let japaneseProvider = JapaneseHolidayProvider(calendar: calendar)
-        let customProvider = CustomHolidayProvider(modelContainer: container, calendar: calendar)
+        let repository = SwiftDataCustomHolidayRepository(modelContainer: container)
+        let customProvider = CustomHolidayProvider(repository: repository)
         let compositeProvider = CompositeHolidayProvider(providers: [japaneseProvider, customProvider])
 
         let holidays2025 = compositeProvider.holidays(for: 2025)
@@ -79,7 +80,8 @@ internal struct CompositeHolidayProviderTests {
         try context.save()
 
         let japaneseProvider = JapaneseHolidayProvider(calendar: calendar)
-        let customProvider = CustomHolidayProvider(modelContainer: container, calendar: calendar)
+        let repository = SwiftDataCustomHolidayRepository(modelContainer: container)
+        let customProvider = CustomHolidayProvider(repository: repository)
         let compositeProvider = CompositeHolidayProvider(providers: [japaneseProvider, customProvider])
 
         // 5月の期間を指定
