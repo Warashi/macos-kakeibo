@@ -3,7 +3,7 @@ import SwiftUI
 /// 定期支払い提案シート
 internal struct RecurringPaymentSuggestionSheet: View {
     @Bindable private var store: RecurringPaymentSuggestionStore
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss) private var dismiss: DismissAction
 
     internal init(store: RecurringPaymentSuggestionStore) {
         self.store = store
@@ -98,7 +98,10 @@ internal struct RecurringPaymentSuggestionSheet: View {
                     store.toggleSelectAll()
                 } label: {
                     HStack(spacing: 8) {
-                        Image(systemName: store.selectedCount == store.suggestions.count ? "checkmark.square.fill" : "square")
+                        Image(
+                            systemName: store.selectedCount == store.suggestions.count
+                                ? "checkmark.square.fill" : "square"
+                        )
                         Text("全選択")
                             .font(.caption)
                     }
