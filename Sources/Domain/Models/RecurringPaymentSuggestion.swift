@@ -121,7 +121,7 @@ internal struct RecurringPaymentDetectionCriteria: Sendable {
     /// 金額の許容変動率（0.0〜1.0）
     internal let amountVariationTolerance: Double
 
-    internal static let `default` = RecurringPaymentDetectionCriteria(
+    internal static let `default`: RecurringPaymentDetectionCriteria = RecurringPaymentDetectionCriteria(
         lookbackYears: 3,
         minimumOccurrences: 2,
         dateToleranceDays: 3,
