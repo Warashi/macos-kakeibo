@@ -4,9 +4,9 @@ import Testing
 @testable import Kakeibo
 
 @Suite("BusinessDayAdjustment Edge Case Tests")
-struct BusinessDayAdjustmentEdgeCaseTests {
+internal struct BusinessDayAdjustmentEdgeCaseTests {
     @Test("週末（土曜日）の場合 - 前営業日は金曜日")
-    func testWeekendSaturdayPrevious() {
+    internal func testWeekendSaturdayPrevious() {
         // 2025年1月4日は土曜日
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
@@ -29,7 +29,7 @@ struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("週末（土曜日）の場合 - 次営業日は月曜日")
-    func testWeekendSaturdayNext() {
+    internal func testWeekendSaturdayNext() {
         // 2025年1月4日は土曜日
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
@@ -52,7 +52,7 @@ struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("週末（日曜日）の場合 - 前営業日は金曜日")
-    func testWeekendSundayPrevious() {
+    internal func testWeekendSundayPrevious() {
         // 2025年1月5日は日曜日
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
@@ -75,7 +75,7 @@ struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("週末（日曜日）の場合 - 次営業日は月曜日")
-    func testWeekendSundayNext() {
+    internal func testWeekendSundayNext() {
         // 2025年1月5日は日曜日
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
@@ -98,7 +98,7 @@ struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("3連休（元日・土日）の場合 - 前営業日")
-    func testThreeDayWeekendPrevious() {
+    internal func testThreeDayWeekendPrevious() {
         // 2025年1月1日（水）は元日、4日（土）、5日（日）が連休
         let calendar = Calendar(identifier: .gregorian)
         var holidays = Set<Date>()
@@ -125,7 +125,7 @@ struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("3連休（元日・土日）の場合 - 次営業日")
-    func testThreeDayWeekendNext() {
+    internal func testThreeDayWeekendNext() {
         // 2025年1月1日（水）は元日、4日（土）、5日（日）が連休
         let calendar = Calendar(identifier: .gregorian)
         var holidays = Set<Date>()
@@ -152,7 +152,7 @@ struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("2月（短い月）の場合 - 28日開始でも正常に動作")
-    func testFebruaryShortMonth() {
+    internal func testFebruaryShortMonth() {
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 28,
@@ -180,7 +180,7 @@ struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("うるう年の2月 - 29日が存在する年")
-    func testLeapYearFebruary() {
+    internal func testLeapYearFebruary() {
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 28,
@@ -202,7 +202,7 @@ struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("月末が週末の場合 - 前営業日調整")
-    func testMonthEndWeekendPrevious() {
+    internal func testMonthEndWeekendPrevious() {
         // 2025年3月29日は土曜日
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
@@ -224,7 +224,7 @@ struct BusinessDayAdjustmentEdgeCaseTests {
     }
 
     @Test("連続する祝日（ゴールデンウィーク風）のシミュレーション")
-    func testConsecutiveHolidays() {
+    internal func testConsecutiveHolidays() {
         // 5月1日〜5日を連続休日と仮定
         let calendar = Calendar(identifier: .gregorian)
         var holidays = Set<Date>()
