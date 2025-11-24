@@ -64,6 +64,18 @@ internal final class SettingsStore {
         }
     }
 
+    internal var monthStartDay: Int {
+        didSet {
+            persistPeriodSettings()
+        }
+    }
+
+    internal var monthStartDayAdjustment: BusinessDayAdjustment {
+        didSet {
+            persistPeriodSettings()
+        }
+    }
+
     // MARK: - UI State
 
     internal private(set) var statistics: DataStatistics = .empty
@@ -108,6 +120,14 @@ internal final class SettingsStore {
             forKey: UserDefaultsKey.useThousandSeparator,
             defaultValue: true,
         )
+        monthStartDay = userDefaults.integer(
+            forKey: UserDefaultsKey.monthStartDay,
+            defaultValue: 1,
+        )
+        monthStartDayAdjustment = userDefaults.enum(
+            forKey: UserDefaultsKey.monthStartDayAdjustment,
+            defaultValue: .none,
+        )
 
         let initialStatistics = try? await makeStatistics(
             transactionRepository: transactionRepository,
@@ -126,6 +146,11 @@ internal final class SettingsStore {
     private func persistDisplaySettings() {
         userDefaults.set(showCategoryFullPath, forKey: UserDefaultsKey.showCategoryFullPath)
         userDefaults.set(useThousandSeparator, forKey: UserDefaultsKey.useThousandSeparator)
+    }
+
+    private func persistPeriodSettings() {
+        userDefaults.set(monthStartDay, forKey: UserDefaultsKey.monthStartDay)
+        userDefaults.set(monthStartDayAdjustment.rawValue, forKey: UserDefaultsKey.monthStartDayAdjustment)
     }
 
     // MARK: - Statistics
@@ -211,6 +236,8 @@ internal final class SettingsStore {
         static let excludeTransfers: String = "settings.excludeTransfers"
         static let showCategoryFullPath: String = "settings.showCategoryFullPath"
         static let useThousandSeparator: String = "settings.useThousandSeparator"
+        static let monthStartDay: String = "settings.monthStartDay"
+        static let monthStartDayAdjustment: String = "settings.monthStartDayAdjustment"
     }
 }
 
@@ -222,6 +249,20 @@ private extension UserDefaults {
             return defaultValue
         }
         return bool(forKey: key)
+    }
+
+    func integer(forKey key: String, defaultValue: Int) -> Int {
+        if object(forKey: key) == nil {
+            return defaultValue
+        }
+        return integer(forKey: key)
+    }
+
+    func `enum`<T: RawRepresentable>(forKey key: String, defaultValue: T) -> T where T.RawValue == String {
+        if let rawValue = string(forKey: key), let value = T(rawValue: rawValue) {
+            return value
+        }
+        return defaultValue
     }
 }
 
