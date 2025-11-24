@@ -89,30 +89,30 @@ internal struct RecurringPaymentDetectionService: Sendable {
     }
 
     /// Levenshtein距離の計算（編集距離）
-    private func levenshteinDistance(_ s1: String, _ s2: String) -> Int {
-        let a = Array(s1)
-        let b = Array(s2)
-        var dist = Array(repeating: Array(repeating: 0, count: b.count + 1), count: a.count + 1)
+    private func levenshteinDistance(_ string1: String, _ string2: String) -> Int {
+        let chars1 = Array(string1)
+        let chars2 = Array(string2)
+        var dist = Array(repeating: Array(repeating: 0, count: chars2.count + 1), count: chars1.count + 1)
 
-        for i in 0...a.count {
-            dist[i][0] = i
+        for row in 0...chars1.count {
+            dist[row][0] = row
         }
-        for j in 0...b.count {
-            dist[0][j] = j
+        for col in 0...chars2.count {
+            dist[0][col] = col
         }
 
-        for i in 1...a.count {
-            for j in 1...b.count {
-                let cost = a[i - 1] == b[j - 1] ? 0 : 1
-                dist[i][j] = min(
-                    dist[i - 1][j] + 1,
-                    dist[i][j - 1] + 1,
-                    dist[i - 1][j - 1] + cost
+        for row in 1...chars1.count {
+            for col in 1...chars2.count {
+                let cost = chars1[row - 1] == chars2[col - 1] ? 0 : 1
+                dist[row][col] = min(
+                    dist[row - 1][col] + 1,
+                    dist[row][col - 1] + 1,
+                    dist[row - 1][col - 1] + cost
                 )
             }
         }
 
-        return dist[a.count][b.count]
+        return dist[chars1.count][chars2.count]
     }
 
     /// グループから定期支払いパターンを検出
@@ -168,10 +168,8 @@ internal struct RecurringPaymentDetectionService: Sendable {
         let candidateIntervals = [1, 2, 3, 6, 12]
 
         // 各候補の周期について、日付間隔をチェック
-        for interval in candidateIntervals {
-            if isRecurring(transactions, withMonthInterval: interval) {
-                return interval
-            }
+        for interval in candidateIntervals where isRecurring(transactions, withMonthInterval: interval) {
+            return interval
         }
 
         return nil
@@ -182,11 +180,13 @@ internal struct RecurringPaymentDetectionService: Sendable {
         guard transactions.count >= 2 else { return false }
 
         var matchCount = 0
-        for i in 1..<transactions.count {
-            let prev = transactions[i - 1].date
-            let curr = transactions[i].date
+        for index in 1..<transactions.count {
+            let prev = transactions[index - 1].date
+            let curr = transactions[index].date
 
-            let expectedDate = calendar.date(byAdding: .month, value: interval, to: prev)!
+            guard let expectedDate = calendar.date(byAdding: .month, value: interval, to: prev) else {
+                continue
+            }
             let daysDiff = abs(calendar.dateComponents([.day], from: expectedDate, to: curr).day ?? 0)
 
             if daysDiff <= criteria.dateToleranceDays {
@@ -221,10 +221,12 @@ internal struct RecurringPaymentDetectionService: Sendable {
 
     /// 金額の安定性を分析
     private func analyzeAmountStability(_ amounts: [Decimal]) -> (isStable: Bool, range: ClosedRange<Decimal>?) {
-        guard !amounts.isEmpty else { return (false, nil) }
+        guard !amounts.isEmpty,
+              let min = amounts.min(),
+              let max = amounts.max() else {
+            return (false, nil)
+        }
 
-        let min = amounts.min()!
-        let max = amounts.max()!
         let avg = amounts.reduce(Decimal.zero, +) / Decimal(amounts.count)
 
         let range = min...max
