@@ -56,6 +56,7 @@ internal struct AnnualBudgetProgressCalculator: Sendable {
         year: Int,
         filter: AggregationFilter = .default,
         excludedCategoryIds: Set<UUID> = [],
+        upToMonth: Int? = nil,
     ) -> AnnualBudgetProgressResult {
         let annualBudgets = budgets.filter { $0.overlaps(year: year) }
         guard !annualBudgets.isEmpty else {
@@ -71,6 +72,7 @@ internal struct AnnualBudgetProgressCalculator: Sendable {
             categories: categories,
             year: year,
             filter: filter,
+            upToMonth: upToMonth,
         )
 
         let actualMap: [UUID: Decimal] = Dictionary(

@@ -245,6 +245,7 @@ internal struct TransactionAggregator: Sendable {
     ///   - filter: フィルタオプション
     ///   - savingsGoals: 貯蓄目標リスト
     ///   - recurringPaymentDefinitions: 定期支払い定義リスト
+    ///   - upToMonth: 指定された場合、年始からこの月までの集計を行う（1〜12）
     /// - Returns: 年次集計結果
     internal func aggregateAnnually(
         transactions: [Transaction],
@@ -253,12 +254,20 @@ internal struct TransactionAggregator: Sendable {
         filter: AggregationFilter = .default,
         savingsGoals: [SavingsGoal] = [],
         recurringPaymentDefinitions: [RecurringPaymentDefinition] = [],
+        upToMonth: Int? = nil,
     ) -> AnnualSummary {
         // 対象年の取引をフィルタ
         let filteredTransactions = transactions.filter { transaction in
             // 年でフィルタ
             guard transaction.date.year == year else {
                 return false
+            }
+
+            // upToMonthが指定されている場合、その月までの取引のみを対象とする
+            if let upToMonth {
+                guard transaction.date.month <= upToMonth else {
+                    return false
+                }
             }
 
             return applyFilter(transaction: transaction, filter: filter)
@@ -294,14 +303,15 @@ internal struct TransactionAggregator: Sendable {
             .filter(\.isExpense)
             .reduce(Decimal.zero) { $0 + abs($1.amount) }
 
-        // 貯蓄合計を計算（12ヶ月分）
+        // 貯蓄合計を計算（12ヶ月分、またはupToMonthまで）
         let monthlySavingsAmount = savingsGoals
             .filter(\.isActive)
             .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
-        let totalSavings = monthlySavingsAmount * 12
+        let monthCount = upToMonth ?? 12
+        let totalSavings = monthlySavingsAmount * Decimal(monthCount)
 
-        // 定期支払い積立合計を計算（12ヶ月分）
-        let totalRecurringPaymentAllocation = monthlyRecurringPaymentAllocation * 12
+        // 定期支払い積立合計を計算（12ヶ月分、またはupToMonthまで）
+        let totalRecurringPaymentAllocation = monthlyRecurringPaymentAllocation * Decimal(monthCount)
 
         return AnnualSummary(
             year: year,

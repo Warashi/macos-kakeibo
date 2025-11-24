@@ -276,6 +276,75 @@ internal struct TransactionAggregatorTests {
         }
     }
 
+    @Test("年次集計：upToMonthを指定した場合、その月までの取引のみが集計される")
+    internal func annualSummary_withUpToMonth() throws {
+        // Given
+        let category = DomainFixtures.category(name: "食費", allowsAnnualBudget: false)
+
+        let transactions = [
+            // 1月の取引
+            createTransaction(amount: -10000, categoryId: category.id, month: 1),
+            // 2月の取引
+            createTransaction(amount: -20000, categoryId: category.id, month: 2),
+            // 3月の取引
+            createTransaction(amount: -30000, categoryId: category.id, month: 3),
+            // 4月の取引（これは含まれない）
+            createTransaction(amount: -40000, categoryId: category.id, month: 4),
+        ]
+
+        let savingsGoals = createSampleSavingsGoals()
+        let year = 2025
+
+        // When: 3月までの集計
+        let result = aggregator.aggregateAnnually(
+            transactions: transactions,
+            categories: [category],
+            year: year,
+            filter: .default,
+            savingsGoals: savingsGoals,
+            upToMonth: 3,
+        )
+
+        // Then
+        #expect(result.year == year)
+        // 1月〜3月の支出のみが含まれる（10,000 + 20,000 + 30,000 = 60,000円）
+        #expect(result.totalExpense == 60000, "1月〜3月の支出のみが含まれる")
+        // 貯蓄合計は3ヶ月分（(10000 + 50000) * 3 = 180,000円）
+        #expect(result.totalSavings == 180_000, "貯蓄合計が3ヶ月分になる")
+    }
+
+    @Test("年次集計：upToMonthを指定した場合、定期支払い積立額も月数分のみ")
+    internal func annualSummary_withUpToMonth_recurringPayment() throws {
+        // Given
+        let (transactions, categories) = createSampleTransactionsWithCategories()
+        let savingsGoals = createSampleSavingsGoals()
+
+        // 定期支払い定義（月次積立額: 15,000円）
+        let recurringPaymentDefinitions = [
+            createRecurringPaymentDefinition(monthlySavingAmount: 15000),
+        ]
+
+        let year = 2025
+
+        // When: 6月までの集計
+        let result = aggregator.aggregateAnnually(
+            transactions: transactions,
+            categories: categories,
+            year: year,
+            filter: .default,
+            savingsGoals: savingsGoals,
+            recurringPaymentDefinitions: recurringPaymentDefinitions,
+            upToMonth: 6,
+        )
+
+        // Then
+        #expect(result.year == year)
+        // 貯蓄合計は6ヶ月分（(10000 + 50000) * 6 = 360,000円）
+        #expect(result.totalSavings == 360_000, "貯蓄合計が6ヶ月分になる")
+        // 定期支払い積立合計は6ヶ月分（15,000 * 6 = 90,000円）
+        #expect(result.recurringPaymentAllocation == 90000, "定期支払い積立額が6ヶ月分になる")
+    }
+
     // MARK: - Helper Methods
 
     private func createSampleTransactionsWithCategories() -> ([Transaction], [Kakeibo.Category]) {
@@ -303,9 +372,10 @@ internal struct TransactionAggregatorTests {
         financialInstitutionId: UUID? = nil,
         isIncludedInCalculation: Bool = true,
         isTransfer: Bool = false,
+        month: Int = 11,
     ) -> Transaction {
         DomainFixtures.transaction(
-            date: Date.from(year: 2025, month: 11) ?? Date(),
+            date: Date.from(year: 2025, month: month) ?? Date(),
             title: "テスト取引",
             amount: amount,
             memo: "",
@@ -345,5 +415,28 @@ internal struct TransactionAggregatorTests {
                 updatedAt: Date(),
             ),
         ]
+    }
+
+    private func createRecurringPaymentDefinition(
+        monthlySavingAmount: Decimal,
+        savingStrategy: RecurringPaymentSavingStrategy = .evenlyDistributed,
+    ) -> RecurringPaymentDefinition {
+        RecurringPaymentDefinition(
+            id: UUID(),
+            name: "テスト定期支払い",
+            notes: "",
+            amount: monthlySavingAmount * 12,
+            recurrenceIntervalMonths: 12,
+            firstOccurrenceDate: Date(),
+            endDate: nil,
+            categoryId: nil,
+            savingStrategy: savingStrategy,
+            customMonthlySavingAmount: nil,
+            dateAdjustmentPolicy: .none,
+            recurrenceDayPattern: .fixed(1),
+            matchKeywords: [],
+            createdAt: Date(),
+            updatedAt: Date(),
+        )
     }
 }

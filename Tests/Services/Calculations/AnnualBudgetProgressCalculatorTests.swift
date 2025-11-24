@@ -417,4 +417,58 @@ internal struct AnnualBudgetProgressCalculatorTests {
             )
         }
     }
+
+    @Test("upToMonthを指定した場合、その月までの実績のみが計算される")
+    internal func calculate_withUpToMonth() throws {
+        // Given: カテゴリと予算を作成
+        let foodCategory = DomainFixtures.category(name: "食費", displayOrder: 1)
+
+        // 年次予算: 600,000円/年（50,000円/月 × 12ヶ月）
+        let budget = DomainFixtures.budget(
+            amount: 50000,
+            category: foodCategory,
+            startYear: 2025,
+            startMonth: 1,
+            endYear: 2025,
+            endMonth: 12,
+        )
+
+        // 取引データを作成（1月〜6月）
+        let transactions: [Transaction] = (1 ... 6).map { month in
+            DomainFixtures.transaction(
+                date: Date.from(year: 2025, month: month, day: 15) ?? Date(),
+                title: "食材\(month)月",
+                amount: -10000,
+                majorCategory: foodCategory,
+            )
+        }
+
+        // When: 3月までの年次予算進捗を計算
+        let result = calculator.calculate(
+            budgets: [budget],
+            transactions: transactions,
+            categories: [foodCategory],
+            year: 2025,
+            upToMonth: 3,
+        )
+
+        // Then: 実績が1月〜3月の合計（30,000円）になっていることを確認
+        let foodEntry = findCategoryEntry(in: result.categoryEntries, categoryId: foodCategory.id)
+        #expect(foodEntry != nil, "食費のエントリが存在する")
+
+        if let foodEntry {
+            let expectedActual: Decimal = 30000 // 10,000円 × 3ヶ月
+            #expect(
+                foodEntry.calculation.actualAmount == expectedActual,
+                "実績が1月〜3月の合計（\(expectedActual)円）になっている。実際: \(foodEntry.calculation.actualAmount)円",
+            )
+
+            // 予算額は変わらず年間合計（600,000円）
+            let expectedBudget: Decimal = 600_000
+            #expect(
+                foodEntry.calculation.budgetAmount == expectedBudget,
+                "予算額が年間合計（\(expectedBudget)円）",
+            )
+        }
+    }
 }
