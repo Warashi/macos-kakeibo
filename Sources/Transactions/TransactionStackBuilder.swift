@@ -28,14 +28,17 @@ internal enum TransactionStackBuilder {
     }
 
     /// TransactionStore を構築
-    /// - Parameter modelContainer: SwiftData ModelContainer
+    /// - Parameters:
+    ///   - modelContainer: SwiftData ModelContainer
+    ///   - appState: アプリケーション状態（画面間で共有される年月を管理）
     /// - Returns: 初期化済みの TransactionStore
-    internal static func makeStore(modelContainer: ModelContainer) async -> TransactionStore {
+    internal static func makeStore(modelContainer: ModelContainer, appState: AppState) async -> TransactionStore {
         let dependencies = await makeDependencies(modelContainer: modelContainer)
         return await MainActor.run {
             TransactionStore(
                 listUseCase: dependencies.listUseCase,
                 formUseCase: dependencies.formUseCase,
+                appState: appState,
             )
         }
     }
@@ -48,13 +51,16 @@ internal enum TransactionStackBuilder {
     }
 
     /// TransactionStore を ModelActor ベースで構築
-    /// - Parameter modelActor: 取引用 ModelActor
-    internal static func makeStore(modelActor: TransactionModelActor) async -> TransactionStore {
+    /// - Parameters:
+    ///   - modelActor: 取引用 ModelActor
+    ///   - appState: アプリケーション状態（画面間で共有される年月を管理）
+    internal static func makeStore(modelActor: TransactionModelActor, appState: AppState) async -> TransactionStore {
         let dependencies = await makeDependencies(modelActor: modelActor)
         return await MainActor.run {
             TransactionStore(
                 listUseCase: dependencies.listUseCase,
                 formUseCase: dependencies.formUseCase,
+                appState: appState,
             )
         }
     }

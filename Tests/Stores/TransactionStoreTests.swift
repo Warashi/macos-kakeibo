@@ -24,7 +24,7 @@ internal struct TransactionStoreTests {
         )
         let listUseCase = TransactionListUseCaseStub(transactions: [transaction])
         let formUseCase = TransactionFormUseCaseStub()
-        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
+        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() }, appState: AppState())
 
         // 初期化の完了を待つ
         await store.refresh()
@@ -57,7 +57,7 @@ internal struct TransactionStoreTests {
         )
         let listUseCase = TransactionListUseCaseStub(transactions: [transaction])
         let formUseCase = TransactionFormUseCaseStub()
-        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
+        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() }, appState: AppState())
 
         let backgroundTask = Task.detached {
             await store.refresh()
@@ -73,7 +73,7 @@ internal struct TransactionStoreTests {
     internal func changingFiltersReloadsTransactions() async {
         let listUseCase = TransactionListUseCaseStub(transactions: [])
         let formUseCase = TransactionFormUseCaseStub()
-        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
+        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() }, appState: AppState())
 
         await store.refresh()
         store.selectedFilterKind = .income
@@ -90,7 +90,7 @@ internal struct TransactionStoreTests {
         let listUseCase = TransactionListUseCaseStub(transactions: [])
         let formUseCase = TransactionFormUseCaseStub()
         let today = Date.from(year: 2025, month: 11, day: 15) ?? Date()
-        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { today })
+        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { today }, appState: AppState())
 
         store.prepareForNewTransaction()
 
@@ -108,6 +108,7 @@ internal struct TransactionStoreTests {
             listUseCase: listUseCase,
             formUseCase: formUseCase,
             clock: { sampleMonth() },
+            appState: AppState(),
         )
 
         let result = await store.saveCurrentForm()
@@ -135,7 +136,7 @@ internal struct TransactionStoreTests {
         )
         let listUseCase = TransactionListUseCaseStub(transactions: [transaction])
         let formUseCase = TransactionFormUseCaseStub()
-        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() })
+        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, clock: { sampleMonth() }, appState: AppState())
 
         // 初期化Task の完了を待つ
         try? await Task.sleep(for: .milliseconds(10))

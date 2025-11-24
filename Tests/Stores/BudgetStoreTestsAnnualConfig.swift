@@ -108,6 +108,7 @@ internal struct BudgetStoreTestsAnnualConfig {
             annualUseCase: annualUseCase,
             recurringPaymentUseCase: recurringPaymentUseCase,
             mutationUseCase: mutationUseCase,
+            appState: AppState(),
         )
     }
 

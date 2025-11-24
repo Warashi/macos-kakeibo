@@ -487,8 +487,9 @@ internal struct DashboardStoreTests {
 }
 
 private extension DashboardStoreTests {
+    @MainActor
     func makeStore(container: ModelContainer) async -> DashboardStore {
         let repository = SwiftDataDashboardRepository(modelContainer: container)
-        return DashboardStore(repository: repository)
+        return DashboardStore(repository: repository, appState: AppState())
     }
 }

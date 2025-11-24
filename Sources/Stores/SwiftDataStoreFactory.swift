@@ -6,21 +6,23 @@ import SwiftData
 /// ModelContainerを保持し、各StackBuilderを使ってStoreを作成します。
 internal final class SwiftDataStoreFactory: StoreFactory, @unchecked Sendable {
     private let modelContainer: ModelContainer
+    private let appState: AppState
 
-    internal init(modelContainer: ModelContainer) {
+    internal init(modelContainer: ModelContainer, appState: AppState) {
         self.modelContainer = modelContainer
+        self.appState = appState
     }
 
     internal func makeBudgetStore() async -> BudgetStore {
-        await BudgetStackBuilder.makeStore(modelContainer: modelContainer)
+        await BudgetStackBuilder.makeStore(modelContainer: modelContainer, appState: appState)
     }
 
     internal func makeTransactionStore() async -> TransactionStore {
-        await TransactionStackBuilder.makeStore(modelContainer: modelContainer)
+        await TransactionStackBuilder.makeStore(modelContainer: modelContainer, appState: appState)
     }
 
     internal func makeDashboardStore() async -> DashboardStore {
-        await DashboardStackBuilder.makeStore(modelContainer: modelContainer)
+        await DashboardStackBuilder.makeStore(modelContainer: modelContainer, appState: appState)
     }
 
     internal func makeSavingsGoalStore() async -> SavingsGoalStore {

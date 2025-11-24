@@ -14,6 +14,7 @@ internal final class DashboardStore {
 
     private let repository: DashboardRepository
     private let dashboardService: DashboardService
+    private let appState: AppState
     @ObservationIgnored
     private var refreshTask: Task<Void, Never>?
 
@@ -81,18 +82,21 @@ internal final class DashboardStore {
 
     /// イニシャライザ
     /// - Parameters:
+    ///   - repository: ダッシュボードリポジトリ
     ///   - dashboardService: ダッシュボード計算サービス
+    ///   - appState: アプリケーション状態（画面間で共有される年月を管理）
     internal init(
         repository: DashboardRepository,
         dashboardService: DashboardService = DashboardService(),
+        appState: AppState,
     ) {
         self.repository = repository
         self.dashboardService = dashboardService
+        self.appState = appState
 
-        // 現在の年月で初期化
-        let now = Date()
-        let initialYear = now.year
-        let initialMonth = now.month
+        // AppStateの共通年月で初期化
+        let initialYear = appState.sharedYear
+        let initialMonth = appState.sharedMonth
 
         // すべての stored property を初期化
         self.currentYear = initialYear
@@ -246,6 +250,9 @@ internal final class DashboardStore {
         update(&navigator)
         currentYear = navigator.year
         currentMonth = navigator.month
+        // AppStateの共通年月も更新
+        appState.sharedYear = navigator.year
+        appState.sharedMonth = navigator.month
     }
 
     private func bootstrapInitialState() async {

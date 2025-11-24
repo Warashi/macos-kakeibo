@@ -4,12 +4,14 @@ import Testing
 @Suite("AppState")
 internal struct AppStateTests {
     @Test("デフォルトではダッシュボードが選択される")
+    @MainActor
     internal func defaultSelectionIsDashboard() {
         let state = AppState()
         #expect(state.selectedScreen == .dashboard)
     }
 
     @Test("画面の切り替えが状態に反映される")
+    @MainActor
     internal func screenSelectionUpdatesState() {
         let state = AppState()
         state.selectedScreen = .budgets

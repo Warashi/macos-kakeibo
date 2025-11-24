@@ -40,9 +40,10 @@ internal struct BudgetStoreRecurringPaymentRefreshTests {
 
     // MARK: - Helpers
 
+    @MainActor
     private func makeStores() async throws -> (BudgetStore, RecurringPaymentStore) {
         let container = try ModelContainer.createInMemoryContainer()
-        let budgetStore = await BudgetStackBuilder.makeStore(modelContainer: container)
+        let budgetStore = await BudgetStackBuilder.makeStore(modelContainer: container, appState: AppState())
         budgetStore.currentYear = 2026
         budgetStore.currentMonth = 5
         await budgetStore.refresh()

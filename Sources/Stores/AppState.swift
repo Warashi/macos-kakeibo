@@ -1,5 +1,7 @@
+import Foundation
 import Observation
 
+@MainActor
 @Observable
 internal final class AppState {
     internal enum Screen: String, CaseIterable, Identifiable, Hashable {
@@ -66,7 +68,17 @@ internal final class AppState {
 
     internal var selectedScreen: Screen?
 
+    // 画面間で共有される年月の状態
+    internal var sharedYear: Int
+    internal var sharedMonth: Int
+
     internal init(selectedScreen: Screen = .dashboard) {
         self.selectedScreen = selectedScreen
+
+        // 現在の年月で初期化
+        let now = Date()
+        let calendar = Calendar.current
+        self.sharedYear = calendar.component(.year, from: now)
+        self.sharedMonth = calendar.component(.month, from: now)
     }
 }

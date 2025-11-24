@@ -34,9 +34,11 @@ internal enum BudgetStackBuilder {
     }
 
     /// BudgetStore を構築
-    /// - Parameter modelContainer: SwiftData ModelContainer
+    /// - Parameters:
+    ///   - modelContainer: SwiftData ModelContainer
+    ///   - appState: アプリケーション状態（画面間で共有される年月を管理）
     /// - Returns: 初期化済み BudgetStore
-    internal static func makeStore(modelContainer: ModelContainer) async -> BudgetStore {
+    internal static func makeStore(modelContainer: ModelContainer, appState: AppState) async -> BudgetStore {
         let dependencies = await makeDependencies(modelContainer: modelContainer)
         return await MainActor.run {
             BudgetStore(
@@ -45,6 +47,7 @@ internal enum BudgetStackBuilder {
                 annualUseCase: dependencies.annualUseCase,
                 recurringPaymentUseCase: dependencies.recurringPaymentUseCase,
                 mutationUseCase: dependencies.mutationUseCase,
+                appState: appState,
             )
         }
     }
@@ -57,9 +60,11 @@ internal enum BudgetStackBuilder {
     }
 
     /// BudgetStore を ModelActor ベースで構築
-    /// - Parameter modelActor: 予算用 ModelActor
+    /// - Parameters:
+    ///   - modelActor: 予算用 ModelActor
+    ///   - appState: アプリケーション状態（画面間で共有される年月を管理）
     /// - Returns: 初期化済み BudgetStore
-    internal static func makeStore(modelActor: BudgetModelActor) async -> BudgetStore {
+    internal static func makeStore(modelActor: BudgetModelActor, appState: AppState) async -> BudgetStore {
         let dependencies = await makeDependencies(modelActor: modelActor)
         return await MainActor.run {
             BudgetStore(
@@ -68,6 +73,7 @@ internal enum BudgetStackBuilder {
                 annualUseCase: dependencies.annualUseCase,
                 recurringPaymentUseCase: dependencies.recurringPaymentUseCase,
                 mutationUseCase: dependencies.mutationUseCase,
+                appState: appState,
             )
         }
     }

@@ -24,7 +24,7 @@ internal struct DashboardStackBuilderTests {
         context.insert(transaction)
         try context.save()
 
-        let store = await DashboardStackBuilder.makeStore(modelContainer: container)
+        let store = await DashboardStackBuilder.makeStore(modelContainer: container, appState: AppState())
         store.currentYear = expenseDate.year
         store.currentMonth = expenseDate.month
         await store.refresh()

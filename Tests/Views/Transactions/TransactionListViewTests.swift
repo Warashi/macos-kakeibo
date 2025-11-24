@@ -22,7 +22,7 @@ internal struct TransactionListViewTests {
         let repository = SwiftDataTransactionRepository(modelContainer: container)
         let listUseCase = DefaultTransactionListUseCase(repository: repository)
         let formUseCase = DefaultTransactionFormUseCase(repository: repository)
-        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase)
+        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, appState: AppState())
 
         let view = TransactionListContentView(store: store)
         let _: any View = view
@@ -37,7 +37,7 @@ internal struct TransactionListViewTests {
         let repository = SwiftDataTransactionRepository(modelContainer: container)
         let listUseCase = DefaultTransactionListUseCase(repository: repository)
         let formUseCase = DefaultTransactionFormUseCase(repository: repository)
-        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase)
+        let store = TransactionStore(listUseCase: listUseCase, formUseCase: formUseCase, appState: AppState())
 
         let filterBar = TransactionFilterBar(store: store)
         let _: any View = filterBar

@@ -24,7 +24,7 @@ internal struct TransactionStackBuilderTests {
         _ = try await dependencies.repository.insert(input)
         try await dependencies.repository.saveChanges()
 
-        let store = await TransactionStackBuilder.makeStore(modelContainer: container)
+        let store = await TransactionStackBuilder.makeStore(modelContainer: container, appState: AppState())
         await store.refresh()
 
         let transactions = await MainActor.run { store.transactions }
@@ -52,7 +52,7 @@ internal struct TransactionStackBuilderTests {
         _ = try await dependencies.repository.insert(input)
         try await dependencies.repository.saveChanges()
 
-        let store = await TransactionStackBuilder.makeStore(modelActor: modelActor)
+        let store = await TransactionStackBuilder.makeStore(modelActor: modelActor, appState: AppState())
         await store.refresh()
 
         let transactions = await MainActor.run { store.transactions }

@@ -5,12 +5,15 @@ import SwiftUI
 internal struct KakeiboApp: App {
     internal let modelContainer: ModelContainer
     internal let storeFactory: StoreFactory
+    internal let appState: AppState
 
     internal init() {
         do {
             let container = try ModelContainer.createKakeiboContainer()
             modelContainer = container
-            storeFactory = SwiftDataStoreFactory(modelContainer: container)
+            let state = AppState()
+            appState = state
+            storeFactory = SwiftDataStoreFactory(modelContainer: container, appState: state)
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }

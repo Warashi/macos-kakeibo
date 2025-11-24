@@ -24,6 +24,7 @@ internal final class BudgetStore {
     private let recurringPaymentUseCase: RecurringPaymentSavingsUseCaseProtocol
     private let mutationUseCase: BudgetMutationUseCaseProtocol
     private let currentDateProvider: () -> Date
+    private let appState: AppState
 
     private struct BudgetCalculationContext: Sendable {
         internal let snapshot: BudgetSnapshot
@@ -41,6 +42,8 @@ internal final class BudgetStore {
     internal var currentYear: Int {
         didSet {
             guard oldValue != currentYear else { return }
+            // AppStateの共通年月も更新
+            appState.sharedYear = currentYear
             Task { [weak self] in
                 await self?.reloadSnapshot()
             }
@@ -50,6 +53,8 @@ internal final class BudgetStore {
     internal var currentMonth: Int {
         didSet {
             guard oldValue != currentMonth else { return }
+            // AppStateの共通年月も更新
+            appState.sharedMonth = currentMonth
             refreshToken = UUID()
             _ = scheduleRecalculation()
         }
@@ -118,6 +123,7 @@ internal final class BudgetStore {
         recurringPaymentUseCase: RecurringPaymentSavingsUseCaseProtocol,
         mutationUseCase: BudgetMutationUseCaseProtocol,
         currentDateProvider: @escaping () -> Date = Date.init,
+        appState: AppState,
     ) {
         self.repository = repository
         self.monthlyUseCase = monthlyUseCase
@@ -125,10 +131,11 @@ internal final class BudgetStore {
         self.recurringPaymentUseCase = recurringPaymentUseCase
         self.mutationUseCase = mutationUseCase
         self.currentDateProvider = currentDateProvider
+        self.appState = appState
 
-        let now = currentDateProvider()
-        let initialYear = now.year
-        let initialMonth = now.month
+        // AppStateの共通年月で初期化
+        let initialYear = appState.sharedYear
+        let initialMonth = appState.sharedMonth
 
         self.currentYear = initialYear
         self.currentMonth = initialMonth

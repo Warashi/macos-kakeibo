@@ -28,7 +28,7 @@ internal struct BudgetStackBuilderTests {
         try await dependencies.repository.addBudget(input)
         try await dependencies.repository.saveChanges()
 
-        let store = await BudgetStackBuilder.makeStore(modelContainer: container)
+        let store = await BudgetStackBuilder.makeStore(modelContainer: container, appState: AppState())
         await store.refresh()
 
         let budgets = await MainActor.run { store.monthlyBudgets }
@@ -58,7 +58,7 @@ internal struct BudgetStackBuilderTests {
         try await dependencies.repository.addBudget(input)
         try await dependencies.repository.saveChanges()
 
-        let store = await BudgetStackBuilder.makeStore(modelActor: modelActor)
+        let store = await BudgetStackBuilder.makeStore(modelActor: modelActor, appState: AppState())
         await store.refresh()
 
         let budgets = await MainActor.run { store.monthlyBudgets }

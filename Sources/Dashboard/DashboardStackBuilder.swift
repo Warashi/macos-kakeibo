@@ -24,12 +24,16 @@ internal enum DashboardStackBuilder {
     }
 
     /// DashboardStore を構築
-    internal static func makeStore(modelContainer: ModelContainer) async -> DashboardStore {
+    /// - Parameters:
+    ///   - modelContainer: SwiftData ModelContainer
+    ///   - appState: アプリケーション状態（画面間で共有される年月を管理）
+    internal static func makeStore(modelContainer: ModelContainer, appState: AppState) async -> DashboardStore {
         let dependencies = await makeDependencies(modelContainer: modelContainer)
         return await MainActor.run {
             DashboardStore(
                 repository: dependencies.repository,
                 dashboardService: dependencies.dashboardService,
+                appState: appState,
             )
         }
     }

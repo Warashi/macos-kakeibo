@@ -26,6 +26,7 @@ internal final class TransactionStore {
     private let formUseCase: TransactionFormUseCaseProtocol
     private let clock: () -> Date
     private let monthAdapter: MonthNavigatorDateAdapter
+    private let appState: AppState
     @ObservationIgnored
     private var transactionsHandle: ObservationHandle?
     @ObservationIgnored
@@ -82,6 +83,10 @@ internal final class TransactionStore {
                 currentMonth = normalized
                 return
             }
+            // AppStateの共通年月も更新
+            let calendar = Calendar.current
+            appState.sharedYear = calendar.component(.year, from: currentMonth)
+            appState.sharedMonth = calendar.component(.month, from: currentMonth)
             scheduleTransactionsReload()
         }
     }
@@ -106,13 +111,24 @@ internal final class TransactionStore {
         formUseCase: TransactionFormUseCaseProtocol,
         clock: @escaping () -> Date = Date.init,
         monthAdapter: MonthNavigatorDateAdapter = MonthNavigatorDateAdapter(),
+        appState: AppState,
     ) {
         self.listUseCase = listUseCase
         self.formUseCase = formUseCase
         self.clock = clock
         self.monthAdapter = monthAdapter
+        self.appState = appState
+
+        // AppStateの共通年月をDateに変換して初期化
+        let calendar = Calendar.current
+        var components = DateComponents()
+        components.year = appState.sharedYear
+        components.month = appState.sharedMonth
+        components.day = 1
+        let initialMonth = calendar.date(from: components) ?? clock().startOfMonth
+        self.currentMonth = initialMonth
+
         let now = clock()
-        self.currentMonth = now.startOfMonth
         self.formState = .empty(defaultDate: now)
         initialRefreshTask = Task { @MainActor [weak self] in
             await self?.performRefresh()

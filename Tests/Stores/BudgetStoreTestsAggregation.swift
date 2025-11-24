@@ -130,6 +130,7 @@ internal struct BudgetStoreTestsAggregation {
             annualUseCase: annualUseCase,
             recurringPaymentUseCase: recurringPaymentUseCase,
             mutationUseCase: mutationUseCase,
+            appState: AppState(),
         )
     }
 
