@@ -146,7 +146,7 @@ internal extension Date {
         internal let end: Date
     }
 
-    // swiftlint:disable:next function_parameter_count
+    // swiftlint:disable function_parameter_count
     /// カスタム月範囲を計算
     /// - Parameters:
     ///   - year: 年
@@ -250,4 +250,5 @@ internal extension Date {
 
         return nextStart
     }
+    // swiftlint:enable function_parameter_count
 }
