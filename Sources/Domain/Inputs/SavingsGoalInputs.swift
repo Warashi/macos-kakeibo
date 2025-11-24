@@ -39,3 +39,26 @@ internal struct SavingsGoalUpdateInput: Sendable {
         self.input = input
     }
 }
+
+/// 貯蓄目標引出の入力パラメータ
+internal struct SavingsGoalWithdrawalInput: Sendable {
+    internal let goalId: UUID
+    internal let amount: Decimal
+    internal let withdrawalDate: Date
+    internal let purpose: String?
+    internal let transactionId: UUID?
+
+    internal init(
+        goalId: UUID,
+        amount: Decimal,
+        withdrawalDate: Date,
+        purpose: String? = nil,
+        transactionId: UUID? = nil
+    ) {
+        self.goalId = goalId
+        self.amount = amount
+        self.withdrawalDate = withdrawalDate
+        self.purpose = purpose
+        self.transactionId = transactionId
+    }
+}
