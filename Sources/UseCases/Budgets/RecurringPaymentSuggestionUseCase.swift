@@ -1,7 +1,7 @@
 import Foundation
 
 /// 定期支払い提案UseCase のプロトコル
-internal protocol RecurringPaymentSuggestionUseCaseProtocol: Sendable {
+internal protocol RecurringPaymentSuggestionProtocol: Sendable {
     /// 取引データから定期支払いの提案を生成
     func generateSuggestions(
         criteria: RecurringPaymentDetectionCriteria
@@ -9,7 +9,7 @@ internal protocol RecurringPaymentSuggestionUseCaseProtocol: Sendable {
 }
 
 /// 定期支払い提案UseCase の実装
-internal struct RecurringPaymentSuggestionUseCase: RecurringPaymentSuggestionUseCaseProtocol {
+internal struct RecurringPaymentSuggestionUseCase: RecurringPaymentSuggestionProtocol {
     private let transactionRepository: TransactionRepository
     private let recurringPaymentRepository: RecurringPaymentRepository
     private let detectionService: RecurringPaymentDetectionService

@@ -21,7 +21,7 @@ internal struct RecurringPaymentStoreDependencies {
 
 /// 定期支払い提案ストア用の依存関係
 internal struct RecurringPaymentSuggestionDependencies {
-    internal let suggestionUseCase: RecurringPaymentSuggestionUseCaseProtocol
+    internal let suggestionUseCase: RecurringPaymentSuggestionProtocol
     internal let recurringPaymentStore: RecurringPaymentStore
 }
 

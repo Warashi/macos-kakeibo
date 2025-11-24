@@ -301,7 +301,7 @@ private struct SuggestionCardView: View {
 }
 
 // Preview用のモック
-private struct PreviewRecurringPaymentSuggestionUseCase: RecurringPaymentSuggestionUseCaseProtocol {
+private struct PreviewRecurringPaymentSuggestionUseCase: RecurringPaymentSuggestionProtocol {
     let suggestions: [RecurringPaymentSuggestion]
 
     func generateSuggestions(criteria: RecurringPaymentDetectionCriteria) async throws -> [RecurringPaymentSuggestion] {

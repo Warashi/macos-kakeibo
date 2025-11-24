@@ -7,7 +7,7 @@ import Observation
 internal final class RecurringPaymentSuggestionStore {
     // MARK: - Properties
 
-    private let suggestionUseCase: RecurringPaymentSuggestionUseCaseProtocol
+    private let suggestionUseCase: RecurringPaymentSuggestionProtocol
     private let recurringPaymentStore: RecurringPaymentStore
 
     /// 提案リスト
@@ -29,7 +29,7 @@ internal final class RecurringPaymentSuggestionStore {
     // MARK: - Initialization
 
     internal init(
-        suggestionUseCase: RecurringPaymentSuggestionUseCaseProtocol,
+        suggestionUseCase: RecurringPaymentSuggestionProtocol,
         recurringPaymentStore: RecurringPaymentStore
     ) {
         self.suggestionUseCase = suggestionUseCase
