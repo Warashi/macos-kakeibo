@@ -142,7 +142,7 @@ internal final class RecurringPaymentSuggestionStore {
             firstOccurrenceDate: suggestion.suggestedStartDate,
             endDate: nil,
             categoryId: suggestion.suggestedCategoryId,
-            savingStrategy: .disabled,
+            savingStrategy: .evenlyDistributed,
             customMonthlySavingAmount: nil,
             dateAdjustmentPolicy: .none,
             recurrenceDayPattern: suggestion.suggestedDayPattern,
