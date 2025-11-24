@@ -97,3 +97,10 @@ targets:
         CFBundleIdentifier: dev.warashi.KakeiboTests
         CFBundleName: KakeiboTests
         CFBundlePackageType: BNDL
+    settings:
+      base:
+        SWIFT_VERSION: 6.2
+        DEAD_CODE_STRIPPING: YES
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_USER_SCRIPT_SANDBOXING: YES
+        OTHER_SWIFT_FLAGS: -warnings-as-errors
