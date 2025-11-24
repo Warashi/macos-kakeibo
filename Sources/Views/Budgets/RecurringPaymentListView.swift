@@ -41,7 +41,7 @@ internal struct RecurringPaymentListContentView: View {
     @State private var isExportingCSV: Bool = false
     @State private var exportError: String?
     @State private var suggestionStore: RecurringPaymentSuggestionStore?
-    @State private var isSuggestionSheetPresented = false
+    @State private var isSuggestionSheetPresented: Bool = false
 
     internal var body: some View {
         VStack(spacing: 16) {
@@ -286,7 +286,7 @@ private struct RecurringPaymentEntriesTableView: View {
     @Environment(\.storeFactory) private var storeFactory: StoreFactory?
     @Bindable internal var store: RecurringPaymentListStore
     @State private var suggestionStore: RecurringPaymentSuggestionStore?
-    @State private var isSuggestionSheetPresented = false
+    @State private var isSuggestionSheetPresented: Bool = false
 
     internal var body: some View {
         if store.cachedEntries.isEmpty {
