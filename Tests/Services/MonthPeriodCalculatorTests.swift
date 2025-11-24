@@ -4,9 +4,9 @@ import Testing
 @testable import Kakeibo
 
 @Suite("MonthPeriodCalculator Tests")
-struct MonthPeriodCalculatorTests {
+internal struct MonthPeriodCalculatorTests {
     @Test("デフォルト設定 - 開始日1日、調整なし")
-    func testDefaultSettings() {
+    internal func testDefaultSettings() {
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 1,
@@ -33,7 +33,7 @@ struct MonthPeriodCalculatorTests {
     }
 
     @Test("カスタム開始日 - 25日開始")
-    func testCustomStartDay() {
+    internal func testCustomStartDay() {
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 25,
@@ -60,7 +60,7 @@ struct MonthPeriodCalculatorTests {
     }
 
     @Test("休日調整 - 前営業日")
-    func testPreviousBusinessDayAdjustment() {
+    internal func testPreviousBusinessDayAdjustment() {
         // 2025年1月1日は元日（休日）
         let calendar = Calendar(identifier: .gregorian)
         var holidays = Set<Date>()
@@ -89,7 +89,7 @@ struct MonthPeriodCalculatorTests {
     }
 
     @Test("休日調整 - 次営業日")
-    func testNextBusinessDayAdjustment() {
+    internal func testNextBusinessDayAdjustment() {
         // 2025年1月1日は元日（休日）
         let calendar = Calendar(identifier: .gregorian)
         var holidays = Set<Date>()
@@ -118,7 +118,7 @@ struct MonthPeriodCalculatorTests {
     }
 
     @Test("複数月にわたる計算 - 連続性の確認")
-    func testConsecutiveMonths() {
+    internal func testConsecutiveMonths() {
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 15,
@@ -139,7 +139,7 @@ struct MonthPeriodCalculatorTests {
     }
 
     @Test("年をまたぐ計算 - 12月から1月")
-    func testYearBoundary() {
+    internal func testYearBoundary() {
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 25,
@@ -166,7 +166,7 @@ struct MonthPeriodCalculatorTests {
     }
 
     @Test("期間の長さ - 約1ヶ月であることを確認")
-    func testPeriodLength() {
+    internal func testPeriodLength() {
         let businessDayService = BusinessDayService()
         let calculator = MonthPeriodCalculator(
             monthStartDay: 1,
