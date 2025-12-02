@@ -64,7 +64,9 @@ internal struct DashboardSummaryCard: View {
             ),
             SummaryMetric(
                 title: "積立",
-                amount: recurringPaymentSummary.totalMonthlyAmount,
+                amount: displayMode == .monthly
+                    ? recurringPaymentSummary.totalMonthlyAmount
+                    : recurringPaymentSummary.yearToDateMonthlyAmount,
                 color: .info,
             ),
             SummaryMetric(
@@ -86,6 +88,12 @@ internal struct DashboardSummaryCard: View {
 
         return items
     }
+
+    #if DEBUG
+    internal var summaryMetricsForTesting: [SummaryMetric] {
+        summaryMetricData
+    }
+    #endif
 
     @ViewBuilder
     private func summaryItem(
@@ -202,7 +210,7 @@ private struct BudgetProgressView: View {
     }
 }
 
-private struct SummaryMetric {
+internal struct SummaryMetric {
     internal let title: String
     internal let amount: Decimal?
     internal let text: String?
