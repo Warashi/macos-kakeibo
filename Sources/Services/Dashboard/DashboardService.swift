@@ -1,5 +1,7 @@
 import Foundation
 
+// swiftlint:disable type_body_length
+
 /// Dashboard calculation service
 ///
 /// Encapsulates dashboard calculation logic, keeping it separate from UI state management.
@@ -12,15 +14,20 @@ internal final class DashboardService {
     private let annualBudgetAllocator: AnnualBudgetAllocator
     private let annualBudgetProgressCalculator: AnnualBudgetProgressCalculator
     private let monthPeriodCalculator: MonthPeriodCalculator
+    private let currentDateProvider: () -> Date
 
     // MARK: - Initialization
 
-    internal init(monthPeriodCalculator: MonthPeriodCalculator? = nil) {
+    internal init(
+        monthPeriodCalculator: MonthPeriodCalculator? = nil,
+        currentDateProvider: @escaping () -> Date = Date.init,
+    ) {
         self.aggregator = TransactionAggregator()
         self.budgetCalculator = BudgetCalculator()
         self.annualBudgetAllocator = AnnualBudgetAllocator()
         self.annualBudgetProgressCalculator = AnnualBudgetProgressCalculator()
         self.monthPeriodCalculator = monthPeriodCalculator ?? MonthPeriodCalculatorFactory.make()
+        self.currentDateProvider = currentDateProvider
     }
 
     // MARK: - Dashboard Calculation
@@ -49,6 +56,7 @@ internal final class DashboardService {
         let monthlyRecurringPaymentAllocation = calculateMonthlyRecurringPaymentAllocation(
             from: snapshot.recurringPaymentDefinitions,
         )
+        let yearToDateMonth = monthPeriodCalculator.monthsElapsed(in: year, until: currentDateProvider())
 
         let (monthlySummary, annualSummary) = calculateSummaries(
             params: SummaryCalculationParams(
@@ -57,6 +65,7 @@ internal final class DashboardService {
                 month: month,
                 filter: filter,
                 monthlyRecurringPaymentAllocation: monthlyRecurringPaymentAllocation,
+                yearToDateMonth: yearToDateMonth,
             ),
         )
 
@@ -70,6 +79,7 @@ internal final class DashboardService {
                 annualSummary: annualSummary,
                 displayMode: displayMode,
                 filter: filter,
+                yearToDateMonth: yearToDateMonth,
             ),
         )
 
@@ -96,6 +106,7 @@ internal final class DashboardService {
         internal let month: Int
         internal let filter: AggregationFilter
         internal let monthlyRecurringPaymentAllocation: Decimal
+        internal let yearToDateMonth: Int
     }
 
     private struct BudgetCalculationParams {
@@ -107,6 +118,7 @@ internal final class DashboardService {
         internal let annualSummary: AnnualSummary
         internal let displayMode: DashboardStore.DisplayMode
         internal let filter: AggregationFilter
+        internal let yearToDateMonth: Int
     }
 
     /// 予算・進捗計算結果
@@ -161,7 +173,7 @@ internal final class DashboardService {
             goals: params.snapshot.savingsGoals,
             balances: params.snapshot.savingsGoalBalances,
             year: params.year,
-            month: params.month,
+            monthCount: params.yearToDateMonth,
         )
 
         let recurringPaymentSummary = calculateRecurringPaymentSummary(
@@ -171,6 +183,7 @@ internal final class DashboardService {
                 balances: params.snapshot.recurringPaymentBalances,
                 year: params.year,
                 month: params.month,
+                yearToDateMonth: params.yearToDateMonth,
             ),
         )
 
@@ -209,6 +222,7 @@ internal final class DashboardService {
             filter: params.filter,
             savingsGoals: params.snapshot.savingsGoals,
             recurringPaymentDefinitions: params.snapshot.recurringPaymentDefinitions,
+            upToMonth: params.yearToDateMonth,
         )
 
         return (monthlySummary, annualSummary)
@@ -320,7 +334,7 @@ internal final class DashboardService {
         goals: [SavingsGoal],
         balances: [SavingsGoalBalance],
         year: Int,
-        month: Int,
+        monthCount: Int,
     ) -> SavingsSummary {
         let balanceMap = Dictionary(uniqueKeysWithValues: balances.map { ($0.goalId, $0) })
 
@@ -329,7 +343,7 @@ internal final class DashboardService {
             .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
 
         // 年始から現在月までの合計を計算
-        let yearToDateMonthlySavings = totalMonthlySavings * Decimal(month)
+        let yearToDateMonthlySavings = totalMonthlySavings * Decimal(monthCount)
 
         let goalSummaries = goals.map { goal in
             let balance = balanceMap[goal.id]
@@ -368,6 +382,7 @@ internal final class DashboardService {
         internal let balances: [RecurringPaymentSavingBalance]
         internal let year: Int
         internal let month: Int
+        internal let yearToDateMonth: Int
     }
 
     private func calculateRecurringPaymentSummary(
@@ -402,7 +417,7 @@ internal final class DashboardService {
             .reduce(Decimal.zero) { $0 + $1.monthlySavingAmount }
 
         // 年始から現在月までの積立合計を計算
-        let yearToDateMonthlyAmount = totalMonthlyAmount * Decimal(params.month)
+        let yearToDateMonthlyAmount = totalMonthlyAmount * Decimal(params.yearToDateMonth)
 
         // 当月予定・実績・未払いを計算
         var currentMonthExpected = Decimal.zero
@@ -447,6 +462,8 @@ internal final class DashboardService {
         )
     }
 }
+
+// swiftlint:enable type_body_length
 
 // MARK: - Input/Output Types
 

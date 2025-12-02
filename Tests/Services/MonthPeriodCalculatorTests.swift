@@ -185,4 +185,33 @@ internal struct MonthPeriodCalculatorTests {
         // 1月は31日あるので、31日間の期間になるはず
         #expect(components.day == 31)
     }
+
+    @Test("属する月の判定は集計開始日に従う")
+    internal func monthContainingUsesCustomStartDay() throws {
+        let businessDayService = BusinessDayService()
+        let calculator = MonthPeriodCalculator(
+            monthStartDay: 25,
+            monthStartDayAdjustment: .none,
+            businessDayService: businessDayService,
+        )
+
+        let date = try #require(Date.from(year: 2025, month: 10, day: 30))
+        #expect(calculator.monthContaining(date, in: 2025) == 10)
+    }
+
+    @Test("経過月数は集計期間を考慮して算出される")
+    internal func monthsElapsedRespectsCustomPeriod() throws {
+        let businessDayService = BusinessDayService()
+        let calculator = MonthPeriodCalculator(
+            monthStartDay: 25,
+            monthStartDayAdjustment: .none,
+            businessDayService: businessDayService,
+        )
+
+        let beforeStart = try #require(Date.from(year: 2025, month: 1, day: 10))
+        let october = try #require(Date.from(year: 2025, month: 10, day: 30))
+
+        #expect(calculator.monthsElapsed(in: 2025, until: beforeStart) == 0)
+        #expect(calculator.monthsElapsed(in: 2025, until: october) == 10)
+    }
 }

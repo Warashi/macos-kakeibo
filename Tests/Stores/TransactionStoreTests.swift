@@ -105,11 +105,14 @@ internal struct TransactionStoreTests {
         let listUseCase = TransactionListUseCaseStub(transactions: [])
         let formUseCase = TransactionFormUseCaseStub()
         let today = Date.from(year: 2025, month: 11, day: 15) ?? Date()
+        let appState = AppState()
+        appState.sharedYear = Calendar.current.component(.year, from: today)
+        appState.sharedMonth = Calendar.current.component(.month, from: today)
         let store = TransactionStore(
             listUseCase: listUseCase,
             formUseCase: formUseCase,
             clock: { today },
-            appState: AppState(),
+            appState: appState,
         )
 
         store.prepareForNewTransaction()
