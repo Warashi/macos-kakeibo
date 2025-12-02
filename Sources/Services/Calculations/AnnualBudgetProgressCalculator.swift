@@ -87,6 +87,7 @@ internal struct AnnualBudgetProgressCalculator: Sendable {
             budgets: annualBudgets,
             annualSummary: annualSummary,
             excludedCategoryIds: excludedCategoryIds,
+            upToMonth: upToMonth,
         )
 
         let categoryEntries = makeCategoryEntries(
@@ -94,6 +95,7 @@ internal struct AnnualBudgetProgressCalculator: Sendable {
             budgets: annualBudgets,
             categories: categories,
             actualMap: actualMap,
+            upToMonth: upToMonth,
         )
 
         let aggregateCalculation: BudgetCalculation?
@@ -119,17 +121,19 @@ internal struct AnnualBudgetProgressCalculator: Sendable {
 
     // MARK: - Helpers
 
+    // swiftlint:disable:next function_parameter_count
     private func makeOverallEntry(
         year: Int,
         budgets: [Budget],
         annualSummary: AnnualSummary,
         excludedCategoryIds: Set<UUID>,
+        upToMonth: Int?,
     ) -> AnnualBudgetEntry? {
         let items = budgets.filter { $0.categoryId == nil }
         guard let budget = items.first else { return nil }
 
         let totalAmount = items.reduce(Decimal.zero) { partial, budget in
-            partial + budget.annualBudgetAmount(for: year)
+            partial + budget.annualBudgetAmount(for: year, upToMonth: upToMonth)
         }
 
         // 除外カテゴリの支出を計算
@@ -159,11 +163,13 @@ internal struct AnnualBudgetProgressCalculator: Sendable {
         )
     }
 
+    // swiftlint:disable:next function_parameter_count
     private func makeCategoryEntries(
         year: Int,
         budgets: [Budget],
         categories: [Category],
         actualMap: [UUID: Decimal],
+        upToMonth: Int?,
     ) -> [AnnualBudgetEntry] {
         let categoryMap = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
 
@@ -178,7 +184,9 @@ internal struct AnnualBudgetProgressCalculator: Sendable {
         return groupedBudgets.compactMap { categoryId, pairedItems -> AnnualBudgetEntry? in
             guard let category = pairedItems.first?.0 else { return nil }
 
-            let totalAmount = pairedItems.reduce(Decimal.zero) { $0 + $1.1.annualBudgetAmount(for: year) }
+            let totalAmount = pairedItems.reduce(Decimal.zero) {
+                $0 + $1.1.annualBudgetAmount(for: year, upToMonth: upToMonth)
+            }
 
             // 実績額を計算：カテゴリ自身の実績 + 子カテゴリの実績
             let actualAmount = calculateActualAmount(

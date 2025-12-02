@@ -119,8 +119,8 @@ internal extension SwiftDataBudget {
     }
 
     /// 指定年における合計予算額（月次金額 × 有効月数）
-    func annualBudgetAmount(for year: Int) -> Decimal {
-        Decimal(monthsActive(in: year)) * amount
+    func annualBudgetAmount(for year: Int, upToMonth: Int? = nil) -> Decimal {
+        Decimal(monthsActive(in: year, upToMonth: upToMonth)) * amount
     }
 
     /// 指定年と期間が重なるかどうか
@@ -138,6 +138,18 @@ internal extension SwiftDataBudget {
 
     private func yearMonthIndex(year: Int, month: Int) -> Int {
         (year * 12) + (month - 1)
+    }
+
+    func monthsActive(in year: Int, upToMonth: Int? = nil) -> Int {
+        let clampedUpToMonth = upToMonth.map { max(1, min(12, $0)) }
+        let yearStart = yearMonthIndex(year: year, month: 1)
+        let yearEnd = yearMonthIndex(year: year, month: clampedUpToMonth ?? 12)
+        let start = max(startIndex, yearStart)
+        let end = min(endIndex, yearEnd)
+        if start > end {
+            return 0
+        }
+        return end - start + 1
     }
 }
 

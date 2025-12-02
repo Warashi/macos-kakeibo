@@ -398,11 +398,11 @@ internal struct AnnualBudgetProgressCalculatorTests {
                 "実績が1月〜3月の合計（\(expectedActual)円）になっている。実際: \(foodEntry.calculation.actualAmount)円",
             )
 
-            // 予算額は変わらず年間合計（600,000円）
-            let expectedBudget: Decimal = 600_000
+            // 予算額も対象月数分（50,000円 × 3ヶ月）
+            let expectedBudget: Decimal = 150_000
             #expect(
                 foodEntry.calculation.budgetAmount == expectedBudget,
-                "予算額が年間合計（\(expectedBudget)円）",
+                "予算額が対象月数分（\(expectedBudget)円）",
             )
         }
     }

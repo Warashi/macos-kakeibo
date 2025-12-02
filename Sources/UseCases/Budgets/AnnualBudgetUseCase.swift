@@ -23,13 +23,19 @@ internal protocol AnnualBudgetUseCaseProtocol: Sendable {
 internal final class DefaultAnnualBudgetUseCase: AnnualBudgetUseCaseProtocol {
     private let allocator: AnnualBudgetAllocator
     private let progressCalculator: AnnualBudgetProgressCalculator
+    private let monthPeriodCalculator: MonthPeriodCalculator
+    private let currentDateProvider: @Sendable () -> Date
 
     internal init(
         allocator: AnnualBudgetAllocator = AnnualBudgetAllocator(),
         progressCalculator: AnnualBudgetProgressCalculator = AnnualBudgetProgressCalculator(),
+        monthPeriodCalculator: MonthPeriodCalculator = MonthPeriodCalculatorFactory.make(),
+        currentDateProvider: @escaping @Sendable () -> Date = Date.init,
     ) {
         self.allocator = allocator
         self.progressCalculator = progressCalculator
+        self.monthPeriodCalculator = monthPeriodCalculator
+        self.currentDateProvider = currentDateProvider
     }
 
     internal func annualBudgetUsage(
@@ -38,6 +44,7 @@ internal final class DefaultAnnualBudgetUseCase: AnnualBudgetUseCaseProtocol {
         month: Int,
     ) -> AnnualBudgetUsage? {
         guard let config = snapshot.annualBudgetConfig else { return nil }
+        let upToMonth = resolveUpToMonth(for: year, requestedMonth: month)
         let filter = makeFilter(from: snapshot)
         let params = AllocationCalculationParams(
             transactions: snapshot.transactions,
@@ -48,7 +55,7 @@ internal final class DefaultAnnualBudgetUseCase: AnnualBudgetUseCaseProtocol {
         return allocator.calculateAnnualBudgetUsage(
             params: params,
             categories: snapshot.categories,
-            upToMonth: month,
+            upToMonth: upToMonth,
         )
     }
 
@@ -57,7 +64,8 @@ internal final class DefaultAnnualBudgetUseCase: AnnualBudgetUseCaseProtocol {
         year: Int,
         month: Int?,
     ) -> AnnualBudgetEntry? {
-        annualProgressResult(snapshot: snapshot, year: year, month: month).overallEntry
+        let upToMonth = resolveUpToMonth(for: year, requestedMonth: month)
+        return annualProgressResult(snapshot: snapshot, year: year, month: upToMonth).overallEntry
     }
 
     internal func annualCategoryEntries(
@@ -65,11 +73,31 @@ internal final class DefaultAnnualBudgetUseCase: AnnualBudgetUseCaseProtocol {
         year: Int,
         month: Int?,
     ) -> [AnnualBudgetEntry] {
-        annualProgressResult(snapshot: snapshot, year: year, month: month).categoryEntries
+        let upToMonth = resolveUpToMonth(for: year, requestedMonth: month)
+        return annualProgressResult(snapshot: snapshot, year: year, month: upToMonth).categoryEntries
     }
 }
 
 private extension DefaultAnnualBudgetUseCase {
+    func resolveUpToMonth(for year: Int, requestedMonth: Int?) -> Int? {
+        if let requestedMonth {
+            let clampedRequested = max(1, min(12, requestedMonth))
+            guard let resolved = resolveUpToMonth(for: year) else {
+                return clampedRequested
+            }
+            return min(clampedRequested, resolved)
+        }
+        return resolveUpToMonth(for: year)
+    }
+
+    func resolveUpToMonth(for year: Int) -> Int? {
+        let now = currentDateProvider()
+        guard monthPeriodCalculator.monthContaining(now, in: year) != nil else {
+            return nil
+        }
+        return monthPeriodCalculator.monthsElapsed(in: year, until: now)
+    }
+
     func annualProgressResult(snapshot: BudgetSnapshot, year: Int, month: Int?) -> AnnualBudgetProgressResult {
         let filter = makeFilter(from: snapshot)
         return progressCalculator.calculate(
